@@ -10,8 +10,9 @@ define users::user (
 
     if $zfs_dataset {
         exec { "/sbin/zfs create -o mountpoint=/home/${name} ${zfs_dataset}":
-            unless => "/sbin/zfs list -H -o name | /bin/grep '^${zfs_dataset}$'",
-            before => File["/home/${name}"],
+            unless  => "/sbin/zfs list -H -o name | /bin/grep '^${zfs_dataset}$'",
+            before  => File["/home/${name}"],
+            require => Class['zfs'],
         }
     }
 
