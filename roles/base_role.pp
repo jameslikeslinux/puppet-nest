@@ -90,7 +90,9 @@ class base_role {
 
     class { 'vim': }
 
-    class { 'kerberos': }
+    class { 'kerberos':
+        default_realm => 'UMD.EDU'
+    }
 
     class { 'ssh': }
 
