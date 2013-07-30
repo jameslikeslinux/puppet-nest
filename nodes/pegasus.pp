@@ -1,0 +1,3 @@
+node 'pegasus.home' {
+    # empty
+}
