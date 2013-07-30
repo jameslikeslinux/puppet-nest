@@ -1,0 +1,220 @@
+{
+  "name": "adrien-portage",
+  "version": "2.0.1",
+  "source": "UNKNOWN",
+  "author": "adrien",
+  "license": "GPLv2",
+  "summary": "Puppet types and providers for Gentoo portage",
+  "description": "UNKNOWN",
+  "project_page": "https://github.com/adrienthebo/puppet-portage",
+  "dependencies": [
+    {
+      "name": "ripienaar/concat",
+      "version_requirement": "0.2.x"
+    }
+  ],
+  "types": [
+    {
+      "name": "eselect",
+      "doc": "",
+      "properties": [
+        {
+          "name": "set",
+          "doc": "The value of the eselect module."
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The name of the eselect module."
+        }
+      ],
+      "providers": [
+        {
+          "name": "eselect",
+          "doc": "Required binaries: `/usr/bin/eselect`."
+        }
+      ]
+    },
+    {
+      "name": "package_keywords",
+      "doc": "Set keywords for a package.\n\n      package_keywords { 'app-admin/puppet':\n        keywords  => ['~x86', '-hppa'],\n        target  => 'puppet',\n      }",
+      "properties": [
+        {
+          "name": "ensure",
+          "doc": "The basic property that the resource should be in.  Valid values are `present`, `absent`."
+        },
+        {
+          "name": "version",
+          "doc": "A properly formatted version string"
+        },
+        {
+          "name": "keywords",
+          "doc": "The keywords(s) to use"
+        },
+        {
+          "name": "target",
+          "doc": "The location of the package.keywords file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The package name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "parsed",
+          "doc": "The package_keywords provider that uses the ParsedFile class"
+        }
+      ]
+    },
+    {
+      "name": "package_mask",
+      "doc": "Mask packages in portage.\n\n      package_mask { 'app-admin/chef':\n        target  => 'chef',\n      }",
+      "properties": [
+        {
+          "name": "ensure",
+          "doc": "The basic property that the resource should be in.  Valid values are `present`, `absent`."
+        },
+        {
+          "name": "version",
+          "doc": "A properly formatted version string"
+        },
+        {
+          "name": "target",
+          "doc": "The location of the package.mask file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The package name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "parsed",
+          "doc": "The package_mask provider backed by parsedfile"
+        }
+      ]
+    },
+    {
+      "name": "package_unmask",
+      "doc": "Unmask packages in portage.\n\n      package_unmask { 'app-admin/puppet-2.7.1':\n        target  => 'puppet',\n      }",
+      "properties": [
+        {
+          "name": "ensure",
+          "doc": "The basic property that the resource should be in.  Valid values are `present`, `absent`."
+        },
+        {
+          "name": "version",
+          "doc": "A properly formatted version string"
+        },
+        {
+          "name": "target",
+          "doc": "The location of the package.unmask file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The package name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "parsed",
+          "doc": "The package_unmask provider backed by parsedfile"
+        }
+      ]
+    },
+    {
+      "name": "package_use",
+      "doc": "Set use flags for a package.\n\n      package_use { 'app-admin/puppet':\n        use    => ['augeas', '-rrdtool'],\n        target => 'puppet',\n      }",
+      "properties": [
+        {
+          "name": "ensure",
+          "doc": "The basic property that the resource should be in.  Valid values are `present`, `absent`."
+        },
+        {
+          "name": "version",
+          "doc": "A properly formatted version string"
+        },
+        {
+          "name": "use",
+          "doc": "The flag use flag(s) to apply"
+        },
+        {
+          "name": "target",
+          "doc": "The location of the package.use file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The package name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "parsed",
+          "doc": "The package_use provider that uses the ParsedFile class"
+        }
+      ]
+    }
+  ],
+  "checksums": {
+    "CHANGELOG": "b68b2e6c1e0a9df631882be29e407e77",
+    "Gemfile": "ec96a8a42e4d35712eb49b592a53b0cd",
+    "Gemfile.lock": "45e2dfdf0de4ddc35cea581bb417aed7",
+    "LICENSE": "751419260aa954499f7abaabaa882bbe",
+    "Modulefile": "bedb2c4e473c5911a47e662eb0cf91ad",
+    "README.markdown": "07ef50c618cdef3291196d974971938b",
+    "Vagrantfile": "03ce2e556e1208b20fbd5efd3f00d04d",
+    "lib/facter/eselect.rb": "dfb97c002d1ab0b9a8cdcad29978162f",
+    "lib/facter/portage.rb": "8a1e7f9843632ad80cd2f37098d398b6",
+    "lib/facter/util/portage.rb": "5b5707671e70073e9cce05fbc542d7ae",
+    "lib/puppet/provider/eselect/eselect.rb": "ebf391a95af4e47b0c464418c0660909",
+    "lib/puppet/provider/package_keywords/parsed.rb": "906b87452129dd18fdd42f7d1ed0e761",
+    "lib/puppet/provider/package_mask/parsed.rb": "cdfe5e770b4e1e9681de03c8e5c97342",
+    "lib/puppet/provider/package_unmask/parsed.rb": "741337a8a819e42ff67e8f8119d747a9",
+    "lib/puppet/provider/package_use/parsed.rb": "a3a2b98be790f32a23314da8021bb990",
+    "lib/puppet/provider/portagefile.rb": "696fc0c90299da16dfd3663fa54606a6",
+    "lib/puppet/type/eselect.rb": "4df892595427b7de829fd79c7541fb9c",
+    "lib/puppet/type/package_keywords.rb": "899f3c1f59844833d5fffc31ba111b47",
+    "lib/puppet/type/package_mask.rb": "893bde0abd4d38b062eb8352280f26e0",
+    "lib/puppet/type/package_unmask.rb": "bf7920cdc66cfd01650db9519aba061a",
+    "lib/puppet/type/package_use.rb": "ef028cf48aa8e26252e4d88cda89e048",
+    "lib/puppet/util/portage.rb": "91dbcd018870f44f7ae600054e3c7807",
+    "manifests/init.pp": "c0aeec7526e53e66d7e35f6190b23481",
+    "manifests/makeconf.pp": "cb396e3b1928ca81c5ae7ae50186c301",
+    "manifests/package.pp": "aa3e107f81565808fc345cbe202ba900",
+    "manifests/params.pp": "e5b4d17328f2710491134b03255460f5",
+    "manifests/postsync.pp": "09e01ccb0bf2c42ceb1db1b59f5ee1e8",
+    "spec/integration/provider/package_keywords/parsed_spec.rb": "230bacc92be3483503930e793ba36dee",
+    "spec/integration/provider/package_mask/parsed_spec.rb": "fb77af51132d05c38c5ba9e78d00dbaf",
+    "spec/integration/provider/package_unmask/parsed_spec.rb": "14e388cd2d58d8c697098c97b60916d4",
+    "spec/integration/provider/package_use/parsed_spec.rb": "ed63a190bc111ab66fac386c21df1bf7",
+    "spec/lib/puppet_integration/files.rb": "50b8740272a63b3668d6885ba8bf6aa4",
+    "spec/lib/puppet_integration/fixtures.rb": "69d1f9ca35bdf37f21cb40720a982fe8",
+    "spec/lib/puppet_integration/tmpdir_manager.rb": "575e1947a7db734d0a3e351922e84ef3",
+    "spec/lib/puppet_integration.rb": "dd074d3ab8a570870c6aff392829b1c3",
+    "spec/spec_helper.rb": "6bacbccf6af99f6dd5b5d13d470ebf77",
+    "spec/support/integration/provider/shared_contexts.rb": "c639099e38aa3c5c57fd66078422fcc9",
+    "spec/support/integration/provider/shared_examples.rb": "6e857172595c5e266f5bff5d63ddf151",
+    "spec/unit/provider/package_keywords/parsed_spec.rb": "f8096133c87684ec03652f59a4450b0f",
+    "spec/unit/provider/package_mask/parsed_spec.rb": "0f71591f620928600a21ad149317c78d",
+    "spec/unit/provider/package_unmask/parsed_spec.rb": "06e2175194ce07405403cc04d5529142",
+    "spec/unit/provider/package_use/parsed_spec.rb": "ee139ed207dbde3039df1302e8da494f",
+    "spec/unit/type/package_keywords_spec.rb": "43ff1216c8f4a9b1df02b1742aedfcb0",
+    "spec/unit/type/package_mask_spec.rb": "0e2510ada3915abff7fa3470ba712692",
+    "spec/unit/type/package_unmask_spec.rb": "47897a60d87f7071478a3c3cf67825ac",
+    "spec/unit/type/package_use_spec.rb": "0705d566f76092d0d7db67e62887d7cc",
+    "spec/unit/util/portage_spec.rb": "e058865e85abd1f7cfabfadd713c0e57",
+    "templates/makeconf.conf.erb": "1b62ecd4487a239698c0cb06813e7678",
+    "templates/makeconf.header.conf.erb": "abe593e812b1c041e51c6b95759350b1",
+    "templates/postsync.sh.erb": "3acce40cc9e1281fb884bcf4f6b669e6"
+  }
+}
