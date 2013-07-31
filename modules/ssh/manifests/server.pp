@@ -1,5 +1,6 @@
 class ssh::server (
-    $port = 22,
+    $port          = 22,
+    $x11forwarding = true,
 ) {
     file { '/etc/ssh/sshd_config':
         mode    => '0600',

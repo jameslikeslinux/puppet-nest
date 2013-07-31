@@ -101,7 +101,7 @@ UsePAM yes
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
-#X11Forwarding no
+X11Forwarding <%= @x11forwarding ? 'yes' : 'no' %>
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 PrintMotd no
