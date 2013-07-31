@@ -1,6 +1,6 @@
 class zsh {
     portage::package { 'app-shells/zsh':
-        ensure => 'installed',
+        ensure => installed,
     }
 
     class { 'makeconf::use::zsh_completion': }

@@ -1,6 +1,6 @@
 class vim {
     portage::package { 'app-editors/vim':
-        ensure => 'installed',
+        ensure => installed,
     }
 
     eselect { 'vi':

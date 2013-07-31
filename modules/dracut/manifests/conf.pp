@@ -4,7 +4,7 @@ define dracut::conf (
     include dracut
 
     file { "/etc/dracut.conf.d/${name}.conf":
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         content => template('dracut/conf.erb'),

@@ -1,6 +1,6 @@
 class ntp {
     portage::package { 'net-misc/ntp':
-        ensure => 'installed',
+        ensure => installed,
     }
 
     openrc::service { 'ntpd':

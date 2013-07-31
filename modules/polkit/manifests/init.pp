@@ -1,10 +1,10 @@
 class polkit {
     portage::package { 'sys-auth/polkit':
-        ensure => 'installed',
+        ensure => installed,
     }
 
     file { '/etc/polkit-1/rules.d/40-admin.rules':
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         source  => 'puppet:///modules/polkit/admin.rules',

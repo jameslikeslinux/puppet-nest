@@ -15,7 +15,7 @@ class kde {
         'kde-base/kmix',
         'kde-base/ffmpegthumbs',
     ]:
-        ensure => 'installed',
+        ensure => installed,
     }
 
     class { 'xdm':

@@ -4,7 +4,7 @@ class users {
     }
 
     file { '/etc/default/useradd':
-        mode    => 600,
+        mode    => '0600',
         owner   => 'root',
         group   => 'root',
         source  => 'puppet:///modules/users/useradd',

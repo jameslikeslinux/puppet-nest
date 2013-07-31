@@ -3,7 +3,7 @@ class boot (
     $gfxmode = undef,
 ) {
     portage::package { 'sys-boot/boot-update':
-        ensure  => 'installed',
+        ensure  => installed,
         require => Class['grub'],
     }
 

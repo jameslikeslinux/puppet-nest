@@ -3,6 +3,6 @@ class kde::gtk {
         'x11-themes/oxygen-gtk',
         'kde-misc/kde-gtk-config',
     ]:
-        ensure => 'installed',
+        ensure => installed,
     }
 }

@@ -17,11 +17,11 @@ class xorg (
     }
 
     portage::package { 'x11-base/xorg-x11':
-        ensure => 'installed',
+        ensure => installed,
     }
 
     portage::package { 'x11-apps/xinit':
-        ensure => 'installed',
+        ensure => installed,
         use    => '-minimal',
     }
 
@@ -30,15 +30,15 @@ class xorg (
     # https://wiki.archlinux.org/index.php/Xorg#Setting_keyboard_layout_with_hot-plugging
     #
     file { '/etc/X11/xorg.conf.d':
-        ensure  => 'directory',
-        mode    => 644,
+        ensure  => directory,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         require => Portage::Package['x11-base/xorg-x11'],
     }
 
     file { '/etc/X11/xorg.conf.d/10-keyboard.conf':
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         content => template('xorg/keyboard.erb'),
@@ -51,7 +51,7 @@ class xorg (
     #
     if 'nouveau' in $video_cards {
         file { '/etc/X11/xorg.conf.d/20-nouveau.conf':
-            mode    => 644,
+            mode    => '0644',
             owner   => 'root',
             group   => 'root',
             source  => 'puppet:///modules/xorg/nouveau.conf',

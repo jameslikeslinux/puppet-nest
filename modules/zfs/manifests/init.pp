@@ -1,7 +1,7 @@
 class zfs {
     portage::package { 'sys-fs/zfs':
         use     => 'dracut',
-        ensure  => 'installed',
+        ensure  => installed,
         require => [Class['kernel'], Class['dracut']],
         before  => Class['kernel::initrd'],
     }

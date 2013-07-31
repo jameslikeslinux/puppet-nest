@@ -13,7 +13,7 @@ class kernel (
     }
     
     file { '/usr/src/linux/config':
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         source  => 'puppet:///modules/kernel/config',

@@ -1,11 +1,11 @@
 define fstab::fs (
-    $device = $name,
+    $device     = $name,
     $mountpoint,
     $type,
-    $options = 'defaults',
-    $dump = 0,
-    $pass = 0,
-    $ensure = 'present',
+    $options    = 'defaults',
+    $dump       = 0,
+    $pass       = 0,
+    $ensure     = present,
 ) {
     include fstab
 

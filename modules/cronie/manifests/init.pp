@@ -1,7 +1,7 @@
 class cronie {
     portage::package { 'sys-process/cronie':
         use    => ['anacron', 'inotify'],
-        ensure => 'installed',
+        ensure => installed,
     }
 
     openrc::service { 'cronie':

@@ -2,9 +2,9 @@ class xdm (
     $displaymanager = 'xdm',
 ) {
     file { '/etc/conf.d/xdm':
-        mode    => 644,
-        owner   => root,
-        group   => root,
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
         content => template('xdm/xdm.erb'),
     }
 

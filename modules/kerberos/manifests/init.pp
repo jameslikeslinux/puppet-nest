@@ -11,7 +11,7 @@ class kerberos (
     }
 
     file { '/etc/krb5.conf':
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         content => template('kerberos/krb5.conf.erb'),

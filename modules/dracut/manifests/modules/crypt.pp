@@ -9,7 +9,7 @@ class dracut::modules::crypt inherits dracut {
 
     portage::package { 'sys-fs/lvm2':
         use    => 'udev',
-        ensure => 'installed',
+        ensure => installed,
         before => Class['kernel::initrd'],
     }
 }

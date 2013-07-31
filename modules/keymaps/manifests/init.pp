@@ -2,7 +2,7 @@ class keymaps (
     $keymap = 'us',
 ) {
     file { '/etc/conf.d/keymaps':
-        mode    => 644,
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         content => template('keymaps/keymaps.erb'),

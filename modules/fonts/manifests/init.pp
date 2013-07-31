@@ -42,7 +42,7 @@ class fonts {
     # sans-serif, serif, and monospace
     #
     file { '/etc/fonts/local.conf':
-        mode   => 644,
+        mode   => '0644',
         owner  => 'root',
         group  => 'root',
         source => 'puppet:///modules/fonts/local.conf',
