@@ -16,8 +16,13 @@ class zfs {
     # During initail installation, inside the chroot, /etc/mtab doesn't
     # exist, which causes zfs dataset creation to fail
     #
-    exec { '/bin/cp /proc/mounts /etc/mtab':
-        creates => '/etc/mtab',
+    file { '/etc/mtab':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => '/proc/mounts',
+        replace => false,
+        links   => follow,
     }
 
     # XXX What about /etc/hostid?
