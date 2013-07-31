@@ -1,7 +1,9 @@
 class desktop_role (
     $video_cards = [],
 ) inherits base_role {
-    class { 'networkmanager': }
+    class { 'networkmanager':
+        kde => true,
+    }
 
     class { 'sound': }
 
@@ -21,7 +23,9 @@ class desktop_role (
 
     class { 'thunderbird': }
 
-    class { 'cups': }
+    class { 'cups':
+        kde => true,
+    }
 
     # XXX: or should I set 'SystemGroup wheel' in CUPS?
     Users::User['jlee'] {

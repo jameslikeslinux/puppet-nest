@@ -35,8 +35,9 @@ define users::user (
 
     if $profile {
         users::profile { "/home/${name}":
-            user   => $name,
-            source => $profile,
+            user    => $name,
+            source  => $profile,
+            require => File["/home/${name}"],
         }
     }
 }

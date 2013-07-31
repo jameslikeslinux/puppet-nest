@@ -21,16 +21,15 @@ class kernel (
     }
 
     portage::package { 'sys-kernel/genkernel':
-        ensure  => 'latest',
-        require => Portage::Package["sys-kernel/${kernel_name}"],
+        ensure  => installed,
     }
 
     exec { 'genkernel':
         command     => "/usr/bin/genkernel --kernname='${kernel_name}' --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
         require     => Portage::Package['sys-kernel/genkernel'],
-        refreshonly => true,
         subscribe   => File['/usr/src/linux/config'],
         notify      => Class['kernel::initrd'],
+        creates     => ["/boot/kernel-${kernel_name}-${hardwaremodel}-${kernel_version}", "/lib/modules/${kernel_version}"],
         timeout     => 0,
     }
 

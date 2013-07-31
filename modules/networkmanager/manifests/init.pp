@@ -1,8 +1,10 @@
-class networkmanager {
+class networkmanager (
+    $kde = false,
+) {
     class { 'makeconf::use::networkmanager': }
 
     portage::package { 'net-misc/networkmanager':
-        ensure => 'installed',
+        ensure => installed,
         unmask => '=0.9.8.2',
     }
 
@@ -11,9 +13,10 @@ class networkmanager {
         require => Portage::Package['net-misc/networkmanager'],
     }
 
-    if defined(Class['kde']) {
+    if $kde {
         portage::package { 'kde-misc/networkmanagement':
-            ensure => 'installed',
+            ensure  => installed,
+            require => Portage::Package['net-misc/networkmanager'],
         }
     }
 }

@@ -10,8 +10,8 @@ define users::profile (
     }
 
     exec { "git-init-${directory}":
-        command => "git init && git remote add origin ${source}",
-        unless  => "test -d ${directory}/.git",
+        command => "git init && git remote add origin '${source}'",
+        unless  => "test -d '${directory}/.git'",
     }
 
     exec { "git-reset-${directory}":

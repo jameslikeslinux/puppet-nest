@@ -1,4 +1,6 @@
-class base_role {
+class base_role (
+    $gfxmode = undef,
+) {
     class { 'makeconf': }
 
     fstab::fs { 'boot':
@@ -31,6 +33,7 @@ class base_role {
 
     class { 'boot':
         default_entry => 'Funtoo Linux',
+        gfxmode       => $gfxmode,
     }
 
     boot::entry { 'Funtoo Linux':

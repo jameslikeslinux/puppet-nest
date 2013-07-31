@@ -4,6 +4,7 @@ class vim {
     }
 
     eselect { 'vi':
-        set => 'vim',
+        set     => 'vim',
+        require => Portage::Package['app-editors/vim'],
     }
 }
