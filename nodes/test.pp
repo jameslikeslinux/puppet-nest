@@ -2,12 +2,8 @@ node 'test' {
     class { 'profile::base':
         disk_profile       => cryptmirror,
         console_resolution => '1024x768',
-        desktop            => true,
+        video_cards        => ['cirrus'],
+        package_server     => 'http://hawk.thestaticvoid.com/packages',
+        roles              => ['desktop'],
     }
-
-    class { 'role::desktop':
-        video_cards => ['cirrus'],
-    }
-
-    class { 'role::package_server': }
 }

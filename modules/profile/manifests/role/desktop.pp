@@ -1,11 +1,9 @@
-class role::desktop (
-    $video_cards = [],
-) {
+class profile::role::desktop {
     #
     # Has an X server with good keyboard settings.
     #
     class { 'xorg':
-        video_cards => $video_cards,
+        video_cards => $profile::base::video_cards,
         keymap      => 'dvorak',
         xkboptions  => 'ctrl:nocaps',
     }

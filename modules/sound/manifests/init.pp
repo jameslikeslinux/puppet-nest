@@ -1,6 +1,4 @@
 class sound {
-    class { 'makeconf::use::pulseaudio': }
-
     portage::package { 'media-sound/alsa-utils':
         ensure => installed,
     }

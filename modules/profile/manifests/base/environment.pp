@@ -1,5 +1,13 @@
 class profile::base::environment {
     #
+    # Is a Puppet agent.
+    #
+    class { 'puppet::agent':
+        master => 'puppet.thestaticvoid.com',
+    }
+
+
+    #
     # Uses a Dvorak keyboard.
     #
     class { 'keymaps':

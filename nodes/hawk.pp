@@ -1,11 +1,7 @@
 node 'hawk.thestaticvoid.com' {
     class { 'profile::base':
-        disk_profile   => cryptmirror,
-        desktop        => true,
-        package_server => 'http://pkg.thestaticvoid.com/packages',
-    }
-
-    class { 'role::desktop':
-        video_cards => ['nouveau'],
+        disk_profile => cryptmirror,
+        video_cards  => ['nouveau'],
+        roles        => [desktop, package_server, puppet_master],
     }
 }

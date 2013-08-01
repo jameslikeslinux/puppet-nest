@@ -1,8 +1,6 @@
 define dracut::conf (
     $boot_devices,
 ) {
-    include dracut
-
     file { "/etc/dracut.conf.d/${name}.conf":
         mode    => '0644',
         owner   => 'root',

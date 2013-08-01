@@ -1,12 +1,20 @@
 class profile::base (
     $disk_profile       = base,
     $console_resolution = undef,
-    $desktop            = false,
     $package_server     = undef,
+    $video_cards        = [],
+    $roles              = [],
 ) {
-    class { "profile::base::disk::${disk_profile}": }
-    class { 'profile::base::boot': }
-    class { 'profile::base::environment': }
-    class { 'profile::base::users': }
-    class { 'profile::base::packages': }
+    #
+    # Include profile components.
+    #
+    class { [
+        "profile::base::disk::${disk_profile}",
+        'profile::base::boot',
+        'profile::base::environment',
+        'profile::base::users',
+        'profile::base::packages',
+    ]: }
+
+    profile::role { $roles: }    
 }

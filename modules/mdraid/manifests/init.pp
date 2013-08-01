@@ -24,6 +24,4 @@ class mdraid {
         ensure  => '/etc/mdadm.conf.scan',
         require => Exec['mdadm-scan'],
     }
-
-    class { 'dracut::modules::mdraid': }
 }

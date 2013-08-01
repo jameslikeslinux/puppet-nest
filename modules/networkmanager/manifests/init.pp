@@ -1,8 +1,6 @@
 class networkmanager (
     $kde = false,
 ) {
-    class { 'makeconf::use::networkmanager': }
-
     portage::package { 'net-misc/networkmanager':
         ensure => installed,
         unmask => '=0.9.8.2',

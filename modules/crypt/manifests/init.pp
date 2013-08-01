@@ -9,6 +9,4 @@ class crypt {
         content => template('crypt/header.erb'),
         order   => '00',
     }
-
-    class { 'dracut::modules::crypt': }
 }

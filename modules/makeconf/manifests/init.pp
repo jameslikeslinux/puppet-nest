@@ -2,26 +2,28 @@ class makeconf (
     $buildpkg  = false,
     $getbinpkg = false,
     $makejobs  = $processorcount + 1,
+    $use       = [],
 ) {
-    $buildpkg_feature = $buildpkg ? {
-        true    => 'buildpkg ',
-        default => '',
-    }
-
     if $getbinpkg {
-        $getbinpkg_feature = 'getbinpkg '
-
         portage::makeconf { 'portage_binhost':
             content => $getbinpkg,
         }
-    } else {
-        $getbinpkg_feature = ''
     }
 
-    $features = [$buildpkg_feature, $getbinpkg_feature]
+    $features = [
+        $buildpkg ? {
+            false   => '',
+            default => 'buildpkg',
+        },
+
+        $getbinpkg ? {
+            false   => '',
+            default => 'getbinpkg',
+        },
+    ]
 
     portage::makeconf { 'features':
-        content => join($features, ''),
+        content => join($features, ' '),
     }
 
     portage::makeconf { 'makeopts':
@@ -40,5 +42,7 @@ class makeconf (
         content => '*',
     }
 
-    include makeconf::use::default
+    portage::makeconf { 'use':
+        content => join(sort($use), ' '),
+    }
 }

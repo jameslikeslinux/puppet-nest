@@ -1,10 +1,30 @@
 class profile::base::packages {
+    if desktop in $profile::base::roles {
+        $is_desktop = true
+    }
+
     #
     # Has a global Portage configuration.
     #
+    $use = [
+        'networkmanager',
+        'zsh-completion',
+
+        $is_desktop ? {
+            true    => 'pulseaudio',
+            default => '',
+        },
+
+        $is_desktop ? {
+            true    => 'xinerama',
+            default => '',
+        },
+    ]
+
     class { 'makeconf':
         buildpkg  => true,
         getbinpkg => $profile::base::package_server,
+        use       => $use,
     }
 
 
@@ -48,6 +68,6 @@ class profile::base::packages {
     # Uses NetworkManager for networking
     #
     class { 'networkmanager':
-        kde => $profile::base::desktop,
+        kde => $is_desktop,
     }
 }

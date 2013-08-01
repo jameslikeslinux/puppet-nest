@@ -10,8 +10,6 @@ class xorg (
         notify  => Class['portage'],
     }
 
-    class { 'makeconf::use::xinerama': }
-
     portage::makeconf { 'video_cards':
         content => join($video_cards, ' '),
     }
