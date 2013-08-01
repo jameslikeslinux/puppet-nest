@@ -24,6 +24,4 @@ class zfs {
         replace => false,
         links   => follow,
     }
-
-    # XXX What about /etc/hostid?
 }

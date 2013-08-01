@@ -1,9 +1,9 @@
 class kernel (
-    $kernel_name     = $kernel::params::kernel_name,
-    $kernel_version  = $kernel::params::kernel_version,
-    $package_version = $kernel::params::package_version,
-    $eselect_name    = $kernel::params::eselect_name,
-) inherits kernel::params {
+    $kernel_name,
+    $kernel_version,
+    $package_version,
+    $eselect_name,
+) {
     portage::package { "sys-kernel/${kernel_name}":
         ensure => $package_version,
     }

@@ -1,5 +1,28 @@
-class makeconf {
-    $makejobs = $processorcount + 1
+class makeconf (
+    $buildpkg  = false,
+    $getbinpkg = false,
+    $makejobs  = $processorcount + 1,
+) {
+    $buildpkg_feature = $buildpkg ? {
+        true    => 'buildpkg ',
+        default => '',
+    }
+
+    if $getbinpkg {
+        $getbinpkg_feature = 'getbinpkg '
+
+        portage::makeconf { 'portage_binhost':
+            content => $getbinpkg,
+        }
+    } else {
+        $getbinpkg_feature = ''
+    }
+
+    $features = [$buildpkg_feature, $getbinpkg_feature]
+
+    portage::makeconf { 'features':
+        content => join($features, ''),
+    }
 
     portage::makeconf { 'makeopts':
         content => "-j${makejobs}",

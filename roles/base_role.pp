@@ -1,7 +1,14 @@
 class base_role (
     $gfxmode = undef,
 ) {
-    class { 'makeconf': }
+    $kernel_name            = 'debian-sources'
+    $kernel_version         = '3.2.41-2'
+    $kernel_package_version = '3.2.41'
+    $kernel_eselect_name    = "linux-${kernel_name}-${kernel_package_version}"
+
+    class { 'makeconf':
+        buildpkg  => true,
+    }
 
     fstab::fs { 'boot':
         device     => '/dev/sda1',
@@ -23,7 +30,12 @@ class base_role (
         boot_devices => ['/dev/sda3'],
     }
 
-    class { 'kernel': }
+    class { 'kernel':
+        kernel_name     => $kernel_name,
+        kernel_version  => $kernel_version,
+        package_version => $kernel_package_version,
+        eselect_name    => $kernel_eselect_name,
+    }
 
     class { 'zfs': }
 
@@ -40,7 +52,7 @@ class base_role (
         kernel  => 'kernel[-v]',
         initrd  => 'initramfs[-v]',
         root    => 'zfs',
-        params  => ['quiet', 'splash'],
+        params  => ['elevator=noop', 'quiet', 'splash'],
     }
 
     class { 'keymaps':
