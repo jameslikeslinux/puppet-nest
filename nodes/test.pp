@@ -9,5 +9,5 @@ node 'test' {
         video_cards => ['cirrus'],
     }
 
-    class { 'role::web_server': }
+    class { 'role::package_server': }
 }
