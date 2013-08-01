@@ -40,5 +40,5 @@ class makeconf (
         content => '*',
     }
 
-    makeconf::use { 'default': }
+    include makeconf::use::default
 }

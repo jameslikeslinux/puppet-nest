@@ -1,4 +1,4 @@
-class dracut::modules::crypt inherits dracut {
+class dracut::modules::crypt inherits dracut::modules::default {
     Dracut::Modules['default'] {
         crypt => true,
     }

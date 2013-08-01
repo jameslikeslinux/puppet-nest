@@ -1,10 +1,7 @@
-class crypt_role inherits base_role {
+class profile::base::disk::crypt inherits profile::base::disk::base {
     Dracut::Conf['devices'] {
         boot_devices => ['/dev/sda3', '/dev/sda4'],
     }
-
-    class { 'mdraid': }
-    class { 'crypt': }
 
     crypt::device { 'keyfile':
         device => '/dev/sda3',
@@ -18,6 +15,4 @@ class crypt_role inherits base_role {
         keyfile => '/dev/mapper/keyfile',
         order   => 2,
     }
-
-    # XXX: Add service to close keyfile after boot
 }

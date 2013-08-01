@@ -1,4 +1,6 @@
-class mirror_crypt_role inherits crypt_role {
+class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
+    class { 'mdraid': }
+
     Fstab::Fs['boot'] {
         device => '/dev/md0',
     }

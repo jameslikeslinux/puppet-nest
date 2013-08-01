@@ -1,13 +1,10 @@
 node 'hawk' {
-    class { 'base_role': }
-
-    class { 'mirror_crypt_role': }
-
-    class { 'desktop_role':
-        video_cards => ['nouveau'],
+    class { 'profile::base':
+        disk_profile => cryptmirror,
+        desktop      => true,
     }
 
-    class { 'ssh::server':
-        port => 2225,
+    class { 'role::desktop':
+        video_cards => ['nouveau'],
     }
 }

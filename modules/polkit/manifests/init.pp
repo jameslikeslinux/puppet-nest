@@ -1,4 +1,6 @@
-class polkit {
+class polkit (
+    $admin_group = 'wheel',
+) {
     portage::package { 'sys-auth/polkit':
         ensure => installed,
     }
@@ -7,7 +9,7 @@ class polkit {
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        source  => 'puppet:///modules/polkit/admin.rules',
+        content => template('polkit/admin.rules.erb'),
         require => Portage::Package['sys-auth/polkit'],
     }
 }

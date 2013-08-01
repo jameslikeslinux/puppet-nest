@@ -1,15 +1,13 @@
 node 'test' {
-    class { 'base_role': 
-        gfxmode => '1024x768',
+    class { 'profile::base':
+        disk_profile       => cryptmirror,
+        console_resolution => '1024x768',
+        desktop            => true,
     }
 
-    class { 'mirror_crypt_role': }
-
-    class { 'desktop_role':
+    class { 'role::desktop':
         video_cards => ['cirrus'],
     }
 
-    class { 'ssh::server':
-        port => 22,
-    }
+    class { 'role::web_server': }
 }
