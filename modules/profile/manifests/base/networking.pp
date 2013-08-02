@@ -1,6 +1,6 @@
 class profile::base::networking {
     #
-    # Use DHCPCD to manage network interface (unless I'm a desktop)
+    # Uses DHCPCD to manage network interface (unless I'm a desktop)
     #
     unless desktop in $profile::base::roles {
         openrc::service { 'dhcpcd':
@@ -19,5 +19,14 @@ class profile::base::networking {
             client_cert => "/etc/puppet/ssl/certs/${fqdn}.pem",
             client_key  => "/etc/puppet/ssl/private_keys/${fqdn}.pem",
         }
+    }
+
+
+    #
+    # Searches 'thestaticvoid.com' first
+    #
+    class { 'resolvconf':
+        search_domains => ['thestaticvoid.com'],
+        # XXX: Or maybe I should use $domain?
     }
 }
