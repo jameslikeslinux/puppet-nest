@@ -3,7 +3,8 @@ class profile::role::desktop {
     # Uses NetworkManager for networking
     #
     class { 'networkmanager':
-        kde => true,
+        kde         => true,
+        openconnect => true,
     }
 
 
