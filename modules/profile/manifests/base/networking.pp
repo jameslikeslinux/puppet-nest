@@ -29,4 +29,7 @@ class profile::base::networking {
         search_domains => ['thestaticvoid.com'],
         # XXX: Or maybe I should use $domain?
     }
+
+
+    class { 'hostname': }
 }
