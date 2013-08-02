@@ -66,4 +66,6 @@ class profile::base::packages {
     ]:
         ensure => installed,
     }
+
+    class { 'vcs': }
 }

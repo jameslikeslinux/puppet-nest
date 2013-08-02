@@ -19,13 +19,9 @@ class profile::base::users {
     # That user's identity is the same as the root's identity,
     # for better or worse.
     #
-    file { '/root/.ssh':
-        ensure  => directory,
-        owner   => 'root',
-        group   => 'root',
-        source  => '/home/jlee/.ssh',
-        recurse => true,
-        require => Users::User['jlee']
+    users::profile { '/root':
+        user   => 'root',
+        source => 'git://github.com/MrStaticVoid/profile.git',
     }
 
 
