@@ -1,3 +1,0 @@
-node 'pegasus.home' {
-    # empty
-}

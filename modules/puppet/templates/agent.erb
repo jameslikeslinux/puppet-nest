@@ -9,5 +9,7 @@
     server = <%= @master %>
     report = true
     pluginsync = true
-    ssldir = $vardir/ssl
+<% if @dns_alt_names -%>
+    dns_alt_names = <%= @dns_alt_names.join(', ') %>
+<% end -%>
 

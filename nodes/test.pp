@@ -1,4 +1,4 @@
-node 'test' {
+node 'test.thestaticvoid.com' {
     class { 'profile::base':
         disk_profile       => cryptmirror,
         console_resolution => '1024x768',

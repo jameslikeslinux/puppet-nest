@@ -7,8 +7,12 @@ class profile::base::packages {
     # Has a global Portage configuration.
     #
     $use = [
-        'networkmanager',
         'zsh-completion',
+
+        $is_desktop ? {
+            true    => 'networkmanager',
+            default => '',
+        },
 
         $is_desktop ? {
             true    => 'pulseaudio',
@@ -61,13 +65,5 @@ class profile::base::packages {
         'net-dns/bind-tools',
     ]:
         ensure => installed,
-    }
-
-
-    #
-    # Uses NetworkManager for networking
-    #
-    class { 'networkmanager':
-        kde => $is_desktop,
     }
 }

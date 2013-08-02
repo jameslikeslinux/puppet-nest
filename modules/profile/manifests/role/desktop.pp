@@ -1,5 +1,13 @@
 class profile::role::desktop {
     #
+    # Uses NetworkManager for networking
+    #
+    class { 'networkmanager':
+        kde => true,
+    }
+
+
+    #
     # Has an X server with good keyboard settings.
     #
     class { 'xorg':

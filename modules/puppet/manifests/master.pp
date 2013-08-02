@@ -1,5 +1,4 @@
 class puppet::master (
-    $dns_alt_names = undef,
     $modulepath    = undef,
 ) inherits puppet::agent {
     File['/etc/puppet/puppet.conf'] {

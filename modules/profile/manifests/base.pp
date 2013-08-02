@@ -12,8 +12,9 @@ class profile::base (
         "profile::base::disk::${disk_profile}",
         'profile::base::boot',
         'profile::base::environment',
-        'profile::base::users',
+        'profile::base::networking',
         'profile::base::packages',
+        'profile::base::users',
     ]: }
 
     profile::role { $roles: }    
