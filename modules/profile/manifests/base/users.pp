@@ -30,6 +30,10 @@ class profile::base::users {
     #
     class { 'sudo': }
 
+    sudo::conf { 'env':
+        content => 'Defaults env_keep += "SSH_AUTH_SOCK XAUTHORITY"',
+    }
+
     sudo::conf { 'wheel':
         content => '%wheel ALL=(ALL) NOPASSWD: ALL',
     }
