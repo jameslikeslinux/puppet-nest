@@ -1,4 +1,5 @@
 class profile::base (
+    $timezone           = 'America/New_York',
     $disk_profile       = base,
     $console_resolution = undef,
     $package_server     = undef,

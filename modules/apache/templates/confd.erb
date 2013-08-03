@@ -40,12 +40,7 @@
 #  SSL_DEFAULT_VHOST  Enables default vhost for SSL (you should enable this
 #                     when you enable SSL)
 #
-APACHE2_OPTS="-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE"
-<% if @define -%>
-
-# Options set in Puppet:
-APACHE2_OPTS+=" <%= @define.collect { |d| "-D #{d}".upcase }.join(' ') %>"
-<% end -%>
+APACHE2_OPTS="-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE<%= @modules.collect { |m| m != '' ? " -D #{m}".upcase : '' }.join('') %>"
 
 # Extended options for advanced uses of Apache ONLY
 # You don't need to edit these unless you are doing crazy Apache stuff

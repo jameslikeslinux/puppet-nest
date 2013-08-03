@@ -34,7 +34,7 @@ class profile::base::environment {
     #
     file { '/etc/localtime':
         ensure => link,
-        target => '/usr/share/zoneinfo/America/New_York',
+        target => "/usr/share/zoneinfo/${profile::base::timezone}",
     }
 
 
