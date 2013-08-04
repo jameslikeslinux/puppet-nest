@@ -1,4 +1,6 @@
 class profile::base::packages {
+    class { 'private::profile::base::packages': }
+
     if desktop in $profile::base::roles {
         $is_desktop = true
     }
@@ -47,6 +49,26 @@ class profile::base::packages {
     class { 'rsyslog': }
     class { 'cronie': }
     class { 'ntp': }
+
+
+    #
+    # Can relay mail through Gmail...
+    #
+    class { 'postfix::relay':
+        relayhost => '[smtp.googlemail.com]:submission',
+        username  => $private::profile::base::packages::gmail_username,
+        password  => $private::profile::base::packages::gmail_password,
+        tls       => true,
+        cacert    => 'puppet:///modules/profile/base/packages/EquifaxCAcert.pem',
+    }
+
+
+    #
+    # but not if it's for 'example.com'.
+    #
+    class { 'postfix::transport':
+        map => {'example.com' => 'discard:'},
+    }
 
 
     #
