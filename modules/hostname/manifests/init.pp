@@ -1,4 +1,6 @@
-class hostname {
+class hostname (
+    $hostname,
+) {
     file { '/etc/conf.d/hostname':
         mode    => '0644',
         owner   => 'root',

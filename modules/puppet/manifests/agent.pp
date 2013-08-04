@@ -1,5 +1,6 @@
 class puppet::agent (
     $master        = 'puppet',
+    $certname      = undef,
     $dns_alt_names = undef,
 ) {
     portage::package { 'app-admin/puppet':

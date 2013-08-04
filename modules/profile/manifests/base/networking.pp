@@ -16,20 +16,22 @@ class profile::base::networking {
         class { 'openvpn::client':
             server      => 'vpn.thestaticvoid.com',
             ca_cert     => '/etc/puppet/ssl/certs/ca.pem',
-            client_cert => "/etc/puppet/ssl/certs/${fqdn}.pem",
-            client_key  => "/etc/puppet/ssl/private_keys/${fqdn}.pem",
+            client_cert => "/etc/puppet/ssl/certs/${hostname}.pem",
+            client_key  => "/etc/puppet/ssl/private_keys/${hostname}.pem",
         }
     }
 
 
     #
-    # Searches 'thestaticvoid.com' first
+    # Has a hostname
     #
-    class { 'resolvconf':
-        search_domains => ['thestaticvoid.com'],
-        # XXX: Or maybe I should use $domain?
+    class { 'hostname':
+        hostname => $hostname,
     }
 
 
-    class { 'hostname': }
+    #
+    # and knows about everyone else's...
+    #
+    Host <| title != $hostname |>
 }

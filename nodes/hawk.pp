@@ -1,4 +1,4 @@
-node 'hawk.thestaticvoid.com' {
+node 'hawk' {
     class { 'profile::base':
         disk_profile => cryptmirror,
         video_cards  => ['nouveau'],
@@ -13,4 +13,8 @@ node 'hawk.thestaticvoid.com' {
             web_server,
         ],
     }
+}
+
+@host { 'hawk':
+    ip => '172.22.2.1',
 }
