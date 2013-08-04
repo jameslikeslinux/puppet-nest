@@ -17,4 +17,14 @@ class profile::role::web_server {
     class { 'apache':
         modules => flatten($modules),
     }
+
+    iptables::accept { 'http':
+        port     => 80,
+        protocol => tcp,
+    }
+
+    iptables::accept { 'https':
+        port     => 443,
+        protocol => tcp,
+    }
 }

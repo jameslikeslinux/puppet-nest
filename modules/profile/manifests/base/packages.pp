@@ -45,7 +45,6 @@ class profile::base::packages {
     #
     # Supports many standard services.
     #
-    class { ['ssh', 'ssh::server']: }
     class { 'rsyslog': }
     class { 'cronie': }
     class { 'ntp': }

@@ -7,4 +7,9 @@ class profile::role::vpn_server {
         netmask     => '255.255.255.0',
         require     => Class['profile::role::puppet_master'],
     }
+
+    iptables::accept { 'openvpn':
+        port     => 1194,
+        protocol => udp
+    }
 }

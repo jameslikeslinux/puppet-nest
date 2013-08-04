@@ -18,5 +18,7 @@ class profile::base (
         'profile::base::users',
     ]: }
 
-    profile::role { $roles: }    
+    profile::role { $roles: }
+
+    profile::role { 'ssh_server': }
 }

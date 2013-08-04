@@ -34,4 +34,14 @@ class profile::base::networking {
     # and knows about everyone else's...
     #
     Host <| title != $hostname |>
+
+
+    #
+    # Is firewalled.
+    #
+    class { 'iptables': }
+
+    iptables::accept { 'vpn':
+        device => 'tap0',
+    }
 }
