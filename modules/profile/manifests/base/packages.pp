@@ -90,4 +90,8 @@ class profile::base::packages {
     }
 
     class { 'vcs': }
+
+    class { 'java':
+        nsplugin => $is_desktop,
+    }
 }
