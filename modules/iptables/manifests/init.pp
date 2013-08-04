@@ -103,8 +103,15 @@ class iptables {
         order => '48',
     }
 
-    iptables::rule { 'commit':
-        rule  => 'COMMIT',
-        order => '49',
+    concat::fragment { 'iptables-filter-footer':
+        target  => 'iptables-rules',
+        content => "COMMIT\n",
+        order   => '49',
+    }
+
+    concat::fragment { 'ip6tables-footer':
+        target  => 'ip6tables-rules',
+        content => "COMMIT\n",
+        order   => '49',
     }
 }
