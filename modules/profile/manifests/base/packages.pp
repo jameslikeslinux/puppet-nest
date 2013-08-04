@@ -81,10 +81,11 @@ class profile::base::packages {
     # Has several miscellaneaous packages.
     #
     portage::package { [
-        'net-misc/netkit-telnetd',
-        'sys-process/glances',
         'dev-util/strace',
         'net-dns/bind-tools',
+        'net-misc/netkit-telnetd',
+        'sys-process/glances',
+        'sys-process/lsof',
     ]:
         ensure => installed,
     }
