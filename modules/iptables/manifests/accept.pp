@@ -23,7 +23,7 @@ define iptables::accept (
     } elsif $device and !$port and !$protocol {
         iptables::rule { "accept-${device}":
             rule   => "-A INPUT -i ${device} -j ACCEPT",
-            order  => '01',
+            order  => '02',
             l3prot => $l3prot,
         }
     } else {

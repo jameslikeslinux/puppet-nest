@@ -71,8 +71,9 @@ class iptables {
         order   => '00',
     }
 
-    iptables::accept { 'loopback':
-        device => 'lo',
+    iptables::rule { 'accept-loopback':
+        rule  => '-A INPUT -i lo -j ACCEPT',
+        order => '01',
     }
 
     iptables::accept { 'pingv4':
