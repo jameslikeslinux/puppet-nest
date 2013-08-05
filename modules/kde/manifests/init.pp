@@ -14,6 +14,7 @@ class kde {
         'kde-base/ark',
         'kde-base/kmix',
         'kde-base/ffmpegthumbs',
+        'kde-base/thumbnailers',
     ]:
         ensure => installed,
     }
