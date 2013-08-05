@@ -1,20 +1,22 @@
 class cups (
     $system_group = 'wheel',
     $kde          = false,
-    $avahi        = false,
 ) {
     portage::package { [
         'net-print/cups-filters',
         'net-print/cups',
+        'net-print/foomatic-db',
     ]:
-        use => $avahi ? {
-            false   => undef,
-            default => 'zeroconf',
-        }
+        ensure => installed,
     }
 
-    portage::package { 'net-print/foomatic-db':
-        ensure => installed,
+    file { '/etc/cups/cupsd.conf':
+        mode    => '0640',
+        owner   => 'root',
+        group   => 'lp',
+        source  => 'puppet:///modules/cups/cupsd.conf',
+        require => Portage::Package['net-print/cups'],
+        notify  => Openrc::Service['cupsd'],
     }
 
     file { '/etc/cups/cups-files.conf':
@@ -26,6 +28,15 @@ class cups (
         notify  => Openrc::Service['cupsd'],
     }
 
+    file { '/etc/cups/cups-browsed.conf':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/cups/cups-browsed.conf',
+        require => Portage::Package['net-print/cups-filters'],
+        notify  => Openrc::Service['cups-browsed'],
+    }
+
     openrc::service { 'cupsd':
         enable  => true,
         require => File['/etc/cups/cups-files.conf'],
@@ -33,7 +44,7 @@ class cups (
 
     openrc::service { 'cups-browsed':
         enable  => true,
-        require => Portage::Package['net-print/cups-filters'],
+        require => File['/etc/cups/cups-browsed.conf'],
     }
 
     if $kde {

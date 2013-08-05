@@ -45,5 +45,7 @@ class profile::role::desktop {
     #
     # and printing support.
     #
-    profile::role { 'cups': }
+    class { 'cups':
+        kde => true,
+    }
 }
