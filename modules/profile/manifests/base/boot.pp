@@ -12,12 +12,12 @@ class profile::base::boot {
         $profile::base::disk_profile ? {
             cryptmirror => 'crypt',
             crypt       => 'crypt',
-            default     => '',
+            default     => [],
         },
 
         $profile::base::disk_profile ? {
             cryptmirror => 'mdraid',
-            default     => '',
+            default     => [],
         },
     ]
 

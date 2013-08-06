@@ -17,7 +17,7 @@ class dracut (
     }
 
     portage::makeconf { 'dracut_modules':
-        content => join(sort($modules), ' '),
+        content => join(sort(flatten($modules)), ' '),
     }
 
     portage::package { 'sys-kernel/dracut':
