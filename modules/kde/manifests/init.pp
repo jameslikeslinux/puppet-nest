@@ -26,8 +26,6 @@ class kde {
 
     class { 'kde::gtk': }
 
-    class { 'kde::agents': }
-
     #
     # The default 'raster' graphics system doesn't sub-pixel render
     # terminal text on transparent backgrounds.  I don't know what this

@@ -93,6 +93,5 @@ class profile::base::packages {
 
     class { 'java':
         nsplugin => $is_desktop,
-        kde      => $is_desktop,
     }
 }
