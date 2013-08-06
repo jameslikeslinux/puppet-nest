@@ -12,18 +12,18 @@ class makeconf (
 
     $features = [
         $buildpkg ? {
-            false   => '',
+            false   => [],
             default => 'buildpkg',
         },
 
         $getbinpkg ? {
-            false   => '',
+            false   => [],
             default => 'getbinpkg',
         },
     ]
 
     portage::makeconf { 'features':
-        content => join($features, ' '),
+        content => join(flatten($features), ' '),
     }
 
     portage::makeconf { 'makeopts':

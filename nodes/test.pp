@@ -1,10 +1,11 @@
 node 'test' {
     class { 'profile::base':
-        disk_profile       => cryptmirror,
-        console_resolution => '1024x768',
-        video_cards        => ['cirrus'],
-        package_server     => 'http://packages.thestaticvoid.com/',
-        roles              => [desktop],
+        disk_profile => cryptmirror,
+        resolution   => '1024x768',
+        video_cards  => ['cirrus'],
+        roles        => [
+            desktop,
+        ],
     }
 }
 

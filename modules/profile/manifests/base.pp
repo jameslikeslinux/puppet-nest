@@ -1,10 +1,10 @@
 class profile::base (
-    $timezone           = 'America/New_York',
-    $disk_profile       = base,
-    $console_resolution = undef,
-    $package_server     = undef,
-    $video_cards        = [],
-    $roles              = [],
+    $timezone       = 'America/New_York',
+    $disk_profile   = base,
+    $resolution     = undef,
+    $package_server = 'http://packages.thestaticvoid.com/',
+    $video_cards    = [],
+    $roles          = [],
 ) {
     #
     # Include profile components.

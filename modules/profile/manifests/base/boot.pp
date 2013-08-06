@@ -27,7 +27,7 @@ class profile::base::boot {
 
     class { '::boot':
         default_entry => 'Funtoo Linux',
-        gfxmode       => $profile::base::console_resolution,
+        gfxmode       => $profile::base::resolution,
     }
 
     boot::entry { 'Funtoo Linux':

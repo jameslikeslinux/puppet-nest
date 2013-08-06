@@ -12,6 +12,7 @@ class ssh::server (
     }
 
     openrc::service { 'sshd':
-        enable => true,
+        enable  => true,
+        require => File['/etc/ssh/sshd_config'],
     }
 }
