@@ -48,4 +48,12 @@ class profile::role::desktop {
     class { 'cups':
         kde => true,
     }
+
+
+    #
+    # Plays video
+    #
+    portage::package { 'media-video/mplayer':
+        ensure => installed,
+    }
 }
