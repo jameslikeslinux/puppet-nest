@@ -2,7 +2,7 @@ class profile::base (
     $timezone       = 'America/New_York',
     $disk_profile   = base,
     $resolution     = undef,
-    $package_server = 'http://packages.thestaticvoid.com/',
+    $package_server = undef,
     $video_cards    = [],
     $roles          = [],
 ) {
