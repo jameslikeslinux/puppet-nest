@@ -19,9 +19,7 @@ password	include		system-auth
  
 session         optional        pam_loginuid.so
 session		required	pam_env.so 
-<% if @lastlog -%>
-session		optional	pam_lastlog.so 
-<% end -%>
+session		optional	pam_lastlog.so <%= 'silent' unless @lastlog %>
 session		include		system-auth
 session		optional	pam_ck_connector.so nox11
 session		optional	pam_motd.so motd=/etc/motd
