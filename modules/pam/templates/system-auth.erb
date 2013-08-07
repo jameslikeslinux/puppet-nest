@@ -10,7 +10,7 @@ auth		required	pam_env.so
 auth		optional	pam_krb5.so ignore_root try_first_pass search_k5login
 <% end -%>
 <% if @ssh -%>
-auth		sufficient	pam_ssh.so
+auth		sufficient	pam_ssh.so try_first_pass
 <% end -%>
 auth		required	pam_unix.so try_first_pass likeauth nullok 
 auth		optional	pam_permit.so
