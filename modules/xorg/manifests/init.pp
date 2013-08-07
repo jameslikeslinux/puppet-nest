@@ -56,4 +56,16 @@ class xorg (
             require => File['/etc/X11/xorg.conf.d'],
         }
     }
+
+
+    #
+    # Enable trackpoint scrolling
+    #
+    file { '/etc/X11/xorg.conf.d/20-trackpoint.conf':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/xorg/trackpoint.conf',
+        require => File['/etc/X11/xorg.conf.d'],
+    }
 }
