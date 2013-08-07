@@ -5,13 +5,13 @@ class profile::base::users {
     class { 'zsh': }
 
     users::user { 'jlee':
-        uid         => 1000,
-        groups      => ['wheel'],
-        fullname    => 'James Lee',
-        shell       => '/bin/zsh',
-        zfs_dataset => 'rpool/home/jlee',
-        profile     => 'git://github.com/MrStaticVoid/profile.git',
-        require     => Class['zsh'],
+        uid            => 1000,
+        groups         => ['wheel'],
+        fullname       => 'James Lee',
+        shell          => '/bin/zsh',
+        profile        => 'git://github.com/MrStaticVoid/profile.git',
+        ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
+        require        => Class['zsh'],
     }
 
 

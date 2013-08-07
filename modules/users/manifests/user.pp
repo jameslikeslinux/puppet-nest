@@ -3,18 +3,10 @@ define users::user (
     $groups = [],
     $fullname,
     $shell,
-    $zfs_dataset = undef,
     $profile = undef,
+    $ssh_key_source = undef,
 ) {
     include users
-
-    if $zfs_dataset {
-        exec { "/sbin/zfs create -o mountpoint=/home/${name} ${zfs_dataset}":
-            unless  => "/sbin/zfs list -H -o name | /bin/grep '^${zfs_dataset}$'",
-            before  => File["/home/${name}"],
-            require => Class['zfs'],
-        }
-    }
 
     user { $name:
         uid     => $uid,
@@ -38,6 +30,33 @@ define users::user (
             user    => $name,
             source  => $profile,
             require => File["/home/${name}"],
+        }
+    }
+
+    if $ssh_key_source {
+        $filename = regsubst($ssh_key_source, '^.*/([^/]+)$', '\1')
+
+        file { "/home/${name}/.ssh":
+            ensure => directory,
+            mode   => '0644',
+            owner  => $name,
+            group  => 'users',
+        }
+
+        file { "/home/${name}/.ssh/${filename}":
+            mode    => '0600',
+            owner   => $name,
+            group   => 'users',
+            source  => $ssh_key_source,
+            replace => false,
+        }
+
+        file { "/home/${name}/.ssh/${filename}.pub":
+            mode    => '0644',
+            owner   => $name,
+            group   => 'users',
+            source  => "${ssh_key_source}.pub",
+            replace => false,
         }
     }
 }
