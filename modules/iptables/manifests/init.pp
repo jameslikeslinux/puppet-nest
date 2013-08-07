@@ -94,7 +94,7 @@ class iptables {
     }
 
     iptables::rule { 'log':
-        rule  => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG',
+        rule  => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG --log-prefix="DROP "',
         order => '47',
     }
 

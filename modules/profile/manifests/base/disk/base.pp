@@ -1,8 +1,11 @@
 class profile::base::disk::base {
+    $disk_path        = $profile::base::disk_path
+    $disk_mirror_path = $profile::base::disk_mirror_path
+
     class { 'zfs': }
 
     fstab::fs { 'boot':
-        device     => '/dev/sda1',
+        device     => "/dev/disk/by-path/${disk_path}-part1",
         mountpoint => '/boot',
         type       => 'ext2',
         options    => 'noatime',
@@ -18,8 +21,8 @@ class profile::base::disk::base {
     }
 
     dracut::conf { 'devices':
-        boot_devices => ['/dev/sda3'],
+        boot_devices => ["/dev/disk/by-path/${disk_path}-part3"],
     }
 
-    grub::install { '/dev/sda': }
+    grub::install { "/dev/disk/by-path/${disk_path}": }
 }

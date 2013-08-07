@@ -1,10 +1,12 @@
 class profile::base (
-    $timezone       = 'America/New_York',
-    $disk_profile   = base,
-    $resolution     = undef,
-    $package_server = undef,
-    $video_cards    = [],
-    $roles          = [],
+    $disk_path,
+    $disk_mirror_path = undef,
+    $disk_profile     = base,
+    $timezone         = 'America/New_York',
+    $resolution       = undef,
+    $package_server   = undef,
+    $video_cards      = [],
+    $roles            = [],
 ) {
     #
     # Include profile components.

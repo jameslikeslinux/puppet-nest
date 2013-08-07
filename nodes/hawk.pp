@@ -1,8 +1,10 @@
 node 'hawk' {
     class { 'profile::base':
-        disk_profile => cryptmirror,
-        video_cards  => ['nouveau'],
-        roles        => [
+        disk_path        => 'pci-0000:00:1f.2-scsi-1:0:0:0',
+        disk_mirror_path => 'pci-0000:00:1f.2-scsi-2:0:0:0',
+        disk_profile     => cryptmirror,
+        video_cards      => ['nouveau'],
+        roles            => [
             desktop,
             lamp_server,
             package_server,

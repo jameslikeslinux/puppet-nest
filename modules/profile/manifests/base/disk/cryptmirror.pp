@@ -6,18 +6,19 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
     }
 
     Dracut::Conf['devices'] {
-        boot_devices => ['/dev/md1', '/dev/sda4', '/dev/sdb4'],
+        boot_devices => ['/dev/md1', "/dev/disk/by-path/${disk_path}-part4", "/dev/disk/by-path/${disk_mirror_path}-part4"],
     }
 
     Crypt::Device['keyfile'] {
         device => '/dev/md1',
     }
 
-    crypt::device { '/dev/sdb4':
-        target  => 'sdb4_crypt',
+    crypt::device { 'rpool-crypt2':
+        device  => "/dev/disk/by-path/${disk_mirror_path}-part4",
+        target  => 'rpool-crypt2',
         keyfile => '/dev/mapper/keyfile',
         order   => 3,
     }
 
-    grub::install { '/dev/sdb': }
+    grub::install { "/dev/disk/by-path/${disk_mirror_path}": }
 }
