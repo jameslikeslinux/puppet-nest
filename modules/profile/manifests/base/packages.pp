@@ -34,13 +34,6 @@ class profile::base::packages {
     }
 
 
-    #
-    # Can use Kerberos to connect to UMD machines.
-    #
-    class { 'kerberos':
-        default_realm => 'UMD.EDU'
-    }
-
 
     #
     # Supports many standard services.

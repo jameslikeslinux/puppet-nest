@@ -45,4 +45,22 @@ class profile::base::environment {
     file { '/etc/motd':
         ensure => absent,
     }
+
+
+    #
+    # Can use Kerberos to connect to UMD machines.
+    #
+    class { 'kerberos':
+        default_realm => 'UMD.EDU'
+    }
+
+
+    #
+    # Can authenticate against SSH keys and get Kerberos tickets
+    #
+    class { 'pam':
+        ssh     => true,
+        krb5    => true,
+        require => Class['kerberos'],
+    }
 }

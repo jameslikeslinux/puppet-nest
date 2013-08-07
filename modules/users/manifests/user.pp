@@ -48,7 +48,6 @@ define users::user (
             owner   => $name,
             group   => 'users',
             source  => $ssh_key_source,
-            replace => false,
         }
 
         file { "/home/${name}/.ssh/${filename}.pub":
@@ -56,7 +55,6 @@ define users::user (
             owner   => $name,
             group   => 'users',
             source  => "${ssh_key_source}.pub",
-            replace => false,
         }
     }
 }
