@@ -15,7 +15,10 @@ class firefox {
         require => Portage::Package['media-plugins/gst-plugins-meta'],
     }
 
-    portage::package { 'www-plugins/adobe-flash':
+    portage::package { [
+        'www-plugins/adobe-flash',
+        'media-libs/hal-flash',
+    ]:
         ensure => installed,
     }
 }
