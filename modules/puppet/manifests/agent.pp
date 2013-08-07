@@ -17,7 +17,6 @@ class puppet::agent (
     }
 
     openrc::service { 'puppet':
-        # XXX: disable for now...
-        enable => false,
+        enable => true,
     }
 }
