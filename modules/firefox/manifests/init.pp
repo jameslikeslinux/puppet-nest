@@ -1,5 +1,6 @@
 class firefox {
     portage::package { 'media-video/ffmpeg':
+        use    => 'threads',
         ensure => installed,
     }
 
