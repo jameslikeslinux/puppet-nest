@@ -1,4 +1,6 @@
-class fonts {
+class fonts (
+    $lcd = true,
+) {
     portage::package { 'media-libs/fontconfig':
         ensure => installed,
     }
@@ -19,8 +21,14 @@ class fonts {
     conf { [
         '10-sub-pixel-rgb.conf',
         '11-lcdfilter-default.conf',
-        '70-no-bitmaps.conf',
-    ]: }
+    ]:
+        ensure => $lcd ? {
+            false   => absent,
+            default => present,
+        }
+    }
+
+    conf { '70-no-bitmaps.conf': }
 
     #
     # Make sure nobody (I'm looking at you KDE) messes up my beautiful

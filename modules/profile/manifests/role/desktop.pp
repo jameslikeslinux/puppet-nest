@@ -14,20 +14,33 @@ class profile::role::desktop {
     class { 'xorg':
         video_cards => $profile::base::video_cards,
         keymap      => 'dvorak',
-        xkboptions  => 'ctrl:nocaps',
+        xkboptions  => ['ctrl:nocaps'],
     }
 
 
     #
     # Has beautiful fonts.
     #
-    class { 'fonts': }
+    class { 'fonts':
+        lcd => $profile::base::lcd,
+    }
 
 
     #
     # Has KDE.
     #
     class { 'kde': }
+
+
+    #
+    # Workaround bug in Logitech wireless keyboard layout setting:
+    # https://wiki.archlinux.org/index.php/Logitech_Unifying_Receiver#Keyboard_layout_via_xorg.confthereceiver
+    #
+    class { 'kde::kdm':
+        keymap      => 'dvorak',
+        xkboptions  => ['ctrl:nocaps'],
+        dpi         => $profile::base::dpi,
+    }
 
 
     #

@@ -19,11 +19,6 @@ class kde {
         ensure => installed,
     }
 
-    class { 'xdm':
-        displaymanager => 'kdm',
-        require        => Portage::Package['kde-base/kdebase-meta'],
-    }
-
     class { 'kde::gtk': }
 
     #

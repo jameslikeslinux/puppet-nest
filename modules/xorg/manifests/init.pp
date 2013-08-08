@@ -1,7 +1,7 @@
 class xorg (
     $video_cards = [],
     $keymap      = 'us',
-    $xkboptions  = '',
+    $xkboptions  = [],
 ) {
     $flavor = "funtoo/1.0/linux-gnu/flavor/desktop"
     exec { "eselect-profile-flavor":
@@ -57,6 +57,16 @@ class xorg (
         }
     }
 
+    #
+    # Emulate middle mouse button
+    #
+    file { '/etc/X11/xorg.conf.d/10-pointer.conf':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/xorg/pointer.conf',
+        require => File['/etc/X11/xorg.conf.d'],
+    }
 
     #
     # Enable trackpoint scrolling
