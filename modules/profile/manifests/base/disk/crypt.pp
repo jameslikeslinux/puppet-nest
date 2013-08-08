@@ -9,9 +9,9 @@ class profile::base::disk::crypt inherits profile::base::disk::base {
         order  => 1,
     }
 
-    crypt::device { 'rpool-crypt1':
+    crypt::device { 'rpool-crypt0':
         device  => "/dev/disk/by-path/${disk_path}-part4",
-        target  => 'rpool-crypt1',
+        target  => 'rpool-crypt0',
         keyfile => '/dev/mapper/keyfile',
         order   => 2,
     }

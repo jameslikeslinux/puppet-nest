@@ -4,6 +4,8 @@ class profile::base (
     $disk_profile     = base,
     $timezone         = 'America/New_York',
     $resolution       = undef,
+    $dpi              = undef,
+    $lcd              = true,
     $package_server   = undef,
     $video_cards      = [],
     $roles            = [],

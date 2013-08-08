@@ -13,9 +13,9 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
         device => '/dev/md1',
     }
 
-    crypt::device { 'rpool-crypt2':
+    crypt::device { 'rpool-crypt1':
         device  => "/dev/disk/by-path/${disk_mirror_path}-part4",
-        target  => 'rpool-crypt2',
+        target  => 'rpool-crypt1',
         keyfile => '/dev/mapper/keyfile',
         order   => 3,
     }

@@ -18,7 +18,7 @@ define crypt::device (
 
         concat::fragment { "dmcrypt-device-${device}":
             target  => '/etc/conf.d/dmcrypt',
-            content => template('crypt/crypttab-device.erb'),
+            content => template('crypt/dmcrypt-device.erb'),
             order   => $order,
         }
     }
