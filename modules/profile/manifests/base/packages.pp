@@ -73,6 +73,7 @@ class profile::base::packages {
     # Has several miscellaneaous packages.
     #
     portage::package { [
+        'app-misc/screen',
         'dev-util/strace',
         'net-dns/bind-tools',
         'net-misc/netkit-telnetd',
