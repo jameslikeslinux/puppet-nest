@@ -76,6 +76,7 @@ class profile::base::packages {
         'dev-util/strace',
         'net-dns/bind-tools',
         'net-misc/netkit-telnetd',
+        'sys-apps/hdparm',
         'sys-process/glances',
         'sys-process/lsof',
     ]:
