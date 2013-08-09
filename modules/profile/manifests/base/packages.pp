@@ -1,9 +1,8 @@
 class profile::base::packages {
     class { 'private::profile::base::packages': }
 
-    if desktop in $profile::base::roles {
-        $is_desktop = true
-    }
+    $is_desktop = desktop in $profile::base::roles
+    $is_server  = server  in $profile::base::roles
 
     #
     # Has a global Portage configuration.
@@ -81,6 +80,10 @@ class profile::base::packages {
         'sys-process/lsof',
     ]:
         ensure => installed,
+    }
+
+    class { 'sysstat':
+        sar => $is_server,
     }
 
     class { 'vcs': }

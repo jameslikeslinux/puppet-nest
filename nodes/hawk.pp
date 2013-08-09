@@ -11,12 +11,25 @@ node 'hawk' {
             lamp_server,
             package_server,
             private_stuff,
-#            puppet_dashboard,
+            puppet_dashboard,
             puppet_master,
+            server,
             thestaticvoid,
             vpn_server,
             web_server,
         ],
+    }
+
+    crypt::device { '/dev/disk/by-path/pci-0000:01:00.0-scsi-0:1:0:0':
+        target   => 'nest-crypt0',
+        keyfile  => '/dev/mapper/keyfile',
+        bootdisk => false,
+    }
+
+    crypt::device { '/dev/disk/by-path/pci-0000:01:00.0-scsi-0:1:1:0':
+        target   => 'nest-crypt1',
+        keyfile  => '/dev/mapper/keyfile',
+        bootdisk => false,
     }
 
     crypt::device { '/dev/disk/by-path/pci-0000:01:00.0-scsi-0:1:2:0':
