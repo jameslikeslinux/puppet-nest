@@ -1,5 +1,8 @@
 class rsyslog {
-    portage::package { 'app-admin/rsyslog':
+    portage::package { [
+        'app-admin/rsyslog',
+        'app-admin/logrotate',
+    ]:
         ensure => installed,
     }
 
