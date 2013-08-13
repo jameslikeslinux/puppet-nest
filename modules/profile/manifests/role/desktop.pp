@@ -50,9 +50,17 @@ class profile::role::desktop {
 
 
     #
+    # Has things like ffmpeg and mplayer
+    #
+    class { 'multimedia': }
+
+
+    #
     # Has Mozilla apps
     #
-    class { ['firefox', 'thunderbird']: }
+    class { ['firefox', 'thunderbird']:
+        require => Class['multimedia'],
+    }
 
 
     #
@@ -60,13 +68,5 @@ class profile::role::desktop {
     #
     class { 'cups':
         kde => true,
-    }
-
-
-    #
-    # Plays video
-    #
-    portage::package { 'media-video/mplayer':
-        ensure => installed,
     }
 }
