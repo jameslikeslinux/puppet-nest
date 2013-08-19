@@ -12,24 +12,24 @@ class profile::base::packages {
 
         $is_desktop ? {
             true    => 'networkmanager',
-            default => '',
+            default => [],
         },
 
         $is_desktop ? {
             true    => 'pulseaudio',
-            default => '',
+            default => [],
         },
 
         $is_desktop ? {
             true    => 'xinerama',
-            default => '',
+            default => [],
         },
     ]
 
     class { 'makeconf':
         buildpkg  => true,
         getbinpkg => $profile::base::package_server,
-        use       => $use,
+        use       => flatten($use),
     }
 
 
