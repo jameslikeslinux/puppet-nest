@@ -44,4 +44,13 @@ class profile::base::networking {
     iptables::accept { 'vpn':
         device => 'tap0',
     }
+
+
+    #
+    # Uses NFS
+    #
+    class { 'nfs': }
+    class { 'nfs::idmapd':
+        domain => 'thestaticvoid.com',
+    }
 }

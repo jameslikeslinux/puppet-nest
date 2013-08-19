@@ -9,6 +9,7 @@ node 'hawk' {
         roles            => [
             desktop,
             lamp_server,
+            nest,
             package_server,
             private_stuff,
             puppet_dashboard,
