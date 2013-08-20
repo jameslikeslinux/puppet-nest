@@ -6,8 +6,17 @@ class rsyslog {
         ensure => installed,
     }
 
+    file { '/etc/conf.d/rsyslog':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/rsyslog/rsyslog.confd',
+        require => Portage::Package['app-admin/rsyslog'],
+        notify  => Openrc::Service['rsyslog'],
+    }
+
     openrc::service { 'rsyslog':
         enable  => true,
-        require => Portage::Package['app-admin/rsyslog'],
+        require => File['/etc/conf.d/rsyslog'],
     }
 }
