@@ -69,4 +69,13 @@ class profile::role::desktop {
     class { 'cups':
         kde => true,
     }
+
+
+    #
+    # Has LibreOffice
+    #
+    portage::package { 'app-office/libreoffice':
+        # use webdav is default; leads to compilation error
+        use => '-webdav',
+    }
 }
