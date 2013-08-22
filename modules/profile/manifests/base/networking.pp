@@ -53,4 +53,9 @@ class profile::base::networking {
     class { 'nfs::idmapd':
         domain => 'thestaticvoid.com',
     }
+
+
+    unless nest in $profile::base::roles {
+        class { 'profile::role::nest_client': }
+    }
 }
