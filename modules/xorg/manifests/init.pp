@@ -78,4 +78,15 @@ class xorg (
         source  => 'puppet:///modules/xorg/trackpoint.conf',
         require => File['/etc/X11/xorg.conf.d'],
     }
+
+
+    #
+    # R600 cards need firmware in initramfs
+    #
+    if 'radeon' in $video_cards {
+        portage::package { 'x11-drivers/radeon-ucode':
+            ensure => installed,
+            before => Class['kernel::initrd'],
+        }
+    }
 }
