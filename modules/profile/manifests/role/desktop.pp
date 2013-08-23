@@ -78,4 +78,10 @@ class profile::role::desktop {
         # use webdav is default; leads to compilation error
         use => '-webdav',
     }
+
+
+    #
+    # Has Pidgin
+    #
+    class { 'pidgin': }
 }
