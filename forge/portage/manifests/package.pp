@@ -168,6 +168,7 @@ define portage::package (
     command     => "/usr/bin/emerge --changed-use -u1 ${name}",
     refreshonly => true,
     timeout     => 43200,
+    require     => Package[$name],
   }
 
   package { $name:
