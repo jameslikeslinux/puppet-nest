@@ -661,6 +661,5 @@ sample_directory = /etc/postfix
 # readme_directory: The location of the Postfix README files.
 #
 readme_directory = no
-inet_protocols = ipv4
 home_mailbox = .maildir/
 
