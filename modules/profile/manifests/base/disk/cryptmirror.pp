@@ -1,5 +1,7 @@
 class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
-    class { 'mdraid': }
+    class { 'mdraid':
+        mailaddr => 'root',
+    }
 
     Fstab::Fs['boot'] {
         device => '/dev/md0',

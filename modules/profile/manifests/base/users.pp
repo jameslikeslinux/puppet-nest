@@ -4,14 +4,23 @@ class profile::base::users {
     #
     class { 'zsh': }
 
+
+    if virtualbox in $profile::base::roles {
+        $groups  = ['wheel', 'vboxusers']
+        $require = [Class['zsh'], Class['virtualbox']]
+    } else {
+        $groups  = ['wheel']
+        $require = Class['zsh']
+    }
+
     users::user { 'jlee':
         uid            => 1000,
-        groups         => ['wheel'],
+        groups         => $groups,
         fullname       => 'James Lee',
         shell          => '/bin/zsh',
         profile        => 'git://github.com/MrStaticVoid/profile.git',
         ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
-        require        => Class['zsh'],
+        require        => $require,
     }
 
 
@@ -48,5 +57,13 @@ class profile::base::users {
     #
     exec { '/usr/bin/passwd --lock root':
         unless => '/usr/bin/passwd --status root | /bin/grep " L "',
+    }
+
+
+    #
+    # root mail goes to the right place
+    #
+    postfix::alias { 'root':
+        recipient => 'jlee@thestaticvoid.com',
     }
 }

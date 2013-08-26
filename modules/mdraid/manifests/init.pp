@@ -1,4 +1,6 @@
-class mdraid {
+class mdraid (
+    $mailaddr = undef,
+) {
     portage::package { 'sys-fs/mdadm':
         ensure => 'latest',
     }
@@ -15,13 +17,25 @@ class mdraid {
     }
 
     concat::fragment { 'mdadm-conf-header':
-        target  => 'mdadm-conf',
-        content => template('mdraid/header.erb'),
+        target => 'mdadm-conf',
+        source => 'puppet:///modules/mdraid/header',
     }
 
     concat::fragment { 'mdadm-conf-scan':
         target  => 'mdadm-conf',
         ensure  => '/etc/mdadm.conf.scan',
         require => Exec['mdadm-scan'],
+    }
+
+    if $mailaddr {
+        concat::fragment { 'mdadm-conf-mailaddr':
+            target  => 'mdadm-conf',
+            content => "MAILADDR $mailaddr\n",
+        }
+    }
+
+    openrc::service { 'mdadm':
+        enable  => true,
+        require => Concat['mdadm-conf'],
     }
 }
