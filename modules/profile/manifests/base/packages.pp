@@ -77,6 +77,7 @@ class profile::base::packages {
         'net-dns/bind-tools',
         'net-misc/netkit-telnetd',
         'sys-apps/hdparm',
+        'sys-fs/dosfstools',
         'sys-process/glances',
         'sys-process/lsof',
     ]:
