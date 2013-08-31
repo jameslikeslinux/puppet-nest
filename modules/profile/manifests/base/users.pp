@@ -5,22 +5,38 @@ class profile::base::users {
     class { 'zsh': }
 
 
-    if virtualbox in $profile::base::roles {
-        $groups  = ['wheel', 'vboxusers']
-        $require = [Class['zsh'], Class['virtualbox']]
-    } else {
-        $groups  = ['wheel']
-        $require = Class['zsh']
-    }
+    $virtalbox = virtualbox in $profile::base::roles
+    $terminal_client = terminal_client in $profile::base::roles
+
+    $groups = [
+        $virtualbox ? {
+            true    => 'virtualbox',
+            default => [],
+        },
+
+        $terminal_client ? {
+            true    => 'uucp',
+            default => [],
+        },
+    ]
+
+    $require = [
+        Class['zsh'],
+
+        $virtualbox ? {
+            true    => Class['virtualbox'],
+            default => [],
+        },
+    ]
 
     users::user { 'jlee':
         uid            => 1000,
-        groups         => $groups,
+        groups         => flatten($groups),
         fullname       => 'James Lee',
         shell          => '/bin/zsh',
         profile        => 'git://github.com/MrStaticVoid/profile.git',
         ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
-        require        => $require,
+        require        => flatten($require),
     }
 
 
