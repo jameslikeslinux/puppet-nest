@@ -44,4 +44,11 @@ class kernel (
         kernel_name    => $kernel_name,
         kernel_version => $kernel_version,
     }
+
+    concat { '/etc/conf.d/modules': }
+
+    kernel::modules { 'default':
+        source => 'puppet:///modules/kernel/modules.confd',
+        order  => '00',
+    }
 }

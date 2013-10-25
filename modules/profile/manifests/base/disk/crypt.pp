@@ -15,4 +15,11 @@ class profile::base::disk::crypt inherits profile::base::disk::base {
         keyfile => '/dev/mapper/keyfile',
         order   => 2,
     }
+
+    file { '/etc/local.d/keyfile.start':
+        mode   => '0755',
+        owner  => 'root',
+        group  => 'root',
+        source => 'puppet:///modules/profile/base/disk/keyfile.start',
+    }
 }

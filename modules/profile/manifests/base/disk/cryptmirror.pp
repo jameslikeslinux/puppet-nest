@@ -23,4 +23,11 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
     }
 
     grub::install { "/dev/disk/by-id/${disk_mirror_id}": }
+
+    file { '/etc/local.d/rpool.start':
+        mode   => '0755',
+        owner  => 'root',
+        group  => 'root',
+        source => 'puppet:///modules/profile/base/disk/rpool.start',
+    }
 }

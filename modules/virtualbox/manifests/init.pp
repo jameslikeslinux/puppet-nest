@@ -29,4 +29,29 @@ class virtualbox (
         group   => 'vboxusers',
         require => Portage::Package['app-emulation/virtualbox-bin'],
     }
+
+    file { '/opt/VirtualBox/VBoxAutostart':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        require => Portage::Package['app-emulation/virtualbox-bin'],
+    }
+
+    file { '/etc/local.d/virtualbox.start':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        content => template('virtualbox/init.start.erb'),
+    }
+
+    file { '/etc/local.d/virtualbox.stop':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        content => template('virtualbox/init.stop.erb'),
+    }
+
+    kernel::modules { 'virtualbox':
+        content => "modules=\"vboxdrv vboxnetadp vboxnetflt\"\n",
+    }
 }
