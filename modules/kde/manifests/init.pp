@@ -14,9 +14,17 @@ class kde {
         'kde-base/ark',
         'kde-base/kmix',
         'kde-base/ffmpegthumbs',
-        'kde-base/thumbnailers',
     ]:
         ensure => installed,
+    }
+
+    package_use { 'media-gfx/exiv2':
+        use => 'xmp',
+    }
+
+    portage::package { 'kde-base/thumbnailers':
+        ensure  => installed,
+        require => Package_use['media-gfx/exiv2'],
     }
 
     class { 'kde::gtk': }

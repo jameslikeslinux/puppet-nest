@@ -17,7 +17,7 @@ class profile::base::environment {
     #
     class { 'puppet::agent':
         master        => 'puppet.thestaticvoid.com',
-        certname      => $hostname,
+        certname      => $clientcert,
         dns_alt_names => $dns_alt_names,
     }
 

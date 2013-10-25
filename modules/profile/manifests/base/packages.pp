@@ -2,7 +2,8 @@ class profile::base::packages {
     class { 'private::profile::base::packages': }
 
     $is_desktop = desktop in $profile::base::roles
-    $is_server  = server  in $profile::base::roles
+    $is_server = server in $profile::base::roles
+    $is_compile_server = compile_server in $profile::base::roles
 
     #
     # Has a global Portage configuration.
@@ -26,10 +27,19 @@ class profile::base::packages {
         },
     ]
 
+    $overlays = [
+        $is_compile_server ? {
+            true    => '/usr/local/portage-crossdev',
+            default => [],
+        },
+    ]
+
     class { 'makeconf':
         buildpkg  => true,
         getbinpkg => $profile::base::package_server,
+        distcc    => $profile::base::distcc,
         use       => flatten($use),
+        overlays  => flatten($overlays),
     }
 
 
@@ -77,6 +87,7 @@ class profile::base::packages {
         'net-dns/bind-tools',
         'net-misc/netkit-telnetd',
         'sys-apps/hdparm',
+        'sys-apps/pv',
         'sys-fs/dosfstools',
         'sys-process/glances',
         'sys-process/lsof',
@@ -90,7 +101,10 @@ class profile::base::packages {
 
     class { 'vcs': }
 
-    class { 'java':
-        nsplugin => $is_desktop,
+
+    if $profile::base::distcc {
+        class { 'distcc::client':
+            servers => ['hawk'],
+        }
     }
 }

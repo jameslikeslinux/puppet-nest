@@ -1,6 +1,6 @@
 class cronie {
     portage::package { 'sys-process/cronie':
-        use    => ['anacron', 'inotify'],
+        use    => 'inotify',
         ensure => installed,
     }
 

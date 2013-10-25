@@ -3,18 +3,25 @@ class php (
     $apache   = false,
     $mysql    = false,
 ) {
-    if $apache and $mysql {
-        $use = ['cgi', 'mysql']
-    } elsif $apache {
-        $use = 'cgi'
-    } elsif $mysql { 
-        $use = 'mysql'
-    } else {
-        $use = undef
-    }
+    $use = [
+        'bcmath',
+        'curl',
+        'gmp',
+        'soap',
+
+        $apache ? {
+            true    => 'cgi',
+            default => [],
+        },
+
+        $mysql ? {
+            true    => 'mysql',
+            default => [],
+        },
+    ]
 
     portage::package { 'dev-lang/php':
-        use => $use,
+        use => flatten($use),
     }
 
     php::config { 'cli-php5.5': }

@@ -8,7 +8,7 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
     }
 
     Dracut::Conf['devices'] {
-        boot_devices => ['/dev/md1', "/dev/disk/by-path/${disk_path}-part4", "/dev/disk/by-path/${disk_mirror_path}-part4"],
+        boot_devices => ['/dev/md1', "/dev/disk/by-id/${disk_id}-part4", "/dev/disk/by-id/${disk_mirror_id}-part4"],
     }
 
     Crypt::Device['keyfile'] {
@@ -16,11 +16,11 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
     }
 
     crypt::device { 'rpool-crypt1':
-        device  => "/dev/disk/by-path/${disk_mirror_path}-part4",
+        device  => "/dev/disk/by-id/${disk_mirror_id}-part4",
         target  => 'rpool-crypt1',
         keyfile => '/dev/mapper/keyfile',
         order   => 3,
     }
 
-    grub::install { "/dev/disk/by-path/${disk_mirror_path}": }
+    grub::install { "/dev/disk/by-id/${disk_mirror_id}": }
 }

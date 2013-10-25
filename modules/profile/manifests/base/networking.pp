@@ -16,8 +16,8 @@ class profile::base::networking {
         class { 'openvpn::client':
             server      => 'vpn.thestaticvoid.com',
             ca_cert     => '/etc/puppet/ssl/certs/ca.pem',
-            client_cert => "/etc/puppet/ssl/certs/${hostname}.pem",
-            client_key  => "/etc/puppet/ssl/private_keys/${hostname}.pem",
+            client_cert => "/etc/puppet/ssl/certs/${clientcert}.pem",
+            client_key  => "/etc/puppet/ssl/private_keys/${clientcert}.pem",
         }
     }
 
@@ -26,14 +26,14 @@ class profile::base::networking {
     # Has a hostname
     #
     class { 'hostname':
-        hostname => $hostname,
+        hostname => $clientcert,
     }
 
 
     #
     # and knows about everyone else's...
     #
-    Host <| title != $hostname |>
+    Host <| title != $clientcert |>
 
 
     #

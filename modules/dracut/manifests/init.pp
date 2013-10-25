@@ -11,17 +11,21 @@ class dracut (
         }
     }
 
-    $use = $has_crypt ? {
-        true    => 'device-mapper',
-        default => undef,
-    }
+    $use = [
+        'optimization',
+
+        $has_crypt ? {
+            true    => 'device-mapper',
+            default => [],
+        },
+    ]
 
     portage::makeconf { 'dracut_modules':
-        content => join(sort(flatten($modules)), ' '),
+        content => join(sort($modules), ' '),
     }
 
     portage::package { 'sys-kernel/dracut':
         ensure => installed,
-        use    => $use,
+        use    => flatten($use),
     }
 }

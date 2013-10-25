@@ -1,8 +1,10 @@
 class makeconf (
     $buildpkg  = false,
     $getbinpkg = false,
+    $distcc    = false,
     $makejobs  = $processorcount + 1,
     $use       = [],
+    $overlays  = [],
 ) {
     if $getbinpkg {
         portage::makeconf { 'portage_binhost':
@@ -11,6 +13,11 @@ class makeconf (
     }
 
     $features = [
+        $distcc ? {
+            false   => [],
+            default => 'distcc',
+        },
+
         $buildpkg ? {
             false   => [],
             default => 'buildpkg',
@@ -44,5 +51,11 @@ class makeconf (
 
     portage::makeconf { 'use':
         content => join(sort($use), ' '),
+    }
+
+    unless $overlays == [] {
+        portage::makeconf { 'portdir_overlay':
+            content => join($overlays),
+        }
     }
 }

@@ -9,6 +9,8 @@ class profile::base::users {
     $terminal_client = terminal_client in $profile::base::roles
 
     $groups = [
+        'wheel',
+
         $virtualbox ? {
             true    => 'virtualbox',
             default => [],
@@ -51,7 +53,7 @@ class profile::base::users {
 
 
     #
-    # Admins are to use sudo or polkit
+    # Admins are to use sudo
     #
     class { 'sudo': }
 
@@ -61,10 +63,6 @@ class profile::base::users {
 
     sudo::conf { 'wheel':
         content => '%wheel ALL=(ALL) NOPASSWD: ALL',
-    }
-
-    class { 'polkit':
-        admin_group => 'wheel',
     }
 
 

@@ -3,9 +3,9 @@ class kernel::initrd (
     $kernel_version,
 ) {
     exec { "dracut":
-        command     => "/usr/bin/dracut --force --hostonly /boot/initramfs-${kernel_name}-${hardwaremodel}-${kernel_version} ${kernel_version}",
+        command     => "/usr/bin/dracut --force --hostonly /boot/initramfs-${kernel_name}-${kernel::arch}-${kernel_version} ${kernel_version}",
         require     => [Class['dracut'], Class['kernel']],
-        creates     => "/boot/initramfs-${kernel_name}-${hardwaremodel}-${kernel_version}",
+        creates     => "/boot/initramfs-${kernel_name}-${kernel::arch}-${kernel_version}",
         timeout     => 0,
     }
 }

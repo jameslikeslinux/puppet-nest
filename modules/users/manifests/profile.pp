@@ -2,6 +2,7 @@ define users::profile (
     $directory = $name,
     $user,
     $source,
+    $branch = 'master',
 ) {
     Exec {
         cwd  => $directory,
@@ -15,8 +16,8 @@ define users::profile (
     }
 
     exec { "git-reset-${directory}":
-        command  => "git reset --hard origin/master",
-        onlyif   => 'git fetch origin && test "`git show-ref -s --heads master`" != "`git show-ref -s origin/master`"',
+        command  => "git reset --hard origin/${branch}",
+        onlyif   => "git fetch origin && test \"`git show-ref -s --heads master`\" != \"`git show-ref -s origin/${branch}`\"",
         provider => 'shell',
         require  => Exec["git-init-${directory}"],
     }

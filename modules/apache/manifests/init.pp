@@ -16,8 +16,10 @@ class apache (
         use    => 'threads',
     }
 
-    portage::package { 'www-apache/mod_fcgid':
-        require => Portage::Package['www-servers/apache'],
+    if fcgid in $modules {
+        portage::package { 'www-apache/mod_fcgid':
+            require => Portage::Package['www-servers/apache'],
+        }
     }
 
     #

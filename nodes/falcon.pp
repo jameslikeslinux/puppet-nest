@@ -1,12 +1,13 @@
 node 'falcon' {
     class { 'profile::base':
-        disk_path        => 'pci-0000:00:1f.2-scsi-1:0:0:0',
-        disk_mirror_path => 'pci-0000:00:1f.2-scsi-2:0:0:0',
+        disk_id          => 'ata-ST3400620NS_5QH0BMKB',
+        disk_mirror_id   => 'ata-ST3400620NS_5QH0BMW1',
         disk_profile     => cryptmirror,
         video_cards      => ['nouveau'],
         package_server   => 'http://packages.thestaticvoid.com/',
         roles            => [
             desktop,
+            qemu_chroot,
             terminal_client,
             virtualbox,
         ],

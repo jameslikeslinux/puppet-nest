@@ -8,15 +8,25 @@ class puppet::agent (
     }
 
     file { '/etc/puppet/puppet.conf':
-        mode    => '644',
+        mode    => '0644',
         owner   => 'root',
         group   => 'root',
         content => template('puppet/agent.erb'),
         require => Portage::Package['app-admin/puppet'],
-        notify  => Openrc::Service['puppet'],
     }
 
     openrc::service { 'puppet':
-        enable => true,
+        enable => false,
+    }
+
+    file { '/etc/cron.daily/puppet':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/puppet/cron.sh',
+        require => [
+            File['/etc/puppet/puppet.conf'],
+            Class['cronie'],
+        ],
     }
 }

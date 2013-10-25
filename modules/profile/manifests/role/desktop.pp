@@ -1,4 +1,9 @@
 class profile::role::desktop {
+    class { 'polkit':
+        admin_group => 'wheel',
+    }
+
+
     #
     # Uses NetworkManager for networking
     #
@@ -72,16 +77,27 @@ class profile::role::desktop {
 
 
     #
-    # Has LibreOffice
+    # Has LibreOffice and TexLive
     #
     portage::package { 'app-office/libreoffice':
         # use webdav is default; leads to compilation error
         use => '-webdav',
     }
 
+    class { 'texlive': }
+
 
     #
     # Has Pidgin
     #
     class { 'pidgin': }
+
+
+    portage::package { 'media-gfx/imagemagick':
+        ensure => installed,
+    }
+
+    portage::package { 'www-client/google-chrome':
+        ensure    => installed,
+    }
 }

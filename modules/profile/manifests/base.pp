@@ -1,7 +1,9 @@
 class profile::base (
-    $disk_path,
-    $disk_mirror_path = undef,
+    $arch             = x86,
+    $disk_id          = undef,
+    $disk_mirror_id   = undef,
     $disk_profile     = base,
+    $distcc           = false,
     $timezone         = 'America/New_York',
     $resolution       = undef,
     $dpi              = undef,
@@ -14,6 +16,7 @@ class profile::base (
     # Include profile components.
     #
     class { [
+        "profile::base::arch::${arch}",
         "profile::base::disk::${disk_profile}",
         'profile::base::boot',
         'profile::base::environment',
