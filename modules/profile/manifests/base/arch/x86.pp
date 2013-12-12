@@ -22,4 +22,8 @@ class profile::base::arch::x86 {
     class { 'java':
         nsplugin => $is_desktop,
     }
+
+    class { 'erlang':
+        graphical => $is_desktop,
+    }
 }
