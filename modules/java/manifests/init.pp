@@ -15,7 +15,10 @@ class java (
         source  => 'puppet:///modules/java/java-options.sh',
     }
 
-    portage::package { 'dev-java/maven-bin':
+    portage::package { [
+        'dev-java/maven-bin',
+        'dev-java/ant',
+    ]:
         ensure  => installed,
         require => Portage::Package['dev-java/oracle-jdk-bin'],
     }
