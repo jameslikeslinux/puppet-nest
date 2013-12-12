@@ -10,6 +10,7 @@ node 'falcon' {
             qemu_chroot,
             terminal_client,
             virtualbox,
+            work_system,
         ],
     }
 }

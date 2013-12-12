@@ -8,6 +8,7 @@ node 'eagle' {
         roles            => [
             desktop,
             virtualbox,
+            work_system,
         ],
     }
 }
