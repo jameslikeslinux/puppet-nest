@@ -14,4 +14,8 @@ class erlang (
     portage::package { 'dev-lang/erlang':
         use => flatten($use),
     }
+
+    portage::package { 'dev-lang/elixir':
+        ensure => installed,
+    }
 }
