@@ -93,11 +93,18 @@ class profile::role::desktop {
     class { 'pidgin': }
 
 
-    portage::package { 'media-gfx/imagemagick':
+    #
+    # Miscellaneous packages
+    #
+    portage::package { [
+        'media-gfx/imagemagick',
+        'www-client/google-chrome',
+    ]:
         ensure => installed,
     }
 
-    portage::package { 'www-client/google-chrome':
-        ensure    => installed,
+    portage::package { 'net-misc/electrum':
+        ensure => installed,
+        use    => 'qt4',
     }
 }
