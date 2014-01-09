@@ -58,7 +58,7 @@ class profile::base::users {
     class { 'sudo': }
 
     sudo::conf { 'env':
-        content => 'Defaults env_keep += "SSH_AUTH_SOCK XAUTHORITY"',
+        content => 'Defaults env_keep += "SSH_AUTH_SOCK SSH_CLIENT XAUTHORITY"',
     }
 
     sudo::conf { 'wheel':
