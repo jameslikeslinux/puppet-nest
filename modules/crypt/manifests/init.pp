@@ -10,6 +10,11 @@ class crypt {
         order   => '00',
     }
 
+    package_mask { 'dev-libs/libgcrypt':
+        version => '>1.5.3',
+        before  => Portage::Package['sys-fs/cryptsetup'],
+    }
+
     portage::package { 'sys-fs/cryptsetup':
         ensure => installed,
     }
