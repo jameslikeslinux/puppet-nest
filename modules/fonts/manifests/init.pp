@@ -41,6 +41,7 @@ class fonts (
     portage::package { [
         'media-fonts/corefonts',
         'media-fonts/liberation-fonts',
+        'media-fonts/dejavu',
     ]:
         ensure => installed,
     }
