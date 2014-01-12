@@ -51,4 +51,6 @@ class kernel (
         source => 'puppet:///modules/kernel/modules.confd',
         order  => '00',
     }
+
+    class { 'kernel::modules::blacklist': }
 }
