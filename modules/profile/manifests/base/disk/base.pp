@@ -3,6 +3,7 @@ class profile::base::disk::base {
     $disk_mirror_id = $profile::base::disk_mirror_id
 
     class { 'zfs': }
+    class { 'smart': }
 
     fstab::fs { 'boot':
         device     => "/dev/disk/by-id/${disk_id}-part1",
