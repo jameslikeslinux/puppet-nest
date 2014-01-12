@@ -1,8 +1,7 @@
 node 'hawk' {
     class { 'profile::base':
-        disk_id          => 'ata-ST3400620NS_5QH09PCG',
-        disk_mirror_id   => 'ata-ST3400620AS_5QH09K6R',
-        disk_profile     => cryptmirror,
+        disk_id          => 'ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
+        disk_profile     => crypt,
         video_cards      => ['nouveau'],
         dpi              => 192,
         lcd              => false,
