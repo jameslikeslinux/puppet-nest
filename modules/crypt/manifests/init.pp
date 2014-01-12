@@ -17,6 +17,7 @@ class crypt {
 
     portage::package { 'sys-fs/cryptsetup':
         ensure => installed,
+        use    => 'reencrypt',
     }
 
     concat { '/etc/conf.d/dmcrypt':
