@@ -17,5 +17,6 @@ class erlang (
 
     portage::package { 'dev-lang/elixir':
         ensure => installed,
+        require => Portage::Package['dev-lang/erlang'],
     }
 }
