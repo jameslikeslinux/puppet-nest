@@ -48,7 +48,7 @@ class fonts (
 
     #
     # Make Liberation fonts the default for
-    # sans-serif, serif, and monospace
+    # sans-serif and serif; DejaVu for monospace
     #
     file { '/etc/fonts/local.conf':
         mode   => '0644',
@@ -58,6 +58,7 @@ class fonts (
         require => [
             Portage::Package['media-libs/fontconfig'],
             Portage::Package['media-fonts/liberation-fonts'],
+            Portage::Package['media-fonts/dejavu'],
         ]
     }
 }
