@@ -43,7 +43,7 @@ class profile::role::desktop {
     #
     class { 'kde::kdm':
         keymap      => 'dvorak',
-        xkboptions  => ['ctrl:nocaps'],
+        xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
         dpi         => $profile::base::dpi,
     }
 
