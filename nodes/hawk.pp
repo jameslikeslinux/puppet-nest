@@ -22,7 +22,7 @@ node 'hawk' {
         ],
     }
 
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD03B5A':
+    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD6EGEK':
         target   => 'nest-crypt0',
         keyfile  => '/dev/mapper/keyfile',
         bootdisk => false,

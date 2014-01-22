@@ -1,8 +1,7 @@
 node 'falcon' {
     class { 'profile::base':
-        disk_id          => 'ata-ST3400620NS_5QH0BMKB',
-        disk_mirror_id   => 'ata-ST3400620NS_5QH0BMW1',
-        disk_profile     => cryptmirror,
+        disk_id          => 'ata-Samsung_SSD_840_PRO_Series_S1ATNSAD908564X',
+        disk_profile     => crypt,
         video_cards      => ['nouveau'],
         package_server   => 'http://packages.thestaticvoid.com/',
         roles            => [
@@ -13,6 +12,8 @@ node 'falcon' {
             work_system,
         ],
     }
+
+    class { 'inkscape': }
 }
 
 @host { 'falcon':
