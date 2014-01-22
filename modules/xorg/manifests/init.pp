@@ -47,14 +47,17 @@ class xorg (
     # Enable sync to vblank for nouveau
     # https://wiki.archlinux.org/index.php/Nouveau#Tear-free_compositing
     #
-    if 'nouveau' in $video_cards {
-        file { '/etc/X11/xorg.conf.d/20-nouveau.conf':
-            mode    => '0644',
-            owner   => 'root',
-            group   => 'root',
-            source  => 'puppet:///modules/xorg/nouveau.conf',
-            require => File['/etc/X11/xorg.conf.d'],
-        }
+    $nouveau = 'nouveau' in $video_cards
+    file { '/etc/X11/xorg.conf.d/20-nouveau.conf':
+        ensure  => $nouveau ? {
+            true    => present,
+            default => absent,
+        },
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/xorg/nouveau.conf',
+        require => File['/etc/X11/xorg.conf.d'],
     }
 
     #
@@ -88,5 +91,27 @@ class xorg (
             ensure => installed,
             before => Class['kernel::initrd'],
         }
+    }
+
+
+    #
+    # Proprietary NVIDIA driver stuff
+    #
+    $nvidia = 'nvidia' in $video_cards
+
+    if $nvidia {
+        kernel::modules::blacklist { 'nouveau': }
+    }
+
+    file { '/etc/X11/xorg.conf.d/20-nvidia.conf':
+        ensure  => $nvidia ? {
+            true    => present,
+            default => absent,
+        },
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        source  => 'puppet:///modules/xorg/nvidia.conf',
+        require => File['/etc/X11/xorg.conf.d'],
     }
 }
