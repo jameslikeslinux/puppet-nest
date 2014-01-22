@@ -18,7 +18,7 @@ class kernel (
     kernel::eselect { $eselect_name:
         require => Portage::Package["sys-kernel/${package_name}"],
     }
-    
+
     file { '/usr/src/linux/config':
         mode    => '0644',
         owner   => 'root',
@@ -40,7 +40,7 @@ class kernel (
         timeout     => 0,
     }
 
-    class { 'kernel::initrd': 
+    class { 'kernel::initrd':
         kernel_name    => $kernel_name,
         kernel_version => $kernel_version,
     }
@@ -52,5 +52,13 @@ class kernel (
         order  => '00',
     }
 
-    class { 'kernel::modules::blacklist': }
+    concat { '/etc/modprobe.d/blacklist.conf':
+        notify => Class['kernel::initrd'],
+    }
+
+    concat::fragment { 'blacklist.conf-header':
+        target => '/etc/modprobe.d/blacklist.conf',
+        source => 'puppet:///modules/kernel/blacklist.conf',
+        order => '00',
+    }
 }

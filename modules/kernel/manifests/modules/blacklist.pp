@@ -1,8 +1,8 @@
-class kernel::modules::blacklist {
-    file { '/etc/modprobe.d/blacklist.conf':
-        mode   => '0644',
-        owner  => 'root',
-        group  => 'root',
-        source => 'puppet:///modules/kernel/blacklist.conf',
+define kernel::modules::blacklist(
+    $module = $name,
+) {
+    concat::fragment { "blacklist-module-${module}":
+        target  => '/etc/modprobe.d/blacklist.conf',
+        content => template('kernel/blacklist.conf.erb'),
     }
 }
