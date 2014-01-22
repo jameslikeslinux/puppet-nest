@@ -5,6 +5,7 @@ node 'falcon' {
         video_cards      => ['nouveau'],
         package_server   => 'http://packages.thestaticvoid.com/',
         roles            => [
+            cachefiles,
             desktop,
             qemu_chroot,
             terminal_client,
