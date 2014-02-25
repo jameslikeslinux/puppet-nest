@@ -18,8 +18,8 @@ class profile::role::desktop {
     #
     class { 'xorg':
         video_cards => $profile::base::video_cards,
-        keymap      => 'dvorak',
-        xkboptions  => ['ctrl:nocaps'],
+        keymap      => $profile::base::keymap,
+        xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
     }
 
 
@@ -42,7 +42,7 @@ class profile::role::desktop {
     # https://wiki.archlinux.org/index.php/Logitech_Unifying_Receiver#Keyboard_layout_via_xorg.confthereceiver
     #
     class { 'kde::kdm':
-        keymap      => 'dvorak',
+        keymap      => $profile::base::keymap,
         xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
         dpi         => $profile::base::dpi,
     }
@@ -97,6 +97,7 @@ class profile::role::desktop {
     # Miscellaneous packages
     #
     portage::package { [
+        'media-gfx/argyllcms',
         'media-gfx/imagemagick',
         'www-client/google-chrome',
     ]:
