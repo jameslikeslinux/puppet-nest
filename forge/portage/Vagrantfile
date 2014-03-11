@@ -1,3 +1,0 @@
-Vagrant::Config.run do |config|
-  config.vm.box = "gentoo-i386"
-end

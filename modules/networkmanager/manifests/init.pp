@@ -3,8 +3,8 @@ class networkmanager (
     $openconnect = false,
 ) {
     portage::package { 'net-misc/networkmanager':
-        ensure => installed,
-        unmask => '=0.9.8.2',
+        ensure         => installed,
+        unmask_version => '=0.9.8.2',
     }
 
     openrc::service { 'NetworkManager':
