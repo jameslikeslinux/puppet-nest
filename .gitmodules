@@ -7,3 +7,6 @@
 [submodule "forge/sudo"]
 	path = forge/sudo
 	url = https://github.com/saz/puppet-sudo.git
+[submodule "forge/stdlib"]
+	path = forge/stdlib
+	url = https://github.com/puppetlabs/puppetlabs-concat.git
