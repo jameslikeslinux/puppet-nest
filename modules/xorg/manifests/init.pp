@@ -91,6 +91,10 @@ class xorg (
             ensure => installed,
             before => Class['kernel::initrd'],
         }
+
+        package_use { 'media-libs/mesa':
+            use => 'gbm',
+        }
     }
 
 

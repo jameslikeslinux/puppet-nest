@@ -2,11 +2,11 @@ class profile::base::networking {
     #
     # Uses DHCPCD to manage network interface (unless I'm a desktop)
     #
-    unless desktop in $profile::base::roles {
-        openrc::service { 'dhcpcd':
-            enable => true,
-        }
-    }
+#    unless desktop in $profile::base::roles {
+#        openrc::service { 'dhcpcd':
+#            enable => true,
+#        }
+#    }
 
 
     #

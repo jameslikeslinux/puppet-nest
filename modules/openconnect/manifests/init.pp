@@ -1,5 +1,5 @@
 class openconnect {
-    portage::package { [
-        'net-misc/openconnect',
-    ]: }
+    portage::package { 'net-misc/openconnect':
+        mask => '=5.99',
+    }
 }

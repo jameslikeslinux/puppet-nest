@@ -76,16 +76,16 @@ class iptables {
         order => '01',
     }
 
+    iptables::rule { 'accept-icmpv6':
+        rule   => '-A INPUT -p icmpv6 -j ACCEPT',
+        order  => '05',
+        l3prot => v6,
+    }
+
     iptables::accept { 'pingv4':
         protocol => icmp,
         port     => 8,
         l3prot   => v4,
-    }
-
-    iptables::accept { 'pingv6':
-        protocol => icmpv6,
-        port     => 128,
-        l3prot   => v6,
     }
 
     iptables::rule { 'accept-established-and-related':
@@ -93,9 +93,16 @@ class iptables {
         order => '10',
     }
 
-    iptables::rule { 'log':
-        rule  => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG --log-prefix="iptables: DROP "',
-        order => '47',
+    iptables::rule { 'logv4':
+        rule   => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG --log-prefix="iptables: DROP "',
+        order  => '47',
+        l3prot => v4,
+    }
+
+    iptables::rule { 'logv6':
+        rule   => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG --log-prefix="ip6tables: DROP "',
+        order  => '47',
+        l3prot => v6,
     }
 
     iptables::rule { 'drop':

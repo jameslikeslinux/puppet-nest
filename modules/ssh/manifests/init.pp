@@ -12,4 +12,6 @@ class ssh {
             default => undef,
         }
     }
+
+    include ssh::client
 }

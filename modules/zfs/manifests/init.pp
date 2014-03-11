@@ -38,4 +38,13 @@ class zfs {
         replace => false,
         links   => follow,
     }
+
+    file { '/etc/modprobe.d/spl.conf':
+        mode   => '0644',
+        owner  => 'root',
+        group  => 'root',
+        content => "options spl spl_kmem_cache_expire=2\n",
+        before => Class['kernel::initrd'],
+        notify => Class['kernel::initrd'],
+    }
 }

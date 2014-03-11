@@ -26,9 +26,19 @@ class networkmanager (
     }
 
     if $openconnect {
+        include openconnect
+
+        package_use { 'app-crypt/gcr':
+            use => 'gtk',
+        }
+
         portage::package { 'net-misc/networkmanager-openconnect':
             ensure  => installed,
-            require => Portage::Package['net-misc/networkmanager'],
+            require => [
+                Portage::Package['net-misc/networkmanager'],
+                Package_use['app-crypt/gcr'],
+                Class['openconnect'],
+            ],
         }
     }
 }

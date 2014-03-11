@@ -8,4 +8,9 @@ class texlive {
         ensure  => installed,
         require => Package_use['app-text/texlive-core'],
     }
+
+    portage::package { 'dev-texlive/texlive-fontsextra':
+        ensure  => installed,
+        require => Portage::Package['app-text/texlive'],
+    }
 }

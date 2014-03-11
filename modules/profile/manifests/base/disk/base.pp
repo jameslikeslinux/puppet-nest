@@ -3,10 +3,22 @@ class profile::base::disk::base {
     $disk_mirror_id = $profile::base::disk_mirror_id
 
     class { 'zfs': }
-    class { 'smart': }
+
+    if $profile::base::remote_backup == true {
+        class { 'zfs::backup':
+            remote_host    => 'hawk',
+            remote_dataset => "nest/backup/nodes/${clientcert}",
+        } 
+    } else {
+        class { 'zfs::backup': }
+    }
+
+    if $virtual == 'physical' {
+        class { 'smart': }
+    }
 
     fstab::fs { 'boot':
-        device     => "/dev/disk/by-id/${disk_id}-part1",
+        device     => "${disk_id}-part1",
         mountpoint => '/boot',
         type       => 'ext2',
         options    => 'noatime',
@@ -21,5 +33,5 @@ class profile::base::disk::base {
         options    => 'sw',
     }
 
-    grub::install { "/dev/disk/by-id/${disk_id}": }
+    grub::install { $disk_id: }
 }

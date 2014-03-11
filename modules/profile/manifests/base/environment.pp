@@ -26,7 +26,7 @@ class profile::base::environment {
     # Uses a Dvorak keyboard.
     #
     class { 'keymaps':
-        keymap => 'dvorak',
+        keymap => $profile::base::keymap,
     }
 
 

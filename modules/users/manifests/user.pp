@@ -1,59 +1,61 @@
 define users::user (
     $uid,
+    $gid = 'users',
     $groups = [],
     $fullname,
     $shell,
     $profile = undef,
     $ssh_key_source = undef,
+    $home = "/home/${name}",
 ) {
     include users
 
     user { $name:
         uid     => $uid,
-        gid     => 'users',
+        gid     => $gid,
         groups  => $groups,
-        home    => "/home/${name}",
+        home    => $home,
         comment => $fullname,
         shell   => $shell,
         require => Class['users'],
     }
 
-    file { "/home/${name}":
+    file { $home:
         ensure  => directory,
         owner   => $name,
-        group   => 'users',
+        group   => $gid,
         require => User[$name],
     }
 
     if $profile {
-        users::profile { "/home/${name}":
+        users::profile { $home:
             user    => $name,
             source  => $profile,
-            require => File["/home/${name}"],
+            require => File[$home],
         }
     }
 
     if $ssh_key_source {
         $filename = regsubst($ssh_key_source, '^.*/([^/]+)$', '\1')
 
-        file { "/home/${name}/.ssh":
+        file { "${home}/.ssh":
             ensure => directory,
             mode   => '0644',
             owner  => $name,
-            group  => 'users',
+            group  => $gid,
         }
 
-        file { "/home/${name}/.ssh/${filename}":
+        file { "${home}/.ssh/${filename}":
             mode    => '0600',
             owner   => $name,
-            group   => 'users',
+            group   => $gid,
             source  => $ssh_key_source,
         }
 
-        file { "/home/${name}/.ssh/${filename}.pub":
+        file { "${home}/.ssh/${filename}.pub":
             mode    => '0644',
             owner   => $name,
-            group   => 'users',
+            group   => $gid,
             source  => "${ssh_key_source}.pub",
         }
     }

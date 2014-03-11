@@ -1,9 +1,11 @@
 class profile::base (
     $arch             = x86,
+    $remote_backup    = false,
     $disk_id          = undef,
     $disk_mirror_id   = undef,
     $disk_profile     = base,
     $distcc           = false,
+    $keymap           = 'dvorak',
     $timezone         = 'America/New_York',
     $resolution       = undef,
     $dpi              = undef,
