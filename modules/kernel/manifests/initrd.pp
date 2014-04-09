@@ -10,7 +10,7 @@ class kernel::initrd (
     }
 
     exec { "dracut":
-        command     => "/usr/bin/dracut --force --hostonly ${initrd} ${kernel_version}",
+        command     => "/usr/bin/dracut --force --hostonly --hostonly-cmdline ${initrd} ${kernel_version}",
         require     => [Class['dracut'], Class['kernel'], Exec['remove-old-initrd']],
         creates     => $initrd,
         timeout     => 0,
