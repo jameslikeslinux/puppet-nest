@@ -1,0 +1,9 @@
+[<%= @name %>]
+    path = <%= @path %>
+<% if @writable -%>
+    writable = yes
+<% end -%>
+<% if @createmask -%>
+    create mask = <%= @createmask %>
+<% end -%>
+

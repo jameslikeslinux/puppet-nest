@@ -1,6 +1,16 @@
 class profile::role::nest {
     class { 'nfs::server': }
 
+    class { 'samba::server':
+        workgroup => 'NEST',
+    }
+
+    samba::share { 'nest':
+        path       => '/nest',
+        writable   => true,
+        createmask => '0644',
+    }
+
     package_use { 'media-libs/chromaprint':
         use     => 'tools',
         version => '>=0.7',
