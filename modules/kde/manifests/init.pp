@@ -6,6 +6,14 @@ class kde {
         notify  => Class['portage'],
     }
 
+    # required by dev-qt/qtwebkit-4.8.5[gstreamer]
+    # required by kde-base/kstartupconfig-4.11.9
+    # required by kde-base/kdebase-meta-4.13.0
+    package_use { 'dev-libs/libxml2':
+        use    => '-icu',
+        before => Portage::Package['kde-base/kdebase-meta'],
+    }
+
     portage::package { [
         'kde-base/kdebase-meta',
         'kde-base/ksnapshot',
