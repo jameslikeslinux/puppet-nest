@@ -12,12 +12,14 @@ class crypt {
 
     package_mask { 'dev-libs/libgcrypt':
         version => '>1.5.3',
+        ensure  => absent,
         before  => Portage::Package['sys-fs/cryptsetup'],
     }
 
     portage::package { 'sys-fs/cryptsetup':
-        ensure => installed,
-        use    => 'reencrypt',
+        ensure         => installed,
+        use            => 'reencrypt',
+        unmask_version => '=1.6.4',
     }
 
     concat { '/etc/conf.d/dmcrypt':
