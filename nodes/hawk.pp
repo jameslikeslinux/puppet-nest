@@ -4,8 +4,6 @@ node 'hawk' {
         disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
         disk_profile     => crypt,
         video_cards      => ['nouveau'],
-        dpi              => 192,
-        lcd              => false,
         roles            => [
             compile_server,
             desktop,
@@ -18,8 +16,10 @@ node 'hawk' {
             server,
             subsonic_server,
             thestaticvoid,
+            virtualbox,
             vpn_server,
             web_server,
+            #work_system,
         ],
     }
 
@@ -57,6 +57,15 @@ node 'hawk' {
 
     iptables::accept { 'transmission':
         port     => 51413,
+        protocol => tcp,
+    }
+
+    class { 'inkscape': }
+
+    kernel::modules::blacklist { 'snd_hda_intel': }
+
+    iptables::accept { 'ssh':
+        port     => 22,
         protocol => tcp,
     }
 }

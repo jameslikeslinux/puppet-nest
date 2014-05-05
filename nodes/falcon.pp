@@ -1,21 +1,9 @@
 node 'falcon' {
-    class { 'profile::base':
-        remote_backup    => true,
-        disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD908564X',
-        disk_profile     => crypt,
-        video_cards      => ['nouveau'],
-        package_server   => 'http://packages.thestaticvoid.com/',
-        roles            => [
-            cachefiles,
-            desktop,
-            qemu_chroot,
-            terminal_client,
-            virtualbox,
-            work_system,
-        ],
-    }
+    Host <| title != $clientcert |>
 
-    class { 'inkscape': }
+    Sshkey <| |> {
+        target => 'C:/cygwin64/etc/ssh_known_hosts',
+    }
 }
 
 @host { 'falcon':
@@ -24,5 +12,5 @@ node 'falcon' {
 
 @sshkey { 'falcon':
     type => 'ssh-dss',
-    key  => 'AAAAB3NzaC1kc3MAAACBALj8uXaEIh+NsLXCCFzrHQq5MF78fqAIJ9m/q4n3GgLUBYZCgWqvn3kfCCaAX01ngLaOv0GBTfVCd/6LOeiVJZo/ddWG2AGx9ue1t1M48mYFeNw1jtC+UzCIRlFY0+zE4qBEb3cMoZokrU5v3GodDPzQ2rXLszZ6QK9laE/7dRbxAAAAFQC92R8NRO7dC3Ne6a1eAkirizLyQQAAAIBB7Kr0am9jGB9Az2yoR34w2B6c3eegzRNG81vNcJdVCCXSVchFshhkyVf+Vcu2ZT+aFwUS+5x8svwneUxSSwbBc3Vk4yzb3iZCQC+o8TdOS0BYNujGXbDzj9cll4HoBYRHb/4wBTGWvY9Zo1FpvrRZih2ECFQkfpJV6PO37dQ+2QAAAIBc7jrWglFk2T+xV6eMl5KiVo7l/WS8S1MhDHYapvNLR8imMcL1x7wvKEsxlFDTANVdSd2qqWN8LvCoyCGlsU7Z4tCFJTjbIa6fAwRpJkB4gD2QDUNvA3IB+Ck4hQTu6vR5VtS0vuDbTtdo5rbWrbLNEq6+4Gl3Ao16+YqI8CEPnA==',
+    key  => 'AAAAB3NzaC1kc3MAAACBALHfxoLRRkmyE90PfcVi6j3p2AeDel3X2WnlFK1Hpyope6WerBNiTBbACBnNN2Es8Lj1GFQa+GnXY6TCbENTBNCBGt56jZ7BeaSbyjqlbGXRzozvfbT1B6MUD0gmdv1UvSVJvKfdr1fW/8fc7PLgTJTP6GXkJTzEWMcgNCw9xZhLAAAAFQDU85PQzalj8tyQIzwQO8hMf+p50wAAAIEApj74eoHVie70SuzV3RJ7u1wCw0QVFIUy3tEpXjsqSYX4vALPxKzn2+7AtUhhEETvM69TrK8GBFbExCqZjse3SXupX5J4onee/yAH/D/M+KlDzB5qUrzpRfwkN6PkG0rVIZ0YU5sDD46dpfBKYEBB5ZUX4maShIYCYqXtQ4Z7WnoAAACBAJXJco+kEclxUcT3X7cNPW40/8hlDwLOphBV31N0w5b0/AanCJvHg/cjMzzLuHn2gI2Ir7MbOHD6lU6kQRo/yWwf2FvRjv467S4EvITkJaI6GrO3Xj4dG1Edc3+dsTYHw2XVTGN+hBGna6OmQNM3WMeoEbtd67PGTbh/hzb9N9Wb',
 }

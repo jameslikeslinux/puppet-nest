@@ -3,6 +3,7 @@ node 'osprey' {
         remote_backup  => true,
         disk_id        => '/dev/disk/by-path/pci-0000:00:04.0-virtio-pci-virtio1',
         disk_profile   => crypt,
+        distcc         => true,
         keymap         => 'us',
         resolution     => '1024x768',
         video_cards    => ['cirrus'],
