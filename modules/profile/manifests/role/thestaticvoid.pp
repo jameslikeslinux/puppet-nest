@@ -6,4 +6,6 @@ class profile::role::thestaticvoid {
     apache::vhost { 'thestaticvoid':
         source => 'puppet:///modules/profile/role/thestaticvoid/vhost.conf',
     }
+
+    include php::ssh2
 }
