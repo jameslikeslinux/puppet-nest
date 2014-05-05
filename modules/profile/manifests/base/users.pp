@@ -12,13 +12,13 @@ class profile::base::users {
         'wheel',
 
         $virtualbox ? {
-            false   => [],
-            default => 'vboxusers',
+            true    => 'vboxusers',
+            default => [],
         },
 
         $terminal_client ? {
-            false   => [],
-            default => 'uucp',
+            true    => 'uucp',
+            default => [],
         },
     ]
 
@@ -26,8 +26,8 @@ class profile::base::users {
         Class['zsh'],
 
         $virtualbox ? {
-            false   => [],
-            default => Class['virtualbox'],
+            true    => Class['virtualbox'],
+            default => [],
         },
     ]
 
