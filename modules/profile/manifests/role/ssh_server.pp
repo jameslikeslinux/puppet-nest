@@ -2,7 +2,7 @@ class profile::role::ssh_server {
     class { 'ssh': }
 
     class { 'ssh::server':
-        challengeresponse => true,
+        challengeresponse => false,
     }
 
 #    iptables::accept { 'ssh':
