@@ -1,1 +1,1 @@
-<%= @key %><%= @options ? " -#{@options.join(',')} " : ' ' %><%= @location %>
+<%= @key %><%= (@options and not @options.empty?) ? " -#{@options.join(',')} " : ' ' %><%= @location %>

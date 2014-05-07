@@ -11,6 +11,7 @@ class profile::base (
     $dpi              = undef,
     $lcd              = true,
     $package_server   = undef,
+    $nest_rwsize      = undef,
     $video_cards      = [],
     $roles            = [],
 ) {
