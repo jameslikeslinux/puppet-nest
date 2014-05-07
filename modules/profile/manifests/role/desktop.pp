@@ -105,7 +105,6 @@ class profile::role::desktop {
     }
 
     portage::package { 'net-misc/electrum':
-        ensure => installed,
-        use    => 'qt4',
+        ensure => absent,
     }
 }
