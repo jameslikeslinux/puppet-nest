@@ -5,7 +5,7 @@ node 'eagle' {
         disk_profile     => cryptmirror,
         video_cards      => ['radeon'],
         package_server   => 'http://packages.thestaticvoid.com/',
-        nest_rwsize      => '8192',
+        wan              => true,
         roles            => [
             cachefiles,
             desktop,

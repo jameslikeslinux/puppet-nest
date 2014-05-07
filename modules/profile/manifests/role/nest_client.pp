@@ -2,9 +2,9 @@ class profile::role::nest_client {
     $cachefiles = cachefiles in $profile::base::roles
 
     $mount_options = [
-        $profile::base::nest_rwsize ? {
-            undef   => [],
-            default => ["rsize=${profile::base::nest_rwsize}", "wsize=${profile::base::nest_rwsize}"],
+        $profile::base::wan ? {
+            true    => ["rsize=8192", "wsize=8192"],
+            default => [],
         },
 
         $cachefiles ? {

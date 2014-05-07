@@ -8,6 +8,7 @@ node 'osprey' {
         resolution     => '1024x768',
         video_cards    => ['cirrus'],
         package_server => 'http://packages.thestaticvoid.com/',
+        wan            => true,
         roles          => [
             business,
             private_stuff,
