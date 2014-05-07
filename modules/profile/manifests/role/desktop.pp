@@ -107,4 +107,9 @@ class profile::role::desktop {
     portage::package { 'net-misc/electrum':
         ensure => absent,
     }
+
+    portage::package { 'media-sound/clementine':
+        ensure => installed,
+        use    => 'lastfm',
+    }
 }
