@@ -15,7 +15,6 @@ node 'hawk' {
             puppet_master,
             server,
             subsonic_server,
-            thestaticvoid,
             virtualbox,
             vpn_server,
             web_server,

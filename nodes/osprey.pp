@@ -14,6 +14,7 @@ node 'osprey' {
             private_stuff,
             lamp_server,
             server,
+            thestaticvoid,
             web_server,
         ],
     }
