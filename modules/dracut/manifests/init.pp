@@ -11,6 +11,13 @@ class dracut (
         }
     }
 
+    if plymouth in $modules {
+        portage::package { 'sys-boot/plymouth':
+            ensure => installed,
+            before => Class['kernel::initrd'],
+        }
+    }
+
     $use = [
         'optimization',
 
