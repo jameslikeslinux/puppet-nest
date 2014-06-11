@@ -18,7 +18,7 @@ class profile::base::disk::base {
     }
 
     fstab::fs { 'boot':
-        device     => "${disk_id}-part1",
+        device     => "${disk_id}1",
         mountpoint => '/boot',
         type       => 'ext2',
         options    => 'noatime',

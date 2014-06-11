@@ -1,7 +1,7 @@
 node 'hawk' {
     class { 'profile::base':
         remote_backup    => true,
-        disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
+        disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P-part',
         disk_profile     => crypt,
         video_cards      => ['nouveau'],
         roles            => [
@@ -22,7 +22,7 @@ node 'hawk' {
         ],
     }
 
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD6EGEK':
+    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DM001-1CH164_Z1E59EN3':
         target   => 'nest-crypt0',
         keyfile  => '/dev/mapper/keyfile',
         bootdisk => false,

@@ -26,4 +26,23 @@ class profile::base::arch::raspberrypi {
     raspberrypi::config { 'disable_overscan':
         value => '1',
     }
+
+    openrc::service { 'hwclock':
+        runlevel => 'boot',
+        enable   => false,
+    }
+
+    openrc::service { 'swclock':
+        runlevel => 'boot',
+        enable   => true,
+    }
+
+    openrc::service { 'ntp-client':
+        enable  => true,
+        require => Class['ntp'],
+    }
+
+    openrc::conf { 'rc_ntp_client_need':
+        value => 'dhcpcd',
+    }
 }

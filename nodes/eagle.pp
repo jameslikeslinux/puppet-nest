@@ -1,10 +1,10 @@
 node 'eagle' {
     class { 'profile::base':
-        disk_id          => '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T',
-        disk_mirror_id   => '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3',
+        disk_id          => '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T-part',
+        disk_mirror_id   => '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3-part',
         disk_profile     => cryptmirror,
         video_cards      => ['radeon'],
-        package_server   => 'http://packages.thestaticvoid.com/',
+        package_server   => 'http://hawk/packages/',
         wan              => true,
         roles            => [
             cachefiles,

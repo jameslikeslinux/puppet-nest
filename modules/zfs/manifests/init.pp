@@ -1,16 +1,14 @@
 class zfs {
-    if $architecture =~ /arm/ {
-        package_keywords { [
-            'sys-kernel/spl',
-            'sys-fs/zfs-kmod',
-            'sys-fs/zfs',
-        ]:
-            keywords => '**',
-            target   => 'zfs',
-            version  => '<9999',
-            ensure   => 'present',
-            before   => Portage::Package['sys-fs/zfs'],
-        }
+    package_keywords { [
+        'sys-kernel/spl',
+        'sys-fs/zfs-kmod',
+        'sys-fs/zfs',
+    ]:
+        keywords => '**',
+        target   => 'zfs',
+        version  => '=9999',
+        ensure   => 'present',
+        before   => Portage::Package['sys-fs/zfs'],
     }
 
     portage::package { 'sys-fs/zfs':
@@ -40,6 +38,7 @@ class zfs {
     }
 
     file { '/etc/modprobe.d/spl.conf':
+        ensure => absent,
         mode   => '0644',
         owner  => 'root',
         group  => 'root',

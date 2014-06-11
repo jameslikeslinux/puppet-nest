@@ -5,7 +5,7 @@ node 'test' {
         disk_profile     => cryptmirror,
         resolution       => '1024x768',
         video_cards      => ['cirrus'],
-        package_server   => 'http://packages.thestaticvoid.com/',
+        package_server   => 'http://hawk/packages/',
         roles            => [
             desktop,
         ],
