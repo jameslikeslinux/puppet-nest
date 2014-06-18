@@ -95,6 +95,11 @@ class profile::base::packages {
         ensure => installed,
     }
 
+    portage::package { 'app-arch/p7zip':
+        ensure => installed,
+        use    => '-kde',
+    }
+
     class { 'sysstat':
         sar => $is_server,
     }
