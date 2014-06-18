@@ -1,5 +1,8 @@
 [master]
     strict_hostname_checking = true
+<% if @environmentpath -%>
+    environmentpath = <%= @environmentpath %>
+<% end -%>
 <% if @modulepath -%>
     modulepath = <%= @modulepath.join(':') %>
 <% end -%>
