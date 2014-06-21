@@ -11,13 +11,12 @@ define users::user (
     include users
 
     user { $name:
-        uid     => $uid,
-        gid     => $gid,
-        groups  => $groups,
-        home    => $home,
-        comment => $fullname,
-        shell   => $shell,
-        require => Class['users'],
+        uid      => $uid,
+        gid      => $gid,
+        groups   => $groups,
+        home     => $home,
+        comment  => $fullname,
+        shell    => $shell,
     }
 
     file { $home:

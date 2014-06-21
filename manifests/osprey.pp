@@ -10,7 +10,6 @@ node 'osprey' {
         package_server => 'http://hawk/packages/',
         wan            => true,
         roles          => [
-            business,
             private_stuff,
             lamp_server,
             server,

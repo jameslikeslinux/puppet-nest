@@ -46,9 +46,14 @@ class profile::base::users {
     # That user's identity is the same as the root's identity,
     # for better or worse.
     #
-    users::profile { '/root':
-        user   => 'root',
-        source => 'git://github.com/MrStaticVoid/profile.git',
+    users::user { 'root':
+        uid            => 0,
+        gid            => 0,
+        fullname       => 'root',
+        shell          => '/bin/zsh',
+        home           => '/root',
+        profile        => 'git://github.com/MrStaticVoid/profile.git',
+        ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
     }
 
 
