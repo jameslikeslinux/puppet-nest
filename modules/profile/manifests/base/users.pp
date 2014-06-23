@@ -1,4 +1,6 @@
 class profile::base::users {
+    include private::profile::base::users
+
     #
     # Has a user.
     #
@@ -47,13 +49,13 @@ class profile::base::users {
     # for better or worse.
     #
     users::user { 'root':
-        uid            => 0,
-        gid            => 0,
-        fullname       => 'root',
-        shell          => '/bin/zsh',
-        home           => '/root',
-        profile        => 'git://github.com/MrStaticVoid/profile.git',
-        ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
+        uid      => 0,
+        gid      => 0,
+        fullname => 'root',
+        shell    => '/bin/zsh',
+        home     => '/root',
+        profile  => 'git://github.com/MrStaticVoid/profile.git',
+        password => $::private::profile::base::users::root_pwhash,
     }
 
 
@@ -68,14 +70,6 @@ class profile::base::users {
 
     sudo::conf { 'wheel':
         content => '%wheel ALL=(ALL) NOPASSWD: ALL',
-    }
-
-
-    #
-    # ...not the root account.
-    #
-    exec { '/usr/bin/passwd --lock root':
-        unless => '/usr/bin/passwd --status root | /bin/grep " L "',
     }
 
 

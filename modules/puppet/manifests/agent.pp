@@ -3,7 +3,10 @@ class puppet::agent (
     $certname      = undef,
     $dns_alt_names = undef,
 ) {
-    portage::package { 'app-admin/puppet':
+    portage::package { [
+        'app-admin/puppet',
+        'dev-ruby/ruby-shadow',
+    ]:
         ensure => installed,
     }
 

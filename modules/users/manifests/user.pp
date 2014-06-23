@@ -6,6 +6,7 @@ define users::user (
     $shell,
     $profile = undef,
     $ssh_key_source = undef,
+    $password = undef,
     $home = "/home/${name}",
 ) {
     include users
@@ -17,6 +18,7 @@ define users::user (
         home     => $home,
         comment  => $fullname,
         shell    => $shell,
+        password => $password,
     }
 
     file { $home:
