@@ -53,15 +53,19 @@ node 'hawk' {
 
     class { 'inkscape': }
 
+    #
+    # System uses snd_ctxfi.
+    # Disable on-board sound so I don't have to figure out
+    # how to prioritize one over the other.
+    #
     kernel::modules::blacklist { 'snd_hda_intel': }
 
+    #
+    # Allow SSH for access to VPN.  This is OK...
+    # password authentication is DISABLED.
+    #
     iptables::accept { 'ssh':
         port     => 22,
-        protocol => tcp,
-    }
-
-    iptables::accept { 'plex':
-        port     => 32400,
         protocol => tcp,
     }
 }

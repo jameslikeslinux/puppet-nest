@@ -1,4 +1,6 @@
 class profile::role::nest {
+    class { 'plex': }
+
     class { 'crashplan': }
 
     class { 'nfs::server': }
