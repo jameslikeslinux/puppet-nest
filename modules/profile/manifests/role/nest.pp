@@ -1,4 +1,6 @@
 class profile::role::nest {
+    class { 'crashplan': }
+
     class { 'nfs::server': }
 
     class { 'samba::server':

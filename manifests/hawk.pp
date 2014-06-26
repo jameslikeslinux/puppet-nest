@@ -50,11 +50,6 @@ node 'hawk' {
     #
     # Miscellaneous firewall rules
     #
-    iptables::accept { 'crashplan':
-        port     => 4242,
-        protocol => tcp,
-    }
-
     iptables::accept { 'transmission':
         port     => 51413,
         protocol => tcp,
