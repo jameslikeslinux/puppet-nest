@@ -47,12 +47,8 @@ node 'hawk' {
         bootdisk => false,
     }
 
-    #
-    # Miscellaneous firewall rules
-    #
-    iptables::accept { 'transmission':
-        port     => 51413,
-        protocol => tcp,
+    class { 'transmission':
+        port => 51413,
     }
 
     class { 'inkscape': }
