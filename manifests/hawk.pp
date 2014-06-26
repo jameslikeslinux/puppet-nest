@@ -15,6 +15,7 @@ node 'hawk' {
             puppet_master,
             server,
             subsonic_server,
+            terminal_client,
             virtualbox,
             vpn_server,
             web_server,
@@ -65,6 +66,11 @@ node 'hawk' {
 
     iptables::accept { 'ssh':
         port     => 22,
+        protocol => tcp,
+    }
+
+    iptables::accept { 'plex':
+        port     => 32400,
         protocol => tcp,
     }
 }
