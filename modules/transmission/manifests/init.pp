@@ -5,7 +5,7 @@ class transmission (
         ensure => installed,
     }
 
-    openrc::service { 'transmission':
+    openrc::service { 'transmission-daemon':
         enable  => true,
         require => Portage::Package['net-p2p/transmission'],
     }
