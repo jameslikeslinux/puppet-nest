@@ -2,12 +2,17 @@ node 'owl' {
     class { 'profile::base':
         disk_id        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ANNSADB32149W-part',
         disk_profile   => crypt,
-        video_cards    => ['nouveau'],
+        video_cards    => ['nvidia'],
+        dpi            => '96',
         package_server => 'http://hawk/packages/',
         roles          => [
             desktop,
             laptop,
         ],
+    }
+
+    package_mask { 'x11-drivers/nvidia-drivers':
+        version => '>=305.0.0'
     }
 }
 
