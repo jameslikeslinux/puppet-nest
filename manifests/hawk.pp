@@ -7,11 +7,11 @@ node 'hawk' {
         roles            => [
             compile_server,
             desktop,
-            lamp_server,
+            #lamp_server,
             nest,
             package_server,
             private_stuff,
-            puppet_dashboard,
+            #puppet_dashboard,
             puppet_master,
             server,
             subsonic_server,
