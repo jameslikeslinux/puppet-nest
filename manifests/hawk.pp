@@ -47,10 +47,6 @@ node 'hawk' {
         bootdisk => false,
     }
 
-    class { 'transmission':
-        port => 51413,
-    }
-
     class { 'inkscape': }
 
     #

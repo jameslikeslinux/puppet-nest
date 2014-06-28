@@ -1,4 +1,15 @@
 class profile::role::nest {
+    class { 'sabnzbd':
+        user  => 'jlee',
+        group => 'users',
+    }
+
+    class { 'transmission':
+        port  => 51413,
+        user  => 'jlee',
+        group => 'users',
+    }
+
     class { 'plex': }
 
     class { 'crashplan': }
