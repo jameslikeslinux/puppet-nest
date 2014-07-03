@@ -1,13 +1,8 @@
 class profile::role::nest {
-    class { 'sabnzbd':
-        user  => 'jlee',
-        group => 'users',
-    }
+    class { 'sabnzbd': }
 
     class { 'transmission':
         port  => 51413,
-        user  => 'jlee',
-        group => 'users',
     }
 
     class { 'plex': }
