@@ -18,7 +18,7 @@ class profile::role::nest {
     samba::share { 'nest':
         path       => '/nest',
         writable   => true,
-        createmask => '0644',
+        createmask => '0664',
     }
 
     package_use { 'media-libs/chromaprint':
