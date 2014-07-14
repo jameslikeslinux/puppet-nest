@@ -2,6 +2,7 @@ class openvpn::server (
     $ca_cert,
     $server_cert,
     $server_key,
+    $crl,
     $network,
     $netmask,
 ) {

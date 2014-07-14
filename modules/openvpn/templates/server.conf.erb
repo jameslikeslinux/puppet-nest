@@ -85,6 +85,7 @@ dev tap
 ca <%= @ca_cert %>
 cert <%= @server_cert %>
 key <%= @server_key %>  # This file should be kept secret
+crl-verify <%= @crl %>
 
 # Diffie hellman parameters.
 # Generate your own with:
