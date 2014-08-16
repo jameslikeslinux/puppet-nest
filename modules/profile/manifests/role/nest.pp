@@ -1,6 +1,12 @@
 class profile::role::nest {
     class { 'sabnzbd': }
 
+    class { 'couchpotato':
+        uid  => 5050,
+        gid  => 5050,
+        home => '/app/couchpotato',
+    }
+
     class { 'transmission':
         port  => 51413,
     }
