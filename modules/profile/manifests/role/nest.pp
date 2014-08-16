@@ -7,6 +7,12 @@ class profile::role::nest {
         home => '/app/couchpotato',
     }
 
+    class { 'nzbdrone':
+        uid  => 8989,
+        gid  => 8989,
+        home => '/app/nzbdrone',
+    }
+
     class { 'transmission':
         port  => 51413,
     }
