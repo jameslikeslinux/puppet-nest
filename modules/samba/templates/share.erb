@@ -6,4 +6,6 @@
 <% if @createmask -%>
     create mask = <%= @createmask %>
 <% end -%>
-
+<% if @validusers -%>
+    valid users = <%= @validusers.join(' ') %>
+<% end -%>

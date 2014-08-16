@@ -63,4 +63,12 @@ class profile::base::environment {
         krb5    => true,
         require => Class['kerberos'],
     }
+
+
+    #
+    # Has more reasonable swappiness value (default is 60)
+    #
+    sysctl { 'vm.swappiness':
+        value => '10',
+    }
 }

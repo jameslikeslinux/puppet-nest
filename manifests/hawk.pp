@@ -13,6 +13,7 @@ node 'hawk' {
             private_stuff,
             #puppet_dashboard,
             puppet_master,
+            qemu_chroot,
             server,
             subsonic_server,
             terminal_client,

@@ -82,6 +82,7 @@ class profile::base::packages {
     # Has several miscellaneaous packages.
     #
     portage::package { [
+        'app-arch/unrar',
         'app-misc/screen',
         'dev-util/strace',
         'net-dns/bind-tools',

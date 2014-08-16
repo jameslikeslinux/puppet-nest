@@ -3,10 +3,32 @@ class puppet::agent (
     $certname      = undef,
     $dns_alt_names = undef,
 ) {
-    portage::package { [
-        'app-admin/puppet',
-        'dev-ruby/ruby-shadow',
-    ]:
+    if $architecture =~ /arm/ {
+        package_keywords { [
+            'dev-ruby/facter',
+            'dev-ruby/hiera',
+            'app-emulation/virt-what',
+            'app-admin/puppet',
+            'dev-ruby/rgen',
+            'dev-ruby/ruby-shadow',
+            'app-doc/NaturalDocs',
+            'app-admin/augeas',
+            'dev-ruby/ruby-augeas',
+        ]:
+            keywords => '**',
+            target   => 'puppet',
+            version  => '<9999',
+            ensure   => 'present',
+            before   => Portage::Package['app-admin/puppet'],
+        }
+    }
+
+    portage::package { 'app-admin/puppet':
+        ensure => installed,
+        use    => 'augeas',
+    }
+
+    portage::package { 'dev-ruby/ruby-shadow':
         ensure => installed,
     }
 

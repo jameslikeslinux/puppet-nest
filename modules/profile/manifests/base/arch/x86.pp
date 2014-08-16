@@ -5,6 +5,7 @@ class profile::base::arch::x86 {
         package_version => '3.14.4',
         eselect_name    => 'linux-debian-sources-3.14.4',
         config_source   => 'puppet:///modules/profile/base/arch/x86/config',
+        distcc          => $::profile::base::distcc,
     }
 
     class { '::boot':

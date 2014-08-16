@@ -58,4 +58,11 @@ class profile::base::networking {
     unless nest in $profile::base::roles {
         class { 'profile::role::nest_client': }
     }
+
+
+    portage::package { 'net-misc/iperf':
+        ensure    => installed,
+        use       => 'threads',
+        mask_slot => '3',
+    }
 }

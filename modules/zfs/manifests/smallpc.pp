@@ -1,4 +1,4 @@
-class zfs::sdcard {
+class zfs::smallpc {
     File {
         mode   => '0644',
         owner  => 'root',
@@ -8,6 +8,10 @@ class zfs::sdcard {
     }
 
     file { '/etc/modprobe.d/zfs.conf':
-        content => "options zfs zfs_prefetch_disable=1 zfs_no_write_throttle=1 zfs_txg_synctime_ms=5000 zfs_txg_timeout=30\n",
+        content => "options zfs zfs_dirty_data_max=67108864 zfs_txg_timeout=30 zfs_prefetch_disable=1 zfs_arc_shrink_shift=0\n",
+    }
+
+    sysctl { 'vm.min_free_kbytes':
+        value => '32768',
     }
 }

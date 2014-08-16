@@ -8,6 +8,7 @@ node 'owl' {
         roles          => [
             desktop,
             laptop,
+            virtualbox,
         ],
     }
 

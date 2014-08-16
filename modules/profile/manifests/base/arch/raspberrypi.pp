@@ -6,6 +6,8 @@ class profile::base::arch::raspberrypi {
         package_version => '3.6.11-r20130711',
         eselect_name    => 'linux-3.6.11-raspberrypi-r20130711',
         config_source   => 'puppet:///modules/profile/base/arch/raspberrypi/config',
+        cryptsetup      => false,
+        distcc          => $::profile::base::distcc,
     }
 
     class { 'boot::raspberrypi':
@@ -14,8 +16,6 @@ class profile::base::arch::raspberrypi {
         root    => 'zfs',
         params  => ['elevator=noop'],
     }
-
-    class { 'zfs::sdcard': }
 
     class { '::raspberrypi': }
 

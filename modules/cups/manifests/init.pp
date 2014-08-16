@@ -48,6 +48,21 @@ class cups (
     }
 
     if $kde {
+        # 
+        # 'kde-base/print-manager' pulls in 'app-admin/system-config-printer-gnome'
+        # which as of 07/30/2014 seems to require gtk and friends to use introspection
+        #
+        package_use { [
+            'dev-libs/atk',
+            'x11-libs/gtk+',
+            'x11-libs/libnotify',
+            'x11-libs/pango',
+            'x11-libs/gdk-pixbuf',
+        ]:
+            use    => 'introspection',
+            before => Portage::Package['kde-base/print-manager'],
+        }
+
         portage::package { 'kde-base/print-manager':
             ensure => installed,
         }

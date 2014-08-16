@@ -5,6 +5,7 @@ class profile::base::users {
     # Has a user.
     #
     class { 'zsh': }
+    class { 'zsh::fake': }
 
 
     $virtalbox = virtualbox in $profile::base::roles
@@ -56,6 +57,7 @@ class profile::base::users {
         home     => '/root',
         profile  => 'git://github.com/MrStaticVoid/profile.git',
         password => $::private::profile::base::users::root_pwhash,
+        require  => Class['zsh::fake'],
     }
 
 

@@ -17,7 +17,10 @@ class zfs::backup (
         home           => $home,
         profile        => 'https://github.com/MrStaticVoid/zfssnap.git',
         ssh_key_source => 'puppet:///modules/private/zfs/backup/id_dsa',
-        require        => Class['zsh'],
+        require        => [
+            Class['cronie'],
+            Class['zsh'],
+        ],
     }
 
     sudo::conf { 'zfssnap':

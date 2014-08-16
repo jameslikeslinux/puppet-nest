@@ -10,3 +10,6 @@
 [submodule "forge/stdlib"]
 	path = forge/stdlib
 	url = https://github.com/puppetlabs/puppetlabs-stdlib.git
+[submodule "forge/sysctl"]
+	path = forge/sysctl
+	url = https://github.com/thias/puppet-sysctl.git

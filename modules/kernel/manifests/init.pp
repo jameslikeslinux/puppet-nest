@@ -5,10 +5,19 @@ class kernel (
     $package_version,
     $eselect_name,
     $config_source,
+    $cryptsetup = true,
+    $distcc,
 ) {
     $arch = $hardwaremodel ? {
         /arm.*/ => 'arm',
         default => $hardwaremodel,
+    }
+
+    if $distcc {
+        $compiler = '/usr/lib/distcc/bin/gcc'
+        Class['distcc::client'] -> Exec['genkernel']
+    } else {
+        $compiler = '/usr/bin/gcc'
     }
 
     portage::package { "sys-kernel/${package_name}":
@@ -29,15 +38,20 @@ class kernel (
 
     portage::package { 'sys-kernel/genkernel':
         ensure  => installed,
+        use     => $cryptsetup ? {
+            false   => '-cryptsetup',
+            default => undef,
+        }
     }
 
     exec { 'genkernel':
-        command     => "/usr/bin/genkernel --kernname='${kernel_name}' --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
-        require     => Portage::Package['sys-kernel/genkernel'],
+        command     => "/usr/bin/genkernel --kernname='${kernel_name}' --kernel-cc='${compiler}' --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
         subscribe   => File['/usr/src/linux/config'],
         notify      => Class['kernel::initrd'],
         creates     => ["/boot/kernel-${kernel_name}-${arch}-${kernel_version}", "/lib/modules/${kernel_version}"],
         timeout     => 0,
+        require     => Portage::Package['sys-kernel/genkernel'],
+        environment => "HOME=/var/tmp/portage",     # required by distcc
     }
 
     class { 'kernel::initrd':

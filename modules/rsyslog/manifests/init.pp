@@ -1,9 +1,13 @@
 class rsyslog {
+    # Fix stupid Portage
+    include misc::boehmgc
+
     portage::package { [
         'app-admin/rsyslog',
         'app-admin/logrotate',
     ]:
-        ensure => installed,
+        ensure  => installed,
+        require => Class['misc::boehmgc'],
     }
 
     file { '/etc/conf.d/rsyslog':

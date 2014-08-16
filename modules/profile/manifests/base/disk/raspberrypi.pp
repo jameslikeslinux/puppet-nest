@@ -1,5 +1,6 @@
 class profile::base::disk::raspberrypi {
-    class { 'zfs': }
+    class { 'profile::base::disk::zfs': }
+    class { 'zfs::smallpc': }
 
     fstab::fs { 'boot':
         device     => "/dev/mmcblk0p1",

@@ -1,15 +1,9 @@
-class profile::base::disk::base {
-    $disk_id        = $profile::base::disk_id
-    $disk_mirror_id = $profile::base::disk_mirror_id
-
+class profile::base::disk::beaglebone {
     class { 'profile::base::disk::zfs': }
-
-    if $virtual == 'physical' {
-        class { 'smart': }
-    }
+    class { 'zfs::smallpc': }
 
     fstab::fs { 'boot':
-        device     => "${disk_id}1",
+        device     => "/dev/mmcblk0p1",
         mountpoint => '/boot',
         type       => 'ext2',
         options    => 'noatime',
@@ -23,6 +17,4 @@ class profile::base::disk::base {
         type       => 'swap',
         options    => 'discard',
     }
-
-    grub::install { $disk_id: }
 }

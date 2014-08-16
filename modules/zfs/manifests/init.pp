@@ -1,14 +1,16 @@
 class zfs {
-    package_keywords { [
-        'sys-kernel/spl',
-        'sys-fs/zfs-kmod',
-        'sys-fs/zfs',
-    ]:
-        keywords => '**',
-        target   => 'zfs',
-        version  => '=9999',
-        ensure   => 'present',
-        before   => Portage::Package['sys-fs/zfs'],
+    if $architecture =~ /arm/ {
+        package_keywords { [
+            'sys-kernel/spl',
+            'sys-fs/zfs-kmod',
+            'sys-fs/zfs',
+        ]:
+            keywords => '**',
+            target   => 'zfs',
+            version  => '=9999',
+            ensure   => 'present',
+            before   => Portage::Package['sys-fs/zfs'],
+        }
     }
 
     portage::package { 'sys-fs/zfs':

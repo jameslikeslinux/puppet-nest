@@ -3,8 +3,13 @@ class networkmanager (
     $openconnect = false,
 ) {
     portage::package { 'net-misc/networkmanager':
+        use            => $openconnect ? {
+            true    => ['wifi', 'plugins_openconnect'],
+            default => ['wifi'],
+        },
         ensure         => installed,
         unmask_version => '=0.9.8.2',
+        mask_version   => '>0.9.8.2-r2',
     }
 
     openrc::service { 'NetworkManager':
