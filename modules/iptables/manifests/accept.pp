@@ -21,7 +21,7 @@ define iptables::accept (
             l3prot   => $l3prot
         }
     } elsif $device and !$port and !$protocol {
-        iptables::rule { "accept-${device}":
+        iptables::rule { "accept-${device}-${name}":
             rule   => "-A INPUT -i ${device} -j ACCEPT",
             order  => '02',
             l3prot => $l3prot,
@@ -41,7 +41,7 @@ define iptables::accept (
             default => '-i ${device} ',
         }
 
-        iptables::rule { "accept-${padded_port}-${protocol}":
+        iptables::rule { "accept-${padded_port}-${protocol}-${name}":
             rule   => "-A INPUT ${input}${rule} -m conntrack --ctstate NEW -j ACCEPT",
             order  => "20",
             l3prot => $l3prot,

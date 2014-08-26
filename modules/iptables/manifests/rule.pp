@@ -3,7 +3,7 @@ define iptables::rule (
     $rule,
     $l3prot  = [v4, v6],
 ) {
-    $content = "${rule} -m comment --comment \"Puppet order ${order}\"\n"
+    $content = "${rule} -m comment --comment \"${name}\"\n"
 
     if v4 in $l3prot {
         concat::fragment { "iptables-rule-${name}":
