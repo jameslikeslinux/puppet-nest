@@ -15,18 +15,19 @@ class nzbdrone (
         home     => $home,
     }
 
-    exec { 'fetch-nzbget':
+    exec { 'fetch-nzbdrone':
         user    => 'nzbdrone',
         command => "/usr/bin/wget -q http://update.nzbdrone.com/v2/master/mono/NzbDrone.master.tar.gz -O ${home}/NzbDrone.master.tar.gz",
         creates => "${home}/NzbDrone.master.tar.gz",
         require => Users::User['nzbdrone'],
     }
 
-    exec { 'extract-nzbget':
-        user    => 'nzbdrone',
-        command => "/bin/tar -C ${home} -xf ${home}/NzbDrone.master.tar.gz --strip 1",
-        require => Exec['fetch-nzbget'],
-        notify  => Openrc::Service['nzbdrone'],
+    exec { 'extract-nzbdrone':
+        user        => 'nzbdrone',
+        command     => "/bin/tar -C ${home} -xf ${home}/NzbDrone.master.tar.gz --strip 1",
+        refreshonly => true,
+        subscribe   => Exec['fetch-nzbdrone'],
+        notify      => Openrc::Service['nzbdrone'],
     }
 
     file { '/etc/init.d/nzbdrone':
@@ -47,7 +48,7 @@ class nzbdrone (
     openrc::service { 'nzbdrone':
         enable  => true,
         require => [
-            Exec['extract-nzbget'],
+            Exec['extract-nzbdrone'],
             File['/etc/init.d/nzbdrone'],
         ],
     }
