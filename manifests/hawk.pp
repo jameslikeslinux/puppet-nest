@@ -65,6 +65,11 @@ node 'hawk' {
         port     => 22,
         protocol => tcp,
     }
+
+    #
+    # Allow multicast for Chromecast support
+    #
+    class { 'iptables::multicast': }
 }
 
 @host { 'hawk':
