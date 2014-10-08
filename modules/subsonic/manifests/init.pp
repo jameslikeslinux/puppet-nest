@@ -40,8 +40,8 @@ class subsonic {
 
     file { '/var/lib/tomcat-7-subsonic/webapps/subsonic.war':
         mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
+        owner   => 'subsonic',
+        group   => 'subsonic',
         source  => 'puppet:///modules/subsonic/subsonic.war',
         require => Tomcat::Instance['subsonic'],
         notify  => Openrc::Service["tomcat-7-${name}"],
