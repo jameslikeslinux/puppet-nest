@@ -29,5 +29,8 @@ BrowseLocalProtocols CUPS
 # Use BrowsePoll to poll a particular CUPS server
 # BrowsePoll cups.example.com
 # BrowsePoll cups.example.com:631
+<% @browse.each do |host| -%>
+BrowsePoll <%= host %>
+<% end -%>
 
 # Unknown directives are ignored, also unknown values.

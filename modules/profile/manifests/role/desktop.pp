@@ -85,7 +85,8 @@ class profile::role::desktop {
     # and printing support.
     #
     class { 'cups':
-        kde => true,
+        kde    => true,
+        browse => ['hawk', 'eagle'],
     }
 
 

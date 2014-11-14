@@ -1,6 +1,7 @@
 class cups (
     $system_group = 'wheel',
     $kde          = false,
+    $browse       = [],
 ) {
     portage::package { [
         'net-print/cups-filters',
@@ -32,7 +33,7 @@ class cups (
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        source  => 'puppet:///modules/cups/cups-browsed.conf',
+        content => template('cups/cups-browsed.conf.erb'),
         require => Portage::Package['net-print/cups-filters'],
         notify  => Openrc::Service['cups-browsed'],
     }
