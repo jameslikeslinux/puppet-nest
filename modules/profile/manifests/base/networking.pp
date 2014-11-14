@@ -41,8 +41,12 @@ class profile::base::networking {
     #
     class { 'iptables': }
 
-    iptables::accept { 'vpn':
+    iptables::accept { 'vpn-old':
         device => 'tap0',
+    }
+
+    iptables::accept { 'vpn':
+        device => 'tun0',
     }
 
 
@@ -64,5 +68,9 @@ class profile::base::networking {
         ensure    => installed,
         use       => 'threads',
         mask_slot => '3',
+    }
+
+    portage::package { 'net-analyzer/traceroute':
+        ensure => installed,
     }
 }

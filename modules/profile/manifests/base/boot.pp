@@ -8,13 +8,9 @@ class profile::base::boot {
         },
 
         $profile::base::disk_profile ? {
-            cryptmirror => 'crypt',
+            beaglebone  => ['btrfs', 'crypt'],
+            cryptmirror => ['crypt', 'mdraid'],
             crypt       => 'crypt',
-            default     => [],
-        },
-
-        $profile::base::disk_profile ? {
-            cryptmirror => 'mdraid',
             default     => [],
         },
     ]

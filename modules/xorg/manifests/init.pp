@@ -1,7 +1,9 @@
 class xorg (
-    $video_cards = [],
-    $keymap      = 'us',
-    $xkboptions  = [],
+    $video_cards   = [],
+    $keymap        = 'us',
+    $xkbvariant    = undef,
+    $xkboptions    = [],
+    $deviceoptions = {},
 ) {
     $flavor = "funtoo/1.0/linux-gnu/flavor/desktop"
     exec { "eselect-profile-flavor":
@@ -115,7 +117,11 @@ class xorg (
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        source  => 'puppet:///modules/xorg/nvidia.conf',
+        content => template('xorg/nvidia.erb'),
         require => File['/etc/X11/xorg.conf.d'],
+    }
+
+    portage::package { 'x11-apps/mesa-progs':
+        ensure => installed,
     }
 }

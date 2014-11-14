@@ -4,6 +4,7 @@ define crypt::device (
     $keyfile  = 'none',
     $order    = 99,
     $bootdisk = true,
+    $options  = [],
 ) {
     include crypt
 

@@ -1,7 +1,8 @@
 class qemu::user inherits qemu {
     package_use { [
-        'sys-libs/zlib',
         'dev-libs/glib',
+        'sys-apps/attr',
+        'sys-libs/zlib',
     ]:
         use    => 'static-libs',
         before => Portage::Package['app-emulation/qemu'],

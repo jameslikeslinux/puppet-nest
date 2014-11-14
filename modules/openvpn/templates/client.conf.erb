@@ -27,8 +27,8 @@ client
 # On most systems, the VPN will not function
 # unless you partially or fully disable
 # the firewall for the TUN/TAP interface.
-dev tap
-;dev tun
+;dev tap
+dev tun
 
 # Windows needs the TAP-Win32 adapter name
 # from the Network Connections panel
@@ -121,7 +121,7 @@ key <%= @client_key %>
 # Enable compression on the VPN link.
 # Don't enable this unless it is also
 # enabled in the server config file.
-;comp-lzo
+comp-lzo
 
 # Set log file verbosity.
 verb 3

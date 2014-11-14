@@ -47,6 +47,23 @@ class fonts (
     }
 
     #
+    # Install international fonts, and others recommended by
+    # the chrome ebuild.  Not that I can read these languages,
+    # but it does make international websites look better.
+    #
+    portage::package { [
+        'media-fonts/arphicfonts',
+        'media-fonts/bitstream-cyberbit',
+        'media-fonts/droid',
+        'media-fonts/ja-ipafonts',
+        'media-fonts/takao-fonts',
+        'media-fonts/wqy-microhei',
+        'media-fonts/wqy-zenhei',
+    ]:
+        ensure => installed,
+    }
+
+    #
     # Make Liberation fonts the default for
     # sans-serif and serif; DejaVu for monospace
     #

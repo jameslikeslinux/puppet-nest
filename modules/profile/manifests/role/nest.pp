@@ -7,6 +7,12 @@ class profile::role::nest {
         home => '/app/couchpotato',
     }
 
+    class { 'headphones':
+        uid  => 8181,
+        gid  => 8181,
+        home => '/app/headphones',
+    }
+
     class { 'nzbdrone':
         uid  => 8989,
         gid  => 8989,

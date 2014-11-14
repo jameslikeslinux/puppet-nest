@@ -10,6 +10,7 @@ class profile::base::users {
 
     $virtalbox = virtualbox in $profile::base::roles
     $terminal_client = terminal_client in $profile::base::roles
+    $desktop = desktop in $profile::base::roles
 
     $groups = [
         'wheel',
@@ -21,6 +22,11 @@ class profile::base::users {
 
         $terminal_client ? {
             true    => 'uucp',
+            default => [],
+        },
+
+        $desktop ? {
+            true    => 'video',
             default => [],
         },
     ]

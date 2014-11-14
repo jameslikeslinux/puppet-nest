@@ -10,11 +10,18 @@ node 'eagle' {
             cachefiles,
             desktop,
             virtualbox,
-            work_system,
+            #work_system,
         ],
     }
 
     class { 'inkscape': }
+
+    #
+    # System uses snd_usb
+    # Disable on-board sound so I don't have to figure out
+    # how to prioritize one over the other.
+    #
+    kernel::modules::blacklist { 'snd_hda_intel': }
 }
 
 @host { 'eagle':

@@ -1,5 +1,6 @@
 class kde::kdm (
     $keymap      = 'us',
+    $xkbvariant  = undef,
     $xkboptions  = [],
     $dpi         = undef,
 ) {

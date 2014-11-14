@@ -13,6 +13,7 @@ class profile::base (
     $package_server   = undef,
     $wan              = false,
     $video_cards      = [],
+    $video_options    = {},
     $roles            = [],
 ) {
     #

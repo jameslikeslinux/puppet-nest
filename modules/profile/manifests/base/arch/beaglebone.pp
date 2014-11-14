@@ -24,8 +24,8 @@ class profile::base::arch::beaglebone {
     class { 'boot::beaglebone':
         kernel     => 'kernel-bbb-arm-3.12.9-beaglebone-r20140713.uimage',
         initrd     => 'initramfs-bbb-arm-3.12.9-beaglebone-r20140713.uimage',
-        root       => 'zfs',
-        rootfstype => 'zfs',
+        root       => 'LABEL=rpool',
+        rootfstype => 'btrfs',
         params     => ['elevator=noop'],
     }
 
@@ -45,7 +45,7 @@ class profile::base::arch::beaglebone {
     }
 
     openrc::conf { 'rc_ntp_client_need':
-        value => 'dhcpcd',
+        value => 'netif.eth0',
     }
 
     augeas { 'enable-serial-console-login':

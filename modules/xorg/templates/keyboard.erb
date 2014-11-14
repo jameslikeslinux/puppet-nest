@@ -9,6 +9,9 @@ Section "InputClass"
     Identifier      "Keyboard Defaults"
     MatchIsKeyboard "yes"
     Option          "XkbLayout" "<%= @keymap %>"
+<% if @xkbvariant -%>
+    Option          "XkbVariant" "<%= @xkbvariant %>"
+<% end -%>
 <% @xkboptions.each do |option| -%>
     Option          "XkbOptions" "<%= option %>"
 <% end -%>

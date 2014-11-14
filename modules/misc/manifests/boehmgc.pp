@@ -24,7 +24,10 @@ class misc::boehmgc {
     # required by @selected
     # required by @world (argument)
     # >=dev-libs/boehm-gc-7.4.2 threads
+    #
+    # REMOVING 20140908
     package_use { 'dev-libs/boehm-gc':
-        use => 'threads',
+        use    => 'threads',
+        ensure => absent,
     }
 }

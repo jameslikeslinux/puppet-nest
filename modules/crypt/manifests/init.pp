@@ -18,7 +18,7 @@ class crypt {
 
     portage::package { 'sys-fs/cryptsetup':
         ensure         => installed,
-        use            => 'reencrypt',
+        use            => ['reencrypt', 'udev'],
         unmask_version => '=1.6.4',
     }
 

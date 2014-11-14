@@ -1,1 +1,1 @@
-<%= @target %> <%= @device %> <%= @keyfile %> luks
+<%= @target %> <%= @device %> <%= @keyfile %> luks<%= ",#{@options.join(',')}" unless @options.empty? %>

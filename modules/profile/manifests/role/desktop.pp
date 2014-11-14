@@ -1,4 +1,14 @@
 class profile::role::desktop {
+    $keymap = $profile::base::keymap ? {
+        /dvorak/ => 'us',
+        default  => $profile::base::keymap,
+    }
+
+    $variant = $profile::base::keymap ? {
+        /dvorak/ => $profile::base::keymap,
+        default  => undef,
+    }
+
     class { 'polkit':
         admin_group => 'wheel',
     }
@@ -17,9 +27,11 @@ class profile::role::desktop {
     # Has an X server with good keyboard settings.
     #
     class { 'xorg':
-        video_cards => $profile::base::video_cards,
-        keymap      => $profile::base::keymap,
-        xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
+        video_cards   => $profile::base::video_cards,
+        keymap        => $keymap,
+        xkbvariant    => $variant,
+        xkboptions    => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
+        deviceoptions => $profile::base::video_options,
     }
 
 
@@ -42,7 +54,8 @@ class profile::role::desktop {
     # https://wiki.archlinux.org/index.php/Logitech_Unifying_Receiver#Keyboard_layout_via_xorg.confthereceiver
     #
     class { 'kde::kdm':
-        keymap      => $profile::base::keymap,
+        keymap      => $keymap,
+        xkbvariant  => $variant,
         xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
         dpi         => $profile::base::dpi,
     }

@@ -3,7 +3,9 @@ node 'hawk' {
         remote_backup    => true,
         disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P-part',
         disk_profile     => crypt,
-        video_cards      => ['nouveau'],
+        keymap           => 'dvorak',
+        video_cards      => ['nvidia'],
+        video_options    => {'metamodes' => 'DVI-I-2: nvidia-auto-select +1680+0, DVI-I-3: nvidia-auto-select +0+0'},
         roles            => [
             compile_server,
             desktop,
@@ -46,6 +48,28 @@ node 'hawk' {
         target   => 'nest-crypt3',
         keyfile  => '/dev/mapper/keyfile',
         bootdisk => false,
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST3400620NS_5QH0BMKB':
+        target   => 'archive-crypt0',
+        keyfile  => '/dev/mapper/keyfile',
+        bootdisk => false,
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST3400620NS_5QH0BMW1':
+        target   => 'archive-crypt1',
+        keyfile  => '/dev/mapper/keyfile',
+        bootdisk => false,
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST3400620AS_5QH09K6R':
+        target   => 'archive-crypt2',
+        keyfile  => '/dev/mapper/keyfile',
+        bootdisk => false,
+    }
+
+    package_mask { 'x11-drivers/nvidia-drivers':
+        version => '>=341.0.0'
     }
 
     class { 'inkscape': }

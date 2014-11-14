@@ -48,7 +48,7 @@ class cups (
     }
 
     if $kde {
-        # 
+        #
         # 'kde-base/print-manager' pulls in 'app-admin/system-config-printer-gnome'
         # which as of 07/30/2014 seems to require gtk and friends to use introspection
         #

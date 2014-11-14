@@ -1,5 +1,5 @@
 class pidgin {
-    portage::package { [
+    package_use { [
         'net-libs/libsoup',
         'net-libs/gssdp',
     ]:

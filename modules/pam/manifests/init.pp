@@ -15,6 +15,13 @@ class pam (
         },
     ]
 
+    if $krb5 {
+        package_mask { 'sys-auth/pam_krb5':
+            version => '>4',
+            before  => Portage::Package['sys-auth/pambase'],
+        }
+    }
+
     portage::package { 'sys-auth/pambase':
         ensure => installed,
         use    => $use,

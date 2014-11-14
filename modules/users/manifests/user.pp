@@ -5,6 +5,7 @@ define users::user (
     $fullname,
     $shell,
     $profile = undef,
+    $profile_update = true,
     $ssh_key_source = undef,
     $password = undef,
     $home = "/home/${name}",
@@ -32,6 +33,7 @@ define users::user (
         users::profile { $home:
             user    => $name,
             source  => $profile,
+            update  => $profile_update,
             require => File[$home],
         }
     }

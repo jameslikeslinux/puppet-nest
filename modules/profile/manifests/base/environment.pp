@@ -51,7 +51,10 @@ class profile::base::environment {
     # Can use Kerberos to connect to UMD machines.
     #
     class { 'kerberos':
-        default_realm => 'UMD.EDU'
+        default_realm => 'UMD.EDU',
+        mappings      => {
+            'UMD.EDU' => ['jlee', 'jtl'],
+        },
     }
 
 

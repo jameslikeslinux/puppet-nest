@@ -10,4 +10,4 @@
 <% if @dpi -%>
 /usr/bin/xrandr --dpi <%= @dpi %>
 <% end -%>
-/usr/bin/setxkbmap -layout <%= @keymap %> <% @xkboptions.each { |option| %><%= "-option #{option} " %><% } %>
+/usr/bin/setxkbmap -layout <%= @keymap %> <%= @xkbvariant ? "-variant #{@xkbvariant} " : '' %><% @xkboptions.each { |option| %><%= "-option #{option} " %><% } %>

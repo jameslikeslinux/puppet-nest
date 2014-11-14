@@ -8,8 +8,6 @@ class networkmanager (
             default => ['wifi'],
         },
         ensure         => installed,
-        unmask_version => '=0.9.8.2',
-        mask_version   => '>0.9.8.2-r2',
     }
 
     openrc::service { 'NetworkManager':

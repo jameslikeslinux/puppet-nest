@@ -7,3 +7,15 @@
 
 [libdefaults]
     default_realm = <%= @default_realm %>
+    forwardable   = true
+<% if @mappings -%>
+
+[appdefaults]
+    pam = {
+<% @mappings.each do |realm, mappings| -%>
+        <%= realm %> = {
+            mappings = <%= mappings.flatten.join(' ') %>
+        }
+<% end -%>
+    }
+<% end -%>
