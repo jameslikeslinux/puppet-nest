@@ -1,7 +1,6 @@
 class cups (
     $system_group = 'wheel',
     $kde          = false,
-    $browse       = [],
 ) {
     portage::package { [
         'net-print/cups-filters',
@@ -29,13 +28,15 @@ class cups (
         notify  => Openrc::Service['cupsd'],
     }
 
-    file { '/etc/cups/cups-browsed.conf':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => template('cups/cups-browsed.conf.erb'),
+    concat { '/etc/cups/cups-browsed.conf':
         require => Portage::Package['net-print/cups-filters'],
         notify  => Openrc::Service['cups-browsed'],
+    }
+
+    concat::fragment { 'cpus-browsed.conf-head':
+        target => '/etc/cups/cups-browsed.conf',
+        source => 'puppet:///modules/cups/cups-browsed.conf-head',
+        order  => '00',
     }
 
     openrc::service { 'cupsd':
@@ -68,4 +69,6 @@ class cups (
             ensure => installed,
         }
     }
+
+    Cups::Browse <| title != $clientcert |>
 }
