@@ -1,4 +1,6 @@
-class subsonic {
+class subsonic (
+    $enable = true,
+) {
     group { 'subsonic':
         ensure => present,
     }
@@ -48,7 +50,7 @@ class subsonic {
     }
 
     openrc::service { "tomcat-7-${name}":
-        enable  => true,
+        enable  => $enable,
         require => [
             File['/etc/tomcat-7-subsonic/catalina.properties'],
             File['/etc/tomcat-7-subsonic/context.xml'],

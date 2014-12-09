@@ -4,5 +4,7 @@ class profile::role::subsonic_server {
         require => Class['java'],
     }
 
-    class { 'subsonic': }
+    class { 'subsonic':
+        enable => false,
+    }
 }
