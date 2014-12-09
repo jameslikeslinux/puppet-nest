@@ -6,13 +6,13 @@ class openvpn::client (
 ) {
     class { 'openvpn': }
 
-    file { '/etc/openvpn/openvpn.conf':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => template('openvpn/client.conf.erb'),
-        require => Class['openvpn'],
-        notify  => Openrc::Service['openvpn'],
+    openvpn::config { '/etc/openvpn/openvpn.conf':
+        server    => $server,
+        ca_file   => $ca_cert,
+        cert_file => $client_cert,
+        key_file  => $client_key,
+        require   => Class['openvpn'],
+        notify    => Openrc::Service['openvpn'],
     }
 
     openrc::service { 'openvpn':

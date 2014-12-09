@@ -94,6 +94,14 @@ node 'hawk' {
     # Allow multicast for Chromecast support
     #
     class { 'iptables::multicast': }
+
+    #
+    # Create VPN profiles for phone and tablet
+    #
+    openvpn::mobile { [
+        'm8',
+        'nexus7',
+    ]: }
 }
 
 @host { 'hawk':
@@ -106,3 +114,7 @@ node 'hawk' {
 }
 
 @cups::browse { 'hawk': }
+
+@host { 'm8':
+    ip => '172.22.2.10',
+}

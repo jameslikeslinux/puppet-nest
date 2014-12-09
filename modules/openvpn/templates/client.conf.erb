@@ -92,9 +92,20 @@ persist-tun
 # a separate .crt/.key file pair
 # for each client.  A single ca
 # file can be used for all clients.
+<% if @embed -%>
+<ca>
+<%= @ca_content %></ca>
+
+<cert>
+<%= @cert_content %></cert>
+
+<key>
+<%= @key_content %></key>
+<% else -%>
 ca <%= @ca_cert %>
 cert <%= @client_cert %>
 key <%= @client_key %>
+<% end -%>
 
 # Verify server certificate by checking
 # that the certicate has the nsCertType
