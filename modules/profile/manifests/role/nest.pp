@@ -48,4 +48,9 @@ class profile::role::nest {
         ensure  => installed,
         require => Package_use['media-libs/chromaprint'],
     }
+
+    portage::package { 'media-sound/beets':
+        ensure => installed,
+        use    => ['convert', 'fetchart', 'replaygain'],
+    }
 }
