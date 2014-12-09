@@ -1,5 +1,5 @@
 class zfs {
-    if $architecture =~ /arm/ {
+    if $architecture =~ /arm/ or $hostname == "hawk" {
         package_keywords { [
             'sys-kernel/spl',
             'sys-fs/zfs-kmod',
