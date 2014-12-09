@@ -21,7 +21,7 @@ class networkmanager (
             default => [],
         }
 
-        portage::package { 'kde-misc/networkmanagement':
+        portage::package { 'kde-misc/plasma-nm':
             ensure  => installed,
             use     => $use_openconnect,
             require => Portage::Package['net-misc/networkmanager'],
