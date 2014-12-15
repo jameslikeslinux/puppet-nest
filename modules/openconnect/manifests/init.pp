@@ -3,6 +3,7 @@ class openconnect {
     include misc::boehmgc
 
     portage::package { 'net-misc/openconnect':
-        require => Class['misc::boehmgc'],
+        mask_version => '>=7.01',
+        require      => Class['misc::boehmgc'],
     }
 }
