@@ -17,7 +17,7 @@ class nzbdrone (
 
     exec { 'fetch-nzbdrone':
         user    => 'nzbdrone',
-        command => "/usr/bin/wget -q http://update.nzbdrone.com/v2/master/mono/NzbDrone.master.tar.gz -O ${home}/NzbDrone.master.tar.gz",
+        command => "/usr/bin/wget -q http://update.sonarr.tv/v2/master/mono/NzbDrone.master.tar.gz -O ${home}/NzbDrone.master.tar.gz",
         creates => "${home}/NzbDrone.master.tar.gz",
         require => Users::User['nzbdrone'],
     }
