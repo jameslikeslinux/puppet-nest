@@ -22,7 +22,7 @@ class profile::base::disk::cryptmirror inherits profile::base::disk::crypt {
         order   => 3,
     }
 
-    grub::install { "${disk_mirror_id}": }
+    grub::install { "${disk_mirror_id_no_part}": }
 
     file { '/etc/local.d/rpool.start':
         mode   => '0755',
