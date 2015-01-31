@@ -58,4 +58,10 @@ class makeconf (
             content => join($overlays),
         }
     }
+
+    if $architecture == 'amd64' {
+        portage::makeconf { 'cpu_flags_x86':
+            content => $portage_cpu_flags_x86,
+        }
+    }
 }
