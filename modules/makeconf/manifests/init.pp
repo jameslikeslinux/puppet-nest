@@ -1,4 +1,5 @@
 class makeconf (
+    $debug     = false,
     $buildpkg  = false,
     $getbinpkg = false,
     $distcc    = false,
@@ -13,6 +14,11 @@ class makeconf (
     }
 
     $features = [
+        $debug ? {
+            false   => [],
+            default => 'splitdebug',
+        },
+
         $distcc ? {
             false   => [],
             default => 'distcc',
@@ -29,6 +35,12 @@ class makeconf (
         },
     ]
 
+    if $debug and $portage_cflags !~ /-ggdb/ {
+        $cflags = "${portage_cflags} -ggdb"
+    } else {
+        $cflags = $portage_cflags
+    }
+
     portage::makeconf { 'features':
         content => join(flatten($features), ' '),
     }
@@ -38,11 +50,11 @@ class makeconf (
     }
 
     portage::makeconf { 'cflags':
-        content => $portage_cflags,
+        content => $cflags,
     }
 
     portage::makeconf { 'cxxflags':
-        content => $portage_cxxflags,
+        content => $cflags,
     }
 
     portage::makeconf { 'accept_license':
@@ -59,7 +71,7 @@ class makeconf (
         }
     }
 
-    if $architecture == 'amd64' {
+    if $portage_cpu_flags_x86 {
         portage::makeconf { 'cpu_flags_x86':
             content => $portage_cpu_flags_x86,
         }
