@@ -3,6 +3,7 @@ class kde::kdm (
     $xkbvariant  = undef,
     $xkboptions  = [],
     $dpi         = undef,
+    $synergy     = undef,
 ) {
     class { 'xdm':
         displaymanager => 'kdm',
@@ -14,6 +15,14 @@ class kde::kdm (
         owner   => 'root',
         group   => 'root',
         content => template('kde/kdm-xsetup.erb'),
+        require => Portage::Package['kde-base/kdebase-meta'],
+    }
+
+    file { '/usr/share/config/kdm/Xstartup':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        content => template('kde/kdm-xstartup.erb'),
         require => Portage::Package['kde-base/kdebase-meta'],
     }
 }

@@ -3,7 +3,8 @@ class makeconf (
     $buildpkg  = false,
     $getbinpkg = false,
     $distcc    = false,
-    $makejobs  = $processorcount + 1,
+#    $makejobs  = $processorcount + 1,
+    $makejobs  = 2,
     $use       = [],
     $overlays  = [],
 ) {
@@ -61,8 +62,13 @@ class makeconf (
         content => '*',
     }
 
+    # This is completely unnecessary, but done for completeness
+    $usestring = join($use, ' ')
+    $usestring_cpuflags = "${usestring} ${portage_cpu_flags_x86}"
+    $usestring_cpuflags_sorted = join(sort(split($usestring_cpuflags, ' ')), ' ')
+
     portage::makeconf { 'use':
-        content => join(sort($use), ' '),
+        content => $usestring_cpuflags_sorted,
     }
 
     unless $overlays == [] {

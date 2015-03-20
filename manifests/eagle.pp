@@ -24,7 +24,7 @@ node 'eagle' {
     kernel::modules::blacklist { 'snd_hda_intel': }
 }
 
-@host { 'eagle':
+@hostname::host { 'eagle':
     ip => '172.22.2.5',
 }
 

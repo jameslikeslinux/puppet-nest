@@ -17,7 +17,7 @@ node 'owl' {
     }
 }
 
-@host { 'owl':
+@hostname::host { 'owl':
     ip => '172.22.2.3',
 }
 

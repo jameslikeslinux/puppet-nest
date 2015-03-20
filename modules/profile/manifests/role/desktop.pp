@@ -58,6 +58,7 @@ class profile::role::desktop {
         xkbvariant  => $variant,
         xkboptions  => ['ctrl:nocaps', 'terminate:ctrl_alt_bksp'],
         dpi         => $profile::base::dpi,
+        synergy     => synergy_server in $profile::base::roles,
     }
 
 
@@ -71,6 +72,8 @@ class profile::role::desktop {
     # Has things like ffmpeg and mplayer
     #
     class { 'multimedia': }
+    class { 'ffmpeg': }
+    class { 'mplayer': }
 
 
     #
@@ -94,14 +97,20 @@ class profile::role::desktop {
     #
     portage::package { 'app-office/libreoffice':
         # use webdav is default; leads to compilation error
-        use    => '-webdav',
+        #use    => '-webdav',
         ensure => absent,
         before => Portage::Package['app-office/openoffice-bin'],
     }
 
     portage::package { 'app-office/openoffice-bin':
+        ensure => absent,
+        before => Portage::Package['app-bin/libreoffice'],
+    }
+
+    portage::package { 'app-bin/libreoffice':
         ensure => installed,
     }
+
 
     class { 'texlive': }
 

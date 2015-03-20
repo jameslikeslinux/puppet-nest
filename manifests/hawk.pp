@@ -5,7 +5,7 @@ node 'hawk' {
         disk_profile     => crypt,
         keymap           => 'dvorak',
         video_cards      => ['nvidia'],
-        video_options    => {'metamodes' => 'DVI-I-2: nvidia-auto-select +1680+0, DVI-I-3: nvidia-auto-select +0+0'},
+        video_options    => {'metamodes' => 'DP-3: nvidia-auto-select +2560+0, DP-2: nvidia-auto-select +0+0', 'nvidiaXineramaInfoOrder' => 'DFP-4'},
         roles            => [
             compile_server,
             desktop,
@@ -18,6 +18,7 @@ node 'hawk' {
             qemu_chroot,
             server,
             subsonic_server,
+            synergy_server,
             terminal_client,
             virtualbox,
             vpn_server,
@@ -44,7 +45,7 @@ node 'hawk' {
         bootdisk => false,
     }
 
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD3VZQP':
+    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DM001-1CH164_Z341098C':
         target   => 'nest-crypt3',
         keyfile  => '/dev/mapper/keyfile',
         bootdisk => false,
@@ -69,7 +70,8 @@ node 'hawk' {
     }
 
     package_mask { 'x11-drivers/nvidia-drivers':
-        version => '>=341.0.0'
+        version => '>=341.0.0',
+        ensure  => absent,
     }
 
     class { 'inkscape': }
@@ -104,7 +106,7 @@ node 'hawk' {
     ]: }
 }
 
-@host { 'hawk':
+@hostname::host { 'hawk':
     ip => '172.22.2.1',
 }
 
@@ -115,6 +117,6 @@ node 'hawk' {
 
 @cups::browse { 'hawk': }
 
-@host { 'm8':
+@hostname::host { 'm8':
     ip => '172.22.2.10',
 }

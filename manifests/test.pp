@@ -12,6 +12,6 @@ node 'test' {
     }
 }
 
-@host { 'test':
+@hostname::host { 'test':
     ip => '172.22.2.2',
 }

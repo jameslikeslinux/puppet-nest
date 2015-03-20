@@ -10,7 +10,7 @@ node 'beaglebone1' {
     }
 }
 
-@host { 'beaglebone1':
+@hostname::host { 'beaglebone1':
     ip => '172.22.2.9',
 }
 

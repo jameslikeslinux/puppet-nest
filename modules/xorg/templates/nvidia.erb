@@ -10,7 +10,6 @@ Section "Device"
     Driver     "nvidia"
     Option     "NoLogo" "True"
     Option     "TripleBuffer" "True"
-    Option     "DPI" "96 x 96"
 <% @deviceoptions.each do |name, value| -%>
     Option     "<%= name %>" "<%= value %>"
 <% end -%>

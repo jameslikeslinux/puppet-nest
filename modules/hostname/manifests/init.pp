@@ -1,10 +1,15 @@
 class hostname (
     $hostname,
 ) {
-    file { '/etc/conf.d/hostname':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => template('hostname/confd.erb'),
+    concat { '/etc/conf.d/hostname':
+        notify => Service['hostname'],
     }
+
+    concat::fragment { 'hostname-head':
+        content => template('hostname/confd.erb'),
+        target  => '/etc/conf.d/hostname',
+        order   => '00',
+    }
+
+    service { 'hostname': }
 }

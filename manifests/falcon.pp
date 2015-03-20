@@ -1,12 +1,12 @@
 node 'falcon' {
-    Host <| title != $clientcert |>
+    Hostname::Host <| title != $clientcert |>
 
     Sshkey <| |> {
         target => 'C:/cygwin64/etc/ssh_known_hosts',
     }
 }
 
-@host { 'falcon':
+@hostname::host { 'falcon':
     ip => '172.22.2.4',
 }
 

@@ -33,7 +33,7 @@ class profile::base::networking {
     #
     # and knows about everyone else's...
     #
-    Host <| title != $clientcert |>
+    Hostname::Host <| title != $clientcert |>
 
 
     #

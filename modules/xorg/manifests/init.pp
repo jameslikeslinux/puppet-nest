@@ -99,6 +99,10 @@ class xorg (
         }
     }
 
+    if 'fglrx' in $video_cards {
+        kernel::modules::blacklist { 'radeon': }
+    }
+
 
     #
     # Proprietary NVIDIA driver stuff
@@ -107,6 +111,10 @@ class xorg (
 
     if $nvidia {
         kernel::modules::blacklist { 'nouveau': }
+
+        package_use { 'x11-drivers/nvidia-drivers':
+            use => 'gtk2',
+        }
     }
 
     file { '/etc/X11/xorg.conf.d/20-nvidia.conf':

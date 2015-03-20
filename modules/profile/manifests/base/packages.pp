@@ -12,17 +12,7 @@ class profile::base::packages {
         'zsh-completion',
 
         $is_desktop ? {
-            true    => 'networkmanager',
-            default => [],
-        },
-
-        $is_desktop ? {
-            true    => 'pulseaudio',
-            default => [],
-        },
-
-        $is_desktop ? {
-            true    => 'xinerama',
+            true    => ['networkmanager', 'pulseaudio', 'vdpau', 'xinerama'],
             default => [],
         },
     ]
@@ -35,6 +25,7 @@ class profile::base::packages {
     ]
 
     class { 'makeconf':
+        debug     => true,
         buildpkg  => true,
         getbinpkg => $profile::base::package_server,
         distcc    => $profile::base::distcc,

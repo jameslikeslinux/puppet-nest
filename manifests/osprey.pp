@@ -19,7 +19,7 @@ node 'osprey' {
     }
 }
 
-@host { 'osprey':
+@hostname::host { 'osprey':
     ip => '172.22.2.7',
 }
 

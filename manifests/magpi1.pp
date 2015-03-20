@@ -10,7 +10,7 @@ node 'magpi1' {
     }
 }
 
-@host { 'magpi1':
+@hostname::host { 'magpi1':
     ip => '172.22.2.8',
 }
 
