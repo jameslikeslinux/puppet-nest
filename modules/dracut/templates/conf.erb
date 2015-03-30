@@ -5,4 +5,9 @@
 # See the 'dracut' Puppet module for details
 #
 
+<% if @boot_devices -%>
 add_device="<%= @boot_devices.join(' ') %>"
+<% end -%>
+<% if @force_drivers -%>
+force_drivers+="<%= @force_drivers.join(' ') %>"
+<% end -%>

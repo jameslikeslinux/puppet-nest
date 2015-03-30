@@ -1,6 +1,7 @@
 define dracut::conf (
     $ensure = present,
-    $boot_devices,
+    $boot_devices = undef,
+    $force_drivers = undef,
 ) {
     file { "/etc/dracut.conf.d/${name}.conf":
         ensure  => $ensure,

@@ -56,6 +56,10 @@ node 'hawk' {
         'm8',
         'nexus7',
     ]: }
+
+    dracut::conf { 'pci-stub':
+        force_drivers => ['pci-stub'],
+    }
 }
 
 @hostname::host { 'hawk':
