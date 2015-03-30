@@ -12,7 +12,7 @@ class profile::base::packages {
         'zsh-completion',
 
         $is_desktop ? {
-            true    => ['networkmanager', 'pulseaudio', 'vdpau', 'xinerama'],
+            true    => ['networkmanager', 'vdpau', 'xinerama'],
             default => [],
         },
     ]
