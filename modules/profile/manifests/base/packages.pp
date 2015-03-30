@@ -24,11 +24,19 @@ class profile::base::packages {
         },
     ]
 
+
+    $makejobs_non_distcc = $processorcount + 1
+    $makejobs_distcc = $processorcount * 2 + 1
+
     class { 'makeconf':
         debug     => true,
         buildpkg  => true,
         getbinpkg => $profile::base::package_server,
         distcc    => $profile::base::distcc,
+        makejobs  => $profile::base::distcc ? {
+            false   => $makejobs_non_distcc,
+            default => $makejobs_distcc,
+        },
         use       => flatten($use),
         overlays  => flatten($overlays),
     }
@@ -100,8 +108,12 @@ class profile::base::packages {
 
 
     if $profile::base::distcc {
+        class { 'distcc':
+            gui => $is_desktop,
+        }
+
         class { 'distcc::client':
-            servers => ['hawk'],
+            servers => ['hawk/33'],
         }
     }
 }
