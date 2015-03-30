@@ -18,7 +18,7 @@ class profile::base::disk {
         class { '::crypt': }
     }
 
-    if $profile::base::boot_disk_mirror {
+    if is_array($profile::base::boot_disk) and size($profile::base::boot_disk) > 1 {
         class { '::mdraid':
             mailaddr => 'root',
         }

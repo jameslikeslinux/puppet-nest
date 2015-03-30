@@ -2,7 +2,6 @@ class profile::base (
     $arch             = x86,
     $remote_backup    = false,
     $boot_disk        = undef,
-#    $boot_disk_mirror = undef,
     $boot_decrypt     = undef,
     $boot_options     = [],
     $distcc           = false,

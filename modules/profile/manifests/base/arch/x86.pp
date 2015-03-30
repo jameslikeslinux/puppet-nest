@@ -15,10 +15,6 @@ class profile::base::arch::x86 inherits profile::base::arch::base {
 
     grub::install { $profile::base::boot_disk: }
 
-    if $profile::base::boot_disk_mirror {
-        grub::install { $profile::base::boot_disk_mirror: }
-    }
-
     boot::entry { 'Funtoo Linux':
         kernel  => 'kernel[-v]',
         initrd  => 'initramfs[-v]',
