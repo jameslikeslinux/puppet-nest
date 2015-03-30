@@ -1,4 +1,4 @@
-class profile::base::arch::raspberrypi {
+class profile::base::arch::raspberrypi inherits profile::base::arch::base {
     class { 'kernel':
         kernel_name     => 'rpi',
         kernel_version  => '3.6.11-raspberrypi-r20130711',
@@ -14,7 +14,7 @@ class profile::base::arch::raspberrypi {
         kernel  => 'kernel-rpi-arm-3.6.11-raspberrypi-r20130711',
         initrd  => 'initramfs-rpi-arm-3.6.11-raspberrypi-r20130711',
         root    => 'zfs',
-        params  => ['elevator=noop'],
+        params  => $boot_params,
     }
 
     class { '::raspberrypi': }

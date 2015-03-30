@@ -1,8 +1,9 @@
 node 'eagle' {
     class { 'profile::base':
-        disk_id          => '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T-part',
-        disk_mirror_id   => '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3-part',
-        disk_profile     => cryptmirror,
+        boot_disk        => '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T',
+        boot_disk_mirror => '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3',
+        boot_decrypt     => ['2709cb06-be97-49a0-83f2-aaf06a41ca4b', 'beb00b1a-123d-4bed-8d3c-9d72e415a144'],
+        keymap           => 'us',
         video_cards      => ['radeon'],
         package_server   => 'http://hawk/packages/',
         wan              => true,

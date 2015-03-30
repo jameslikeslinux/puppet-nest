@@ -1,13 +1,9 @@
 class crypt {
-    concat { 'crypttab':
+    #concat { 'crypttab':
+    file { 'crypttab':
+        ensure => absent,
         path   => '/etc/crypttab',
         notify => Class['kernel::initrd'],
-    }
-
-    concat::fragment { 'crypttab-header':
-        target  => 'crypttab',
-        content => template('crypt/header.erb'),
-        order   => '00',
     }
 
     package_mask { 'dev-libs/libgcrypt':

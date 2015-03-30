@@ -1,5 +1,5 @@
 class profile::role::cachefiles {
-    fstab::fs { '/dev/zvol/rpool/fscache':
+    fstab::fs { 'LABEL=fscache':
         mountpoint => '/var/cache/fscache',
         type       => 'ext4',
         options    => 'user_xattr,discard',

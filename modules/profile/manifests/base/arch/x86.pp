@@ -1,4 +1,4 @@
-class profile::base::arch::x86 {
+class profile::base::arch::x86 inherits profile::base::arch::base {
     class { 'kernel':
         kernel_name     => 'debian-sources',
         kernel_version  => '3.16.2-3',
@@ -13,11 +13,17 @@ class profile::base::arch::x86 {
         gfxmode       => $profile::base::resolution,
     }
 
+    grub::install { $profile::base::boot_disk: }
+
+    if $profile::base::boot_disk_mirror {
+        grub::install { $profile::base::boot_disk_mirror: }
+    }
+
     boot::entry { 'Funtoo Linux':
         kernel  => 'kernel[-v]',
         initrd  => 'initramfs[-v]',
         root    => 'zfs',
-        params  => ['elevator=noop', 'quiet', 'splash'],
+        params  => flatten([$boot_params, 'quiet', 'splash']),
     }
 
     class { 'java':

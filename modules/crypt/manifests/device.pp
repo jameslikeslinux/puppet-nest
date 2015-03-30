@@ -9,11 +9,7 @@ define crypt::device (
     include crypt
 
     if $bootdisk {
-        concat::fragment { "crypttab-device-${device}":
-            target  => 'crypttab',
-            content => template('crypt/crypttab-device.erb'),
-            order   => $order,
-        }
+        fail('Use profile variable boot_decrypt.')
     } else {
         include crypt::service
 

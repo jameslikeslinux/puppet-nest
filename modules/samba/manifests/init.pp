@@ -1,5 +1,6 @@
 class samba {
     portage::package { 'net-fs/samba':
-        ensure => installed,
+        ensure       => installed,
+        mask_version => '>=4.0.0',
     }
 }

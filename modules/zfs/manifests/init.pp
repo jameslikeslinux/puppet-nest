@@ -1,5 +1,5 @@
 class zfs {
-    if $architecture =~ /arm/ or $hostname in ['hawk', 'eagle'] {
+#    if $architecture =~ /arm/ or $hostname in ['hawk', 'eagle'] {
         package_keywords { [
             'sys-kernel/spl',
             'sys-fs/zfs-kmod',
@@ -11,7 +11,7 @@ class zfs {
             ensure   => 'present',
             before   => Portage::Package['sys-fs/zfs'],
         }
-    }
+#    }
 
     portage::package { 'sys-fs/zfs':
         use     => 'dracut',

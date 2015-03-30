@@ -1,8 +1,8 @@
 node 'osprey' {
     class { 'profile::base':
         remote_backup  => true,
-        disk_id        => '/dev/vda',
-        disk_profile   => crypt,
+        boot_disk      => '/dev/vda',
+        boot_decrypt   => ['65e65498-b363-48af-9426-852cead4b31f'],
         distcc         => true,
         keymap         => 'us',
         resolution     => '1024x768',

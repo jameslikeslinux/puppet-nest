@@ -7,15 +7,18 @@ class profile::base::boot {
             default => [], 
         },
 
-        $profile::base::disk_profile ? {
-            beaglebone  => ['btrfs', 'crypt'],
-            cryptmirror => ['crypt', 'mdraid'],
-            crypt       => 'crypt',
-            default     => [],
+        $profile::base::boot_disk_mirror ? {
+            undef   => [],
+            default => ['mdraid'],
+        },
+
+        $profile::base::boot_decrypt ? {
+            undef   => [],
+            default => ['crypt'],
         },
     ]
 
     class { 'dracut':
-        modules => flatten($dracut_modules),
+        modules => sort(flatten($dracut_modules)),
     }
 }

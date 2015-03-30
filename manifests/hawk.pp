@@ -1,14 +1,16 @@
 node 'hawk' {
     class { 'profile::base':
         remote_backup    => true,
-        disk_id          => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P-part',
-        disk_profile     => crypt,
-        keymap           => 'dvorak',
+        boot_disk        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
+        boot_decrypt     => ['36e9ffb7-5c41-4d4f-87c0-ec63db1f7595', '832a64c4-30f0-469a-af11-f88afb2dfa65', '076a3d01-ef73-4436-88f7-e02e05859451', 'a5103dd3-6b47-41d4-bc7a-5c1c675dfa2f', '2d708e8a-4e54-47de-8af4-430979d06cda', '234b6c5d-5ab4-4570-a2d3-a1e96f0a8a25', '0eec27a2-0ae7-48e0-bba4-6334171a95f1', '5c7d5184-c217-4716-a7e8-bd418945962b'],
+        boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142'],
+        keymap           => 'us',
         video_cards      => ['nvidia'],
         video_options    => {'metamodes' => 'DP-3: nvidia-auto-select +2560+0, DP-2: nvidia-auto-select +0+0', 'nvidiaXineramaInfoOrder' => 'DFP-4'},
         roles            => [
             compile_server,
             desktop,
+            kvm_hypervisor,
             #lamp_server,
             nest,
             package_server,
@@ -20,53 +22,10 @@ node 'hawk' {
             subsonic_server,
             synergy_server,
             terminal_client,
-            virtualbox,
             vpn_server,
             web_server,
             #work_system,
         ],
-    }
-
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DM001-1CH164_Z1E59EN3':
-        target   => 'nest-crypt0',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD23E8Q':
-        target   => 'nest-crypt1',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DL003-9VT166_5YD15L2S':
-        target   => 'nest-crypt2',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/scsi-1ATA_ST2000DM001-1CH164_Z341098C':
-        target   => 'nest-crypt3',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/ata-ST3400620NS_5QH0BMKB':
-        target   => 'archive-crypt0',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/ata-ST3400620NS_5QH0BMW1':
-        target   => 'archive-crypt1',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
-    }
-
-    crypt::device { '/dev/disk/by-id/ata-ST3400620AS_5QH09K6R':
-        target   => 'archive-crypt2',
-        keyfile  => '/dev/mapper/keyfile',
-        bootdisk => false,
     }
 
     package_mask { 'x11-drivers/nvidia-drivers':
@@ -75,13 +34,6 @@ node 'hawk' {
     }
 
     class { 'inkscape': }
-
-    #
-    # System uses snd_ctxfi.
-    # Disable on-board sound so I don't have to figure out
-    # how to prioritize one over the other.
-    #
-    kernel::modules::blacklist { 'snd_hda_intel': }
 
     #
     # Allow SSH for access to VPN.  This is OK...

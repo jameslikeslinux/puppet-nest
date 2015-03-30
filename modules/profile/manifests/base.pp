@@ -1,9 +1,10 @@
 class profile::base (
     $arch             = x86,
     $remote_backup    = false,
-    $disk_id          = undef,
-    $disk_mirror_id   = undef,
-    $disk_profile     = base,
+    $boot_disk        = undef,
+#    $boot_disk_mirror = undef,
+    $boot_decrypt     = undef,
+    $boot_options     = [],
     $distcc           = false,
     $keymap           = 'dvorak',
     $timezone         = 'America/New_York',
@@ -21,8 +22,8 @@ class profile::base (
     #
     class { [
         "profile::base::arch::${arch}",
-        "profile::base::disk::${disk_profile}",
         'profile::base::boot',
+        'profile::base::disk',
         'profile::base::environment',
         'profile::base::networking',
         'profile::base::packages',

@@ -3,8 +3,7 @@ class makeconf (
     $buildpkg  = false,
     $getbinpkg = false,
     $distcc    = false,
-#    $makejobs  = $processorcount + 1,
-    $makejobs  = 2,
+    $makejobs  = $processorcount + 1,
     $use       = [],
     $overlays  = [],
 ) {

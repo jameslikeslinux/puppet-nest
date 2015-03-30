@@ -1,4 +1,4 @@
-class profile::base::arch::beaglebone {
+class profile::base::arch::beaglebone inherits profile::base::arch::base {
     portage::package { 'app-arch/lzop':
         ensure => installed,
     }
@@ -26,7 +26,7 @@ class profile::base::arch::beaglebone {
         initrd     => 'initramfs-bbb-arm-3.12.9-beaglebone-r20140713.uimage',
         root       => 'LABEL=rpool',
         rootfstype => 'btrfs',
-        params     => ['elevator=noop'],
+        params     => $boot_params,
     }
 
     openrc::service { 'hwclock':
