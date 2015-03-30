@@ -10,7 +10,7 @@ node 'eagle' {
             cachefiles,
             desktop,
             virtualbox,
-            #work_system,
+            work_system,
         ],
     }
 
