@@ -38,8 +38,12 @@ class fonts (
         ensure => absent,
     }
 
+    portage::package { 'media-fonts/corefonts':
+        ensure => installed,
+        use    => 'tahoma',
+    }
+
     portage::package { [
-        'media-fonts/corefonts',
         'media-fonts/liberation-fonts',
         'media-fonts/dejavu',
     ]:
