@@ -1,12 +1,14 @@
 node 'eagle' {
     class { 'profile::base':
-        boot_disk        => ['/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T', '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3'],
-        boot_decrypt     => ['2709cb06-be97-49a0-83f2-aaf06a41ca4b', 'beb00b1a-123d-4bed-8d3c-9d72e415a144'],
-        keymap           => 'us',
-        video_cards      => ['radeon'],
-        package_server   => 'http://hawk/packages/',
-        wan              => true,
-        roles            => [
+        boot_disk          => ['/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T', '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3'],
+        boot_decrypt       => ['2709cb06-be97-49a0-83f2-aaf06a41ca4b', 'beb00b1a-123d-4bed-8d3c-9d72e415a144'],
+        default_sound_card => 'Audio',  # see /proc/asound/cards
+        distcc             => true,
+        keymap             => 'us',
+        package_server     => 'http://hawk/packages/',
+        video_cards        => ['radeon'],
+        wan                => true,
+        roles              => [
             cachefiles,
             desktop,
             virtualbox,
@@ -15,13 +17,6 @@ node 'eagle' {
     }
 
     class { 'inkscape': }
-
-    #
-    # System uses snd_usb
-    # Disable on-board sound so I don't have to figure out
-    # how to prioritize one over the other.
-    #
-    kernel::modules::blacklist { 'snd_hda_intel': }
 }
 
 @hostname::host { 'eagle':

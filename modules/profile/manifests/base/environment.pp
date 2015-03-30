@@ -74,4 +74,12 @@ class profile::base::environment {
     sysctl { 'vm.swappiness':
         value => '10',
     }
+
+
+    #
+    # May have set a default sound card
+    #
+    class { 'alsa':
+        default_card => $profile::base::default_sound_card,
+    }
 }

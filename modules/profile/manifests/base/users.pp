@@ -26,7 +26,7 @@ class profile::base::users {
         },
 
         $desktop ? {
-            true    => 'video',
+            true    => ['audio', 'video'],
             default => [],
         },
     ]
