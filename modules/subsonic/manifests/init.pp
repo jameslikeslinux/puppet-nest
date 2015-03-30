@@ -22,39 +22,17 @@ class subsonic (
         ],        
     }
 
-    file { '/etc/tomcat-7-subsonic/catalina.properties':
-        mode    => '0640',
-        owner   => 'subsonic',
-        group   => 'subsonic',
-        source  => 'puppet:///modules/subsonic/catalina.properties',
-        require => Tomcat::Instance['subsonic'],
-        notify  => Openrc::Service["tomcat-7-${name}"],
-    }
-
-    file { '/etc/tomcat-7-subsonic/context.xml':
-        mode    => '0640',
-        owner   => 'subsonic',
-        group   => 'subsonic',
-        source  => 'puppet:///modules/subsonic/context.xml',
-        require => Tomcat::Instance['subsonic'],
-        notify  => Openrc::Service["tomcat-7-${name}"],
-    }
-
-    file { '/var/lib/tomcat-7-subsonic/webapps/subsonic.war':
+    file { '/var/lib/tomcat-8-subsonic/webapps/subsonic.war':
         mode    => '0644',
         owner   => 'subsonic',
         group   => 'subsonic',
         source  => 'puppet:///modules/subsonic/subsonic.war',
         require => Tomcat::Instance['subsonic'],
-        notify  => Openrc::Service["tomcat-7-${name}"],
+        notify  => Openrc::Service["tomcat-8-${name}"],
     }
 
-    openrc::service { "tomcat-7-${name}":
+    openrc::service { "tomcat-8-${name}":
         enable  => $enable,
-        require => [
-            File['/etc/tomcat-7-subsonic/catalina.properties'],
-            File['/etc/tomcat-7-subsonic/context.xml'],
-            File['/var/lib/tomcat-7-subsonic/webapps/subsonic.war'],
-        ],
+        require => File['/var/lib/tomcat-8-subsonic/webapps/subsonic.war'],
     }
 }
