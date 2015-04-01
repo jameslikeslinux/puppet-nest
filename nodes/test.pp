@@ -1,5 +1,5 @@
 node 'test' {
-    class { 'profile::base':
+    class { 'nest':
         disk_path        => 'pci-0000:00:06.0-scsi-0:0:0:0',
         disk_mirror_path => 'pci-0000:00:06.0-scsi-1:0:0:0',
         disk_profile     => cryptmirror,

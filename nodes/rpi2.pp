@@ -1,5 +1,5 @@
 node 'rpi2' {
-    class { 'profile::base':
+    class { 'nest':
         arch             => raspberrypi,
         disk_profile     => raspberrypi,
         distcc           => true,

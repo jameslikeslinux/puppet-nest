@@ -1,5 +1,5 @@
 node 'owl' {
-    class { 'profile::base':
+    class { 'nest':
         disk_id        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ANNSADB32149W-part',
         disk_profile   => crypt,
         video_cards    => ['nvidia'],

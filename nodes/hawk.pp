@@ -1,5 +1,5 @@
 node 'hawk' {
-    class { 'profile::base':
+    class { 'nest':
         remote_backup    => true,
         boot_disk        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
         boot_decrypt     => ['36e9ffb7-5c41-4d4f-87c0-ec63db1f7595', '832a64c4-30f0-469a-af11-f88afb2dfa65', '076a3d01-ef73-4436-88f7-e02e05859451', 'a5103dd3-6b47-41d4-bc7a-5c1c675dfa2f', '2d708e8a-4e54-47de-8af4-430979d06cda', '234b6c5d-5ab4-4570-a2d3-a1e96f0a8a25', '0eec27a2-0ae7-48e0-bba4-6334171a95f1', '5c7d5184-c217-4716-a7e8-bd418945962b'],
@@ -12,7 +12,7 @@ node 'hawk' {
             desktop,
             kvm_hypervisor,
             #lamp_server,
-            nest,
+            nest_server,
             package_server,
             private_stuff,
             #puppet_dashboard,

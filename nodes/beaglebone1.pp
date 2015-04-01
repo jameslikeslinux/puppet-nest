@@ -1,5 +1,5 @@
 node 'beaglebone1' {
-    class { 'profile::base':
+    class { 'nest':
         arch             => beaglebone,
         disk_profile     => beaglebone,
         distcc           => true,

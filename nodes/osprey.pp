@@ -1,5 +1,5 @@
 node 'osprey' {
-    class { 'profile::base':
+    class { 'nest':
         remote_backup  => true,
         boot_disk      => '/dev/vda',
         boot_decrypt   => ['65e65498-b363-48af-9426-852cead4b31f'],
