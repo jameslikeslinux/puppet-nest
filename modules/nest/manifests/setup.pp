@@ -99,7 +99,6 @@ class nest::setup {
     #
     class { 'portage':
         eselect_ensure => installed,
-        layman_ensure  => installed,
         stage          => 'setup',
     }
 }
