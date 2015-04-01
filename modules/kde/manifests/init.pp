@@ -1,11 +1,4 @@
 class kde {
-    $mixin = "funtoo/1.0/linux-gnu/mix-ins/kde"
-    exec { "eselect-profile-mixin-kde":
-        command => "/usr/bin/eselect profile add '${mixin}'",
-        unless  => "/usr/bin/eselect profile show | /bin/grep '${mixin}'",
-        notify  => Class['portage'],
-    }
-
     # required by dev-qt/qtwebkit-4.8.5[gstreamer]
     # required by kde-base/kstartupconfig-4.11.9
     # required by kde-base/kdebase-meta-4.13.0

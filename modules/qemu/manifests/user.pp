@@ -8,12 +8,8 @@ class qemu::user inherits qemu {
         before => Portage::Package['app-emulation/qemu'],
     }
 
-    portage::makeconf { 'qemu_user_targets':
-        content => 'arm',
-    }
-
     Portage::Package['app-emulation/qemu'] {
-        use +> 'static-user',
+        use +> ['static-user', 'qemu_user_targets_arm'],
     }
 
     file { '/usr/bin/qemu-arm-cortex-a8.c':

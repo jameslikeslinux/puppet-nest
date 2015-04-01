@@ -27,10 +27,13 @@ class dracut (
         },
     ]
 
-    portage::makeconf { 'dracut_modules':
-        content => join(sort($modules), ' '),
-        notify  => Portage::Package['sys-kernel/dracut'],
-    }
+    #
+    # DRACUT_MODULES is no more.  Keeping this for historical interest.
+    #
+    #portage::makeconf { 'dracut_modules':
+    #    content => join(sort($modules), ' '),
+    #    notify  => Portage::Package['sys-kernel/dracut'],
+    #}
 
     portage::package { 'sys-kernel/dracut':
         ensure => installed,

@@ -5,17 +5,6 @@ class xorg (
     $xkboptions    = [],
     $deviceoptions = {},
 ) {
-    $flavor = "funtoo/1.0/linux-gnu/flavor/desktop"
-    exec { "eselect-profile-flavor":
-        command => "/usr/bin/eselect profile set-flavor '${flavor}'",
-        unless  => "/usr/bin/eselect profile show | /bin/grep '${flavor}'",
-        notify  => Class['portage'],
-    }
-
-    portage::makeconf { 'video_cards':
-        content => join($video_cards, ' '),
-    }
-
     portage::package { 'x11-base/xorg-x11':
         ensure => installed,
     }

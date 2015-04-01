@@ -18,6 +18,18 @@ class profile::base (
     $roles              = [],
 ) {
     #
+    # Portage needs to be setup before anything else can proceed.
+    #
+    stage { 'setup':
+        before => Stage['main'],
+    }
+
+    class { 'profile::base::setup':
+        stage => 'setup',
+    }
+
+
+    #
     # Include profile components.
     #
     class { [

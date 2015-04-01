@@ -98,18 +98,20 @@ class profile::role::desktop {
     portage::package { 'app-office/libreoffice':
         # use webdav is default; leads to compilation error
         #use    => '-webdav',
-        ensure => absent,
-        before => Portage::Package['app-office/openoffice-bin'],
+        ensure  => installed,
+        #ensure => absent,
+        #before => Portage::Package['app-office/openoffice-bin'],
     }
 
     portage::package { 'app-office/openoffice-bin':
         ensure => absent,
-        before => Portage::Package['app-bin/libreoffice'],
+        before => Portage::Package['app-office/libreoffice'],
     }
 
-    portage::package { 'app-bin/libreoffice':
-        ensure => installed,
-    }
+#    portage::package { 'app-bin/libreoffice':
+#        ensure => absent,
+#        before => Portage::Package['app-office/libreoffice'],
+#    }
 
 
     class { 'texlive': }

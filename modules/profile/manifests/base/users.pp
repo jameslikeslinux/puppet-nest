@@ -5,8 +5,6 @@ class profile::base::users {
     # Has a user.
     #
     class { 'zsh': }
-    class { 'zsh::fake': }
-
 
     $virtalbox = virtualbox in $profile::base::roles
     $terminal_client = terminal_client in $profile::base::roles
@@ -48,22 +46,6 @@ class profile::base::users {
         profile        => 'git://github.com/MrStaticVoid/profile.git',
         ssh_key_source => 'puppet:///modules/private/profile/base/users/jlee/id_dsa',
         require        => flatten($require),
-    }
-
-
-    #
-    # That user's identity is the same as the root's identity,
-    # for better or worse.
-    #
-    users::user { 'root':
-        uid      => 0,
-        gid      => 0,
-        fullname => 'root',
-        shell    => '/bin/zsh',
-        home     => '/root',
-        profile  => 'git://github.com/MrStaticVoid/profile.git',
-        password => $::private::profile::base::users::root_pwhash,
-        require  => Class['zsh::fake'],
     }
 
 

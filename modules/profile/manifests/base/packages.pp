@@ -3,44 +3,6 @@ class profile::base::packages {
 
     $is_desktop = desktop in $profile::base::roles
     $is_server = server in $profile::base::roles
-    $is_compile_server = compile_server in $profile::base::roles
-
-    #
-    # Has a global Portage configuration.
-    #
-    $use = [
-        'zsh-completion',
-
-        $is_desktop ? {
-            true    => ['networkmanager', 'vdpau', 'xinerama'],
-            default => [],
-        },
-    ]
-
-    $overlays = [
-        $is_compile_server ? {
-            true    => '/usr/local/portage-crossdev',
-            default => [],
-        },
-    ]
-
-
-    $makejobs_non_distcc = $processorcount + 1
-    $makejobs_distcc = $processorcount * 2 + 1
-
-    class { 'makeconf':
-        debug     => true,
-        buildpkg  => true,
-        getbinpkg => $profile::base::package_server,
-        distcc    => $profile::base::distcc,
-        makejobs  => $profile::base::distcc ? {
-            false   => $makejobs_non_distcc,
-            default => $makejobs_distcc,
-        },
-        use       => flatten($use),
-        overlays  => flatten($overlays),
-    }
-
 
 
     #
