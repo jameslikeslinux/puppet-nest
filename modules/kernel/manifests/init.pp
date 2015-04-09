@@ -45,13 +45,23 @@ class kernel (
     }
 
     exec { 'genkernel':
-        command     => "/usr/bin/genkernel --kernname='${kernel_name}' --kernel-cc='${compiler}' --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
-        subscribe   => File['/usr/src/linux/config'],
-        notify      => Class['kernel::initrd'],
-        creates     => ["/boot/kernel-${kernel_name}-${arch}-${kernel_version}", "/lib/modules/${kernel_version}"],
+        command     => "source /etc/make.conf && /usr/bin/genkernel --kernname='${kernel_name}' --kernel-cc='${compiler}' --makeopts=\"\$MAKEOPTS\" --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
+        environment => 'HOME=/var/tmp/portage',     # required by distcc
+        #creates     => ["/boot/kernel-${kernel_name}-${arch}-${kernel_version}", "/lib/modules/${kernel_version}"],
         timeout     => 0,
+        refreshonly => true,
+        subscribe   => File['/usr/src/linux/config'],
         require     => Portage::Package['sys-kernel/genkernel'],
-        environment => "HOME=/var/tmp/portage",     # required by distcc
+        provider    => shell,
+    }
+
+    exec { 'module-rebuild':
+        command     => '/usr/bin/emerge @module-rebuild',
+        environment => 'FEATURES=-getbinpkg',
+        timeout     => 0,
+        refreshonly => true,
+        subscribe   => Exec['genkernel'],
+        notify      => Class['kernel::initrd'],
     }
 
     class { 'kernel::initrd':

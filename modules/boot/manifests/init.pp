@@ -22,6 +22,6 @@ class boot (
     exec { 'boot-update':
         command     => '/sbin/boot-update',
         refreshonly => true,
-        require     => [Class['kernel'], Class['kernel::initrd']],
+        subscribe   => [Class['kernel'], Class['kernel::initrd']],
     }
 }
