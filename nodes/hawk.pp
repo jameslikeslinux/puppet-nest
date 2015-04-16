@@ -60,6 +60,11 @@ node 'hawk' {
     dracut::conf { 'pci-stub':
         force_drivers => ['pci-stub'],
     }
+
+    #
+    # Disable intel audio for now
+    #
+    kernel::modules::blacklist { 'snd-hda-intel': }
 }
 
 @hostname::host { 'hawk':

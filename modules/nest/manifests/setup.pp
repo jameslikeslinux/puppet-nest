@@ -65,7 +65,7 @@ class nest::setup {
         'zsh-completion',
 
         $is_desktop ? {
-            true    => ['networkmanager', 'vdpau', 'xinerama'],
+            true    => ['networkmanager', 'pulseaudio', 'vdpau', 'xinerama'],
             default => [],
         },
     ]
