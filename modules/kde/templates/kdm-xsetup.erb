@@ -12,9 +12,5 @@
 <% end -%>
 /usr/bin/setxkbmap -layout <%= @keymap %> <%= @xkbvariant ? "-variant #{@xkbvariant} " : '' %><% @xkboptions.each { |option| %><%= "-option #{option} " %><% } %>
 <% if @synergy -%>
-
-# Restart synergy server
-/usr/bin/killall synergys
-sleep 1
 /usr/bin/synergys
 <% end -%>

@@ -8,10 +8,7 @@
 # Xstartup - run as root before session starts
 
 <% if @synergy -%>
-
-# Kill old synergy server
 /usr/bin/killall synergys
-sleep 1
-<% end -%>
 
+<% end -%>
 # NOTE: The session is aborted if the last command returns non-zero.
