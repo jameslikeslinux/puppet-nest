@@ -61,10 +61,7 @@ node 'hawk' {
         force_drivers => ['pci-stub'],
     }
 
-    #
-    # Disable intel audio for now
-    #
-    kernel::modules::blacklist { 'snd-hda-intel': }
+    kernel::modules::blacklist { 'ast': }
 }
 
 @hostname::host { 'hawk':
