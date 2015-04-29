@@ -2,7 +2,7 @@ node 'hawk' {
     class { 'nest':
         remote_backup    => true,
         boot_disk        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
-        boot_decrypt     => ['36e9ffb7-5c41-4d4f-87c0-ec63db1f7595', '832a64c4-30f0-469a-af11-f88afb2dfa65', '076a3d01-ef73-4436-88f7-e02e05859451', 'a5103dd3-6b47-41d4-bc7a-5c1c675dfa2f', '2d708e8a-4e54-47de-8af4-430979d06cda', '234b6c5d-5ab4-4570-a2d3-a1e96f0a8a25', '0eec27a2-0ae7-48e0-bba4-6334171a95f1', '5c7d5184-c217-4716-a7e8-bd418945962b'],
+        boot_decrypt     => ['36e9ffb7-5c41-4d4f-87c0-ec63db1f7595', 'f4dc141c-b9a4-4ca7-9b1f-333b80475113', 'b8bcf96c-c29e-4241-af43-4b6759fa532d', 'eab4b536-fe5e-4ea4-91aa-85107dcb224c', '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a', '234b6c5d-5ab4-4570-a2d3-a1e96f0a8a25', '0eec27a2-0ae7-48e0-bba4-6334171a95f1', '5c7d5184-c217-4716-a7e8-bd418945962b'],
         boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142'],
         keymap           => 'us',
         video_cards      => ['nvidia'],
@@ -57,11 +57,21 @@ node 'hawk' {
         'nexus7',
     ]: }
 
+
+    #
+    # Settings to assist PCI passthrough
+    #
     dracut::conf { 'pci-stub':
         force_drivers => ['pci-stub'],
     }
 
-    kernel::modules::blacklist { 'ast': }
+    file_line { 'nvidia_assign_gpus':
+        path    => '/etc/modprobe.d/nvidia.conf',
+        line    => 'options nvidia NVreg_DeviceFileMode=432 NVreg_DeviceFileUID=0 NVreg_DeviceFileGID=27 NVreg_ModifyDeviceFiles=1 NVreg_AssignGpus="0:04:00.0"',
+        match   => '^options nvidia',
+        require => Class['xorg'],
+        notify  => Class['kernel::initrd'],
+    }
 }
 
 @hostname::host { 'hawk':
