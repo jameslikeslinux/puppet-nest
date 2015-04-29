@@ -16,8 +16,6 @@ node 'eagle' {
     }
 
     class { 'inkscape': }
-
-    kernel::modules::blacklist { 'snd-hda-intel': }
 }
 
 @hostname::host { 'eagle':
