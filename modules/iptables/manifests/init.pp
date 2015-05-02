@@ -93,6 +93,16 @@ class iptables {
         order => '10',
     }
 
+    iptables::rule { 'drop-broadcast-before-log':
+        rule   => '-A INPUT -m pkttype --pkt-type broadcast -j DROP',
+        order  => '46',
+    }
+
+    iptables::rule { 'drop-multicast-before-log':
+        rule   => '-A INPUT -m pkttype --pkt-type multicast -j DROP',
+        order  => '46',
+    }
+
     iptables::rule { 'logv4':
         rule   => '-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG --log-prefix="iptables: DROP "',
         order  => '47',
