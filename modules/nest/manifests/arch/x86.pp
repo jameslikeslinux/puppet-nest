@@ -3,6 +3,7 @@ class nest::arch::x86 inherits nest::arch::base {
         kernel_name     => 'debian-sources',
         kernel_version  => '3.19.3-1~exp1',
         package_version => '3.19.3',
+        package_use     => '-binary',
         eselect_name    => 'linux-debian-sources-3.19.3',
         config_source   => 'puppet:///modules/nest/arch/x86/config',
         distcc          => $::nest::distcc,

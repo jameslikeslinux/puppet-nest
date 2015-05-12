@@ -3,6 +3,7 @@ class kernel (
     $kernel_version,
     $package_name = $kernel_name,
     $package_version,
+    $package_use = undef,
     $eselect_name,
     $config_source,
     $cryptsetup = true,
@@ -22,6 +23,7 @@ class kernel (
 
     portage::package { "sys-kernel/${package_name}":
         ensure => $package_version,
+        use    => $package_use,
     }
 
     kernel::eselect { $eselect_name:
