@@ -13,17 +13,13 @@ class mdraid (
 
     concat { 'mdadm-conf':
         path   => '/etc/mdadm.conf',
+        warn   => true,
         notify => Class['kernel::initrd'],
-    }
-
-    concat::fragment { 'mdadm-conf-header':
-        target => 'mdadm-conf',
-        source => 'puppet:///modules/mdraid/header',
     }
 
     concat::fragment { 'mdadm-conf-scan':
         target  => 'mdadm-conf',
-        ensure  => '/etc/mdadm.conf.scan',
+        source  => '/etc/mdadm.conf.scan',
         require => Exec['mdadm-scan'],
     }
 
@@ -31,6 +27,7 @@ class mdraid (
         concat::fragment { 'mdadm-conf-mailaddr':
             target  => 'mdadm-conf',
             content => "MAILADDR $mailaddr\n",
+            order   => '09',
         }
     }
 

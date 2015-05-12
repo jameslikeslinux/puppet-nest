@@ -102,9 +102,9 @@ persist-tun
 <key>
 <%= @key_content %></key>
 <% else -%>
-ca <%= @ca_cert %>
-cert <%= @client_cert %>
-key <%= @client_key %>
+ca <%= @ca_file %>
+cert <%= @cert_file %>
+key <%= @key_file %>
 <% end -%>
 
 # Verify server certificate by checking

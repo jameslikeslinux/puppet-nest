@@ -46,7 +46,7 @@ class cups (
 
     openrc::service { 'cups-browsed':
         enable  => true,
-        require => File['/etc/cups/cups-browsed.conf'],
+        require => Concat['/etc/cups/cups-browsed.conf'],
     }
 
     if $kde {

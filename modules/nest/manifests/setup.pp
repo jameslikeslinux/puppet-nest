@@ -1,10 +1,5 @@
 class nest::setup {
     #
-    # Required for portage module
-    #
-    class { 'concat::setup': }
-
-    #
     # Setup root user
     # (root user is a dependency of some files in the portage module)
     #
@@ -65,7 +60,7 @@ class nest::setup {
         'zsh-completion',
 
         $is_desktop ? {
-            true    => ['networkmanager', 'pulseaudio', 'vdpau', 'xinerama'],
+            true    => ['networkmanager', 'vdpau', 'xinerama'],
             default => [],
         },
     ]

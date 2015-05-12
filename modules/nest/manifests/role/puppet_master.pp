@@ -1,7 +1,5 @@
 class nest::role::puppet_master {
-    class { 'puppet::master':
-        environmentpath => '$confdir/environments',
-    }
+    class { 'puppet::master': }
 
     iptables::accept { 'puppet':
         port     => 8140,

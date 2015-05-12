@@ -1,8 +1,7 @@
 class crypt {
-    #concat { 'crypttab':
-    file { 'crypttab':
-        ensure => absent,
+    concat { 'crypttab':
         path   => '/etc/crypttab',
+        warn   => true,
         notify => Class['kernel::initrd'],
     }
 
@@ -19,13 +18,8 @@ class crypt {
     }
 
     concat { '/etc/conf.d/dmcrypt':
+        warn    => true,
         require => Portage::Package['sys-fs/cryptsetup'],
-    }
-
-    concat::fragment { 'dmcrypt-header':
-        target  => '/etc/conf.d/dmcrypt',
-        content => template('crypt/header.erb'),
-        order   => '00',
     }
 
     concat::fragment { 'dmcrypt-example':

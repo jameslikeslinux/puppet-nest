@@ -18,7 +18,7 @@ class fonts (
         }
     }
 
-    conf { [
+    fonts::conf { [
         '10-sub-pixel-rgb.conf',
         '11-lcdfilter-default.conf',
     ]:
@@ -28,13 +28,13 @@ class fonts (
         }
     }
 
-    conf { '70-no-bitmaps.conf': }
+    fonts::conf { '70-no-bitmaps.conf': }
 
     #
     # Make sure nobody (I'm looking at you KDE) messes up my beautiful
     # font configuration
     #
-    conf { '50-user.conf':
+    fonts::conf { '50-user.conf':
         ensure => absent,
     }
 

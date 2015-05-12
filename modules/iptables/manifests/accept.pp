@@ -43,7 +43,7 @@ define iptables::accept (
 
         iptables::rule { "accept-${padded_port}-${protocol}-${name}":
             rule   => "-A INPUT ${input}${rule} -m conntrack --ctstate NEW -j ACCEPT",
-            order  => "20",
+            order  => "20-${padded_port}",
             l3prot => $l3prot,
         }
     }
