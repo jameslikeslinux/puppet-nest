@@ -8,6 +8,7 @@ class postfix {
 
     concat { 'postfix-main.cf':
         path    => '/etc/postfix/main.cf',
+        warn    => true,
         require => Portage::Package['mail-mta/postfix'],
         notify  => Openrc::Service['postfix'],
     }
