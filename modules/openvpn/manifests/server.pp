@@ -5,6 +5,7 @@ class openvpn::server (
     $crl,
     $network,
     $netmask,
+    $group = undef,
 ) {
     class { 'openvpn': }
 
@@ -13,6 +14,14 @@ class openvpn::server (
         creates => '/etc/openvpn/dh4096.pem',
         timeout => 0,
         require => Class['openvpn'],
+    }
+
+    if $group {
+        user { 'openvpn':
+            groups  => $group,
+            require => Class['openvpn'],
+            before  => File['/etc/openvpn/openvpn.conf'],
+        }
     }
 
     file { '/etc/openvpn/openvpn.conf':
