@@ -1,7 +1,7 @@
 node 'hawk' {
     class { 'nest':
         remote_backup    => true,
-        boot_disk        => ['/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P', '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD908564X'],
+        boot_disk        => ['EFI1', 'EFI2'],
         boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142', 'console=ttyS1,115200n8', 'console=tty0'],
         resolution       => native,
         keymap           => 'us',
