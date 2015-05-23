@@ -12,6 +12,6 @@ node 'test' {
     }
 }
 
-@hostname::host { 'test':
+@openvpn::host { 'test':
     ip => '172.22.2.2',
 }

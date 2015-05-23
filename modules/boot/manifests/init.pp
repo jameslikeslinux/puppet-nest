@@ -24,4 +24,12 @@ class boot (
         refreshonly => true,
         subscribe   => [Class['kernel'], Class['kernel::initrd']],
     }
+
+    if $gfxmode == native {
+        exec { 'grub-set-native-gfxmode':
+            command => '/bin/sed -i "/set gfxmode=.*/d" /boot/grub/grub.cfg',
+            onlyif  => '/bin/grep "set gfxmode=.*" /boot/grub/grub.cfg',
+            require => Exec['boot-update'],
+        }
+    }
 }

@@ -10,7 +10,7 @@ boot {
     default "<%= @default_entry %>"
     timeout 3 
 }
-<% if @gfxmode -%>
+<% if @gfxmode and @gfxmode != 'native' -%>
 
 display {
     gfxmode <%= @gfxmode %>

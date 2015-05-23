@@ -24,7 +24,7 @@ class nest::users {
         },
 
         $desktop ? {
-            true    => 'video',
+            true    => ['audio', 'video'],
             default => [],
         },
     ]

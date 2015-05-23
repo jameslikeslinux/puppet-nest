@@ -6,8 +6,11 @@
 #
 
 <% if @boot_devices -%>
-add_device="<%= @boot_devices.join(' ') %>"
+add_device+=" <%= Array(@boot_devices).join(' ') %> "
 <% end -%>
 <% if @force_drivers -%>
-force_drivers+="<%= @force_drivers.join(' ') %>"
+force_drivers+=" <%= Array(@force_drivers).join(' ') %> "
+<% end -%>
+<% if @kernel_cmdline -%>
+kernel_cmdline+=" <%= Array(@kernel_cmdline).join(' ') %> "
 <% end -%>

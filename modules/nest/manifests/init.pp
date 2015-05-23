@@ -1,7 +1,6 @@
 class nest (
     $arch               = x86,
     $boot_disk          = undef,
-    $boot_decrypt       = undef,
     $boot_options       = [],
     $default_sound_card = undef,
     $distcc             = false,

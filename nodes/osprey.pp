@@ -2,7 +2,6 @@ node 'osprey' {
     class { 'nest':
         remote_backup  => true,
         boot_disk      => '/dev/vda',
-        boot_decrypt   => ['65e65498-b363-48af-9426-852cead4b31f'],
         distcc         => true,
         keymap         => 'us',
         resolution     => '1024x768',
@@ -17,9 +16,14 @@ node 'osprey' {
             web_server,
         ],
     }
+
+    crypt::device { '/dev/vda4':
+        target => 'rpool-crypt0',
+        uuid   => '65e65498-b363-48af-9426-852cead4b31f',
+    }
 }
 
-@hostname::host { 'osprey':
+@openvpn::host { 'osprey':
     ip => '172.22.2.7',
 }
 

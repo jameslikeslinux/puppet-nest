@@ -1,9 +1,9 @@
 node 'hawk' {
     class { 'nest':
         remote_backup    => true,
-        boot_disk        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P',
-        boot_decrypt     => ['36e9ffb7-5c41-4d4f-87c0-ec63db1f7595', 'f4dc141c-b9a4-4ca7-9b1f-333b80475113', 'b8bcf96c-c29e-4241-af43-4b6759fa532d', 'eab4b536-fe5e-4ea4-91aa-85107dcb224c', '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a', '234b6c5d-5ab4-4570-a2d3-a1e96f0a8a25', '0eec27a2-0ae7-48e0-bba4-6334171a95f1', '5c7d5184-c217-4716-a7e8-bd418945962b'],
-        boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142'],
+        boot_disk        => ['/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P', '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD908564X'],
+        boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142', 'console=ttyS1,115200n8', 'console=tty0'],
+        resolution       => native,
         keymap           => 'us',
         video_cards      => ['nvidia'],
         video_options    => {'metamodes' => 'DP-3: nvidia-auto-select +2560+0, DP-2: nvidia-auto-select +0+0', 'nvidiaXineramaInfoOrder' => 'DFP-4'},
@@ -26,6 +26,36 @@ node 'hawk' {
             web_server,
             #work_system,
         ],
+    }
+    
+    crypt::device { '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD907240P-part3':
+        target => 'rpool-crypt0',
+        uuid   => '1128986e-ae39-4ebe-bda4-8f08ae8603ef',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ATNSAD908564X-part3':
+        target => 'rpool-crypt1',
+        uuid   => '8bd2bf2b-1037-406d-936f-c86b36783e1f',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E0TPK950':
+        target => 'nest-crypt0',
+        uuid   => 'f4dc141c-b9a4-4ca7-9b1f-333b80475113',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E2KDDSP9':
+        target => 'nest-crypt1',
+        uuid   => 'b8bcf96c-c29e-4241-af43-4b6759fa532d',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E2ND3N59':
+        target => 'nest-crypt2',
+        uuid   => 'eab4b536-fe5e-4ea4-91aa-85107dcb224c',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E7XTNL8V':
+        target => 'nest-crypt3',
+        uuid   => '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a',
     }
 
     package_mask { 'x11-drivers/nvidia-drivers':
@@ -74,7 +104,7 @@ node 'hawk' {
     }
 }
 
-@hostname::host { 'hawk':
+@openvpn::host { 'hawk':
     ip => '172.22.2.1',
 }
 
@@ -85,6 +115,6 @@ node 'hawk' {
 
 @cups::browse { 'hawk': }
 
-@hostname::host { 'm8':
+@openvpn::host { 'm8':
     ip => '172.22.2.10',
 }

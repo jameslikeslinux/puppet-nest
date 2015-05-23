@@ -1,16 +1,23 @@
 node 'falcon' {
-    Hostname::Host <| title != $clientcert |>
+    class { 'openvpn::hosts': }
+
+    file { 'C:/cygwin64/etc/ssh_known_hosts':
+        owner => 'Administrator',
+        group => 'Administrators',
+        mode  => '0644',
+    }
 
     Sshkey <| |> {
-        target => 'C:/cygwin64/etc/ssh_known_hosts',
+        target  => 'C:/cygwin64/etc/ssh_known_hosts',
+        require => File['C:/cygwin64/etc/ssh_known_hosts'],
     }
 }
 
-@hostname::host { 'falcon':
+@openvpn::host { 'falcon':
     ip => '172.22.2.4',
 }
 
 @sshkey { 'falcon':
     type => 'ssh-dss',
-    key  => 'AAAAB3NzaC1kc3MAAACBALHfxoLRRkmyE90PfcVi6j3p2AeDel3X2WnlFK1Hpyope6WerBNiTBbACBnNN2Es8Lj1GFQa+GnXY6TCbENTBNCBGt56jZ7BeaSbyjqlbGXRzozvfbT1B6MUD0gmdv1UvSVJvKfdr1fW/8fc7PLgTJTP6GXkJTzEWMcgNCw9xZhLAAAAFQDU85PQzalj8tyQIzwQO8hMf+p50wAAAIEApj74eoHVie70SuzV3RJ7u1wCw0QVFIUy3tEpXjsqSYX4vALPxKzn2+7AtUhhEETvM69TrK8GBFbExCqZjse3SXupX5J4onee/yAH/D/M+KlDzB5qUrzpRfwkN6PkG0rVIZ0YU5sDD46dpfBKYEBB5ZUX4maShIYCYqXtQ4Z7WnoAAACBAJXJco+kEclxUcT3X7cNPW40/8hlDwLOphBV31N0w5b0/AanCJvHg/cjMzzLuHn2gI2Ir7MbOHD6lU6kQRo/yWwf2FvRjv467S4EvITkJaI6GrO3Xj4dG1Edc3+dsTYHw2XVTGN+hBGna6OmQNM3WMeoEbtd67PGTbh/hzb9N9Wb',
+    key  => 'AAAAB3NzaC1kc3MAAACBAK1bDB1gIVX0ZC0BdqQNzX8HVA8PjB0FGAfHRimga+gNavxvQMDcuLcRIspXFdMUpEjwQmQRZFaxTz/ZYi2xqtb6m349glvGJIKxyKurtO6VLEGOyNsP8wZo4UBNzttPL0Id2dAgVs6MpDtKEw/rkitl8nk0rkX5pxQKF/uGHIGnAAAAFQCu3+sXy02Up8vq1f9qy4jCKgUNnwAAAIAz0M4zOnGbsw1qKkivHtNp/XnFx8ZH57S5ylcPjb4WLM8GKpUMjc1TbvR9ujHCY1GunEM+wdeKHyE4HhIGxCzBZ7UoxaGZvZdBlpwKB7PuANA+Ne+UZaSNxZlLj/a9/UvxUrElzPTZD/ysoW9JpSGExuwp5Mr1aopF0MB0iiP2+wAAAIBo2zRBnTLieiAD2MgqAFLhf6APv8c/4qKLn6Pwm6DFIIPejLGzynn6U9xF2M7IUFHdeWMykSiWEMkfJsGl1+utaZ4WDe4j1B2ku/Q6k0YfySpa5yaEolLh2al/eaGDr4tIwTOu3eGgLAXpTI8vpDBJA9y/Vcxi1RnaCFFUA2wUfw==',
 }

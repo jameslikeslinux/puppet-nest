@@ -10,6 +10,6 @@ node 'rpi2' {
     }
 }
 
-@hostname::host { 'rpi2':
+@openvpn::host { 'rpi2':
     ip => '172.22.2.6',
 }

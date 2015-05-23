@@ -14,10 +14,6 @@ class nest::disk {
         class { '::smart': }
     }
 
-    if $nest::boot_decrypt {
-        class { '::crypt': }
-    }
-
     if is_array($nest::boot_disk) and size($nest::boot_disk) > 1 {
         class { '::mdraid':
             mailaddr => 'root',

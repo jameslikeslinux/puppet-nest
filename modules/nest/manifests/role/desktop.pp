@@ -124,6 +124,15 @@ class nest::role::desktop {
 
 
     #
+    # Has a boot splash, maybe...
+    #
+    portage::package { 'sys-boot/plymouth':
+        ensure => installed,
+        before => Class['kernel::initrd'],
+    }
+
+
+    #
     # Miscellaneous packages
     #
     portage::package { [

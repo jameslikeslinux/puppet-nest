@@ -1,5 +1,6 @@
 define crypt::device (
     $target,
+    $uuid,
     $device   = $name,
     $keyfile  = 'none',
     $order    = 99,
@@ -9,7 +10,16 @@ define crypt::device (
     include crypt
 
     if $bootdisk {
-        fail('Use profile variable boot_decrypt.')
+        dracut::conf { $target:
+            boot_devices   => $device,
+            kernel_cmdline => "rd.luks.uuid=${uuid}",
+        }
+
+        concat::fragment { "crypttab-device-${device}":
+            target  => 'crypttab',
+            content => template('crypt/crypttab-device.erb'),
+            order   => "${order}-${target}",
+        }
     } else {
         include crypt::service
 

@@ -15,9 +15,9 @@ class nest::networking {
     unless vpn_server in $nest::roles {
         class { 'openvpn::client':
             server      => 'vpn.thestaticvoid.com',
-            ca_cert     => '/etc/puppet/ssl/certs/ca.pem',
-            client_cert => "/etc/puppet/ssl/certs/${clientcert}.pem",
-            client_key  => "/etc/puppet/ssl/private_keys/${clientcert}.pem",
+            ca_cert     => "${settings::ssldir}/certs/ca.pem",
+            client_cert => "${settings::ssldir}/certs/${clientcert}.pem",
+            client_key  => "${settings::ssldir}/private_keys/${clientcert}.pem",
         }
     }
 
@@ -26,14 +26,14 @@ class nest::networking {
     # Has a hostname
     #
     class { 'hostname':
-        hostname => $clientcert,
+        hostname => "${clientcert}.vpn",
     }
 
 
     #
     # and knows about everyone else's...
     #
-    Hostname::Host <| title != $clientcert |>
+    class { 'openvpn::hosts': }
 
 
     #
