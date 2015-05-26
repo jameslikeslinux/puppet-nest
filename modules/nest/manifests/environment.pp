@@ -82,4 +82,11 @@ class nest::environment {
     class { 'alsa':
         default_card => $nest::default_sound_card,
     }
+
+    #
+    # May have a serial console
+    #
+    class { 'inittab':
+        serial_console => $nest::serial_console,
+    }
 }

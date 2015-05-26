@@ -10,6 +10,7 @@ class nest (
     $package_server     = undef,
     $remote_backup      = false,
     $resolution         = undef,
+    $serial_console     = undef,
     $timezone           = 'America/New_York',
     $video_cards        = [],
     $video_options      = {},

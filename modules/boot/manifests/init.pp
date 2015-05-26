@@ -1,5 +1,6 @@
 class boot (
     $default_entry,
+    $serial_console,
     $gfxmode = undef,
 ) {
     portage::package { 'sys-boot/boot-update':
@@ -31,5 +32,26 @@ class boot (
             onlyif  => '/bin/grep "set gfxmode=.*" /boot/grub/grub.cfg',
             require => Exec['boot-update'],
         }
+    }
+
+    $enable_serial_console = $serial_console ? {
+        undef   => absent,
+        default => present,
+    }
+
+    file_line { 'grub-configure-serial-device':
+        ensure  => $enable_serial_console,
+        path    => '/boot/grub/grub.cfg',
+        line    => "serial --unit=${serial_console} --speed=115200",
+        after   => '^fi$',
+        require => Exec['boot-update'],
+    }
+
+    file_line { 'grub-enable-serial-output':
+        ensure  => $enable_serial_console,
+        path    => '/boot/grub/grub.cfg',
+        line    => 'terminal_output --append serial',
+        after   => '^serial',
+        require => File_line['grub-configure-serial-device'],
     }
 }

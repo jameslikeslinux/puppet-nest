@@ -2,8 +2,9 @@ node 'hawk' {
     class { 'nest':
         remote_backup    => true,
         boot_disk        => ['EFI1', 'EFI2'],
-        boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142', 'console=ttyS1,115200n8', 'console=tty0'],
+        boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142'],
         resolution       => native,
+        serial_console   => '1',
         keymap           => 'us',
         video_cards      => ['nvidia'],
         video_options    => {'metamodes' => 'DP-3: nvidia-auto-select +2560+0, DP-2: nvidia-auto-select +0+0', 'nvidiaXineramaInfoOrder' => 'DFP-4'},

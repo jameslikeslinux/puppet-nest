@@ -10,8 +10,9 @@ class nest::arch::x86 inherits nest::arch::base {
     }
 
     class { '::boot':
-        default_entry => 'Funtoo Linux',
-        gfxmode       => $nest::resolution,
+        default_entry  => 'Funtoo Linux',
+        serial_console => $nest::serial_console,
+        gfxmode        => $nest::resolution,
     }
 
     grub::install { $nest::boot_disk: }
