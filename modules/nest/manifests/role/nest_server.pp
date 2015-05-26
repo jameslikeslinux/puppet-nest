@@ -53,4 +53,6 @@ class nest::role::nest_server {
         ensure => installed,
         use    => ['convert', 'fetchart', 'replaygain'],
     }
+
+    class { 'scribus': }
 }
