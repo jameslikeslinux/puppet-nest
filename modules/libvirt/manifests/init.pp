@@ -23,12 +23,20 @@ class libvirt {
         require => Portage::Package['app-emulation/libvirt'],
     }
 
+    file_line { 'libvirtd-shutdown-guests':
+        path    => '/etc/conf.d/libvirtd',
+        match   => '^LIBVIRTD_KVM_SHUTDOWN="managedsave"',
+        line    => 'LIBVIRTD_KVM_SHUTDOWN="shutdown"',
+        require => Portage::Package['app-emulation/libvirt'],
+    }
+
     user { 'qemu':
         groups  => ['audio', 'kvm'],
         require => Portage::Package['app-emulation/libvirt'],
     }
 
     openrc::service { 'libvirtd':
-        enable => true,
+        enable  => true,
+        require => File_line['libvirtd-shutdown-guests'],
     }
 }
