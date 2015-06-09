@@ -35,4 +35,30 @@ class nest::disk {
         type       => 'swap',
         options    => 'discard',
     }
+
+    $ensure_hugepages = $nest::hugepages ? {
+        undef   => absent,
+        default => present,
+    }
+
+    file { '/hugetlbfs':
+        ensure => $nest::hugepages ? {
+            undef   => absent,
+            default => directory,
+        },
+        mode   => '0755',
+        owner  => 'root',
+        group  => 'root',
+    }
+
+    fstab::fs { 'hugetlbfs':
+        ensure     => $nest::hugepages ? {
+            undef   => absent,
+            default => present,
+        },
+        device     => 'hugetlbfs',
+        mountpoint => '/hugetlbfs',
+        type       => 'hugetlbfs',
+        require    => File['/hugetlbfs'],
+    }
 }

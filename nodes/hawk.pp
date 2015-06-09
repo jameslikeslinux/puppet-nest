@@ -1,5 +1,7 @@
 node 'hawk' {
     class { 'nest':
+        hugepages        => 8192,
+        numa             => true,
         remote_backup    => true,
         boot_disk        => ['EFI1', 'EFI2'],
         boot_options     => ['intel_iommu=on', 'pci-stub.ids=10de:0fbc,1b21:1142'],

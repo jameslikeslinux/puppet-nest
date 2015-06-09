@@ -1,4 +1,15 @@
-class libvirt {
+class libvirt (
+    $numa = false,
+) {
+    $use = [
+        'virt-network',
+
+        $numa ? {
+            false   => [],
+            default => 'numa',
+        },
+    ]
+
     package_use { 'net-dns/dnsmasq':
         use => 'script',
     }
@@ -9,7 +20,7 @@ class libvirt {
 
     portage::package { 'app-emulation/libvirt':
         ensure  => installed,
-        use     => 'virt-network',
+        use     => flatten($use),
         require => [
             Package_use['net-dns/dnsmasq'],
             Portage::Package['net-analyzer/netcat'],

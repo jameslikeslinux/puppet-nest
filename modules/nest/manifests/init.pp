@@ -7,6 +7,8 @@ class nest (
     $dpi                = undef,
     $keymap             = 'dvorak',
     $lcd                = true,
+    $numa               = false,
+    $hugepages          = undef,
     $package_server     = undef,
     $remote_backup      = false,
     $resolution         = undef,
