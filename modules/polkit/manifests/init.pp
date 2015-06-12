@@ -7,7 +7,7 @@ class polkit (
 
     file { '/etc/polkit-1/rules.d/40-admin.rules':
         mode    => '0644',
-        owner   => 'root',
+        owner   => 'polkitd',
         group   => 'root',
         content => template('polkit/admin.rules.erb'),
         require => Portage::Package['sys-auth/polkit'],

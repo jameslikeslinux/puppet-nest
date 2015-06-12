@@ -7,7 +7,7 @@ class kde::kdm (
 ) {
     class { 'xdm':
         displaymanager => 'kdm',
-        require        => Portage::Package['kde-base/kdebase-meta'],
+        require        => Portage::Package['kde-apps/kdebase-meta'],
     }
 
     file { '/usr/share/config/kdm/Xsetup':
@@ -15,7 +15,7 @@ class kde::kdm (
         owner   => 'root',
         group   => 'root',
         content => template('kde/kdm-xsetup.erb'),
-        require => Portage::Package['kde-base/kdebase-meta'],
+        require => Portage::Package['kde-apps/kdebase-meta'],
     }
 
     file { '/usr/share/config/kdm/Xstartup':
@@ -23,6 +23,6 @@ class kde::kdm (
         owner   => 'root',
         group   => 'root',
         content => template('kde/kdm-xstartup.erb'),
-        require => Portage::Package['kde-base/kdebase-meta'],
+        require => Portage::Package['kde-apps/kdebase-meta'],
     }
 }

@@ -4,17 +4,17 @@ class kde {
     # required by kde-base/kdebase-meta-4.13.0
     package_use { 'dev-libs/libxml2':
         use    => '-icu',
-        before => Portage::Package['kde-base/kdebase-meta'],
+        before => Portage::Package['kde-apps/kdebase-meta'],
     }
 
     portage::package { [
-        'kde-base/kdebase-meta',
-        'kde-base/ksnapshot',
-        'kde-base/gwenview',
-        'kde-base/okular',
-        'kde-base/ark',
-        'kde-base/kmix',
-        'kde-base/ffmpegthumbs',
+        'kde-apps/kdebase-meta',
+        'kde-apps/ksnapshot',
+        'kde-apps/gwenview',
+        'kde-apps/okular',
+        'kde-apps/ark',
+        'kde-apps/kmix',
+        'kde-apps/ffmpegthumbs',
     ]:
         ensure => installed,
     }
@@ -23,7 +23,7 @@ class kde {
         use => 'xmp',
     }
 
-    portage::package { 'kde-base/thumbnailers':
+    portage::package { 'kde-apps/thumbnailers':
         ensure  => installed,
         require => Package_use['media-gfx/exiv2'],
     }
@@ -37,6 +37,6 @@ class kde {
     #
     eselect { 'qtgraphicssystem':
         set     => 'native',
-        require => Portage::Package['kde-base/kdebase-meta']
+        require => Portage::Package['kde-apps/kdebase-meta']
     }
 }

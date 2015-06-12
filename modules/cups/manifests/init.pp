@@ -62,10 +62,10 @@ class cups (
             'x11-libs/gdk-pixbuf',
         ]:
             use    => 'introspection',
-            before => Portage::Package['kde-base/print-manager'],
+            before => Portage::Package['kde-apps/print-manager'],
         }
 
-        portage::package { 'kde-base/print-manager':
+        portage::package { 'kde-apps/print-manager':
             ensure => installed,
         }
     }
