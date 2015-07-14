@@ -62,13 +62,4 @@ class nest::arch::beaglebone inherits nest::arch::base {
     openrc::conf { 'rc_ntp_client_need':
         value => 'netif.eth0',
     }
-
-    augeas { 'enable-serial-console-login':
-        context => '/files/etc/inittab',
-        changes => [
-            'set s0/runlevels 12345',
-            'set s0/action respawn',
-            'set s0/process "/sbin/agetty -L 115200 ttyS0 vt100"',
-        ],
-    }
 }

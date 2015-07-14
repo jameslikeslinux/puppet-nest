@@ -2,6 +2,7 @@ node 'beaglebone1' {
     class { 'nest':
         arch             => beaglebone,
         distcc           => true,
+        serial_console   => '0',
         roles            => [
             package_server,
             web_server,

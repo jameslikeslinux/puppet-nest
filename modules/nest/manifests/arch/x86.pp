@@ -1,4 +1,16 @@
 class nest::arch::x86 inherits nest::arch::base {
+    $boot_params_deep = [
+        $boot_params,
+
+        $nest::serial_console ? {
+            undef   => [],
+            default => ["console=ttyS${nest::serial_console},115200n8", 'console=tty0'],
+        },
+
+        'quiet',
+        'splash',
+    ]
+
     class { 'kernel':
         kernel_name     => 'debian-sources',
         kernel_version  => '3.19.3-1~exp1',
@@ -21,7 +33,7 @@ class nest::arch::x86 inherits nest::arch::base {
         kernel  => 'kernel[-v]',
         initrd  => 'initramfs[-v]',
         root    => 'zfs',
-        params  => flatten([$boot_params, 'quiet', 'splash']),
+        params  => flatten($boot_params_deep),
     }
 
     class { 'java':
