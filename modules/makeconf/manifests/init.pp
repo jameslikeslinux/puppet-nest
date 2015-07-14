@@ -7,6 +7,8 @@ class makeconf (
     $use       = [],
     $overlays  = [],
 ) {
+    $loadlimit = $processorcount + 1
+
     if $architecture == 'amd64' {
         portage::makeconf { 'abi_x86':
             content => '32 64',
@@ -52,7 +54,7 @@ class makeconf (
     }
 
     portage::makeconf { 'makeopts':
-        content => "-j${makejobs}",
+        content => "-j${makejobs} -l${loadlimit}",
     }
 
     portage::makeconf { 'cflags':

@@ -73,7 +73,7 @@ class nest::setup {
     ]
 
     $makejobs_non_distcc = $processorcount + 1
-    $makejobs_distcc = $processorcount * 2 + 1
+    $makejobs_distcc = 33
 
     class { 'makeconf':
         debug     => true,
