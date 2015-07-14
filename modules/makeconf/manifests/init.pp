@@ -7,6 +7,12 @@ class makeconf (
     $use       = [],
     $overlays  = [],
 ) {
+    if $architecture == 'amd64' {
+        portage::makeconf { 'abi_x86':
+            content => '32 64',
+        }
+    }
+
     if $getbinpkg {
         portage::makeconf { 'portage_binhost':
             content => $getbinpkg,
