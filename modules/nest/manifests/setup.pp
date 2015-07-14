@@ -96,4 +96,10 @@ class nest::setup {
         eselect_ensure => installed,
         stage          => 'setup',
     }
+
+    #
+    # XXX: This class is deprecated, but as long as it exists, we need
+    # it to run in the setup stage.
+    #
+    class { 'concat::setup': }
 }

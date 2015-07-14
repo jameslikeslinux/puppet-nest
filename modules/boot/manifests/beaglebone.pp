@@ -19,16 +19,16 @@ class boot::beaglebone (
         value => $kernel,
     }
 
+    uboot::env { 'fdtdir':
+        value => '',
+    }
+
     uboot::env { 'rdfile':
         value => $initrd,
     }
 
-    uboot::env { 'loadramdisk':
-        value => 'load mmc ${bootpart} ${rdaddr} ${bootdir}/${rdfile}',
-    }
-
     uboot::env { 'uenvcmd':
-        value => 'run loaduimage; run loadramdisk; run loadfdt; run mmcargs; bootm ${kloadaddr} ${rdaddr} ${fdtaddr}',
+        value => 'run loadimage; run loadrd; run loadfdt; run mmcargs; bootz ${loadaddr} ${rdaddr}:${rdsize} ${fdtaddr}',
     }
 
     uboot::env { 'optargs':

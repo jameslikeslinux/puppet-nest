@@ -86,7 +86,7 @@ class nest::environment {
     #
     # May have a serial console
     #
-    class { 'inittab':
-        serial_console => $nest::serial_console,
-    }
+    #class { 'inittab':
+    #    serial_console => $nest::serial_console,
+    #}
 }

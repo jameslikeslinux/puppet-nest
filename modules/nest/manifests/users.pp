@@ -43,7 +43,7 @@ class nest::users {
         groups         => flatten($groups),
         fullname       => 'James Lee',
         shell          => '/bin/zsh',
-        profile        => 'git://github.com/MrStaticVoid/profile.git',
+        profile        => 'https://github.com/MrStaticVoid/profile.git',
         ssh_key_source => 'puppet:///modules/private/nest/users/jlee/id_dsa',
         require        => flatten($require),
     }

@@ -6,9 +6,10 @@ define users::profile (
     $update,
 ) {
     Exec {
-        cwd  => $directory,
-        user => $user,
-        path => '/usr/bin:/usr',
+        cwd      => $directory,
+        user     => $user,
+        path     => '/usr/bin:/usr',
+        provider => shell,
     }
 
     exec { "git-init-${directory}":
@@ -20,14 +21,12 @@ define users::profile (
         exec { "git-reset-${directory}":
             command  => "git reset --hard origin/${branch}",
             onlyif   => "git fetch origin && test \"`git show-ref -s --heads master`\" != \"`git show-ref -s origin/${branch}`\"",
-            provider => 'shell',
             require  => Exec["git-init-${directory}"],
         }
     } else {
         exec { "git-reset-${directory}":
             command     => "git fetch origin && git reset --hard origin/${branch}",
             refreshonly => true,
-            provider    => 'shell',
             subscribe   => Exec["git-init-${directory}"],
         }
     }

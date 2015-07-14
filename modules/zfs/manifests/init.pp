@@ -1,5 +1,5 @@
 class zfs {
-#    if $architecture =~ /arm/ or $hostname in ['hawk', 'eagle'] {
+#    if $architecture !~ /arm/ {
         package_keywords { [
             'sys-kernel/spl',
             'sys-fs/zfs-kmod',
@@ -37,15 +37,5 @@ class zfs {
         source  => '/proc/mounts',
         replace => false,
         links   => follow,
-    }
-
-    file { '/etc/modprobe.d/spl.conf':
-        ensure => absent,
-        mode   => '0644',
-        owner  => 'root',
-        group  => 'root',
-        content => "options spl spl_kmem_cache_expire=2\n",
-        before => Class['kernel::initrd'],
-        notify => Class['kernel::initrd'],
     }
 }

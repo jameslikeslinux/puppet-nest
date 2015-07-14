@@ -10,7 +10,7 @@ class nest::disk {
         class { '::zfs::backup': }
     }
 
-    if $virtual == 'physical' {
+    if $virtual == 'physical' and $architecture !~ /arm/ {
         class { '::smart': }
     }
 
@@ -34,11 +34,6 @@ class nest::disk {
         mountpoint => 'none',
         type       => 'swap',
         options    => 'discard',
-    }
-
-    $ensure_hugepages = $nest::hugepages ? {
-        undef   => absent,
-        default => present,
     }
 
     file { '/hugetlbfs':

@@ -675,6 +675,6 @@ sample_directory = /etc/postfix
 readme_directory = no
 inet_protocols = ipv4
 meta_directory = /etc/postfix
-shlib_directory = /usr/lib64/postfix/${mail_version}
+shlib_directory = /usr/lib/postfix/${mail_version}
 home_mailbox = .maildir/
 

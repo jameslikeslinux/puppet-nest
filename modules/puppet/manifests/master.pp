@@ -1,5 +1,5 @@
 class puppet::master inherits puppet::agent {
-    File['/etc/puppet/puppet.conf'] {
+    File['/etc/puppetlabs/puppet/puppet.conf'] {
         content => template('puppet/agent.erb', 'puppet/master.erb'),
         notify  +> Openrc::Service['puppetmaster'],
     }

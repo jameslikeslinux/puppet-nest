@@ -32,7 +32,7 @@ class puppet::agent (
         ensure => installed,
     }
 
-    file { '/etc/puppet/puppet.conf':
+    file { '/etc/puppetlabs/puppet/puppet.conf':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
@@ -50,7 +50,7 @@ class puppet::agent (
         group   => 'root',
         source  => 'puppet:///modules/puppet/cron.sh',
         require => [
-            File['/etc/puppet/puppet.conf'],
+            File['/etc/puppetlabs/puppet/puppet.conf'],
             Class['cronie'],
         ],
     }
