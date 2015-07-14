@@ -2,6 +2,7 @@ class nest (
     $arch               = x86,
     $boot_disk          = undef,
     $boot_options       = [],
+    $cpu_governor       = undef,
     $default_sound_card = undef,
     $distcc             = false,
     $dpi                = undef,

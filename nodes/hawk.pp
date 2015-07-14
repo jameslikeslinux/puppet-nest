@@ -1,5 +1,6 @@
 node 'hawk' {
     class { 'nest':
+        cpu_governor     => 'performance',
         hugepages        => 8192,
         numa             => true,
         remote_backup    => true,

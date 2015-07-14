@@ -86,7 +86,17 @@ class nest::environment {
     #
     # May have a serial console
     #
-    #class { 'inittab':
-    #    serial_console => $nest::serial_console,
-    #}
+    class { 'inittab':
+        serial_console => $nest::serial_console,
+    }
+
+
+    #
+    # Can have non-default CPU power governor
+    #
+    if $nest::cpu_governor {
+        class { 'cpupower':
+            governor => $nest::cpu_governor,
+        }
+    }
 }
