@@ -4,6 +4,7 @@ node 'eagle' {
         default_sound_card => 'Audio',  # see /proc/asound/cards
         distcc             => true,
         keymap             => 'us',
+        mouse              => 'mxmaster',
         package_server     => 'http://hawk/packages/',
         video_cards        => ['radeon'],
         wan                => true,

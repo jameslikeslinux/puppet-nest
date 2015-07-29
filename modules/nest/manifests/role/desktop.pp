@@ -151,4 +151,8 @@ class nest::role::desktop {
         ensure => installed,
         use    => 'lastfm',
     }
+
+    if $nest::solaar {
+        class { 'solaar': }
+    }
 }

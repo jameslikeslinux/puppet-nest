@@ -8,6 +8,7 @@ class nest (
     $dpi                = undef,
     $keymap             = 'dvorak',
     $lcd                = true,
+    $mouse              = undef,
     $numa               = false,
     $hugepages          = undef,
     $package_server     = undef,
@@ -20,6 +21,8 @@ class nest (
     $wan                = false,
     $roles              = [],
 ) {
+    $solaar = $nest::mouse in ['mxmaster']
+
     #
     # Portage needs to be setup before anything else can proceed.
     #

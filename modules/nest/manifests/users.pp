@@ -27,6 +27,11 @@ class nest::users {
             true    => ['audio', 'video'],
             default => [],
         },
+
+        $nest::solaar ? {
+            true    => 'plugdev',
+            default => [],
+        },
     ]
 
     $require = [
