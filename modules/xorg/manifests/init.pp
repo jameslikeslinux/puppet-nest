@@ -118,6 +118,20 @@ class xorg (
         require => File['/etc/X11/xorg.conf.d'],
     }
 
+    #
+    # Fix kwin vsync
+    #
+    file { '/etc/profile.d/nvidia.sh':
+        ensure  => $nvidia ? {
+            true    => present,
+            default => absent,
+        },
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        content => "export __GL_YIELD='USLEEP'\n",
+    }
+
     portage::package { 'x11-apps/mesa-progs':
         ensure => installed,
     }
