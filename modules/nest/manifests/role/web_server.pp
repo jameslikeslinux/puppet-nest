@@ -1,6 +1,6 @@
 class nest::role::web_server {
     $lamp_server   = lamp_server in $nest::roles
-    $thestaticvoid = thestaticvoid in $nest::roles
+    $proxy = thestaticvoid in $nest::roles or heloandnala in $nest::roles
 
     $modules = [
         $lamp_server ? {
@@ -8,7 +8,7 @@ class nest::role::web_server {
             default => '',
         },
 
-        $thestaticvoid ? {
+        $proxy ? {
             true    => 'proxy',
             default => '',
         },

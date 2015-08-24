@@ -15,6 +15,7 @@ node 'hawk' {
         roles          => [
             compile_server,
             desktop,
+            heloandnala,
             kvm_hypervisor,
             #lamp_server,
             nest_server,
