@@ -1,8 +1,9 @@
 node 'owl' {
     class { 'nest':
-        disk_id        => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ANNSADB32149W-part',
-        disk_profile   => crypt,
-        video_cards    => ['nvidia'],
+        boot_disk      => '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ANNSADB32149W',
+        boot_options   => 'nouveau.config=NvMSI=0',
+        distcc         => true,
+        video_cards    => ['nouveau'],
         dpi            => '96',
         package_server => 'http://hawk/packages/',
         roles          => [
@@ -10,6 +11,11 @@ node 'owl' {
             laptop,
             virtualbox,
         ],
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-Samsung_SSD_840_PRO_Series_S1ANNSADB32149W-part4':
+        target => 'rpool-crypt0',
+        uuid   => '130a2231-d1a1-49f0-a8bb-7bc86036d6a9',
     }
 
     package_mask { 'x11-drivers/nvidia-drivers':
