@@ -2,7 +2,7 @@ class mdraid (
     $mailaddr = undef,
 ) {
     portage::package { 'sys-fs/mdadm':
-        ensure => 'latest',
+        ensure => installed,
     }
 
     exec { 'mdadm-scan':
