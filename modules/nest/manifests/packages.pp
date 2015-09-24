@@ -75,7 +75,7 @@ class nest::packages {
         }
 
         class { 'distcc::client':
-            servers => ['hawk/33'],
+            servers => ['hawk/33,lzo,cpp'],
         }
     }
 }

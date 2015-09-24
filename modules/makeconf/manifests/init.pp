@@ -29,7 +29,7 @@ class makeconf (
 
         $distcc ? {
             false   => [],
-            default => 'distcc',
+            default => ['distcc', 'distcc-pump'],
         },
 
         $buildpkg ? {

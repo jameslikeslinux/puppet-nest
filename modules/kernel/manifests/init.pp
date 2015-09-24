@@ -47,7 +47,7 @@ class kernel (
     }
 
     exec { 'genkernel':
-        command     => "source /etc/make.conf && /usr/bin/genkernel --no-mountboot --kernname='${kernel_name}' --kernel-cc='${compiler}' --makeopts=\"\$MAKEOPTS\" --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
+        command     => "source /etc/make.conf && /usr/bin/pump /usr/bin/genkernel --no-mountboot --kernname='${kernel_name}' --kernel-cc='${compiler}' --makeopts=\"\$MAKEOPTS\" --build-src=/usr/src/linux --kernel-config=/usr/src/linux/config kernel",
         environment => 'HOME=/var/tmp/portage',     # required by distcc
         #creates     => ["/boot/kernel-${kernel_name}-${arch}-${kernel_version}", "/lib/modules/${kernel_version}"],
         timeout     => 0,

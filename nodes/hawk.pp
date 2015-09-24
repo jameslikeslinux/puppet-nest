@@ -30,7 +30,7 @@ node 'hawk' {
             terminal_client,
             vpn_server,
             web_server,
-            #work_system,
+            work_system,
         ],
     }
     

@@ -1,5 +1,5 @@
 class skype {
     portage::package { 'net-im/skype':
-        use => '-pulseaudio',
+        use => ['-pulseaudio', 'apulse'],
     }
 }
