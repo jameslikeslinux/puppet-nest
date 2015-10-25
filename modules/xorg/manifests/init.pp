@@ -78,7 +78,7 @@ class xorg (
     # R600 cards need firmware in initramfs
     #
     if 'radeon' in $video_cards {
-        portage::package { 'x11-drivers/radeon-ucode':
+        portage::package { 'sys-firmware/radeon-ucode':
             ensure => installed,
             before => Class['kernel::initrd'],
         }
