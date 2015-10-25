@@ -29,10 +29,14 @@ Port <%= @port %>
 #HostKey /etc/ssh/ssh_host_rsa_key
 #HostKey /etc/ssh/ssh_host_dsa_key
 #HostKey /etc/ssh/ssh_host_ecdsa_key
+#HostKey /etc/ssh/ssh_host_ed25519_key
 
 # Lifetime and size of ephemeral version 1 server key
 #KeyRegenerationInterval 1h
 #ServerKeyBits 1024
+
+# Ciphers and keying
+#RekeyLimit default none
 
 # Logging
 # obsoletes QuietMode and FascistLogging
@@ -42,7 +46,7 @@ Port <%= @port %>
 # Authentication:
 
 #LoginGraceTime 2m
-#PermitRootLogin yes
+#PermitRootLogin prohibit-password
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10
@@ -85,10 +89,9 @@ ChallengeResponseAuthentication <%= @challengeresponse ? 'yes' : 'no' %>
 # GSSAPI options
 #GSSAPIAuthentication no
 #GSSAPICleanupCredentials yes
-#GSSAPIStrictAcceptorCheck yes
 
-# Set this to 'yes' to enable PAM authentication, account processing, 
-# and session processing. If this is enabled, PAM authentication will 
+# Set this to 'yes' to enable PAM authentication, account processing,
+# and session processing. If this is enabled, PAM authentication will
 # be allowed through the ChallengeResponseAuthentication and
 # PasswordAuthentication.  Depending on your PAM configuration,
 # PAM authentication via ChallengeResponseAuthentication may bypass
@@ -104,6 +107,7 @@ UsePAM yes
 X11Forwarding <%= @x11forwarding ? 'yes' : 'no' %>
 #X11DisplayOffset 10
 #X11UseLocalhost yes
+#PermitTTY yes
 PrintMotd no
 PrintLastLog no
 #TCPKeepAlive yes
@@ -113,8 +117,8 @@ UsePrivilegeSeparation sandbox		# Default for new installations.
 #Compression delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
-#UseDNS yes
-#PidFile /var/run/sshd.pid
+#UseDNS no
+#PidFile /run/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
@@ -124,25 +128,27 @@ UsePrivilegeSeparation sandbox		# Default for new installations.
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/lib/misc/sftp-server
+Subsystem	sftp	/usr/lib64/misc/sftp-server
 
 # the following are HPN related configuration options
 # tcp receive buffer polling. disable in non autotuning kernels
 #TcpRcvBufPoll yes
- 
-# allow the use of the none cipher
-#NoneEnabled no
 
-# disable hpn performance boosts. 
+# disable hpn performance boosts
 #HPNDisabled no
 
 # buffer size for hpn to non-hpn connections
 #HPNBufferSize 2048
 
+
+# allow the use of the none cipher
+#NoneEnabled no
+
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
 #	X11Forwarding no
 #	AllowTcpForwarding no
+#	PermitTTY no
 #	ForceCommand cvs server
 
 # Allow client to pass locale environment variables #367017

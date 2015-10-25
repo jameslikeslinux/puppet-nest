@@ -16,7 +16,7 @@ class zfs::backup (
         shell          => '/bin/zsh',
         home           => $home,
         profile        => 'https://github.com/MrStaticVoid/zfssnap.git',
-        ssh_key_source => 'puppet:///modules/private/zfs/backup/id_dsa',
+        ssh_key_source => 'puppet:///modules/private/zfs/backup/id_rsa',
         require        => [
             Class['cronie'],
             Class['zsh'],

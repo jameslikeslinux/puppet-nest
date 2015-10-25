@@ -49,7 +49,7 @@ class nest::users {
         fullname       => 'James Lee',
         shell          => '/bin/zsh',
         profile        => 'https://github.com/MrStaticVoid/profile.git',
-        ssh_key_source => 'puppet:///modules/private/nest/users/jlee/id_dsa',
+        ssh_key_source => 'puppet:///modules/private/nest/users/jlee/id_rsa',
         require        => flatten($require),
     }
 

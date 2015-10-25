@@ -60,6 +60,13 @@ class kde {
         before => Portage::Package['kde-apps/kmix'],
     }
 
+    # "kde-apps/kdesu[handbook]" is blocking kde-plasma/kde-cli-tools-5.4.2
+    # which is pulled in by kde-apps/kmix-15.08.1:5/5::gentoo
+    package_use { 'kde-apps/kdesu':
+        use    => '-handbook',
+        before => Portage::Package['kde-apps/kmix'],
+    }
+
     # required by kde-plasma/polkit-kde-agent-5.4.0
     # required by kde-base/kdelibs-4.14.10[policykit]
     # required by kde-base/krunner-4.11.22

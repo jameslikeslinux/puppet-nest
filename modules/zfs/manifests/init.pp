@@ -25,6 +25,28 @@ class zfs (
 
     openrc::service { 'zfs':
         runlevel => 'boot',
+        enable   => false,
+        require  => Portage::Package['sys-fs/zfs'],
+    }
+
+    openrc::service { 'zfs-import':
+        runlevel => 'boot',
+        enable   => true,
+        require  => Portage::Package['sys-fs/zfs'],
+    }
+
+    openrc::service { 'zfs-mount':
+        runlevel => 'boot',
+        enable   => true,
+        require  => Portage::Package['sys-fs/zfs'],
+    }
+
+    openrc::service { 'zfs-zed':
+        enable   => true,
+        require  => Portage::Package['sys-fs/zfs'],
+    }
+
+    openrc::service { 'zfs-share':
         enable   => true,
         require  => Portage::Package['sys-fs/zfs'],
     }

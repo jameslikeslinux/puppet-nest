@@ -91,6 +91,7 @@ node 'hawk' {
     openvpn::mobile { [
         'm8',
         'nexus7',
+        'motox',
     ]: }
 
 
@@ -115,12 +116,16 @@ node 'hawk' {
 }
 
 @sshkey { 'hawk':
-    type => 'ssh-dss',
-    key  => 'AAAAB3NzaC1kc3MAAACBAIEmwKhaBY1AIKUqqbGEEeHzALhx0qnuuqqPVkE3OabL8wv5fSczGsCltou2fOxP5skaKG15qDw4e7Q96qt4JA2J4STmMTTosuLuE+XwlGD9pNkv+KNMcpPOzLDZ24jx77smjuswg6Ij7vYPwDUQL4EQqtdYXpXK0Cg5qnWCkeIFAAAAFQDhZCDDU12OVam85hDNTSl6GXMeXQAAAIBTAlOo337b3zO8qlVaVrunx65LLlM2iK9viWNKLB46lsK61BlOVGLIj37rM16XsGWzl3SNxG7QKhXwi06Gx2kFEABPx42xTRYeqLyqAYHehFTStEVUeVFJD43kcH32VEyzI7y0w158jf/80yYheI5UVCt3Lasu60AOXChRmq5pmAAAAIBUlAMeCTFBJ+Qcszm/UwIXOv+ezBra5X5XbAwJhsFeCioTUo9X2GaHbYgZOk3cDgk+wXeuRwv4hn9tYTyhUokCIn4wIPQihMGVXtagFcEp49gPg12DjcdAdDejPsvwh7q0zKMQLqdrn9ULbURbulxPOUCDZ1Jom42bDzVebVyG9Q==',
+    type => 'ssh-ed25519',
+    key  => 'AAAAC3NzaC1lZDI1NTE5AAAAILOupauddUKhsCWzXiYpr/7uRe4aWsHgrIf8G7s339vc',
 }
 
 @cups::browse { 'hawk': }
 
 @openvpn::host { 'm8':
     ip => '172.22.2.10',
+}
+
+@openvpn::host { 'motox':
+    ip => '172.22.2.14',
 }

@@ -1,6 +1,7 @@
 node 'eagle' {
     class { 'nest':
-        boot_disk          => ['/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T', '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3'],
+        boot_disk          => ['EFI1', 'EFI2'],
+        resolution         => native,
         default_sound_card => 'Audio',  # see /proc/asound/cards
         distcc             => true,
         keymap             => 'us',
@@ -16,14 +17,14 @@ node 'eagle' {
         ],
     }
 
-    crypt::device { '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T-part4':
+    crypt::device { '/dev/disk/by-id/ata-ST500LX003-1AC15G_W200AR6T-part3':
         target => 'rpool-crypt0',
-        uuid   => '2709cb06-be97-49a0-83f2-aaf06a41ca4b',
+        uuid   => '801a9021-19d8-40f6-b7ee-3c5a077307d2',
     }
 
-    crypt::device { '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3-part4':
+    crypt::device { '/dev/disk/by-id/ata-WDC_WD5000BPKT-75PK4T0_WD-WXF1E32MVKS3-part3':
         target => 'rpool-crypt1',
-        uuid   => 'beb00b1a-123d-4bed-8d3c-9d72e415a144',
+        uuid   => '0e3b9ff3-31d2-4717-a1e0-4b46fb8e6fa8',
     }
 
     class { 'inkscape': }

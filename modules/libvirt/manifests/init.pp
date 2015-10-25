@@ -43,10 +43,10 @@ class libvirt (
         require => Portage::Package['app-emulation/libvirt'],
     }
 
-    file_line { 'libvirtd-shutdown-guests':
-        path    => '/etc/conf.d/libvirtd',
-        match   => '^LIBVIRTD_KVM_SHUTDOWN="managedsave"',
-        line    => 'LIBVIRTD_KVM_SHUTDOWN="shutdown"',
+    file_line { 'libvirt-guests-shutdown-guests':
+        path    => '/etc/conf.d/libvirt-guests',
+        match   => '^.?LIBVIRT_SHUTDOWN="managedsave"',
+        line    => 'LIBVIRT_SHUTDOWN="shutdown"',
         require => Portage::Package['app-emulation/libvirt'],
     }
 
@@ -57,6 +57,15 @@ class libvirt (
 
     openrc::service { 'libvirtd':
         enable  => true,
-        require => File_line['libvirtd-shutdown-guests'],
+        require => Portage::Package['app-emulation/libvirt'],
+    }
+
+    openrc::service { 'libvirt-guests':
+        enable  => true,
+        require => File_line['libvirt-guests-shutdown-guests'],
+    }
+
+    kernel::modules { 'libvirt':
+        content => "modules=\"vfio-pci\"\n",
     }
 }

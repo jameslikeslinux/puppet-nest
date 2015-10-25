@@ -29,17 +29,19 @@ class networkmanager (
     }
 
     if $openconnect {
+        include pinentry
         include openconnect
 
         package_use { 'app-crypt/gcr':
             use => 'gtk',
+            before => Portage::Package['net-misc/networkmanager-openconnect'],
         }
 
         portage::package { 'net-misc/networkmanager-openconnect':
             ensure  => installed,
             require => [
                 Portage::Package['net-misc/networkmanager'],
-                Package_use['app-crypt/gcr'],
+                Class['pinentry'],
                 Class['openconnect'],
             ],
         }

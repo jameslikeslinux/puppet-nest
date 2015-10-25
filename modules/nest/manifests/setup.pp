@@ -30,17 +30,17 @@ class nest::setup {
     if $is_desktop {
         # XXX: This is kind of ugly...
 
-        $flavor = "funtoo/1.0/linux-gnu/flavor/desktop"
-        exec { "eselect-profile-flavor":
-            command => "/usr/bin/eselect profile set-flavor '${flavor}'",
-            unless  => "/usr/bin/eselect profile show | /bin/grep '${flavor}'",
+        $flavor = "desktop"
+        exec { "epro-flavor":
+            command => "/usr/sbin/epro profile '${flavor}'",
+            unless  => "/usr/sbin/epro | /bin/grep '.*flavor.*:.*${flavor}'",
             notify  => Class['portage'],
         }
 
-        $mixin = "funtoo/1.0/linux-gnu/mix-ins/kde"
-        exec { "eselect-profile-mixin-kde":
-            command => "/usr/bin/eselect profile add '${mixin}'",
-            unless  => "/usr/bin/eselect profile show | /bin/grep '${mixin}'",
+        $mixins = "kde"
+        exec { "epro-mixin-kde":
+            command => "/usr/sbin/epro mix-ins '+${mixin}'",
+            unless  => "/usr/sbin/epro | /bin/grep '.*mix-ins.*:.*${mixin}'",
             notify  => Class['portage'],
         }
 
