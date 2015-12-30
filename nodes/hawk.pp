@@ -64,6 +64,26 @@ node 'hawk' {
         uuid   => '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a',
     }
 
+    crypt::device { '/dev/disk/by-id/ata-ST2000DL003-9VT166_5YD15L2S':
+        target => 'nest-crypt4',
+        uuid   => '267978a8-a3a5-447f-9689-9310308ecca3',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST2000DL003-9VT166_5YD23E8Q':
+        target => 'nest-crypt5',
+        uuid   => '92e07c04-1a1f-491e-acfe-e1fc5e7b70fd',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST2000DM001-1CH164_Z1E59EN3':
+        target => 'nest-crypt6',
+        uuid   => '201c595a-e468-49d9-a59e-b50ca4d35984',
+    }
+
+    crypt::device { '/dev/disk/by-id/ata-ST2000DM001-1CH164_Z341098C':
+        target => 'nest-crypt7',
+        uuid   => '9eb693e5-a9c2-46d4-9edf-819c1058ae86',
+    }
+
     package_mask { 'x11-drivers/nvidia-drivers':
         version => '>=341.0.0',
         ensure  => absent,
@@ -104,7 +124,7 @@ node 'hawk' {
 
     file_line { 'nvidia_assign_gpus':
         path    => '/etc/modprobe.d/nvidia.conf',
-        line    => 'options nvidia NVreg_DeviceFileMode=432 NVreg_DeviceFileUID=0 NVreg_DeviceFileGID=27 NVreg_ModifyDeviceFiles=1 NVreg_AssignGpus="0:04:00.0"',
+        line    => 'options nvidia NVreg_DeviceFileMode=432 NVreg_DeviceFileUID=0 NVreg_DeviceFileGID=27 NVreg_ModifyDeviceFiles=1 NVreg_AssignGpus="0:03:00.0"',
         match   => '^options nvidia',
         require => Class['xorg'],
         notify  => Class['kernel::initrd'],
