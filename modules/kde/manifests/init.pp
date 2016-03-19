@@ -82,11 +82,17 @@ class kde {
     portage::package { [
         'kde-apps/kdebase-meta',
         'kde-apps/ksnapshot',
+        'kde-apps/kmix',
+    ]:
+        ensure => absent,
+    }
+
+    portage::package { [
+        'kde-apps/ark',
+        'kde-apps/ffmpegthumbs',
         'kde-apps/gwenview',
         'kde-apps/okular',
-        'kde-apps/ark',
-        'kde-apps/kmix',
-        'kde-apps/ffmpegthumbs',
+        'kde-apps/kwrite',
     ]:
         ensure => installed,
     }

@@ -25,7 +25,7 @@ node 'hawk' {
             puppet_master,
             qemu_chroot,
             server,
-            subsonic_server,
+            #subsonic_server,
             synergy_server,
             terminal_client,
             vpn_server,
@@ -66,7 +66,7 @@ node 'hawk' {
 
     crypt::device { '/dev/disk/by-id/ata-ST2000DL003-9VT166_5YD15L2S':
         target => 'nest-crypt4',
-        uuid   => '267978a8-a3a5-447f-9689-9310308ecca3',
+        uuid   => '65026965-175b-4ad5-ad72-d43d9aa9f49e',
     }
 
     crypt::device { '/dev/disk/by-id/ata-ST2000DL003-9VT166_5YD23E8Q':
@@ -76,12 +76,12 @@ node 'hawk' {
 
     crypt::device { '/dev/disk/by-id/ata-ST2000DM001-1CH164_Z1E59EN3':
         target => 'nest-crypt6',
-        uuid   => '201c595a-e468-49d9-a59e-b50ca4d35984',
+        uuid   => '557c6352-8d5e-4533-90b7-d60cf49c65ff',
     }
 
     crypt::device { '/dev/disk/by-id/ata-ST2000DM001-1CH164_Z341098C':
         target => 'nest-crypt7',
-        uuid   => '9eb693e5-a9c2-46d4-9edf-819c1058ae86',
+        uuid   => '3ab8cbc0-68e5-43e1-b50f-871b0f6cfda3',
     }
 
     package_mask { 'x11-drivers/nvidia-drivers':

@@ -14,6 +14,7 @@ class puppet::agent (
             'app-doc/NaturalDocs',
             'app-admin/augeas',
             'dev-ruby/ruby-augeas',
+            'dev-ruby/deep_merge',
         ]:
             keywords => '**',
             target   => 'puppet',

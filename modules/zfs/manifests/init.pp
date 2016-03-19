@@ -16,6 +16,20 @@ class zfs (
         before   => Portage::Package['sys-fs/zfs'],
     }
 
+    package_unmask { [
+        'sys-kernel/spl',
+        'sys-fs/zfs-kmod',
+        'sys-fs/zfs',
+    ]:
+        ensure   => $git ? {
+            true    => present,
+            default => absent,
+        },
+        target   => 'zfs',
+        version  => '=9999',
+        before   => Portage::Package['sys-fs/zfs'],
+    }
+
     portage::package { 'sys-fs/zfs':
         use     => 'dracut',
         ensure  => installed,
@@ -56,9 +70,6 @@ class zfs (
     # exist, which causes zfs dataset creation to fail
     #
     file { '/etc/mtab':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
         source  => '/proc/mounts',
         replace => false,
         links   => follow,

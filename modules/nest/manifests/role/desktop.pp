@@ -155,4 +155,13 @@ class nest::role::desktop {
     if $nest::solaar {
         class { 'solaar': }
     }
+
+    package_use { 'media-libs/gegl':
+        use => 'cairo',
+    }
+
+    portage::package { 'media-gfx/gimp':
+        ensure  => installed,
+        require => Package_use['media-libs/gegl'],
+    }
 }

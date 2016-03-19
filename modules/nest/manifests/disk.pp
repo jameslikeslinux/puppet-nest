@@ -1,5 +1,10 @@
 class nest::disk {
-    class { '::zfs': }
+    class { '::zfs':
+      git => $architecture ? {
+        /arm/   => true,
+        default => true,
+      }
+    }
 
     if $::nest::remote_backup == true {
         class { '::zfs::backup':

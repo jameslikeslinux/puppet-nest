@@ -1,7 +1,17 @@
 class firefox {
+    package_use { 'x11-libs/cairo':
+        use    => 'xcb',
+        ensure => absent,
+    }
+
     portage::package { 'www-client/firefox':
-        ensure  => installed,
+        ensure  => absent,
         use     => ['gstreamer', 'libnotify', 'startup-notification'],
+        require => Package_use['x11-libs/cairo'],
+    }
+
+    portage::package { 'www-client/firefox-bin':
+        ensure => installed,
     }
 
     portage::package { [

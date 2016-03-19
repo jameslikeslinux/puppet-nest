@@ -20,7 +20,8 @@ class nest::role::nest_server {
     }
 
     class { 'transmission':
-        port  => 51413,
+        use  => '-qt4',
+        port => 51413,
     }
 
     class { 'plex': }

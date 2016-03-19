@@ -1,8 +1,10 @@
 class transmission (
     $port,
+    $use = undef,
 ) {
     portage::package { 'net-p2p/transmission':
         ensure => installed,
+        use    => $use,
     }
 
     openrc::service { 'transmission-daemon':

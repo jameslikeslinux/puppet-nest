@@ -6,11 +6,15 @@ class kde::kdm (
     $synergy     = undef,
 ) {
     class { 'xdm':
-        displaymanager => 'kdm',
+        displaymanager => 'sddm',
         require        => Portage::Package['kde-apps/kdebase-meta'],
     }
 
     file { '/usr/share/config/kdm/Xsetup':
+        ensure => absent,
+    }
+
+    file { '/usr/share/sddm/scripts/Xsetup':
         mode    => '0755',
         owner   => 'root',
         group   => 'root',
@@ -19,6 +23,10 @@ class kde::kdm (
     }
 
     file { '/usr/share/config/kdm/Xstartup':
+        ensure => absent,
+    }
+
+    file { '/usr/share/sddm/scripts/Xstartup':
         mode    => '0755',
         owner   => 'root',
         group   => 'root',

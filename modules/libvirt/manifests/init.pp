@@ -55,7 +55,10 @@ class libvirt (
         require => Portage::Package['app-emulation/libvirt'],
     }
 
-    openrc::service { 'libvirtd':
+    openrc::service { [
+        'libvirtd',
+        'virtlogd',
+    ]:
         enable  => true,
         require => Portage::Package['app-emulation/libvirt'],
     }

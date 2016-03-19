@@ -129,7 +129,7 @@ class xorg (
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => "export __GL_YIELD='USLEEP'\n",
+        content => "export KWIN_TRIPLE_BUFFER=1\n",
     }
 
     portage::package { 'x11-apps/mesa-progs':

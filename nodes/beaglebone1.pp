@@ -15,6 +15,6 @@ node 'beaglebone1' {
 }
 
 @sshkey { 'beaglebone1':
-    type => 'ssh-dss',
-    key  => 'AAAAB3NzaC1kc3MAAACBAIlUsYqe9hznARjgWwHsAr+xheI7py1JKaTKIbk+HY4cfGpe8kudEj3vUPBBE8pSSpirmLYVEUWhtVQbq3MPfB2yf4+FZjllMi9dm4NCDamRohKzQSAPr8rjGXZm/WA2qaEr3Cy2hEwNV7mVgng7r/MlRQGZnJvO1ko7YpaGVVpBAAAAFQDVLumX5GAKP0DOf5yZ4Soe0suGJwAAAIBrumji1vQMlVn9QdsqgqShdEKI7wlwZk5ma1NFQHbk15uLOXJDwacG27ytDQLx6aAyjVZ0qlmoAhxezqLoEj88m11bD3bg+xbzbzc3jEAMdByLddOdh1/MvK42B3KwzmKwTkEh0xibAiVXXi5PR7QZricZmRFRx+NJASbjzmcRAgAAAIB+UEyjxpKQkEYlnEgUoZumSK2Dxl6rfQ3iYc93/xov6xp4kfEYtiby2qgiaRVAg7qistSNJhdOcrEYFWkY0ry5R7p59yY6i2rm2Qds2pFij4ovwd1yCyXsV9XhF0jxv/qW4wLqRE6czh/+ZYifczGTH/40m830Nw5KNhNyzgHYjw==',
+    type => 'ssh-rsa',
+    key  => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDYSxWGu/bnz82SgX3ApnhkuNps8ONqBqfFn0ZKEbsGS5/u1Qg/XCt6oXr8KESxxg2YKdHYqQjQfP8pJ7lmBS6mqOS8aAchgy4Bv4a4yzU/8ZC5PSXxd7sYhg0RWpQwPImikPpmLvl7Xe434ONkgNA+6VFl9n8EGcruc+kc8fxx/cD+MS4gfD2KXkYEY6IkoLjwQtqAJ7PirwSKrKr360oK63wKpS5SlLgcMFKfi/r12dFLqPND6tVCExY0mxNL2WGxKBLPHhBNPX8uW92LO6iKljT8f71o0aYePb3jIu9lOMpQNmz3UXvKbMk3muZho3KZsfY4XJiNnR7JvvWCusa1',
 }

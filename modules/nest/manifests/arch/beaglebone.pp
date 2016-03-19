@@ -60,6 +60,6 @@ class nest::arch::beaglebone inherits nest::arch::base {
     }
 
     openrc::conf { 'rc_ntp_client_need':
-        value => 'netif.eth0',
+        value => 'net.eth0',
     }
 }

@@ -30,18 +30,20 @@ class nest::setup {
     if $is_desktop {
         # XXX: This is kind of ugly...
 
-        $flavor = "desktop"
-        exec { "epro-flavor":
+        $flavor = 'desktop'
+        exec { 'epro-flavor':
             command => "/usr/sbin/epro profile '${flavor}'",
             unless  => "/usr/sbin/epro | /bin/grep '.*flavor.*:.*${flavor}'",
             notify  => Class['portage'],
         }
 
-        $mixins = "kde"
-        exec { "epro-mixin-kde":
-            command => "/usr/sbin/epro mix-ins '+${mixin}'",
-            unless  => "/usr/sbin/epro | /bin/grep '.*mix-ins.*:.*${mixin}'",
-            notify  => Class['portage'],
+        $mixins = ['kde', 'kde-plasma-5']
+        $mixins.each |$mixin| {
+            exec { "epro-mixin-${mixin}":
+                command => "/usr/sbin/epro mix-ins '+${mixin}'",
+                unless  => "/usr/sbin/epro | /bin/grep '.*mix-ins.*:.*${mixin}'",
+                notify  => Class['portage'],
+            }
         }
 
         portage::makeconf { 'video_cards':
@@ -72,8 +74,19 @@ class nest::setup {
         },
     ]
 
+    $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (512.0 * 1024 * 1024))
     $makejobs_non_distcc = $processorcount + 1
     $makejobs_distcc = 33
+
+    $makejobs_non_distcc_min = ($makejobs_by_memory < $makejobs_non_distcc) ? {
+        true    => $makejobs_by_memory,
+        default => $makejobs_non_distcc,
+    }
+
+    $makejobs_distcc_min = ($makejobs_by_memory < $makejobs_distcc) ? {
+        true    => $makejobs_by_memory,
+        default => $makejobs_distcc,
+    }
 
     class { 'makeconf':
         debug     => true,
@@ -81,14 +94,14 @@ class nest::setup {
         getbinpkg => $nest::package_server,
         distcc    => $nest::distcc,
         makejobs  => $nest::distcc ? {
-            false   => $makejobs_non_distcc,
-            default => $makejobs_distcc,
+            false   => $makejobs_non_distcc_min,
+            default => $makejobs_distcc_min,
         },
         use       => flatten($use),
         overlays  => flatten($overlays),
     }
 
-   
+
     #
     # Configure portage
     #

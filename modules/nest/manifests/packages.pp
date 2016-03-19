@@ -53,6 +53,7 @@ class nest::packages {
         'sys-fs/dosfstools',
         'sys-process/glances',
         'sys-process/lsof',
+        'www-client/elinks',
     ]:
         ensure => installed,
     }
