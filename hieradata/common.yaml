@@ -2,6 +2,36 @@
 classes:
   - 'puppet'
 
+nest::package_keywords:
+  dracut:
+    sys-boot/plymouth: {}
+    sys-kernel/dracut: {}
+  puppet:
+    app-admin/puppet: {}
+    dev-ruby/rgen: {}
+    dev-ruby/deep_merge: {}
+    dev-ruby/hiera: {}
+    dev-ruby/ruby-augeas: {}
+  zfs:
+    sys-kernel/spl:
+      version: '=0.6.5.4'
+      keywords: '**'
+    sys-fs/zfs-kmod:
+      version: '=0.6.5.4'
+      keywords: '**'
+    sys-fs/zfs:
+      version: '=0.6.5.4'
+      keywords: '**'
+
+nest::package_use:
+  plymouth:
+    x11-libs/libdrm:
+      use: 'libkms'
+  puppet:
+    app-admin/puppet:
+      use: 'augeas'
+
+# Make theforeman/puppet compatible with Gentoo package
 puppet::dir: '/etc/puppetlabs/puppet'
 puppet::codedir: '/etc/puppetlabs/code'
 puppet::logdir: '/var/log/puppetlabs/puppet'
@@ -9,3 +39,38 @@ puppet::rundir: '/var/run/puppetlabs'
 puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
 puppet::vardir: '/opt/puppetlabs/puppet/cache'
 puppet::server_directory_environments: false
+puppet::unavailable_runmodes: ['cron']
+
+# XXX: Move to arch-specific hiera file
+nest::kernel_config:
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+  CONFIG_X86_X2APIC: y
+  CONFIG_X86_INTEL_PSTATE: y
+  CONFIG_INTEL_IDLE: y
+  CONFIG_PCI_STUB: y
+  CONFIG_X86_SYSFB: y
+  CONFIG_BRIDGE: m
+  CONFIG_BLK_DEV_NVME: m
+  CONFIG_MD_RAID1: m
+  CONFIG_DM_CRYPT: m
+  CONFIG_TUN: m
+  CONFIG_IGB: m
+  CONFIG_DRM_RADEON: m
+  CONFIG_FB_SIMPLE: y
+  CONFIG_LOGO: n
+  CONFIG_SND_HDA_CODEC_REALTEK: y
+  CONFIG_SND_USB_AUDIO: m
+  CONFIG_HID_LOGITECH_DJ: m
+  CONFIG_USB_XHCI_HCD: m
+  CONFIG_VFIO: m
+  CONFIG_VFIO_PCI: m
+  CONFIG_IRQ_REMAP: y
+  CONFIG_NFSD: m
+  CONFIG_NFSD_V4: y
+  CONFIG_PERSISTENT_KEYRINGS: y
+  CONFIG_CRYPTO_XTS: m
+  CONFIG_CRYPTO_AES_NI_INTEL: m
+  CONFIG_CRYPTO_ZLIB: m
+  CONFIG_KVM: m
+  CONFIG_KVM_INTEL: m
+  CONFIG_VHOST_NET: m
