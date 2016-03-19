@@ -1,0 +1,3 @@
+---
+puppet::puppetmaster: 'puppet.thestaticvoid.com'
+puppet::environment: 'development'

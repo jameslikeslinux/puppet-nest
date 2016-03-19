@@ -4,5 +4,8 @@ classes:
 
 puppet::dir: '/etc/puppetlabs/puppet'
 puppet::codedir: '/etc/puppetlabs/code'
+puppet::logdir: '/var/log/puppetlabs/puppet'
+puppet::rundir: '/var/run/puppetlabs'
 puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
 puppet::vardir: '/opt/puppetlabs/puppet/cache'
+puppet::server_directory_environments: false
