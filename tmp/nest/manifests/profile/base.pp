@@ -5,6 +5,7 @@ class nest::profile::base {
   contain '::nest::profile::base::grub'
   contain '::nest::profile::base::zfs'
   contain '::nest::profile::base::fstab'
+  contain '::nest::profile::base::pam'
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->
