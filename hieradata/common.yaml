@@ -6,12 +6,6 @@ nest::package_keywords:
   dracut:
     sys-boot/plymouth: {}
     sys-kernel/dracut: {}
-  puppet:
-    app-admin/puppet: {}
-    dev-ruby/rgen: {}
-    dev-ruby/deep_merge: {}
-    dev-ruby/hiera: {}
-    dev-ruby/ruby-augeas: {}
   zfs:
     sys-kernel/spl:
       version: '=0.6.5.4'
@@ -31,14 +25,7 @@ nest::package_use:
     app-admin/puppet:
       use: 'augeas'
 
-# Make theforeman/puppet compatible with Gentoo package
-puppet::dir: '/etc/puppetlabs/puppet'
-puppet::codedir: '/etc/puppetlabs/code'
-puppet::logdir: '/var/log/puppetlabs/puppet'
-puppet::rundir: '/var/run/puppetlabs'
-puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
-puppet::vardir: '/opt/puppetlabs/puppet/cache'
-puppet::server_directory_environments: false
+puppet::client_package: 'puppet-agent'
 puppet::unavailable_runmodes: ['cron']
 
 # XXX: Move to arch-specific hiera file
