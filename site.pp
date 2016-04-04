@@ -1,3 +1,7 @@
+Package {
+  provider => portage,
+}
+
 Service {
   provider => systemd,
 }
