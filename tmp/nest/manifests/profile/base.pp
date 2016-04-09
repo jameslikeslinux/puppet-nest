@@ -8,6 +8,7 @@ class nest::profile::base {
   contain '::nest::profile::base::pam'
   contain '::nest::profile::base::users'
   contain '::nest::profile::base::mta'
+  contain '::nest::profile::base::sudo'
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->
@@ -20,4 +21,8 @@ class nest::profile::base {
   Class['::nest::profile::base::kernel'] ->
   Class['::nest::profile::base::zfs'] ~>
   Class['::nest::profile::base::dracut']
+
+  # Sudo requires configured MTA
+  Class['::nest::profile::base::mta'] ->
+  Class['::nest::profile::base::sudo']
 }
