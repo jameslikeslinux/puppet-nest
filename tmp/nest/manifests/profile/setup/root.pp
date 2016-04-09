@@ -16,6 +16,7 @@ class nest::profile::setup::root {
     ensure   => latest,
     provider => git,
     source   => 'https://github.com/MrStaticVoid/profile.git',
+    revision => 'master',
     require  => File['/root/.keep'],
   }
 
