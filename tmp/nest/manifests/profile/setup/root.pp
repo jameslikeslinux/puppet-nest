@@ -33,7 +33,7 @@ class nest::profile::setup::root {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $::nest::ssh_public_key,
+    content => "${::nest::ssh_public_key}\n",
     require => Vcsrepo['/root'],
   }
 }
