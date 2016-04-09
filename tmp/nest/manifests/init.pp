@@ -10,6 +10,7 @@ class nest (
   $grub_disks = [],
   $kernel_cmdline = '',
   $luks_disks = {},
+  $server = false,
 ) {
   $gentoo_profile = ('workstation' in $profiles) ? {
     true    => 'default/linux/amd64/13.0/desktop/plasma/systemd',

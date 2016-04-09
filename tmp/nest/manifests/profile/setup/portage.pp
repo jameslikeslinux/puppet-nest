@@ -55,14 +55,17 @@ class nest::profile::setup::portage {
     environment => 'USE=-graphite',
   }
 
-  $::nest::package_keywords.each |$target, $package_keywords| {
-    $defaults = { target => $target, before => Exec['emerge-newuse-world'] }
-    create_resources(package_keywords, $package_keywords, $defaults)
-  }
+  $package_keywords_defaults = { before => Exec['emerge-newuse-world'] }
+  create_resources(package_keywords, $::nest::package_keywords, $package_keywords_defaults)
 
-  $::nest::package_use.each |$target, $package_use| {
-    $defaults = { target => $target, notify => Exec['emerge-newuse-world'] }
-    create_resources(package_use, $package_use, $defaults)
+  $package_use_defaults = { notify => Exec['emerge-newuse-world'] }
+  create_resources(package_use, $::nest::package_use, $package_use_defaults)
+
+  resources { [
+    'package_keywords',
+    'package_use',
+  ]:
+    purge => true,
   }
 
   exec { 'emerge-newuse-world':

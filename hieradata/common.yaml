@@ -1,32 +1,30 @@
 ---
-classes:
-  - 'puppet'
+classes: []
 
 nest::package_keywords:
-  dracut:
-    sys-boot/plymouth: {}
-    sys-kernel/dracut: {}
-  zfs:
-    sys-kernel/spl:
-      version: '=0.6.5.4'
-      keywords: '**'
-    sys-fs/zfs-kmod:
-      version: '=0.6.5.4'
-      keywords: '**'
-    sys-fs/zfs:
-      version: '=0.6.5.4'
-      keywords: '**'
+  # dracut
+  sys-boot/plymouth: {}
+  sys-kernel/dracut: {}
+
+  # hiera-eyaml
+  dev-ruby/hiera-eyaml: {}
+  dev-ruby/trollop: {}
+
+  # zfs
+  sys-kernel/spl:
+    version: '=0.6.5.4'
+    keywords: '**'
+  sys-fs/zfs-kmod:
+    version: '=0.6.5.4'
+    keywords: '**'
+  sys-fs/zfs:
+    version: '=0.6.5.4'
+    keywords: '**'
 
 nest::package_use:
-  plymouth:
-    x11-libs/libdrm:
-      use: 'libkms'
-  puppet:
-    app-admin/puppet:
-      use: 'augeas'
-
-puppet::client_package: 'puppet-agent'
-puppet::unavailable_runmodes: ['cron']
+  # for plymouth
+  x11-libs/libdrm:
+    use: 'libkms'
 
 # XXX: Move to arch-specific hiera file
 nest::kernel_config:

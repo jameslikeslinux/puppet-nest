@@ -20,3 +20,9 @@ nest::kernel_cmdline: 'pci-stub.ids=10de:0fbc,1b21:1142 console=ttyS1,115200n8 c
 
 puppet::puppetmaster: 'puppet.thestaticvoid.com'
 puppet::environment: 'development'
+
+puppet::dns_alt_names: ['nest.james.tl']
+puppet::server: true
+puppet::server_foreman: false
+puppet::server_implementation: 'puppetserver'
+puppet::server_environments: []
