@@ -1,4 +1,6 @@
 class nest (
+  $ssh_private_key,
+  $ssh_public_key,
   $profiles = [],
   $package_keywords = {},
   $package_use = {},
