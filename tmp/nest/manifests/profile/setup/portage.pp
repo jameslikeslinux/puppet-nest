@@ -47,6 +47,12 @@ class nest::profile::setup::portage {
     timeout     => 0,
     refreshonly => true,
     subscribe   => Eselect['profile'],
+
+    # XXX: Workaround circular dependency between:
+    #   dev-util/cmake[qt5]
+    #   media-libs/harfbuzz[graphite]
+    # Remove this when Gentoo fixes the problem.
+    environment => 'USE=-graphite',
   }
 
   $::nest::package_keywords.each |$target, $package_keywords| {
