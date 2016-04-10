@@ -4,10 +4,21 @@ class nest::profile::base::puppet {
       dns_alt_names         => ['nest.james.tl'],
       server                => true,
       server_environments   => [],
+      server_external_nodes => '',
       server_foreman        => false,
       server_implementation => 'puppetserver',
       server_jvm_config     => '/etc/conf.d/puppetserver',
       unavailable_runmodes  => ['cron'],
+    }
+
+    # Package installs the log directory with incorrect permissions
+    file { '/var/log/puppetlabs/puppetserver':
+      ensure  => directory,
+      mode    => '0750',
+      owner   => 'puppet',
+      group   => 'puppet',
+      require => Class['::puppet::server::install'],
+      before  => Class['::puppet::server::service'],
     }
 
     package { 'hiera-eyaml':
