@@ -2,6 +2,8 @@
 classes: []
 
 nest::package_keywords:
+  www-client/firefox: {}
+
   # dracut
   sys-boot/plymouth: {}
   sys-kernel/dracut: {}
@@ -9,6 +11,115 @@ nest::package_keywords:
   # hiera-eyaml
   dev-ruby/hiera-eyaml: {}
   dev-ruby/trollop: {}
+
+  # kde
+  kde-apps/konsole: {}
+
+  # plasma
+  kde-frameworks/kded: {}
+  kde-frameworks/kitemviews: {}
+  kde-frameworks/kdnssd: {}
+  kde-frameworks/knewstuff: {}
+  kde-frameworks/kparts: {}
+  kde-plasma/kactivities-workspace: {}
+  kde-frameworks/kdelibs4support: {}
+  kde-frameworks/kjsembed: {}
+  kde-plasma/plasma-workspace-wallpapers: {}
+  kde-plasma/kgamma: {}
+  kde-frameworks/kwidgetsaddons: {}
+  kde-plasma/kwrited: {}
+  kde-frameworks/solid: {}
+  kde-frameworks/threadweaver: {}
+  kde-apps/kio-extras: {}
+  kde-frameworks/kiconthemes: {}
+  kde-frameworks/kinit: {}
+  kde-frameworks/kactivities: {}
+  kde-plasma/ksshaskpass: {}
+  kde-plasma/polkit-kde-agent: {}
+  kde-frameworks/kfilemetadata: {}
+  kde-plasma/systemsettings: {}
+  kde-frameworks/kdesu: {}
+  kde-frameworks/frameworkintegration: {}
+  kde-plasma/kactivitymanagerd: {}
+  kde-frameworks/ktextwidgets: {}
+  kde-plasma/kdeplasma-addons: {}
+  kde-frameworks/kpeople: {}
+  kde-frameworks/kio: {}
+  kde-plasma/oxygen: {}
+  kde-plasma/libksysguard: {}
+  kde-frameworks/attica: {}
+  kde-frameworks/plasma: {}
+  kde-plasma/kwin: {}
+  kde-frameworks/knotifications: {}
+  kde-frameworks/kconfigwidgets: {}
+  kde-plasma/powerdevil: {}
+  kde-frameworks/kcmutils: {}
+  kde-frameworks/bluez-qt: {}
+  kde-plasma/ksysguard: {}
+  kde-frameworks/kwallet: {}
+  kde-plasma/kwallet-pam: {}
+  kde-frameworks/kcoreaddons: {}
+  kde-plasma/kdecoration: {}
+  kde-frameworks/kpackage: {}
+  kde-plasma/plasma-meta: {}
+  app-crypt/qca: {}
+  kde-frameworks/kidletime: {}
+  kde-plasma/kinfocenter: {}
+  kde-plasma/plasma-nm: {}
+  kde-frameworks/kemoticons: {}
+  kde-frameworks/krunner: {}
+  kde-plasma/kscreen: {}
+  kde-plasma/milou: {}
+  kde-frameworks/kdbusaddons: {}
+  kde-frameworks/kservice: {}
+  kde-plasma/kde-cli-tools: {}
+  kde-frameworks/breeze-icons: {}
+  kde-plasma/libkscreen: {}
+  kde-frameworks/karchive: {}
+  kde-frameworks/knotifyconfig: {}
+  kde-frameworks/kdoctools: {}
+  kde-frameworks/kjobwidgets: {}
+  kde-frameworks/khtml: {}
+  kde-frameworks/sonnet: {}
+  kde-plasma/kwayland: {}
+  kde-plasma/breeze: {}
+  kde-frameworks/kunitconversion: {}
+  kde-frameworks/kcompletion: {}
+  kde-frameworks/kitemmodels: {}
+  kde-frameworks/networkmanager-qt: {}
+  kde-frameworks/kguiaddons: {}
+  kde-frameworks/kconfig: {}
+  kde-frameworks/baloo: {}
+  kde-frameworks/extra-cmake-modules: {}
+  kde-frameworks/kglobalaccel: {}
+  kde-frameworks/kcodecs: {}
+  kde-plasma/oxygen-fonts: {}
+  kde-frameworks/ktexteditor: {}
+  kde-frameworks/kcrash: {}
+  kde-frameworks/kxmlgui: {}
+  kde-frameworks/kdesignerplugin: {}
+  kde-frameworks/kxmlrpcclient: {}
+  kde-plasma/khotkeys: {}
+  kde-frameworks/kwindowsystem: {}
+  kde-frameworks/kross: {}
+  kde-frameworks/kdeclarative: {}
+  kde-plasma/kscreenlocker: {}
+  kde-plasma/kwayland-integration: {}
+  kde-plasma/khelpcenter: {}
+  kde-plasma/user-manager: {}
+  kde-plasma/breeze-gtk: {}
+  kde-frameworks/kbookmarks: {}
+  kde-frameworks/kauth: {}
+  kde-plasma/bluedevil: {}
+  kde-frameworks/kpty: {}
+  kde-plasma/kmenuedit: {}
+  kde-plasma/plasma-workspace: {}
+  kde-plasma/kde-gtk-config: {}
+  kde-plasma/sddm-kcm: {}
+  kde-frameworks/ki18n: {}
+  kde-frameworks/kjs: {}
+  x11-misc/sddm: {}
+  kde-plasma/plasma-desktop: {}
 
   # zfs
   sys-kernel/spl:
@@ -25,6 +136,47 @@ nest::package_use:
   # for plymouth
   x11-libs/libdrm:
     use: 'libkms'
+
+  # for nvidia-drivers
+  x11-libs/libXext:
+    use: 'abi_x86_32'
+  dev-libs/libpthread-stubs:
+    use: 'abi_x86_32'
+  x11-proto/xproto:
+    use: 'abi_x86_32'
+  x11-proto/inputproto:
+    use: 'abi_x86_32'
+  x11-proto/xf86bigfontproto:
+    use: 'abi_x86_32'
+  x11-proto/xcb-proto:
+    use: 'abi_x86_32'
+  x11-libs/libxcb:
+    use: 'abi_x86_32'
+  x11-libs/libXau:
+    use: 'abi_x86_32'
+  x11-proto/xextproto:
+    use: 'abi_x86_32'
+  x11-libs/libXdmcp:
+    use: 'abi_x86_32'
+  x11-libs/libX11:
+    use: 'abi_x86_32'
+  x11-proto/kbproto:
+    use: 'abi_x86_32'
+
+  # required by x11-drivers/xf86-video-vmware
+  media-libs/mesa:
+    use: 'xa'
+
+  # for plasma
+  kde-plasma/plasma-meta:
+    use: 'networkmanager'
+  x11-base/xorg-drivers:
+    use: 'video_cards_nvidia'
+
+  # for firefox
+  dev-lang/python:
+    use: 'sqlite'
+
 
 # XXX: Move to arch-specific hiera file
 nest::kernel_config:
