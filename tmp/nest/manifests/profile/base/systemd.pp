@@ -3,14 +3,8 @@ class nest::profile::base::systemd {
     use => 'cryptsetup',
   }
 
-  # See: https://wiki.gentoo.org/wiki/Systemd#.2Fetc.2Fmtab
-  file { '/etc/mtab':
-    ensure => link,
-    target => '/proc/self/mounts',
-  }
-
   file { '/etc/hostname':
-    content => "${trusted['certname']}\n",
+    content => "${::trusted['certname']}\n",
   }
 
   file { '/etc/localtime':

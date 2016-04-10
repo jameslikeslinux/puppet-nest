@@ -30,8 +30,8 @@ class nest::profile::base::users {
 
   file { '/home/james/.ssh/id_rsa':
     mode      => '0600',
-    owner     => 'root',
-    group     => 'root',
+    owner     => 'james',
+    group     => 'users',
     content   => $::nest::ssh_private_key,
     show_diff => false,
     require   => Vcsrepo['/home/james'],
@@ -39,8 +39,8 @@ class nest::profile::base::users {
 
   file { '/home/james/.ssh/id_rsa.pub':
     mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'james',
+    group   => 'users',
     content => "${::nest::ssh_public_key}\n",
     require => Vcsrepo['/home/james'],
   }

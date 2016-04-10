@@ -18,5 +18,5 @@ nest::kernel_cmdline: 'pci-stub.ids=10de:0fbc,1b21:1142 console=ttyS1,115200n8 c
 
 nest::server: true
 
-puppet::puppetmaster: 'puppet.thestaticvoid.com'
+puppet::puppetmaster: 'caracara.nest'
 puppet::environment: 'development'
