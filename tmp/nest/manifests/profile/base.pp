@@ -10,6 +10,7 @@ class nest::profile::base {
   contain '::nest::profile::base::mta'
   contain '::nest::profile::base::sudo'
   contain '::nest::profile::base::puppet'
+  contain '::nest::profile::base::openvpn'
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->

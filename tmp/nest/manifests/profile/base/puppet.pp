@@ -1,14 +1,15 @@
 class nest::profile::base::puppet {
   if $::nest::server {
     class { '::puppet':
-      dns_alt_names         => ['nest.james.tl'],
-      server                => true,
-      server_environments   => [],
-      server_external_nodes => '',
-      server_foreman        => false,
-      server_implementation => 'puppetserver',
-      server_jvm_config     => '/etc/conf.d/puppetserver',
-      unavailable_runmodes  => ['cron'],
+      dns_alt_names               => ['nest.james.tl'],
+      server                      => true,
+      server_dynamic_environments => true,
+      server_environments         => [],
+      server_external_nodes       => '',
+      server_foreman              => false,
+      server_implementation       => 'puppetserver',
+      server_jvm_config           => '/etc/conf.d/puppetserver',
+      unavailable_runmodes        => ['cron'],
     }
 
     # Package installs the log directory with incorrect permissions
