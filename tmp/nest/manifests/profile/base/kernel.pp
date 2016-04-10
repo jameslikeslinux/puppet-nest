@@ -52,7 +52,6 @@ class nest::profile::base::kernel {
     timeout     => 0,
     provider    => shell,
     refreshonly => true,
-    require     => Package['sys-kernel/genkernel-next'],
     subscribe   => File['/usr/src/linux/config'],
   }
 

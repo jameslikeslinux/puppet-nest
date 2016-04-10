@@ -61,13 +61,6 @@ class nest::profile::setup::portage {
   $package_use_defaults = { notify => Exec['emerge-newuse-world'] }
   create_resources(package_use, $::nest::package_use, $package_use_defaults)
 
-  resources { [
-    'package_keywords',
-    'package_use',
-  ]:
-    purge => true,
-  }
-
   exec { 'emerge-newuse-world':
     command     => '/usr/bin/emerge -DN @world',
     timeout     => 0,

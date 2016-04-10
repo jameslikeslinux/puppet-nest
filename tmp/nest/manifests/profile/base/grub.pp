@@ -43,7 +43,10 @@ class nest::profile::base::grub {
     exec { "grub-install-${grub_disk}":
       command     => $install_command,
       refreshonly => true,
-      require     => Package['sys-boot/grub'],
+      require     => [
+        Nest::Portage::Package_use['sys-boot/grub'],
+        Package['sys-boot/grub'],
+      ],
       before      => Exec['grub2-mkconfig'],
     }
   }
