@@ -13,7 +13,7 @@ class nest::profile::base::openvpn {
     topology subnet
     client-to-client
     keepalive 10 60
-    push "dhcp-option DOMAIN nest"
+    push "dhcp-option DOMAIN james.tl"
     push "dhcp-option DNS 172.22.2.1"
     script-security 2
     learn-address /etc/openvpn/learn-address.sh
@@ -21,7 +21,7 @@ class nest::profile::base::openvpn {
 
   $client_config = @(EOT)
     client
-    remote nest.james.tl 1194
+    remote vpn.james.tl 1194
     script-security 2
     up /etc/openvpn/up.sh
     down /etc/openvpn/down.sh

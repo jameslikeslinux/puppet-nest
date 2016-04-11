@@ -1,0 +1,22 @@
+---
+nest::profiles:
+  - 'workstation'
+
+nest::grub_disks: ['/dev/nvme0n1p1']
+nest::luks_disks:
+  hawk-crypt0: '012d7df3-f636-49c7-9683-f1797ff32d9f'
+  nest-crypt0: 'f4dc141c-b9a4-4ca7-9b1f-333b80475113'
+  nest-crypt1: 'b8bcf96c-c29e-4241-af43-4b6759fa532d'
+  nest-crypt2: 'eab4b536-fe5e-4ea4-91aa-85107dcb224c'
+  nest-crypt3: '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a'
+  nest-crypt4: '65026965-175b-4ad5-ad72-d43d9aa9f49e'
+  nest-crypt5: '92e07c04-1a1f-491e-acfe-e1fc5e7b70fd'
+  nest-crypt6: '557c6352-8d5e-4533-90b7-d60cf49c65ff'
+  nest-crypt7: '3ab8cbc0-68e5-43e1-b50f-871b0f6cfda3'
+
+nest::kernel_cmdline: 'pci-stub.ids=10de:0fbc,1b21:1142 console=ttyS1,115200n8 console=tty0'
+
+nest::server: true
+
+puppet::puppetmaster: 'puppet.james.tl'
+puppet::environment: 'development'
