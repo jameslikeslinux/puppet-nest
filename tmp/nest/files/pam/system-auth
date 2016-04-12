@@ -1,6 +1,6 @@
 auth		required	pam_env.so 
 auth		optional	pam_krb5.so ignore_root try_first_pass search_k5login
-auth		sufficient	pam_ssh.so use_first_pass
+auth		sufficient	pam_ssh.so try_first_pass
 auth		required	pam_unix.so try_first_pass likeauth nullok 
 auth		optional	pam_permit.so
 account		required	pam_unix.so 
