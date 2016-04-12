@@ -17,6 +17,12 @@ class nest (
     default => 'default/linux/amd64/13.0/systemd',
   }
 
+  # XXX: Make more generic
+  $use = ('workstation' in $profiles) ? {
+    true    => ['pulseaudio'],
+    default => undef,
+  }
+
   contain '::nest::profile::setup'
   contain '::nest::profile::base'
 

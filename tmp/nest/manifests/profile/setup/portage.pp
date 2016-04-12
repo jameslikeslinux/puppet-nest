@@ -1,5 +1,5 @@
 class nest::profile::setup::portage {
-  class { 'portage':
+  class { '::portage':
     eselect_ensure => installed,
   }
 
@@ -23,6 +23,22 @@ class nest::profile::setup::portage {
     content => 'buildpkg splitdebug'
   }
 
+  $use = $::nest::use ? {
+    undef   => '',
+    default => join(sort($::nest::use), ' '),
+  }
+
+  $use_ensure = $::nest::use ? {
+    undef   => absent,
+    default => undef,
+  }
+
+  portage::makeconf { 'use':
+    content => join(sort($::nest::use), ' '),
+    ensure  => $use_ensure,
+    notify  => Exec['emerge-newuse-world'],
+  }
+
   $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (512.0 * 1024 * 1024))
   $makejobs_non_distcc = $processorcount + 1
 
@@ -39,7 +55,7 @@ class nest::profile::setup::portage {
 
   eselect { 'profile':
     set     => $::nest::gentoo_profile,
-    require => Class['portage'],
+    require => Class['::portage'],
   }
 
   exec { 'emerge-update-world':
@@ -65,5 +81,6 @@ class nest::profile::setup::portage {
     command     => '/usr/bin/emerge -DN @world',
     timeout     => 0,
     refreshonly => true,
+    require     => Class['::portage'],
   }
 }
