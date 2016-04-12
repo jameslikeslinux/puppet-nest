@@ -38,6 +38,22 @@ class nest::profile::base::dnsmasq {
     match => '^#?addn-hosts=',
   }
 
+  file_line { 'dnsmasq.conf-bind-interfaces':
+    line  => 'bind-interfaces',
+    match => '^#?bind-interface$',
+  }
+
+  file_line { 'dnsmasq.conf-interface-lo':
+    line  => 'interface=lo',
+    match => '^#?interface=',
+  }
+
+  file_line { 'dnsmasq.conf-interface-tun0':
+    line    => 'interface=tun0',
+    after   => '^interface=lo$',
+    require => File_line['dnsmasq.conf-interface-lo'],
+  }
+
   service { 'dnsmasq':
     enable => true,
   }
