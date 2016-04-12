@@ -40,7 +40,7 @@ class nest::profile::base::dnsmasq {
 
   file_line { 'dnsmasq.conf-bind-interfaces':
     line  => 'bind-interfaces',
-    match => '^#?bind-interface$',
+    match => '^#?bind-interfaces$',
   }
 
   file_line { 'dnsmasq.conf-interface-lo':
