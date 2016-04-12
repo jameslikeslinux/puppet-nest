@@ -9,4 +9,12 @@ class nest::profile::base::pam {
     group  => 'root',
     source => 'puppet:///modules/nest/pam/krb5.conf',
   }
+
+  file { '/etc/pam.d/system-auth':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    source  => 'puppet:///modules/nest/pam/system-auth',
+    require => Nest::Portage::Package_use['sys-auth/pambase'],
+  }
 }
