@@ -2,6 +2,7 @@
 classes: []
 
 nest::package_keywords:
+  sys-auth/pam_ssh: {}
   www-client/firefox: {}
 
   # dracut
