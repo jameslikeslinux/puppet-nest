@@ -1,32 +1,64 @@
 class nest::profile::base::openvpn {
-  $common_config = @("EOT")
-    dev tun
-    ca ${::settings::localcacert}
-    cert ${::settings::hostcert}
-    key ${::settings::hostprivkey}
-    crl-verify ${::settings::hostcrl}
-    | EOT
+  $device     = 'tun0'
+  $hosts_file = '/etc/hosts.nest'
 
-  $server_config = @(EOT)
-    dh /etc/openvpn/dh4096.pem
+  $server_config = @("EOT")
+    dev ${device}
     server 172.22.2.0 255.255.255.0
     topology subnet
     client-to-client
     keepalive 10 60
-    push "dhcp-option DOMAIN james.tl"
+    push "dhcp-option DOMAIN nest"
     push "dhcp-option DNS 172.22.2.1"
     script-security 2
+    setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
+    ifconfig-pool-persist nest-ipp.txt
+    dh /etc/openvpn/dh4096.pem
     | EOT
 
   $client_config = @(EOT)
+    dev tun
     client
-    remote vpn.james.tl 1194
+    nobind
+    remote nest.james.tl 1194
     script-security 2
     up /etc/openvpn/up.sh
     down /etc/openvpn/down.sh
     down-pre
     | EOT
+
+  $common_config = @("EOT")
+    ca ${::settings::localcacert}
+    cert ${::settings::hostcert}
+    key ${::settings::hostprivkey}
+    crl-verify ${::settings::hostcrl}
+    cipher AES-128-CBC
+    persist-tun
+    | EOT
+
+  $dnsmasq_config = @("EOT")
+    resolv-file=/etc/resolv.conf.dnsmasq
+    interface=lo
+    interface=${device}
+    bind-interfaces
+    no-hosts
+    addn-hosts=${hosts_file}
+    expand-hosts
+    domain=nest
+    enable-dbus
+    | EOT
+
+  $dnsmasq_systemd_dropin_unit = @("EOT")
+    [Unit]
+    Requires=sys-subsystem-net-devices-${device}.device
+    After=sys-subsystem-net-devices-${device}.device
+    | EOT
+
+  File {
+    owner => 'root',
+    group => 'root',
+  }
 
   if $::nest::server {
     $mode        = 'server'
@@ -40,30 +72,95 @@ class nest::profile::base::openvpn {
       before  => Service["openvpn-${mode}@nest"],
     }
 
-    contain '::nest::profile::base::resolvconf'
-    contain '::nest::profile::base::dnsmasq'
+    file {
+      default:
+        require => Package['net-misc/openvpn'],
+        before  => Service["openvpn-${mode}@nest"];
 
-    file { '/etc/openvpn/learn-address.sh':
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
-      source  => 'puppet:///modules/nest/openvpn/learn-address.sh',
-      require => Package['net-misc/openvpn'],
-      before  => Service["openvpn-${mode}@nest"],
+      '/etc/openvpn/learn-address.sh':
+        mode   => '0755',
+        source => 'puppet:///modules/nest/openvpn/learn-address.sh';
+
+      '/etc/openvpn/learn-address.pp':
+        mode   => '0644',
+        source => 'puppet:///modules/nest/openvpn/learn-address.pp';
     }
 
-    file { '/etc/hosts.openvpn-clients':
+    file { $hosts_file:
       ensure => file,
       mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
     }
 
-    file_line { "hosts.openvpn-clients-${::trusted['certname']}":
-      path    => '/etc/hosts.openvpn-clients',
-      line    => "172.22.2.1\t${::trusted['certname']}",
-      require => File['/etc/hosts.openvpn-clients'],
-      notify  => Class['::nest::profile::base::dnsmasq'],
+    host { $::trusted['certname']:
+      ip      => '172.22.2.1',
+      target  => $hosts_file,
+      require => File[$hosts_file],
+      notify  => Service['dnsmasq'],
+    }
+
+    package { 'net-dns/dnsmasq':
+      ensure => installed,
+    }
+
+    file_line { 'dnsmasq.conf-conf-dir':
+      path    => '/etc/dnsmasq.conf',
+      line    => 'conf-dir=/etc/dnsmasq.d/,*.conf',
+      match   => '^#conf-dir=/etc/dnsmasq.d/,\*.conf',
+      require => Package['net-dns/dnsmasq'],
+    }
+
+    file { '/etc/dnsmasq.d':
+      ensure  => directory,
+      mode    => '0755',
+      require => File_line['dnsmasq.conf-conf-dir'],
+    }
+
+    file { '/etc/dnsmasq.d/nest.conf':
+      mode    => '0644',
+      content => $dnsmasq_config,
+    }
+
+    file { '/etc/systemd/system/dnsmasq.service.d':
+      ensure  => directory,
+      mode    => '0755',
+    }
+
+    file { '/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf':
+      mode    => '0644',
+      content => $dnsmasq_systemd_dropin_unit,
+    }
+
+    exec { 'dnsmasq-systemd-daemon-reload':
+      command     => '/usr/bin/systemctl daemon-reload',
+      refreshonly => true,
+      subscribe   => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
+    }
+
+    service { 'dnsmasq':
+      enable    => true,
+      subscribe => File['/etc/dnsmasq.d/nest.conf'],
+      require   => [
+        Exec['dnsmasq-systemd-daemon-reload'],
+        Service["openvpn-${mode}@nest"],
+      ],
+    }
+
+    file_line {
+      default:
+        path => '/etc/resolvconf.conf';
+
+      'resolvconf.conf-name_servers':
+        line  => 'name_servers=127.0.0.1',
+        match => '^#?name_servers=';
+
+      'resolvconf.conf-search_domains':
+        line => 'search_domains=nest';
+
+      'resolvconf.conf-dnsmasq_conf':
+        line => 'dnsmasq_conf=/etc/dnsmasq.d/resolv.conf';
+
+      'resolvconf.conf-dnsmasq_resolv':
+        line => 'dnsmasq_resolv=/etc/resolv.conf.dnsmasq';
     }
   } else {
     $mode        = 'client'
@@ -77,16 +174,12 @@ class nest::profile::base::openvpn {
   file { "/etc/openvpn/${mode}":
     ensure  => directory,
     mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
     require => Package['net-misc/openvpn'],
   }
 
   file { "/etc/openvpn/${mode}/nest.conf":
     mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "${common_config}${mode_config}",
+    content => "${mode_config}${common_config}",
   }
 
   service { "openvpn-${mode}@nest":

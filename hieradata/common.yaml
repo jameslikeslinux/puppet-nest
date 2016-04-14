@@ -170,8 +170,6 @@ nest::package_use:
     use: 'xa'
 
   # for plasma
-  net-misc/networkmanager:
-    use: 'resolvconf'
   kde-plasma/plasma-meta:
     use: 'networkmanager'
   x11-base/xorg-drivers:

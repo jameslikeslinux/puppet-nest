@@ -1,17 +1,18 @@
 class nest::profile::base::grub {
-  nest::portage::package_use { 'sys-boot/grub':
-    use => ['grub_platforms_efi-64', 'grub_platforms_pc'],
+  class use {
+    @package_use { 'sys-boot/grub':
+      use => ['grub_platforms_efi-64', 'grub_platforms_pc'],
+    }
   }
+
+  include nest::profile::base::grub::use
 
   package { 'sys-boot/grub':
     ensure => installed,
   }
 
   File_line {
-    require => [
-      Nest::Portage::Package_use['sys-boot/grub'],
-      Package['sys-boot/grub'],
-    ],
+    require => Package['sys-boot/grub'],
     notify  => Exec['grub2-mkconfig'],
   }
 
@@ -43,10 +44,7 @@ class nest::profile::base::grub {
     exec { "grub-install-${grub_disk}":
       command     => $install_command,
       refreshonly => true,
-      require     => [
-        Nest::Portage::Package_use['sys-boot/grub'],
-        Package['sys-boot/grub'],
-      ],
+      require     => Package['sys-boot/grub'],
       before      => Exec['grub2-mkconfig'],
     }
   }

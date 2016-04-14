@@ -1,7 +1,11 @@
 class nest::profile::base::kernel {
-  nest::portage::package_use { 'sys-kernel/gentoo-sources':
-    use => 'symlink',
+  class use {
+    @package_use { 'sys-kernel/gentoo-sources':
+      use => 'symlink',
+    }
   }
+
+  include nest::profile::base::kernel::use
 
   package { [
     'sys-kernel/gentoo-sources',
@@ -14,10 +18,7 @@ class nest::profile::base::kernel {
     command => '/usr/bin/make defconfig kvmconfig',
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
-    require => [
-      Nest::Portage::Package_use['sys-kernel/gentoo-sources'],
-      Package['sys-kernel/gentoo-sources'],
-    ],
+    require => Package['sys-kernel/gentoo-sources'],
   }
 
   exec { 'make olddefconfig':

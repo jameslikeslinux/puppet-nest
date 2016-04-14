@@ -1,7 +1,11 @@
 class nest::profile::base::pam {
-  nest::portage::package_use { 'sys-auth/pambase':
-    use => ['pam_krb5', 'pam_ssh'],
+  class use {
+    @package_use { 'sys-auth/pambase':
+      use => ['pam_krb5', 'pam_ssh'],
+    }
   }
+
+  include nest::profile::base::pam::use
 
   $krb5_conf = @(EOT)
     [libdefaults]
@@ -41,6 +45,5 @@ class nest::profile::base::pam {
       # pam_krb5 session doesn't need any arguments
       "rm *[type = 'session' and module = 'pam_krb5.so']/argument",
     ],
-    require => Nest::Portage::Package_use['sys-auth/pambase'],
   } 
 }

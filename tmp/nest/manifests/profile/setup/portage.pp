@@ -71,11 +71,21 @@ class nest::profile::setup::portage {
     environment => 'USE=-graphite',
   }
 
-  $package_keywords_defaults = { before => Exec['emerge-newuse-world'] }
-  create_resources(package_keywords, $::nest::package_keywords, $package_keywords_defaults)
 
-  $package_use_defaults = { notify => Exec['emerge-newuse-world'] }
-  create_resources(package_use, $::nest::package_use, $package_use_defaults)
+  # Create portage package properties from Hiera and realize virtual
+  # ones defined throughout the Puppet catalog, and make them come
+  # before or trigger a package rebuild for the new settings to
+  # take effect.
+
+  create_resources(package_keywords, $::nest::package_keywords)
+  Package_keywords <| |> {
+    before => Exec['emerge-newuse-world']
+  }
+
+  create_resources(package_use, $::nest::package_use)
+  Package_use <| |> {
+    notify => Exec['emerge-newuse-world'],
+  }
 
   exec { 'emerge-newuse-world':
     command     => '/usr/bin/emerge -DN @world',

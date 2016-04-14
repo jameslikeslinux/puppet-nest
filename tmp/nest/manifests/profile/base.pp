@@ -10,6 +10,7 @@ class nest::profile::base {
   contain '::nest::profile::base::mta'
   contain '::nest::profile::base::sudo'
   contain '::nest::profile::base::puppet'
+  contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
 
   # Dracut depends on systemd
@@ -27,4 +28,8 @@ class nest::profile::base {
   # Sudo requires configured MTA
   Class['::nest::profile::base::mta'] ->
   Class['::nest::profile::base::sudo']
+
+  # OpenVPN modifies resolvconf which is installed for NetworkManager
+  Class['::nest::profile::base::network'] ->
+  Class['::nest::profile::base::openvpn']
 }
