@@ -72,18 +72,11 @@ class nest::profile::base::openvpn {
       before  => Service["openvpn-${mode}@nest"],
     }
 
-    file {
-      default:
-        require => Package['net-misc/openvpn'],
-        before  => Service["openvpn-${mode}@nest"];
-
-      '/etc/openvpn/learn-address.sh':
-        mode   => '0755',
-        source => 'puppet:///modules/nest/openvpn/learn-address.sh';
-
-      '/etc/openvpn/learn-address.pp':
-        mode   => '0644',
-        source => 'puppet:///modules/nest/openvpn/learn-address.pp';
+    file { '/etc/openvpn/learn-address.sh':
+      mode    => '0755',
+      source  => 'puppet:///modules/nest/openvpn/learn-address.sh',
+      require => Package['net-misc/openvpn'],
+      before  => Service["openvpn-${mode}@nest"],
     }
 
     file { $hosts_file:

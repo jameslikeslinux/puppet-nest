@@ -1,12 +1,30 @@
 #!/bin/bash
 
-# OpenVPN seems to run without a useful PATH
-export PATH=/usr/bin:/bin
+HOSTS="${HOSTS:-/etc/hosts}"
 
-# Pass arguments as facts to Puppet
-export FACTER_hosts_file="${HOSTS:-/etc/hosts}"
-export FACTER_action="$1"
-export FACTER_ip="$2"
-export FACTER_cn="$3"
+delete_host() {
+    local ip="$1"
+    sed -i '/^'"${ip//./\\.}"'[[:space:]]/d' "$HOSTS"
+}
 
-exec puppet apply --no-report --logdest syslog "$(dirname $(readlink -f "$0"))/learn-address.pp"
+add_host() {
+    local ip="$1" cn="$2"
+    sed -i '/'"${cn}"'\([[:space:]]\|$\)/d' "$HOSTS"
+    echo -e "${ip}\t${cn}" >> "$HOSTS"
+}
+
+case "$1" in
+    'add'|'update')
+        delete_host "$2"
+        add_host "$2" "$3"
+        ;;
+    'delete')
+        delete_host "$2"
+        ;;
+    *)
+        echo "${0}: Unknown action ${1}" >&2
+        exit 1
+        ;;
+esac
+
+/usr/bin/systemctl reload dnsmasq
