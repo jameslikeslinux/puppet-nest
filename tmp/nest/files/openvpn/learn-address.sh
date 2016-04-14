@@ -1,41 +1,31 @@
 #!/bin/bash
 
-HOSTS=/etc/hosts.nest
-
-log() {
-    /usr/bin/logger -t "$(basename "$0")" "$@"
-}
-
-delete_host() {
-    local ip="$1"
-    sed -i '/^'"${ip//./\\.}"'[[:space:]]/d' "$HOSTS"
-}
+HOSTS="${HOSTS:-/etc/hosts}"
 
 add_host() {
     local ip="$1" cn="$2"
-    sed -i '/'"${cn}"'\([[:space:]]\|$\)/d' "$HOSTS"
+    local ip_regex="${ip//./\\.}"
+
+    # Remove any existing conflicts
+    sed -i '/^'"$ip_regex"'[[:space:]]/d' "$HOSTS"
+    sed -i '/[[:space:]]'"$cn"'\([[:space:]]\|$\)/d' "$HOSTS"
+
+    # Add the new entry
     echo -e "${ip}\t${cn}" >> "$HOSTS"
+
+    # Load it into DNS
+    /usr/bin/systemctl reload dnsmasq
 }
 
 case "$1" in
-    'add')
-        log "Adding ${2} ${3} to ${HOSTS}"
-        delete_host "$2"
-        add_host "$2" "$3"
-        ;;
-    'update')
-        log "Updating ${2} ${3} in ${HOSTS}"
-        delete_host "$2"
+    'add'|'update')
         add_host "$2" "$3"
         ;;
     'delete')
-        log "Deleting ${2} from ${HOSTS}"
-        delete_host "$2"
+        # no-op
         ;;
     *)
-        echo "${0}: Unknown action ${1}" >&2
+        echo "Unknown action ${1}" >&2
         exit 1
         ;;
 esac
-
-/usr/bin/systemctl reload dnsmasq

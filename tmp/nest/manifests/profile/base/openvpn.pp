@@ -11,6 +11,7 @@ class nest::profile::base::openvpn {
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DNS 172.22.2.1"
     script-security 2
+    setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
     ifconfig-pool-persist nest-ipp.txt
     dh /etc/openvpn/dh4096.pem
