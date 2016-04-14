@@ -1,11 +1,11 @@
 class nest::profile::base::kernel {
   class use {
-    @package_use { 'sys-kernel/gentoo-sources':
+    package_use { 'sys-kernel/gentoo-sources':
       use => 'symlink',
     }
   }
 
-  include nest::profile::base::kernel::use
+  include '::nest::profile::base::kernel::use'
 
   package { [
     'sys-kernel/gentoo-sources',

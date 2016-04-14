@@ -72,7 +72,7 @@ class nest::profile::setup::portage {
   }
 
 
-  # Create portage package properties from Hiera and realize virtual
+  # Create portage package properties from Hiera and find all of the
   # ones defined throughout the Puppet catalog, and make them come
   # before or trigger a package rebuild for the new settings to
   # take effect.
