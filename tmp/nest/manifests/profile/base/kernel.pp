@@ -29,15 +29,8 @@ class nest::profile::base::kernel {
   }
 
   $::nest::kernel_config.each |$config, $value| {
-    $line = $value ? {
-      'n'     => "# ${config} is not set",
-      default => "${config}=${value}",
-    }
-
-    file_line { "kernel-config-${config}-${value}":
-      path    => '/usr/src/linux/.config',
-      line    => $line,
-      match   => "(^| )${config}[= ]",
+    nest::kernel::config { $config:
+      value   => $value,
       require => Exec['make defconfig'],
       notify  => Exec['make olddefconfig'],
     }
