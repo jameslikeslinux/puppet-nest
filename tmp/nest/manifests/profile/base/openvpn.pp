@@ -114,7 +114,7 @@ class nest::profile::base::openvpn {
       notify  => Service['dnsmasq'],
     }
   
-    $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
+    $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias}.nest,${cname}.nest" }
     $dnsmask_cnames_content = $dnsmasq_cnames.join("\n")
     file { '/etc/dnsmasq.d/cnames.conf':
       mode    => '0644',
