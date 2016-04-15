@@ -1,17 +1,18 @@
 class nest::profile::base {
-  contain '::nest::profile::base::systemd'
-  contain '::nest::profile::base::kernel'
   contain '::nest::profile::base::dracut'
   contain '::nest::profile::base::grub'
-  contain '::nest::profile::base::zfs'
   contain '::nest::profile::base::fstab'
-  contain '::nest::profile::base::pam'
-  contain '::nest::profile::base::users'
+  contain '::nest::profile::base::kernel'
   contain '::nest::profile::base::mta'
-  contain '::nest::profile::base::sudo'
-  contain '::nest::profile::base::puppet'
   contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
+  contain '::nest::profile::base::pam'
+  contain '::nest::profile::base::puppet'
+  contain '::nest::profile::base::ssh'
+  contain '::nest::profile::base::sudo'
+  contain '::nest::profile::base::systemd'
+  contain '::nest::profile::base::users'
+  contain '::nest::profile::base::zfs'
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->
