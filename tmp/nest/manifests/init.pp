@@ -11,6 +11,7 @@ class nest (
   $kernel_cmdline = '',
   $luks_disks = {},
   $server = false,
+  $cnames = {},
 ) {
   $gentoo_profile = ('workstation' in $profiles) ? {
     true    => 'default/linux/amd64/13.0/desktop/plasma/systemd',

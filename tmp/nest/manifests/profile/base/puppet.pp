@@ -1,6 +1,7 @@
 class nest::profile::base::puppet {
   if $::nest::server {
     class { '::puppet':
+      puppetmaster                => 'puppet',
       dns_alt_names               => ['puppet', 'nest.james.tl'],
       server                      => true,
       server_dynamic_environments => true,
@@ -59,6 +60,7 @@ class nest::profile::base::puppet {
     }
   } else {
     class { '::puppet':
+      puppetmaster         => 'puppet',
       unavailable_runmodes => ['cron'],
     }
   }

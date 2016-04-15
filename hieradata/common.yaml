@@ -1,6 +1,9 @@
 ---
 classes: []
 
+nest::cnames:
+  puppet: hawk
+
 nest::package_keywords:
   sys-auth/pam_ssh: {}
   www-client/firefox: {}

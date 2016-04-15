@@ -111,6 +111,15 @@ class nest::profile::base::openvpn {
     file { '/etc/dnsmasq.d/nest.conf':
       mode    => '0644',
       content => $dnsmasq_config,
+      notify  => Service['dnsmasq'],
+    }
+  
+    $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
+    $dnsmask_cnames_content = $dnsmasq_cnames.join("\n")
+    file { '/etc/dnsmasq.d/cnames.conf':
+      mode    => '0644',
+      content => "${dnsmask_cnames_content}\n",
+      notify  => Service['dnsmasq'],
     }
 
     file { '/etc/systemd/system/dnsmasq.service.d':
@@ -130,9 +139,8 @@ class nest::profile::base::openvpn {
     }
 
     service { 'dnsmasq':
-      enable    => true,
-      subscribe => File['/etc/dnsmasq.d/nest.conf'],
-      require   => [
+      enable  => true,
+      require => [
         Exec['dnsmasq-systemd-daemon-reload'],
         Service["openvpn-${mode}@nest"],
       ],

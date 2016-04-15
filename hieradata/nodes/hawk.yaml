@@ -18,5 +18,4 @@ nest::kernel_cmdline: 'console=ttyS1,115200n8 console=tty0 elevator=noop hugepag
 
 nest::server: true
 
-puppet::puppetmaster: 'hawk'
 puppet::environment: 'development'
