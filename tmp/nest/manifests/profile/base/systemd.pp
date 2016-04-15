@@ -37,4 +37,8 @@ class nest::profile::base::systemd {
     content => "LANG=en_US.utf8\n",
     require => Exec['/usr/sbin/locale-gen'],
   }
+
+  file { '/etc/issue':
+    content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
+  }
 }
