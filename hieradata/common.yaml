@@ -5,6 +5,7 @@ nest::cnames:
   puppet: hawk
 
 nest::package_keywords:
+  net-fs/nfs-utils: {}
   sys-auth/pam_ssh: {}
   www-client/firefox: {}
 

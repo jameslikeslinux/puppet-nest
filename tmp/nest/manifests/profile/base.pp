@@ -1,6 +1,7 @@
 class nest::profile::base {
   contain '::nest::profile::base::dracut'
   contain '::nest::profile::base::grub'
+  contain '::nest::profile::base::fs'
   contain '::nest::profile::base::fstab'
   contain '::nest::profile::base::kernel'
   contain '::nest::profile::base::mta'
