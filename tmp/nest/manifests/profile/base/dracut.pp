@@ -23,7 +23,7 @@ class nest::profile::base::dracut {
     group   => 'root',
     content => $base_config_content,
     require => Package['sys-kernel/dracut'],
-    notify  => Exec['trigger-dracut-rebuild'],
+    notify  => Exec['dracut'],
   }
 
   $add_devices = $::nest::luks_disks.map |$luks_disk| { "/dev/disk/by-uuid/${luks_disk[1]}" }.join(' ')
@@ -40,11 +40,11 @@ class nest::profile::base::dracut {
     group   => 'root',
     content => $dracut_crypt_config_content,
     require => Package['sys-kernel/dracut'],
-    notify  => Exec['trigger-dracut-rebuild'],
+    notify  => Exec['dracut'],
   }
 
-  $crypttab_content = $::nest::luks_disks.reduce([]) |$memo, $luks_disk| {
-    concat($memo, "${luks_disk[0]} UUID=${luks_disk[1]} none luks")
+  $crypttab_content = $::nest::luks_disks.map |$luks_disk| {
+    "${luks_disk[0]} UUID=${luks_disk[1]} none luks"
   }.join("\n")
 
   file { '/etc/crypttab':
@@ -52,24 +52,18 @@ class nest::profile::base::dracut {
     owner   => 'root',
     group   => 'root',
     content => "${crypttab_content}\n",
-    notify  => Exec['trigger-dracut-rebuild'],
-  }
-
-  exec { 'trigger-dracut-rebuild':
-    command     => '/bin/rm -f /boot/dracut.built',
-    refreshonly => true,
+    notify  => Exec['dracut'],
   }
 
   exec { 'dracut':
-    command  => 'version=$(ls -t /lib/modules | head -1) && dracut --force --kver $version && touch /boot/dracut.built',
-    creates  => '/boot/dracut.built',
-    timeout  => 0,
-    provider => shell,
-    require  => [
+    command     => 'version=$(ls -t /lib/modules | head -1) && dracut --force --kver $version',
+    refreshonly => true,
+    timeout     => 0,
+    provider    => shell,
+    require     => [
       Package['sys-kernel/dracut'],
       Package['sys-boot/plymouth'],
       Exec['plymouth-set-default-theme'],
-      Exec['trigger-dracut-rebuild'],
     ],
   }
 }
