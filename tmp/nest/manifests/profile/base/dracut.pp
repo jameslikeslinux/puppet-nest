@@ -61,7 +61,7 @@ class nest::profile::base::dracut {
   }
 
   exec { 'dracut':
-    command  => 'version=$(ls -t /lib/modules | head -1) && dracut --force /boot/initramfs-$(uname -m)-${version}.img $version && touch /boot/dracut.built',
+    command  => 'version=$(ls -t /lib/modules | head -1) && dracut --force --kver $version && touch /boot/dracut.built',
     creates  => '/boot/dracut.built',
     timeout  => 0,
     provider => shell,

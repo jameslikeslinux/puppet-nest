@@ -48,9 +48,10 @@ class nest::profile::setup::portage {
   } 
 
   $loadlimit = $::processorcount + 1
+  $makeopts = "-j${makejobs_non_distcc_min} -l${loadlimit}"
 
   portage::makeconf { 'makeopts':
-    content => "-j${makejobs_non_distcc_min} -l${loadlimit}",
+    content => $makeopts,
   }
 
   eselect { 'profile':
