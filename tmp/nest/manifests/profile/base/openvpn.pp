@@ -3,7 +3,7 @@ class nest::profile::base::openvpn {
   $hosts_file = '/etc/hosts.nest'
 
   $server_config = @("EOT")
-    dev ${device}
+    dh /etc/openvpn/dh4096.pem
     server 172.22.2.0 255.255.255.0
     topology subnet
     client-to-client
@@ -14,11 +14,9 @@ class nest::profile::base::openvpn {
     setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
     ifconfig-pool-persist nest-ipp.txt
-    dh /etc/openvpn/dh4096.pem
     | EOT
 
   $client_config = @(EOT)
-    dev tun
     client
     nobind
     remote nest.james.tl 1194
@@ -29,12 +27,13 @@ class nest::profile::base::openvpn {
     | EOT
 
   $common_config = @("EOT")
+    dev ${device}
+    persist-tun
+    cipher AES-128-CBC
     ca ${::settings::localcacert}
     cert ${::settings::hostcert}
     key ${::settings::hostprivkey}
     crl-verify ${::settings::hostcrl}
-    cipher AES-128-CBC
-    persist-tun
     | EOT
 
   $dnsmasq_config = @("EOT")
@@ -163,6 +162,21 @@ class nest::profile::base::openvpn {
       'resolvconf.conf-dnsmasq_resolv':
         line => 'dnsmasq_resolv=/etc/resolv.conf.dnsmasq';
     }
+
+    firewall { '100 openvpn':
+      proto  => udp,
+      dport  => 1194,
+      state  => 'NEW',
+      action => accept,
+    }
+
+    firewall { '100 openvpn (v6)':
+      proto    => udp,
+      dport    => 1194,
+      state    => 'NEW',
+      action   => accept,
+      provider => ip6tables,
+    }
   } else {
     $mode        = 'client'
     $mode_config = $client_config
@@ -180,11 +194,17 @@ class nest::profile::base::openvpn {
 
   file { "/etc/openvpn/${mode}/nest.conf":
     mode    => '0644',
-    content => "${mode_config}${common_config}",
+    content => "${common_config}${mode_config}",
   }
 
   service { "openvpn-${mode}@nest":
     enable    => true,
     subscribe => File["/etc/openvpn/${mode}/nest.conf"],
+  }
+
+  firewall { '001 vpn':
+    proto   => all,
+    iniface => $device,
+    action  => accept,
   }
 }
