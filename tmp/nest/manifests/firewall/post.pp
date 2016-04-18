@@ -11,14 +11,4 @@ class nest::firewall::post {
     before   => undef,
     provider => ip6tables,
   }
-
-  firewallchain { 'INPUT:filter:IPv4':
-    ensure => present,
-    policy => drop,
-  }
-
-  firewallchain { 'INPUT:filter:IPv6':
-    ensure => present,
-    policy => drop,
-  }
 }

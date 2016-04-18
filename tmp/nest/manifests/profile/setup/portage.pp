@@ -23,18 +23,35 @@ class nest::profile::setup::portage {
     content => 'buildpkg splitdebug'
   }
 
-  $use = $::nest::use ? {
-    undef   => '',
-    default => join(sort($::nest::use), ' '),
-  }
-
-  $use_ensure = $::nest::use ? {
+  $input_devices_ensure = $::nest::input_devices ? {
     undef   => absent,
     default => undef,
   }
 
+  portage::makeconf { 'input_devices':
+    content => $::nest::input_devices,
+    ensure  => $input_devices_ensure,
+    notify  => Exec['emerge-newuse-world'],
+  }
+
+  $video_cards_ensure = $::nest::video_cards ? {
+    undef   => absent,
+    default => undef,
+  }
+
+  portage::makeconf { 'video_cards':
+    content => $::nest::video_cards,
+    ensure  => $video_cards_ensure,
+    notify  => Exec['emerge-newuse-world'],
+  }
+
+  $use_ensure = size($::nest::use_combined) ? {
+    0       => absent,
+    default => undef,
+  }
+
   portage::makeconf { 'use':
-    content => join(sort($::nest::use), ' '),
+    content => join($::nest::use_combined, ' '),
     ensure  => $use_ensure,
     notify  => Exec['emerge-newuse-world'],
   }

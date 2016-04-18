@@ -11,6 +11,17 @@ class nest::profile::base::firewall {
     'ip6tables-restore',
     'ip6tables-store',
   ]:
-    enable => true,
+    enable => !$::nest::libvirt,
+  }
+
+  firewallchain { 'INPUT:filter:IPv4':
+    ensure => present,
+    purge  => true,
+    ignore => 'virbr\d+',
+  }
+
+  firewallchain { 'INPUT:filter:IPv6':
+    ensure => present,
+    purge  => true,
   }
 }

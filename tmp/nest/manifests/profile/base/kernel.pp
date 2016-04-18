@@ -19,8 +19,20 @@ class nest::profile::base::kernel {
   }
 
   $::nest::kernel_config.each |$config, $value| {
-    nest::kernel::config { $config:
-      value   => $value,
+    if is_numeric($value) {
+      $line = "${config}=${value}"
+    } else {
+      $line = $value ? {
+        'n'       => "# ${config} is not set",
+        /^(y|m)$/ => "${config}=${value}",
+        default   => "${config}=\"${value}\"",
+      }
+    }
+
+    file_line { "kernel-config-${config}-${value}":
+      path    => '/usr/src/linux/.config',
+      line    => $line,
+      match   => "(^| )${config}[= ]",
       require => Exec['make defconfig'],
       notify  => Exec['make kernel'],
     }

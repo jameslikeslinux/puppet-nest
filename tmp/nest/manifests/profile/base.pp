@@ -35,4 +35,12 @@ class nest::profile::base {
   # OpenVPN modifies resolvconf which is installed for NetworkManager
   Class['::nest::profile::base::network'] ->
   Class['::nest::profile::base::openvpn']
+
+  if $::nest::libvirt {
+    contain '::nest::profile::base::libvirt'
+
+    # libvirt ebuild checks kernel config
+    Class['::nest::profile::base::kernel'] ->
+    Class['::nest::profile::base::libvirt']
+  }
 }

@@ -4,6 +4,8 @@ classes: []
 nest::cnames:
   puppet: hawk
 
+nest::use: ['numa']
+
 nest::package_keywords:
   net-fs/nfs-utils: {}
   sys-auth/pam_ssh: {}
@@ -139,11 +141,11 @@ nest::package_keywords:
     keywords: '**'
 
 nest::package_use:
-  # for plymouth
+  # For plymouth
   x11-libs/libdrm:
     use: 'libkms'
 
-  # for nvidia-drivers
+  # For nvidia-drivers
   x11-libs/libXext:
     use: 'abi_x86_32'
   dev-libs/libpthread-stubs:
@@ -169,19 +171,27 @@ nest::package_use:
   x11-proto/kbproto:
     use: 'abi_x86_32'
 
-  # required by x11-drivers/xf86-video-vmware
-  media-libs/mesa:
-    use: 'xa'
-
-  # for plasma
+  # For plasma
   kde-plasma/plasma-meta:
     use: 'networkmanager'
-  x11-base/xorg-drivers:
-    use: 'video_cards_nvidia'
 
-  # for firefox
+  # For firefox
   dev-lang/python:
     use: 'sqlite'
+
+  # For libvirt
+  app-emulation/libvirt-glib:
+    use: 'python'
+  app-emulation/qemu:
+    use: ['spice', 'usbredir']
+  media-libs/mesa:
+    use: 'gles2'
+  net-dns/dnsmasq:
+    use: 'script'
+  net-libs/gtk-vnc:
+    use: 'python'
+  net-misc/spice-gtk:
+    use: ['usbredir', 'python', 'gtk3']
 
 
 # XXX: Move to arch-specific hiera file

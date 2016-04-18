@@ -1,0 +1,3 @@
+class nest::profile::workstation {
+
+}
