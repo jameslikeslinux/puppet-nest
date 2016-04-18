@@ -112,7 +112,7 @@ nest::package_keywords:
   kde-frameworks/kdeclarative: {}
   kde-plasma/kscreenlocker: {}
   kde-plasma/kwayland-integration: {}
-  kde-plasma/khelpcenter: {}
+  kde-apps/khelpcenter: {}
   kde-plasma/user-manager: {}
   kde-plasma/breeze-gtk: {}
   kde-frameworks/kbookmarks: {}
@@ -131,13 +131,13 @@ nest::package_keywords:
 
   # zfs
   sys-kernel/spl:
-    version: '=0.6.5.4'
+    version: '=0.6.5.6'
     keywords: '**'
   sys-fs/zfs-kmod:
-    version: '=0.6.5.4'
+    version: '=0.6.5.6'
     keywords: '**'
   sys-fs/zfs:
-    version: '=0.6.5.4'
+    version: '=0.6.5.6'
     keywords: '**'
 
 nest::package_use:
