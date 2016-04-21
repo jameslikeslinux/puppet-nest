@@ -4,6 +4,7 @@ class nest::profile::base {
   contain '::nest::profile::base::firewall'
   contain '::nest::profile::base::fs'
   contain '::nest::profile::base::fstab'
+  contain '::nest::profile::base::kernel'
   contain '::nest::profile::base::mta'
   contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
@@ -19,12 +20,11 @@ class nest::profile::base {
   Class['::nest::profile::base::systemd'] ->
   Class['::nest::profile::base::dracut']
 
-  # Rebuild initramfs and reconfigure GRUB after kernel changes
-  Class['::nest::profile::setup::kernel'] ~>
+  Class['::nest::profile::base::kernel'] ~>
   Class['::nest::profile::base::dracut'] ~>
   Class['::nest::profile::base::grub']
 
-  # Rebuild initramfs after ZFS changes
+  Class['::nest::profile::base::kernel'] ->
   Class['::nest::profile::base::zfs'] ~>
   Class['::nest::profile::base::dracut']
 
@@ -38,5 +38,9 @@ class nest::profile::base {
 
   if $::nest::libvirt {
     contain '::nest::profile::base::libvirt'
+
+    # libvirt ebuild checks kernel config
+    Class['::nest::profile::base::kernel'] ->
+    Class['::nest::profile::base::libvirt']
   }
 }
