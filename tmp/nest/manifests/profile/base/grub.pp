@@ -1,7 +1,7 @@
 class nest::profile::base::grub {
   class use {
     package_use { 'sys-boot/grub':
-      use => ['grub_platforms_efi-64', 'grub_platforms_pc'],
+      use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs'],
     }
   }
 
@@ -16,23 +16,17 @@ class nest::profile::base::grub {
     notify  => Exec['grub2-mkconfig'],
   }
 
-  file_line { 'grub2-mkconfig-fix-device':
-    path  => '/usr/sbin/grub2-mkconfig',
-    line  => 'GRUB_DEVICE=',
-    match => '^GRUB_DEVICE=',
-  }
-
-  file_line { 'grub2-mkconfig-fix-fs':
-    path  => '/usr/sbin/grub2-mkconfig',
-    line  => 'GRUB_FS=',
-    match => '^GRUB_FS=',
-  }
-
   $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet splash ${::nest::kernel_cmdline}")
   file_line { 'grub-set-kernel-cmdline':
     path    => '/etc/default/grub',
     line    => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
     match   => '^#?GRUB_CMDLINE_LINUX=',
+  }
+
+  file_line { 'grub-set-device':
+    path  => '/etc/default/grub',
+    line  => 'GRUB_DEVICE=zfs',
+    match => '^#?GRUB_DEVICE=',
   }
 
   $::nest::grub_disks.each |$grub_disk| {

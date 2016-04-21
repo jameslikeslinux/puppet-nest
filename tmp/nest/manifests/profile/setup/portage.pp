@@ -94,7 +94,6 @@ class nest::profile::setup::portage {
   # ones defined throughout the Puppet catalog, and make them come
   # before or trigger a package rebuild for the new settings to
   # take effect.
-
   create_resources(package_keywords, $::nest::package_keywords)
   Package_keywords <| |> {
     before => Exec['emerge-newuse-world']
@@ -110,5 +109,22 @@ class nest::profile::setup::portage {
     timeout     => 0,
     refreshonly => true,
     require     => Class['::portage'],
+  }
+
+
+  # Enable libzfs USE flag for GRUB
+  # XXX: This could be made more generic if needed
+  file { '/etc/portage/profile':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
+  file { '/etc/portage/profile/use.mask':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "-libzfs\n",
   }
 }
