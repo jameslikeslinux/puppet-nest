@@ -128,6 +128,7 @@ nest::package_keywords:
   x11-misc/sddm: {}
   kde-plasma/plasma-desktop: {}
   kde-plasma/plasma-pa: {}
+  kde-plasma/plasma-integration: {}
 
   # zfs
   sys-kernel/spl:
