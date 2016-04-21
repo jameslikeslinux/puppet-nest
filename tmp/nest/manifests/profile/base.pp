@@ -20,10 +20,12 @@ class nest::profile::base {
   Class['::nest::profile::base::systemd'] ->
   Class['::nest::profile::base::dracut']
 
+  # Rebuild initramfs and reconfigure GRUB after kernel changes
   Class['::nest::profile::base::kernel'] ~>
   Class['::nest::profile::base::dracut'] ~>
   Class['::nest::profile::base::grub']
 
+  # Rebuild initramfs after ZFS changes
   Class['::nest::profile::base::kernel'] ->
   Class['::nest::profile::base::zfs'] ~>
   Class['::nest::profile::base::dracut']
