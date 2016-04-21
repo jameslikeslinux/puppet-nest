@@ -14,6 +14,7 @@ class nest (
   $cnames           = {},
   $libvirt          = false,
   $use              = [],
+  $scaling_factor   = 1.0,
 ) {
   if 'workstation' in $profiles {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
@@ -30,6 +31,8 @@ class nest (
   $use_hiera = hiera_array('nest::use', $use)
   $use_combined = union($use_defaults, $use_hiera).sort
 
+  $dpi = inline_template('<%= (@scaling_factor * 96.0).round %>')
+
   # Include standard profiles
   contain '::nest::profile::setup'
   contain '::nest::profile::base'
@@ -39,11 +42,5 @@ class nest (
   Class['::nest::profile::base']
 
   # Include additional profiles
-  $profiles.each |$profile| {
-    contain "::nest::profile::${profile}"
-
-    # Additional profiles should assume base setup
-    Class['::nest::profile::base'] ->
-    Class["::nest::profile::${profile}"]
-  }
+  contain prefix($profiles, '::nest::profile::')
 }

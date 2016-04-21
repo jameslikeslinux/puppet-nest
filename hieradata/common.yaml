@@ -171,10 +171,6 @@ nest::package_use:
   x11-proto/kbproto:
     use: 'abi_x86_32'
 
-  # For plasma
-  kde-plasma/plasma-meta:
-    use: 'networkmanager'
-
   # For firefox
   dev-lang/python:
     use: 'sqlite'
