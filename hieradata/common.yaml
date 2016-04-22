@@ -7,6 +7,7 @@ nest::cnames:
 nest::use: ['numa']
 
 nest::package_keywords:
+  mail-client/thunderbird: {}
   net-fs/nfs-utils: {}
   sys-auth/pam_ssh: {}
   www-client/firefox: {}
