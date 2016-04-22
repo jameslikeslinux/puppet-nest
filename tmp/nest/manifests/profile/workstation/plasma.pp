@@ -11,6 +11,19 @@ class nest::profile::workstation::plasma {
     ensure => installed,
   }
 
+  $gtk_scaling = @("EOT")
+    export GDK_SCALE=${::nest::scaling_factor_rounded}
+    export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
+    | EOT
+
+  file { '/etc/plasma/startup/10-gtk-scaling.sh':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $gtk_scaling,
+    require => Package['kde-plasma/plasma-meta'],
+  }
+
   $sddm_conf = @("EOT")
     [Theme]
     Current=breeze

@@ -32,6 +32,8 @@ class nest (
   $use_combined = union($use_defaults, $use_hiera).sort
 
   $dpi = inline_template('<%= (@scaling_factor * 96.0).round %>')
+  $scaling_factor_rounded = inline_template('<%= @scaling_factor.round %>')
+  $scaling_factor_percent_of_rounded = $scaling_factor / $scaling_factor_rounded
 
   # Include standard profiles
   contain '::nest::profile::setup'
