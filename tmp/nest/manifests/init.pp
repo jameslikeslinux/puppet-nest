@@ -15,6 +15,7 @@ class nest (
   $libvirt          = false,
   $use              = [],
   $scaling_factor   = 1.0,
+  $keyboard_layout  = 'us',
 ) {
   if 'workstation' in $profiles {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'

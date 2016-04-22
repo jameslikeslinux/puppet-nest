@@ -38,6 +38,10 @@ class nest::profile::base::systemd {
     require => Exec['/usr/sbin/locale-gen'],
   }
 
+  file { '/etc/vconsole.conf':
+    content => "KEYMAP=${::nest::keyboard_layout}\n",
+  }
+
   file { '/etc/issue':
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
