@@ -1,11 +1,7 @@
 class nest::profile::base::ssh {
-  class use {
-    package_use { 'net-misc/openssh':
-      use => 'kerberos',
-    }
+  package_use { 'net-misc/openssh':
+    use => 'kerberos',
   }
-
-  include '::nest::profile::base::ssh::use'
 
   package { 'net-misc/openssh':
     ensure => installed,

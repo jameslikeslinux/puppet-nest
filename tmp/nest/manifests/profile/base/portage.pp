@@ -1,4 +1,4 @@
-class nest::profile::setup::portage {
+class nest::profile::base::portage {
   class { '::portage':
     eselect_ensure => installed,
   }
@@ -95,14 +95,10 @@ class nest::profile::setup::portage {
   # before or trigger a package rebuild for the new settings to
   # take effect.
   create_resources(package_keywords, $::nest::package_keywords)
-  Package_keywords <| |> {
-    before => Exec['emerge-newuse-world']
-  }
+  Package_keywords <| |> ~> Exec['emerge-newuse-world']
 
   create_resources(package_use, $::nest::package_use)
-  Package_use <| |> {
-    notify => Exec['emerge-newuse-world'],
-  }
+  Package_use <| |> ~> Exec['emerge-newuse-world']
 
   exec { 'emerge-newuse-world':
     command     => '/usr/bin/emerge -DN @world',
@@ -127,4 +123,8 @@ class nest::profile::setup::portage {
     group   => 'root',
     content => "-libzfs\n",
   }
+
+  
+  # Make all make.conf entries come before this class
+  Portage::Makeconf <| |> -> Class['::nest::profile::base::portage']
 }

@@ -1,11 +1,7 @@
 class nest::profile::base::libvirt {
-  class use {
-    package_use { 'app-emulation/libvirt':
-      use => 'virt-network',
-    }
+  package_use { 'app-emulation/libvirt':
+    use => 'virt-network',
   }
-
-  include '::nest::profile::base::libvirt::use'
 
   package { 'app-emulation/libvirt':
     ensure => installed,

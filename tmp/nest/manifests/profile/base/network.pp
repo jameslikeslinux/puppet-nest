@@ -1,11 +1,7 @@
 class nest::profile::base::network {
-  class use {
-    package_use { 'net-misc/networkmanager':
-      use => 'resolvconf',
-    }
+  package_use { 'net-misc/networkmanager':
+    use => 'resolvconf',
   }
-
-  include '::nest::profile::base::network::use'
 
   package { 'net-misc/networkmanager':
     ensure  => installed,

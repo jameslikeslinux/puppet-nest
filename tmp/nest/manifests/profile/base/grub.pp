@@ -1,11 +1,7 @@
 class nest::profile::base::grub {
-  class use {
-    package_use { 'sys-boot/grub':
-      use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs'],
-    }
+  package_use { 'sys-boot/grub':
+    use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs'],
   }
-
-  include '::nest::profile::base::grub::use'
 
   package { 'sys-boot/grub':
     ensure => installed,

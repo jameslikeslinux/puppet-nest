@@ -1,11 +1,7 @@
 class nest::profile::base::pam {
-  class use {
-    package_use { 'sys-auth/pambase':
-      use => ['pam_krb5', 'pam_ssh'],
-    }
+  package_use { 'sys-auth/pambase':
+    use => ['pam_krb5', 'pam_ssh'],
   }
-
-  include '::nest::profile::base::pam::use'
 
   $krb5_conf = @(EOT)
     [libdefaults]

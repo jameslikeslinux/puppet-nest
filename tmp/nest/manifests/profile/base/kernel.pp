@@ -1,11 +1,7 @@
 class nest::profile::base::kernel {
-  class use {
-    package_use { 'sys-kernel/gentoo-sources':
-      use => 'symlink',
-    }
+  package_use { 'sys-kernel/gentoo-sources':
+    use => 'symlink',
   }
-
-  include '::nest::profile::base::kernel::use'
 
   package { 'sys-kernel/gentoo-sources':
     ensure => installed,
@@ -38,9 +34,9 @@ class nest::profile::base::kernel {
     }
   }
 
-  include '::nest::profile::setup::portage'
+  include '::nest::profile::base::portage'
   exec { 'make kernel':
-    command     => "/usr/bin/make ${::nest::profile::setup::portage::makeopts} clean olddefconfig all install modules_install",
+    command     => "/usr/bin/make ${::nest::profile::base::portage::makeopts} clean olddefconfig all install modules_install",
     cwd         => '/usr/src/linux',
     timeout     => 0,
     refreshonly => true,

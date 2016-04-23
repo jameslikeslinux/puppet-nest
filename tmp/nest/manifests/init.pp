@@ -39,13 +39,8 @@ class nest (
   $scaling_factor_rounded = inline_template('<%= @scaling_factor.round %>')
   $scaling_factor_percent_of_rounded = $scaling_factor / $scaling_factor_rounded
 
-  # Include standard profiles
-  contain '::nest::profile::setup'
+  # Include standard profile
   contain '::nest::profile::base'
-
-  # Set up the package manager before doing anything else
-  Class['::nest::profile::setup'] ->
-  Class['::nest::profile::base']
 
   # Include additional profiles
   contain prefix($profiles, '::nest::profile::')

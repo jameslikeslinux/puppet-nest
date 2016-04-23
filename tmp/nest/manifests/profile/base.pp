@@ -9,12 +9,17 @@ class nest::profile::base {
   contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
   contain '::nest::profile::base::pam'
+  contain '::nest::profile::base::portage'
   contain '::nest::profile::base::puppet'
   contain '::nest::profile::base::ssh'
   contain '::nest::profile::base::sudo'
   contain '::nest::profile::base::systemd'
   contain '::nest::profile::base::users'
   contain '::nest::profile::base::zfs'
+
+  # Portage should be configured before any packages are installed
+  Class['::nest::profile::base::portage'] ->
+  Package <| |>
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->

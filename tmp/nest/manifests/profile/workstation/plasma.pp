@@ -1,11 +1,7 @@
 class nest::profile::workstation::plasma {
-  class use {
-    package_use { 'kde-plasma/plasma-meta':
-      use => 'networkmanager',
-    }
+  package_use { 'kde-plasma/plasma-meta':
+    use => 'networkmanager',
   }
-
-  include '::nest::profile::workstation::plasma::use'
 
   package { 'kde-plasma/plasma-meta':
     ensure => installed,
