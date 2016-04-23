@@ -3,6 +3,7 @@ classes:
   - 'apache'
 
 apache::default_mods:
+  - 'alias'
   - 'proxy'
   - 'proxy_http'
 
