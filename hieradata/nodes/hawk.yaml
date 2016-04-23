@@ -1,6 +1,7 @@
 ---
 classes:
   - 'apache'
+  - 'nest::hacks::apache'
 
 nest::profiles:
   - 'workstation'
