@@ -193,7 +193,7 @@ nest::package_use:
     use: ['usbredir', 'python', 'gtk3']
 
   www-servers/apache:
-    use: 'apache2_modules_access_compat'
+    use: ['apache2_modules_access_compat', 'apache2_modules_unixd']
 
 
 # XXX: Move to arch-specific hiera file
