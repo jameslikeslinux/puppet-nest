@@ -1,8 +1,9 @@
 ---
-classes: []
+classes:
+  - 'nest'
 
 nest::cnames:
-  puppet: hawk
+  puppet: 'hawk'
 
 nest::use: ['numa']
 
