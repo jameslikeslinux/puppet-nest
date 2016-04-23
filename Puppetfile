@@ -1,4 +1,5 @@
 mod 'gentoo/portage', '2.3.0'
+mod 'puppetlabs/apache', '1.9.0'
 mod 'puppetlabs/concat', '2.1.0'
 mod 'puppetlabs/firewall', '1.8.0'
 mod 'puppetlabs/puppetserver_gem', '0.2.0'
