@@ -2,6 +2,10 @@
 classes:
   - 'apache'
 
+apache::default_mods:
+  - 'proxy'
+  - 'proxy_http'
+
 nest::profiles:
   - 'workstation'
 
