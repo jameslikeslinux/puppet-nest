@@ -8,6 +8,7 @@ class nest::profile::base {
   contain '::nest::profile::base::mta'
   contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
+  contain '::nest::profile::base::packages'
   contain '::nest::profile::base::pam'
   contain '::nest::profile::base::portage'
   contain '::nest::profile::base::puppet'

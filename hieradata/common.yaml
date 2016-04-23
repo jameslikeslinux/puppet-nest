@@ -2,8 +2,8 @@
 classes:
   - 'nest'
 
-nest::cnames:
-  puppet: 'hawk'
+puppet::puppetmaster: 'hawk'
+nest::package_server: 'hawk'
 
 nest::use: ['numa']
 

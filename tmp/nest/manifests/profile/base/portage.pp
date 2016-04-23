@@ -1,36 +1,21 @@
 class nest::profile::base::portage {
-  class { '::portage':
-    eselect_ensure => installed,
-  }
-  
-  portage::makeconf { 'accept_license':
-    content => '*',
-  }
-
-  portage::makeconf { 'cflags':
-    content => $portage_cflags,
+  if is_string($::nest::package_server) {
+    $binhost_ensure = undef
+    $getbinpkg = 'getbinpkg'
+  } else {
+    $binhost_ensure = absent
+    $getbinpkg = []
   }
 
-  portage::makeconf { 'cxxflags':
-    content => $portage_cxxflags,
-  }
-
-  portage::makeconf { 'cpu_flags_x86':
-    content => $portage_cpu_flags_x86,
-  }
-
-  portage::makeconf { 'features':
-    content => 'buildpkg splitdebug'
-  }
+  $features = [
+    'buildpkg',
+    'splitdebug',
+    $getbinpkg,
+  ]
 
   $input_devices_ensure = $::nest::input_devices ? {
     undef   => absent,
     default => undef,
-  }
-
-  portage::makeconf { 'input_devices':
-    content => $::nest::input_devices,
-    ensure  => $input_devices_ensure,
   }
 
   $video_cards_ensure = $::nest::video_cards ? {
@@ -38,19 +23,9 @@ class nest::profile::base::portage {
     default => undef,
   }
 
-  portage::makeconf { 'video_cards':
-    content => $::nest::video_cards,
-    ensure  => $video_cards_ensure,
-  }
-
   $use_ensure = $::nest::use_combined ? {
     []      => absent,
     default => undef,
-  }
-
-  portage::makeconf { 'use':
-    content => join($::nest::use_combined, ' '),
-    ensure  => $use_ensure,
   }
 
   $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (512.0 * 1024 * 1024))
@@ -64,8 +39,36 @@ class nest::profile::base::portage {
   $loadlimit = $::processorcount + 1
   $makeopts = "-j${makejobs_non_distcc_min} -l${loadlimit}"
 
-  portage::makeconf { 'makeopts':
-    content => $makeopts,
+
+  class { '::portage':
+    eselect_ensure => installed,
+  }
+  
+  portage::makeconf {
+    'accept_license':
+      content => '*';
+    'cflags':
+      content => $portage_cflags;
+    'cxxflags':
+      content => $portage_cxxflags;
+    'cpu_flags_x86':
+      content => $portage_cpu_flags_x86;
+    'features':
+      content => join(sort(flatten($features)), ' ');
+    'input_devices':
+      content => $::nest::input_devices,
+      ensure  => $input_devices_ensure;
+    'makeopts':
+      content => $makeopts;
+    'portage_binhost':
+      content => "http://${::nest::package_server}/packages",
+      ensure  => $binhost_ensure;
+    'use':
+      content => join($::nest::use_combined, ' '),
+      ensure  => $use_ensure;
+    'video_cards':
+      content => $::nest::video_cards,
+      ensure  => $video_cards_ensure;
   }
 
   eselect { 'profile':

@@ -10,4 +10,5 @@
 
 :hierarchy:
   - "nodes/%{::trusted.certname}"
+  - "architecture/%{::architecture}"
   - "common"

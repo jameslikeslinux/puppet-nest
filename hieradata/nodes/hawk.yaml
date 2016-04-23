@@ -1,9 +1,8 @@
 ---
-classes:
-  - 'nest::apache'
-
 nest::profiles:
   - 'workstation'
+
+nest::package_server: true
 
 nest::grub_disks: ['/dev/nvme0n1p1']
 nest::luks_disks:

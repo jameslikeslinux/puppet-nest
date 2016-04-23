@@ -1,5 +1,6 @@
 class nest (
   $nullmailer_config,
+  $package_server,
   $ssh_private_key,
   $ssh_public_key,
   $root_mail_alias,
