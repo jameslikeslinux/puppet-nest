@@ -1,9 +1,6 @@
 ---
 classes:
-  - 'apache'
-  - 'nest::hacks::apache'
-
-apache::mpm_module: 'worker'
+  - 'nest::apache'
 
 nest::profiles:
   - 'workstation'

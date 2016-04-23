@@ -192,9 +192,6 @@ nest::package_use:
   net-misc/spice-gtk:
     use: ['usbredir', 'python', 'gtk3']
 
-  www-servers/apache:
-    use: ['apache2_modules_access_compat', 'threads']
-
 
 # XXX: Move to arch-specific hiera file
 nest::kernel_config:
