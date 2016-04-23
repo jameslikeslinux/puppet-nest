@@ -87,16 +87,8 @@ class nest::profile::base::portage {
   }
 
   # Create portage package properties rebuild affected packages
-  create_resources(package_keywords, $::nest::package_keywords, { 'before' => Exec['emerge-newuse-world'] })
-  create_resources(package_use, $::nest::package_use, { 'notify' => Exec['emerge-newuse-world'] })
-
-  exec { 'emerge-newuse-world':
-    command     => '/usr/bin/emerge -DN @world',
-    timeout     => 0,
-    refreshonly => true,
-    require     => Class['::portage'],
-  }
-
+  create_resources(package_keywords, $::nest::package_keywords, { 'before' => Class['::portage'] })
+  create_resources(package_use, $::nest::package_use, { 'notify' => Class['::portage'] })
 
   # Enable libzfs USE flag for GRUB
   # XXX: This could be made more generic if needed
