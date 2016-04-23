@@ -31,7 +31,6 @@ class nest::profile::base::portage {
   portage::makeconf { 'input_devices':
     content => $::nest::input_devices,
     ensure  => $input_devices_ensure,
-    notify  => Exec['emerge-newuse-world'],
   }
 
   $video_cards_ensure = $::nest::video_cards ? {
@@ -42,7 +41,6 @@ class nest::profile::base::portage {
   portage::makeconf { 'video_cards':
     content => $::nest::video_cards,
     ensure  => $video_cards_ensure,
-    notify  => Exec['emerge-newuse-world'],
   }
 
   $use_ensure = $::nest::use_combined ? {
@@ -53,7 +51,6 @@ class nest::profile::base::portage {
   portage::makeconf { 'use':
     content => join($::nest::use_combined, ' '),
     ensure  => $use_ensure,
-    notify  => Exec['emerge-newuse-world'],
   }
 
   $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (512.0 * 1024 * 1024))
