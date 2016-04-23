@@ -54,7 +54,7 @@ class nest::profile::base::portage {
     'cpu_flags_x86':
       content => $portage_cpu_flags_x86;
     'features':
-      content => join(sort(flatten($features)), ' ');
+      content => sort(flatten($features));
     'input_devices':
       content => $::nest::input_devices,
       ensure  => $input_devices_ensure;
@@ -64,7 +64,7 @@ class nest::profile::base::portage {
       content => "http://${::nest::package_server}/packages",
       ensure  => $binhost_ensure;
     'use':
-      content => join($::nest::use_combined, ' '),
+      content => $::nest::use_combined,
       ensure  => $use_ensure;
     'video_cards':
       content => $::nest::video_cards,
