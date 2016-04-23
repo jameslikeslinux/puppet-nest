@@ -3,6 +3,8 @@ classes:
   - 'apache'
   - 'nest::hacks::apache'
 
+apache::mpm_module: 'worker'
+
 nest::profiles:
   - 'workstation'
 
