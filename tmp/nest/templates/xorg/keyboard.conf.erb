@@ -1,9 +1,9 @@
 Section "InputClass"
     Identifier      "system-keyboard"
     MatchIsKeyboard "yes"
-    Option          "XkbLayout" "<%= @layout %>"
-<% if @variant -%>
-    Option          "XkbVariant" "<%= @variant %>"
+    Option          "XkbLayout" "<%= @keyboard_layout %>"
+<% if @keyboard_variant -%>
+    Option          "XkbVariant" "<%= @keyboard_variant %>"
 <% end -%>
     Option          "XkbOptions" "ctrl:nocaps,terminate:ctrl_alt_bksp"
 EndSection

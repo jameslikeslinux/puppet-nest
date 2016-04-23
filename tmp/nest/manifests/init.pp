@@ -16,6 +16,9 @@ class nest (
   $use              = [],
   $scaling_factor   = 1.0,
   $keyboard_layout  = 'us',
+  $monitor_layout   = [],
+  $primary_monitor  = undef,
+  $video_card       = undef,
 ) {
   if 'workstation' in $profiles {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'

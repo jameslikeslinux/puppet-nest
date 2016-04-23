@@ -1,0 +1,15 @@
+Section "Device"
+    Identifier "nvidia"
+    Driver     "nvidia"
+    Option     "TripleBuffer" "yes"
+<% if @monitor_layout && !@monitor_layout.empty? -%>
+    Option     "MetaModeOrientation" "<%= @monitor_layout.join(' LeftOf ') %>"
+<% end -%>
+EndSection
+<% if @primary_monitor -%>
+
+Section "Monitor"
+    Identifier "<%= @primary_monitor %>"
+    Option     "Primary" "yes"
+EndSection
+<% end -%>

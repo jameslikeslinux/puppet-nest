@@ -17,5 +17,8 @@ nest::kernel_cmdline: 'console=ttyS1,115200n8 console=tty0 hugepages=8192 intel_
 nest::libvirt: true
 nest::server: true
 nest::scaling_factor: 1.1
+nest::monitor_layout: ['DP-2', 'DP-3']
+nest::primary_monitor: 'DP-3'
+nest::video_card: 'nvidia'
 
 puppet::environment: 'development'
