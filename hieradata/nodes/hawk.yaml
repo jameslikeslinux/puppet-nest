@@ -2,13 +2,6 @@
 classes:
   - 'apache'
 
-apache::default_mods:
-  - 'alias'
-  - 'filter'
-  - 'proxy'
-  - 'proxy_http'
-  - 'unixd'
-
 nest::profiles:
   - 'workstation'
 
