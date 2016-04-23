@@ -1,5 +1,5 @@
 class nest::profile::base::kernel {
-  package_use { 'sys-kernel/gentoo-sources':
+  nest::portage::package_use { 'sys-kernel/gentoo-sources':
     use => 'symlink',
   }
 

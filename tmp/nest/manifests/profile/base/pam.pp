@@ -1,5 +1,5 @@
 class nest::profile::base::pam {
-  package_use { 'sys-auth/pambase':
+  nest::portage::package_use { 'sys-auth/pambase':
     use => ['pam_krb5', 'pam_ssh'],
   }
 

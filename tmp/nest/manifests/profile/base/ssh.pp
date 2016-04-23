@@ -1,5 +1,5 @@
 class nest::profile::base::ssh {
-  package_use { 'net-misc/openssh':
+  nest::portage::package_use { 'net-misc/openssh':
     use => 'kerberos',
   }
 

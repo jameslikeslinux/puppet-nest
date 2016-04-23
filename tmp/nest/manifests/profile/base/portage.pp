@@ -2,7 +2,7 @@ class nest::profile::base::portage {
   class { '::portage':
     eselect_ensure => installed,
   }
-
+  
   portage::makeconf { 'accept_license':
     content => '*',
   }
@@ -45,8 +45,8 @@ class nest::profile::base::portage {
     notify  => Exec['emerge-newuse-world'],
   }
 
-  $use_ensure = size($::nest::use_combined) ? {
-    0       => absent,
+  $use_ensure = $::nest::use_combined ? {
+    []      => absent,
     default => undef,
   }
 
@@ -89,16 +89,9 @@ class nest::profile::base::portage {
     environment => 'USE=-graphite',
   }
 
-
-  # Create portage package properties from Hiera and find all of the
-  # ones defined throughout the Puppet catalog, and make them come
-  # before or trigger a package rebuild for the new settings to
-  # take effect.
-  create_resources(package_keywords, $::nest::package_keywords)
-  Package_keywords <| |> ~> Exec['emerge-newuse-world']
-
-  create_resources(package_use, $::nest::package_use)
-  Package_use <| |> ~> Exec['emerge-newuse-world']
+  # Create portage package properties rebuild affected packages
+  create_resources(package_keywords, $::nest::package_keywords, { 'before' => Exec['emerge-newuse-world'] })
+  create_resources(package_use, $::nest::package_use, { 'notify' => Exec['emerge-newuse-world'] })
 
   exec { 'emerge-newuse-world':
     command     => '/usr/bin/emerge -DN @world',
@@ -123,8 +116,4 @@ class nest::profile::base::portage {
     group   => 'root',
     content => "-libzfs\n",
   }
-
-  
-  # Make all make.conf entries come before this class
-  Portage::Makeconf <| |> -> Class['::nest::profile::base::portage']
 }

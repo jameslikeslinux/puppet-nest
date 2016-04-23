@@ -1,5 +1,5 @@
 class nest::profile::base::network {
-  package_use { 'net-misc/networkmanager':
+  nest::portage::package_use { 'net-misc/networkmanager':
     use => 'resolvconf',
   }
 

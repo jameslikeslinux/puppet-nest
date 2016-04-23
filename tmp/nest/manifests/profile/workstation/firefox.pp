@@ -1,5 +1,5 @@
 class nest::profile::workstation::firefox {
-  package_use { 'www-client/firefox':
+  nest::portage::package_use { 'www-client/firefox':
     use => 'gtk3',
   }
 

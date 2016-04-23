@@ -1,5 +1,5 @@
 class nest::profile::base::systemd {
-  package_use { 'sys-apps/systemd':
+  nest::portage::package_use { 'sys-apps/systemd':
     use => 'cryptsetup',
   }
 

@@ -1,5 +1,5 @@
 class nest::profile::workstation::plasma {
-  package_use { 'kde-plasma/plasma-meta':
+  nest::portage::package_use { 'kde-plasma/plasma-meta':
     use => 'networkmanager',
   }
 
