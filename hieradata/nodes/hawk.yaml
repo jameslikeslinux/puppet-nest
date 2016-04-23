@@ -4,6 +4,7 @@ classes:
 
 apache::default_mods:
   - 'alias'
+  - 'filter'
   - 'proxy'
   - 'proxy_http'
 
