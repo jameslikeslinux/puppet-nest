@@ -6,10 +6,13 @@ class nest::apache {
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
 
-  nest::portage::package_use { 'www-servers/apache':
-    use => ['apache2_modules_access_compat', 'threads'],
+  nest::portage::package_use { 'httpd':
+    package => 'www-servers/apache',
+    use     => ['apache2_modules_access_compat', 'threads'],
   }
 
+  # This is not at all necessary, but the default defines are not used
+  # by puppetlabs/apache and it could lead to confusion.
   file_line { 'apache2-opts':
     path    => '/etc/conf.d/apache2',
     line    => 'APACHE2_OPTS=',
