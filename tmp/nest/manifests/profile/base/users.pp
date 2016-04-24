@@ -68,20 +68,4 @@ class nest::profile::base::users {
       group     => 'users',
       require   => Vcsrepo['/home/james'];
   }
-
-  file {
-    default:
-      mode    => '0644',
-      content => "${::nest::ssh_public_key}\n";
-
-    '/root/.ssh/id_rsa.pub':
-      owner   => 'root',
-      group   => 'root',
-      require => Vcsrepo['/root'];
-
-    '/home/james/.ssh/id_rsa.pub':
-      owner   => 'james',
-      group   => 'users',
-      require => Vcsrepo['/home/james'];
-  }
 }
