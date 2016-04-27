@@ -41,7 +41,7 @@ class nest::profile::base::users {
     default:
       ensure   => latest,
       provider => git,
-      source   => 'https://github.com/MrStaticVoid/profile.git',
+      source   => 'https://github.com/iamjamestl/profile.git',
       revision => 'master';
 
     '/root':
