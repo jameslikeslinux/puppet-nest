@@ -34,6 +34,12 @@ class nest::profile::workstation::plasma {
     require => Package['kde-plasma/plasma-meta'],
   }
 
+  # SDDM needs access to /dev/nvidiactl to run
+  user { 'sddm':
+    groups  => 'video',
+    require => Package['kde-plasma/plasma-meta'],
+  }
+
   $sddm_conf = @("EOT")
     [Theme]
     Current=breeze
@@ -53,6 +59,9 @@ class nest::profile::workstation::plasma {
 
   service { 'sddm':
     enable  => true,
-    require => File['/etc/sddm.conf'],
+    require => [
+      User['sddm'],
+      File['/etc/sddm.conf'],
+    ],
   }
 }
