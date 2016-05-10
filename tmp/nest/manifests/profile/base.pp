@@ -18,9 +18,9 @@ class nest::profile::base {
   contain '::nest::profile::base::users'
   contain '::nest::profile::base::zfs'
 
-  # Portage should be configured before any packages are installed
-  Class['::nest::profile::base::portage'] ->
-  Package <| |>
+  # Portage should be configured before any packages are installed/changed
+  Class['::nest::profile::base::portage'] -> Package <| |>
+  Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
   # Dracut depends on systemd
   Class['::nest::profile::base::systemd'] ->

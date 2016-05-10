@@ -1,6 +1,9 @@
 class nest::profile::base::users {
   file { '/bin/zsh':
     ensure => file,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
   }
 
   package { 'app-shells/zsh':

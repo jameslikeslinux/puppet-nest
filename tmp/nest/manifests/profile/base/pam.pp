@@ -41,5 +41,6 @@ class nest::profile::base::pam {
       # pam_krb5 session doesn't need any arguments
       "rm *[type = 'session' and module = 'pam_krb5.so']/argument",
     ],
+    require => Nest::Portage::Package_use['sys-auth/pambase'],
   } 
 }
