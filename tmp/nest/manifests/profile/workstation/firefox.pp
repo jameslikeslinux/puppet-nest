@@ -1,8 +1,4 @@
 class nest::profile::workstation::firefox {
-  nest::portage::package_use { 'www-client/firefox':
-    use => 'gtk3',
-  }
-
   package { [
     'www-client/firefox',
     'www-plugins/adobe-flash',

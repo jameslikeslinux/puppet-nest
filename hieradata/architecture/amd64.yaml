@@ -19,6 +19,9 @@ nest::package_keywords:
   # kde
   kde-apps/konsole: {}
 
+  # networkmanager
+  dev-libs/nss: {}
+
   # plasma
   kde-frameworks/kded: {}
   kde-frameworks/kitemviews: {}

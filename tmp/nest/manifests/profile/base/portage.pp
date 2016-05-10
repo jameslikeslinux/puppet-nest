@@ -1,16 +1,15 @@
 class nest::profile::base::portage {
   if is_string($::nest::package_server) {
     $binhost_ensure = undef
-    $getbinpkg = 'getbinpkg'
+    $package_features = 'getbinpkg'
   } else {
     $binhost_ensure = absent
-    $getbinpkg = []
+    $package_features = 'buildpkg'
   }
 
   $features = [
-    'buildpkg',
     'splitdebug',
-    $getbinpkg,
+    $package_features,
   ]
 
   $input_devices_ensure = $::nest::input_devices ? {
@@ -81,12 +80,6 @@ class nest::profile::base::portage {
     timeout     => 0,
     refreshonly => true,
     subscribe   => Eselect['profile'],
-
-    # XXX: Workaround circular dependency between:
-    #   dev-util/cmake[qt5]
-    #   media-libs/harfbuzz[graphite]
-    # Remove this when Gentoo fixes the problem.
-    environment => 'USE=-graphite',
   }
 
   # Create portage package properties rebuild affected packages
