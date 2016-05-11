@@ -1,5 +1,5 @@
 class nest::profile::base::fstab {
-  $hostname = regsubst($trusted['certname'], '\..*', '')
+  $hostname = regsubst($::trusted['certname'], '\..*', '')
 
   augeas { 'fstab':
     context => '/files/etc/fstab',

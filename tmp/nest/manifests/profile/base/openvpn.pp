@@ -31,8 +31,8 @@ class nest::profile::base::openvpn {
     persist-tun
     cipher AES-128-CBC
     ca ${::settings::localcacert}
-    cert ${::settings::hostcert}
-    key ${::settings::hostprivkey}
+    cert ${::settings::certdir}/${::trusted['certname']}.pem
+    key ${::settings::privatekeydir}/${::trusted['certname']}.pem
     crl-verify ${::settings::hostcrl}
     | EOT
 

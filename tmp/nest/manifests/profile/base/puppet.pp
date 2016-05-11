@@ -59,7 +59,6 @@ class nest::profile::base::puppet {
     }
   } else {
     class { '::puppet':
-      puppetmaster         => 'puppet',
       unavailable_runmodes => ['cron'],
     }
   }

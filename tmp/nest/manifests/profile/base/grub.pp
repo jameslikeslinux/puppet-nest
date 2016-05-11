@@ -8,21 +8,25 @@ class nest::profile::base::grub {
   }
 
   File_line {
+    path    => '/etc/default/grub',
     require => Package['sys-boot/grub'],
     notify  => Exec['grub2-mkconfig'],
   }
 
   $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet splash ${::nest::kernel_cmdline}")
   file_line { 'grub-set-kernel-cmdline':
-    path    => '/etc/default/grub',
     line    => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
     match   => '^#?GRUB_CMDLINE_LINUX=',
   }
 
   file_line { 'grub-set-device':
-    path  => '/etc/default/grub',
     line  => 'GRUB_DEVICE=',
     match => '^#?GRUB_DEVICE=',
+  }
+
+  file_line { 'grub-set-fs':
+    line  => 'GRUB_FS=',
+    match => '^#?GRUB_FS=',
   }
 
   $::nest::grub_disks.each |$grub_disk| {
