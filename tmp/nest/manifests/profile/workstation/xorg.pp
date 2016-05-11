@@ -1,7 +1,7 @@
 class nest::profile::workstation::xorg {
-  $keyboard_layout = $::nest::keyboard_layout
+  $keyboard_layout = 'us'
 
-  if $keyboard_layout == 'dvorak' {
+  if $::nest::keyboard_layout == 'dvorak' {
     $keyboard_variant = 'dvorak'
   }
 
