@@ -3,7 +3,10 @@ class nest::profile::base::kernel {
     use => 'symlink',
   }
 
-  package { 'sys-kernel/gentoo-sources':
+  package { [
+    'sys-kernel/gentoo-sources',
+    'sys-kernel/linux-firmware',
+  ]:
     ensure => installed,
   }
 
