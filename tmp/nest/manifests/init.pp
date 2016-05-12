@@ -22,7 +22,7 @@ class nest (
 ) {
   if 'workstation' in $profiles {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
-    $input_devices  = 'evdev keyboard mouse synaptics'
+    $input_devices  = 'libinput'
     $video_cards    = 'intel nvidia radeon'
     $use_defaults   = ['pulseaudio']
   } else {
