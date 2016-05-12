@@ -37,7 +37,7 @@ class nest (
 
   $dpi = inline_template('<%= (@scaling_factor * 96.0).round %>')
   $scaling_factor_rounded = inline_template('<%= @scaling_factor.round %>')
-  $scaling_factor_percent_of_rounded = $scaling_factor / $scaling_factor_rounded
+  $scaling_factor_percent_of_rounded = $dpi / ($scaling_factor_rounded * 96.0)
 
   # Include standard profile
   contain '::nest::profile::base'
