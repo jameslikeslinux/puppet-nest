@@ -95,10 +95,15 @@ class nest::profile::base::portage {
     group  => 'root',
   }
 
+  $use_mask_content = @(EOT)
+    -libzfs
+    -input_devices_libinput
+    | EOT
+
   file { '/etc/portage/profile/use.mask':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "-libzfs\n",
+    content => $use_mask_content,
   }
 }
