@@ -1,6 +1,7 @@
 ## Generate custom console and GRUB keymaps
 
-See https://wiki.archlinux.org/index.php/Talk:GRUB#Custom_keyboard_layout
+See: https://wiki.archlinux.org/index.php/Talk:GRUB#Custom_keyboard_layout
+See: http://www.kaufmann.no/roland/dvorak/linux.html
 
 ```
 ./ckbcomp -layout us -option ctrl:nocaps | gzip > us-nocaps.map.gz
