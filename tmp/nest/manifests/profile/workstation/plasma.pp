@@ -57,11 +57,22 @@ class nest::profile::workstation::plasma {
     require => Package['kde-plasma/plasma-meta'],
   }
 
+  # When system-login is "included" and contains a sufficient auth
+  # step, the stack ends there on success.  Making system-login a
+  # substack returns control back to the sddm stack so pam_kwallet
+  # can be evaluated.
+  augeas { 'pam-sddm':
+    context => '/files/etc/pam.d/sddm',
+    changes => 'setm *[module = "system-login"] control substack',
+    require => Package['kde-plasma/plasma-meta'],
+  }
+
   service { 'sddm':
     enable  => true,
     require => [
       User['sddm'],
       File['/etc/sddm.conf'],
+      Augeas['pam-sddm'],
     ],
   }
 }
