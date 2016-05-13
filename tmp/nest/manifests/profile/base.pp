@@ -22,8 +22,8 @@ class nest::profile::base {
   Class['::nest::profile::base::portage'] -> Package <| |>
   Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
-  # Dracut depends on systemd
-  Class['::nest::profile::base::systemd'] ->
+  # Dracut depends on systemd/console setup
+  Class['::nest::profile::base::systemd'] ~>
   Class['::nest::profile::base::dracut']
 
   # Rebuild initramfs and reconfigure GRUB after kernel changes

@@ -15,7 +15,7 @@ class nest (
   $libvirt          = false,
   $use              = [],
   $scaling_factor   = 1.0,
-  $keyboard_layout  = 'us',
+  $dvorak           = false,
   $monitor_layout   = [],
   $primary_monitor  = undef,
   $video_card       = undef,
@@ -38,6 +38,10 @@ class nest (
   $dpi = inline_template('<%= (@scaling_factor * 96.0).round %>')
   $scaling_factor_rounded = inline_template('<%= @scaling_factor.round %>')
   $scaling_factor_percent_of_rounded = floor(($dpi / ($scaling_factor_rounded * 96.0)) * 1000) / 1000.0
+
+  $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
+  $console_font_size_ideal   = 16 * $::nest::scaling_factor
+  $console_font_size_nearest = inline_template('<%= @console_font_sizes.min_by { |size| (size - @console_font_size_ideal).abs } %>')
 
   # Include standard profile
   contain '::nest::profile::base'
