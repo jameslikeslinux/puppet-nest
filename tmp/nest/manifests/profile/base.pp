@@ -10,6 +10,7 @@ class nest::profile::base {
   contain '::nest::profile::base::openvpn'
   contain '::nest::profile::base::packages'
   contain '::nest::profile::base::pam'
+  contain '::nest::profile::base::policykit'
   contain '::nest::profile::base::portage'
   contain '::nest::profile::base::puppet'
   contain '::nest::profile::base::ssh'
@@ -51,4 +52,8 @@ class nest::profile::base {
     Class['::nest::profile::base::kernel'] ->
     Class['::nest::profile::base::libvirt']
   }
+
+  # PolicyKit is pulled in by the profile
+  Class['::nest::profile::base::portage'] ->
+  Class['::nest::profile::base::policykit']
 }
