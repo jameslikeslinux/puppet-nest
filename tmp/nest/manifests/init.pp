@@ -41,7 +41,8 @@ class nest (
 
   $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
   $console_font_size_ideal   = 16 * $::nest::scaling_factor
-  $console_font_size_nearest = inline_template('<%= @console_font_sizes.min_by { |size| (size - @console_font_size_ideal).abs } %>')
+  $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find { |size| size - @console_font_size_ideal < 0 } %>')
+  $console_font_size = $console_font_size_smaller
 
   # Include standard profile
   contain '::nest::profile::base'

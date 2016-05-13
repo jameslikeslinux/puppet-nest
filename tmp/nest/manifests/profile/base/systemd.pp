@@ -57,7 +57,7 @@ class nest::profile::base::systemd {
   }
 
   $vconsole_conf_content = @("EOT")
-    FONT=ter-v${::nest::console_font_size_nearest}b
+    FONT=ter-v${::nest::console_font_size}b
     KEYMAP=${keymap}
     | EOT
 
