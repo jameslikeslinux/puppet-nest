@@ -46,13 +46,41 @@ class nest::profile::base::grub {
       command     => $install_command,
       refreshonly => true,
       require     => Package['sys-boot/grub'],
-      before      => Exec['grub2-mkfont'],
+      before      => [
+        Exec['grub2-mkfont'],
+        File['/boot/grub/layouts'],
+      ],
     }
   }
 
   exec { 'grub2-mkfont':
     command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
     creates => "/boot/grub/fonts/${font}.pf2"
+  }
+
+  file { '/boot/grub/layouts':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root';
+
+    '/boot/grub/layouts/dvorak-nocaps.gkb':
+      source => 'puppet:///modules/nest/keymaps/dvorak-nocaps.gkb';
+
+    '/boot/grub/layouts/us-nocaps.gkb':
+      source => 'puppet:///modules/nest/keymaps/us-nocaps.gkb';
+  } 
+
+  $layout = $::nest::dvorak ? {
+    true    => 'dvorak-nocaps',
+    default => 'us-nocaps',
   }
 
   exec { 'grub2-mkconfig':
