@@ -1,4 +1,5 @@
 class nest::profile::workstation {
+  contain '::nest::profile::workstation::cursor'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::thunderbird'
@@ -13,4 +14,8 @@ class nest::profile::workstation {
   # Plasma installs xorg-server, so we don't need to manage it separately
   Class['::nest::profile::workstation::plasma'] ->
   Class['::nest::profile::workstation::xorg']
+
+  # Plasma installs default cursors which we want to replace
+  Class['::nest::profile::workstation::plasma'] ->
+  Class['::nest::profile::workstation::cursor']
 }

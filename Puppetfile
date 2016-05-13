@@ -1,3 +1,4 @@
+mod 'camptocamp/archive', '0.8.1'
 mod 'gentoo/portage', '2.3.0'
 mod 'puppetlabs/apache', '1.9.0'
 mod 'puppetlabs/concat', '2.1.0'
