@@ -22,7 +22,7 @@ class nest::profile::base::users {
     'james':
       uid     => '1000',
       gid     => 'users',
-      groups  => ['wheel'],
+      groups  => ['plugdev', 'wheel'],
       home    => '/home/james',
       comment => 'James Lee',
       shell   => '/bin/zsh',
