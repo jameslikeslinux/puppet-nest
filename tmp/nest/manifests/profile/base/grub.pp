@@ -47,10 +47,22 @@ class nest::profile::base::grub {
       refreshonly => true,
       require     => Package['sys-boot/grub'],
       before      => [
-        Exec['grub2-mkfont'],
+        File['/boot/grub/fonts'],
         File['/boot/grub/layouts'],
       ],
     }
+  }
+
+  file { [
+    '/boot/grub/fonts',
+    '/boot/grub/layouts',
+  ]:
+    ensure  => directory,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    recurse => true,
+    purge   => true,
   }
 
   exec { 'grub2-mkfont':
@@ -58,30 +70,16 @@ class nest::profile::base::grub {
     creates => "/boot/grub/fonts/${font}.pf2"
   }
 
-  file { '/boot/grub/layouts':
-    ensure => directory,
-    mode   => '0755',
+  file { "/boot/grub/fonts/${font}.pf2":
+    require => Exec['grub2-mkfont'],
+  }
+
+  file { '/boot/grub/layouts/dvorak.gkb':
+    mode   => '0644',
     owner  => 'root',
     group  => 'root',
-  }
-
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root';
-
-    '/boot/grub/layouts/dvorak-nocaps.gkb':
-      source => 'puppet:///modules/nest/keymaps/dvorak-nocaps.gkb';
-
-    '/boot/grub/layouts/us-nocaps.gkb':
-      source => 'puppet:///modules/nest/keymaps/us-nocaps.gkb';
+    source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
   } 
-
-  $layout = $::nest::dvorak ? {
-    true    => 'dvorak-nocaps',
-    default => 'us-nocaps',
-  }
 
   exec { 'grub2-mkconfig':
     command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
