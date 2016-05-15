@@ -21,17 +21,17 @@ class nest::profile::workstation::plasma {
     require => Package['kde-plasma/plasma-meta'],
   }
 
-  $gtk_scaling = @("EOT")
+  $scaling = @("EOT")
     export GDK_SCALE=${::nest::scaling_factor_rounded}
     export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
+    export QT_DEVICE_PIXEL_RATIO=${::nest::scaling_factor_rounded}
     | EOT
 
-  file { '/etc/plasma/startup/10-gtk-scaling.sh':
+  file { '/etc/plasma/startup/10-scaling.sh':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $gtk_scaling,
-    require => Package['kde-plasma/plasma-meta'],
+    content => $scaling,
   }
 
   # SDDM needs access to /dev/nvidiactl to run

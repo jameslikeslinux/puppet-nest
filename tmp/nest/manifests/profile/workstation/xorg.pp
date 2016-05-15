@@ -47,6 +47,13 @@ class nest::profile::workstation::xorg {
     content => template('nest/xorg/monitors.conf.erb'),
   }
 
+  file { '/etc/X11/xorg.conf.d/10-libinput.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => template('nest/xorg/libinput.conf.erb'),
+  }
+
   eselect { 'opengl':
     set => $eselect_opengl,
   }
