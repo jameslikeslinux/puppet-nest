@@ -10,6 +10,18 @@ class nest::profile::workstation::cursor {
 
     '/etc/plasma/startup/10-cursor.sh':
       content => "export XCURSOR_SIZE=${::nest::cursor_size}\n";
+
+    '/usr/share/icons/breeze_cursors':
+      ensure  => directory,
+      source  => 'puppet:///modules/nest/cursors/Breeze',
+      recurse => true,
+      purge   => true;
+
+    '/usr/share/icons/Breeze_Snow':
+      ensure  => directory,
+      source  => 'puppet:///modules/nest/cursors/Breeze_Snow',
+      recurse => true,
+      purge   => true;
   }
 
   file_line { 'sddm-load-xresources':
