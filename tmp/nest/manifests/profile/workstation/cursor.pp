@@ -15,13 +15,15 @@ class nest::profile::workstation::cursor {
       ensure  => directory,
       source  => 'puppet:///modules/nest/cursors/Breeze',
       recurse => true,
-      purge   => true;
+      purge   => true,
+      backup  => false;
 
     '/usr/share/icons/Breeze_Snow':
       ensure  => directory,
       source  => 'puppet:///modules/nest/cursors/Breeze_Snow',
       recurse => true,
-      purge   => true;
+      purge   => true,
+      backup  => false;
   }
 
   file_line { 'sddm-load-xresources':
