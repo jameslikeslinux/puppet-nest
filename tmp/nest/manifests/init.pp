@@ -44,10 +44,10 @@ class nest (
   $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(16) { |size| size - @console_font_size_ideal.round <= 0 } %>')
   $console_font_size         = $console_font_size_smaller
 
-  $cursor_sizes        = [16, 24, 32, 40, 48]
+  $cursor_sizes        = [24, 32, 40, 48, 64, 96]
   $cursor_size_ideal   = 24 * $::nest::scaling_factor
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal.round <= 0 } %>')
-  $cursor_size         = inline_template('<%= @cursor_sizes[@cursor_sizes.index(@cursor_size_smaller.to_i) - 1] %>')
+  $cursor_size         = $cursor_size_smaller
 
   # Include standard profile
   contain '::nest::profile::base'
