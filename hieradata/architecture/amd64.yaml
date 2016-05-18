@@ -88,7 +88,7 @@ nest::package_keywords:
   kde-frameworks/kjobwidgets: {}
   kde-frameworks/khtml: {}
   kde-frameworks/sonnet: {}
-  kde-plasma/kwayland: {}
+  kde-frameworks/kwayland: {}
   kde-plasma/breeze: {}
   kde-frameworks/kunitconversion: {}
   kde-frameworks/kcompletion: {}
