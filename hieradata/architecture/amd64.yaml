@@ -190,6 +190,15 @@ nest::package_use:
   net-misc/spice-gtk:
     use: ['usbredir', 'python', 'gtk3']
 
+  # For chromium
+  dev-libs/libxml2:
+    use: 'icu'
+  dev-qt/qtwebkit:
+    slot: '4'
+    use: 'icu'
+  media-libs/harfbuzz:
+    use: 'icu'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
