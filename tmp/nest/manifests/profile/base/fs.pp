@@ -1,12 +1,21 @@
 class nest::profile::base::fs {
-  if $::nest::server {
-    package { 'net-fs/nfs-utils':
-      ensure => installed,
-    }
+  package { 'net-fs/nfs-utils':
+    ensure => installed,
+  }
 
+  if $::nest::server {
     service { 'nfs-server':
       enable  => true,
       require => Package['net-fs/nfs-utils'],
+    }
+  } else {
+    package { 'sys-fs/cachefilesd':
+      ensure => installed,
+    }
+
+    service { 'cachefilesd':
+      enable  => true,
+      require => Package['sys-fs/cachefilesd'],
     }
   }
 }
