@@ -1,4 +1,5 @@
 class nest::profile::workstation {
+  contain '::nest::profile::workstation::chromium'
   contain '::nest::profile::workstation::cursor'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::fonts'
