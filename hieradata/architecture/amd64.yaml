@@ -8,6 +8,10 @@ nest::package_keywords:
   sys-auth/pam_ssh: {}
   www-client/firefox: {}
 
+  # for chromium[cups]
+  media-libs/freetype:
+    version: '2.6.3-r1'
+
   # dracut
   sys-boot/plymouth: {}
   sys-kernel/dracut: {}
@@ -18,6 +22,10 @@ nest::package_keywords:
 
   # networkmanager
   dev-libs/nss: {}
+
+  # for plasma-meta[handbook]
+  dev-libs/grantlee:
+    version: '5.1.0'
 
   # zfs
   sys-kernel/spl:
