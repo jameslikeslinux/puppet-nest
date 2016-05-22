@@ -7,7 +7,7 @@ class nest::profile::base::openvpn {
     server 172.22.2.0 255.255.255.0
     topology subnet
     client-to-client
-    keepalive 10 60
+    keepalive 10 30
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DNS 172.22.2.1"
     script-security 2
