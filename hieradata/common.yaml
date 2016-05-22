@@ -2,7 +2,7 @@
 classes:
   - 'nest'
 
-puppet::puppetmaster: 'hawk'
+puppet::puppetmaster: 'hawk.nest'
 
 nest::nullmailer_config: >
   ENC[PKCS7,MIIC/QYJKoZIhvcNAQcDoIIC7jCCAuoCAQAxggJEMIICQAIBADAoMCMxITAf

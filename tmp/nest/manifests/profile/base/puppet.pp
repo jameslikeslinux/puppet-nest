@@ -1,7 +1,7 @@
 class nest::profile::base::puppet {
   if $::nest::server {
     class { '::puppet':
-      dns_alt_names               => ['puppet', 'nest.james.tl'],
+      dns_alt_names               => ['puppet', "${::trusted['certname']}.nest", 'nest.james.tl'],
       server                      => true,
       server_dynamic_environments => true,
       server_environments         => [],
