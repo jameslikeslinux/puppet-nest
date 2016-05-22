@@ -86,6 +86,18 @@ class nest::profile::base::portage {
   create_resources(package_keywords, $::nest::package_keywords, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use, { 'notify' => Class['::portage'] })
 
+  $kde_keywords_content = @(EOT)
+    dev-qt/*:5
+    kde-*/*:5
+    | EOT
+
+  file { '/etc/portage/package.keywords/kde':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $kde_keywords_content,
+  }
+
   # Enable libzfs USE flag for GRUB
   # XXX: This could be made more generic if needed
   file { '/etc/portage/profile':
