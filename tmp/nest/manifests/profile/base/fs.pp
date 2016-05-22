@@ -3,7 +3,7 @@ class nest::profile::base::fs {
     ensure => installed,
   }
 
-  if $::nest::server {
+  if $::nest::server == true {
     service { 'nfs-server':
       enable  => true,
       require => Package['net-fs/nfs-utils'],

@@ -1,5 +1,5 @@
 class nest::profile::base::puppet {
-  if $::nest::server {
+  if $::nest::server == true {
     class { '::puppet':
       dns_alt_names               => ['puppet', "${::trusted['certname']}.nest", 'nest.james.tl'],
       server                      => true,
@@ -59,6 +59,7 @@ class nest::profile::base::puppet {
     }
   } else {
     class { '::puppet':
+      puppetmaster         => $::nest::server,
       unavailable_runmodes => ['cron'],
     }
   }

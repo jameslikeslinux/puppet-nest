@@ -37,7 +37,7 @@ class nest::profile::base::fstab {
     "set 4/dump 0",
     "set 4/passno 0",
 
-    "set 5/spec hawk.nest:/nest",
+    "set 5/spec ${::nest::server}:/nest",
     "set 5/file /nest",
     "set 5/vfstype nfs",
     "set 5/opt[2] noauto",

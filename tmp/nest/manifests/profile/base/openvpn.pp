@@ -59,7 +59,7 @@ class nest::profile::base::openvpn {
     group => 'root',
   }
 
-  if $::nest::server {
+  if $::nest::server == true {
     $mode        = 'server'
     $mode_config = $server_config
 
