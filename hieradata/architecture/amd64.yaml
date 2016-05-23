@@ -3,32 +3,39 @@ nest::package_server: 'hawk.nest'
 nest::use: ['numa']
 
 nest::package_keywords:
+  # I always want the most recent of these:
   mail-client/thunderbird: {}
   media-sound/cantata: {}
-  net-fs/nfs-utils: {}
-  sys-auth/pam_ssh: {}
+  sys-kernel/dracut: {}
   www-client/firefox: {}
 
-  # for chromium[cups]
-  media-libs/freetype:
-    version: '=2.6.3-r1'
-
-  # dracut
-  sys-boot/plymouth: {}
-  sys-kernel/dracut: {}
-
-  # hiera-eyaml
-  dev-ruby/hiera-eyaml: {}
-  dev-ruby/trollop: {}
-
-  # networkmanager
-  dev-libs/nss: {}
-
-  # for plasma-meta[handbook]
+  # For plasma-meta[handbook]
   dev-libs/grantlee:
     version: '=5.1.0'
 
-  # zfs
+  # For firefox-46
+  dev-libs/nss:
+    version: '=3.23'
+
+  # For chromium[cups]
+  media-libs/freetype:
+    version: '=2.6.3-r1'
+
+  # For better systemd units
+  net-fs/nfs-utils:
+    version: '=1.3.3'
+
+  # More reliable than 1.98
+  sys-auth/pam_ssh:
+    version: '=2.1'
+
+  # hiera-eyaml
+  dev-ruby/hiera-eyaml:
+    version: '=2.0.8'
+  dev-ruby/trollop:
+    version: '=2.1.2'
+
+  # ZFS
   sys-kernel/spl:
     version: '=9999'
     keywords: '**'
@@ -39,9 +46,19 @@ nest::package_keywords:
     version: '=9999'
     keywords: '**'
 
-  # for better Skylake support
+  # For better Skylake support
   sys-kernel/gentoo-sources:
     version: '=4.5.5'
+  sys-kernel/linux-firmware:
+    version: '=20160616'
+  x11-base/xorg-drivers:
+    version: '=1.18-r1'
+  x11-base/xorg-server:
+    version: '=1.18.3'
+  x11-drivers/xf86-video-intel:
+    version: '=2.99.917_p20160518'
+  x11-drivers/xf86-video-ati:
+    version: '=7.7.0'
 
 nest::package_use:
   # For plymouth
