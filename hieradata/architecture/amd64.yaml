@@ -39,6 +39,10 @@ nest::package_keywords:
     version: '=0.6.5.6'
     keywords: '**'
 
+  # for better Skylake support
+  sys-kernel/gentoo-sources:
+    version: '=4.5.5'
+
 nest::package_use:
   # For plymouth
   x11-libs/libdrm:
