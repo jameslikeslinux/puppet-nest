@@ -17,9 +17,10 @@ class nest::profile::workstation::mpd {
     | EOT
 
   file { '/home/james/.mpdasrc':
-    mode    => '0600',
-    owner   => 'james',
-    group   => 'users',
-    content => $mpdasrc,
+    mode      => '0600',
+    owner     => 'james',
+    group     => 'users',
+    content   => $mpdasrc_content,
+    show_diff => false,
   }
 }
