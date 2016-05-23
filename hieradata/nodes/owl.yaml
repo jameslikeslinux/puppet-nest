@@ -5,7 +5,6 @@ nest::profiles:
 nest::grub_disks: ['/dev/nvme0n1p1']
 nest::luks_disks:
   owl-crypt0: '72d772d7-76cf-4f53-bd8e-b65304945f0e'
-nest::kernel_cmdline: 'intel_pstate=no_hwp'
 nest::scaling_factor: 1.65
 nest::dvorak: true
 
