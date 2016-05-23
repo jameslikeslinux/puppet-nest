@@ -24,7 +24,7 @@ class nest::profile::workstation::plasma {
   $scaling = @("EOT")
     export GDK_SCALE=${::nest::scaling_factor_rounded}
     export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
-    export QT_DEVICE_PIXEL_RATIO=${::nest::scaling_factor_rounded}
+    export QT_AUTO_SCREEN_SCALE_FACTOR=1
     | EOT
 
   file { '/etc/plasma/startup/10-scaling.sh':
