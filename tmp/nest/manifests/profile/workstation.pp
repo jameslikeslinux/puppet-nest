@@ -3,6 +3,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::cursor'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::fonts'
+  contain '::nest::profile::workstation::mpd'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::thunderbird'
   contain '::nest::profile::workstation::xorg'

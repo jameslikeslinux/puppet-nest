@@ -19,6 +19,7 @@ class nest (
   $monitor_layout   = [],
   $primary_monitor  = undef,
   $video_card       = undef,
+  $lastfm_pw_hash   = undef,
 ) {
   if 'workstation' in $profiles {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'

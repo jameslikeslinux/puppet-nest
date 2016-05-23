@@ -4,6 +4,7 @@ nest::use: ['numa']
 
 nest::package_keywords:
   mail-client/thunderbird: {}
+  media-sound/cantata: {}
   net-fs/nfs-utils: {}
   sys-auth/pam_ssh: {}
   www-client/firefox: {}
