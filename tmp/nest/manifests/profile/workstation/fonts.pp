@@ -3,7 +3,10 @@ class nest::profile::workstation::fonts {
     use => 'tahoma',
   }
 
-  package { 'media-fonts/corefonts':
+  package { [
+    'media-fonts/corefonts',
+    'media-fonts/liberation-fonts', # primarily for GitHub, tbh
+  ]:
     ensure => installed,
   }
 
