@@ -57,4 +57,11 @@ class nest::profile::workstation::xorg {
   eselect { 'opengl':
     set => $eselect_opengl,
   }
+
+  package { [
+    'x11-apps/xrandr',
+    'x11-misc/vdpauinfo',
+  ]:
+    ensure => installed,
+  }
 }
