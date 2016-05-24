@@ -75,4 +75,19 @@ class nest::profile::workstation::plasma {
       Augeas['pam-sddm'],
     ],
   }
+
+  nest::portage::package_use { 'kde-apps/dolphin':
+    use => 'thumbnail',
+  }
+
+  package { [
+    'kde-apps/ark',
+    'kde-apps/dolphin',
+    'kde-apps/gwenview',
+    'kde-apps/kwrite',
+    'kde-apps/okular',
+    'kde-apps/spectacle',
+  ]:
+    ensure => installed,
+  }
 }
