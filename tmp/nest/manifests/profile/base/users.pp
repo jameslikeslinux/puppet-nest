@@ -26,7 +26,10 @@ class nest::profile::base::users {
       home    => '/home/james',
       comment => 'James Lee',
       shell   => '/bin/zsh',
-      require => Package['app-shells/zsh'];
+      require => [
+        Package['app-shells/zsh'],
+        Class['::nest::profile::base::network'],  # networkmanager creates 'plugdev' group
+      ],
   }
 
   file {

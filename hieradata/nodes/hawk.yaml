@@ -1,5 +1,4 @@
 ---
-nest::profile: 'workstation'
 nest::package_server: true
 
 nest::grub_disks: ['/dev/nvme0n1p1']

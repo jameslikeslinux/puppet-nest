@@ -5,6 +5,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::fonts'
   contain '::nest::profile::workstation::mpd'
   contain '::nest::profile::workstation::plasma'
+  contain '::nest::profile::workstation::policykit'
   contain '::nest::profile::workstation::thunderbird'
   contain '::nest::profile::workstation::xorg'
 
@@ -21,4 +22,8 @@ class nest::profile::workstation {
   # Plasma installs default cursors which we want to replace
   Class['::nest::profile::workstation::plasma'] ->
   Class['::nest::profile::workstation::cursor']
+
+  # PolicyKit is pulled in by the profile
+  Class['::nest::profile::base::portage'] ->
+  Class['::nest::profile::workstation::policykit']
 }

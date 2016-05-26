@@ -71,8 +71,8 @@ class nest::profile::base::portage {
   }
 
   # Create portage package properties rebuild affected packages
-  create_resources(package_keywords, $::nest::package_keywords, { 'before' => Class['::portage'] })
-  create_resources(package_use, $::nest::package_use, { 'notify' => Class['::portage'] })
+  create_resources(package_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
+  create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
   $kde_keywords_content = @(EOT)
     dev-qt/*:5

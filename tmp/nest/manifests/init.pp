@@ -3,7 +3,6 @@ class nest (
   $package_server,
   $ssh_private_key,
   $root_mail_alias,
-  $profile          = 'base',
   $package_keywords = {},
   $package_use      = {},
   $kernel_config    = {},
@@ -22,7 +21,7 @@ class nest (
   $lastfm_pw_hash   = undef,
   $live             = $::nest['live'],
 ) {
-  if $profile == 'workstation' {
+  if $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia r600 radeon'
@@ -34,6 +33,8 @@ class nest (
     $use_defaults   = []
   }
   
+  $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
+  $package_use_hiera = hiera_hash('nest::package_use', $package_use)
   $use_hiera = hiera_array('nest::use', $use)
   $use_combined = union($use_defaults, $use_hiera).sort
 
@@ -54,7 +55,7 @@ class nest (
   # Include standard profile
   contain '::nest::profile::base'
 
-  if $profile == 'workstation' {
+  if $::nest['profile'] == 'workstation' {
     contain '::nest::profile::workstation'
   }
 }

@@ -1,0 +1,9 @@
+---
+nest::package_use:
+  # For networkmanager[wifi]
+  net-wireless/wpa_supplicant:
+    use: 'dbus'
+
+  # Don't pull in X
+  sys-boot/plymouth:
+    use: '-gtk'
