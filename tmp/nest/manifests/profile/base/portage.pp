@@ -1,17 +1,4 @@
 class nest::profile::base::portage {
-  if is_string($::nest::package_server) {
-    $binhost_ensure = undef
-    $package_features = 'getbinpkg'
-  } else {
-    $binhost_ensure = absent
-    $package_features = 'buildpkg'
-  }
-
-  $features = [
-    'splitdebug',
-    $package_features,
-  ]
-
   $input_devices_ensure = $::nest::input_devices ? {
     undef   => absent,
     default => undef,
@@ -52,16 +39,17 @@ class nest::profile::base::portage {
       content => $portage_cxxflags;
     'cpu_flags_x86':
       content => $portage_cpu_flags_x86;
+    'emerge_default_opts':
+      content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
-      content => sort(flatten($features));
+      content => ['buildpkg', 'splitdebug'];
     'input_devices':
       content => $::nest::input_devices,
       ensure  => $input_devices_ensure;
     'makeopts':
       content => $makeopts;
-    'portage_binhost':
-      content => "http://${::nest::package_server}/packages",
-      ensure  => $binhost_ensure;
+    'pkgdir':
+      content => "/nest/packages/${::architecture}-${::nest::profile}";
     'use':
       content => $::nest::use_combined,
       ensure  => $use_ensure;

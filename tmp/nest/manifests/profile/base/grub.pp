@@ -21,8 +21,13 @@ class nest::profile::base::grub {
     match   => '^#?GRUB_CMDLINE_LINUX=',
   }
 
+  $grub_device = $::nest::live ? {
+    true    => 'live:LABEL=NEST_LIVE',
+    default => '',
+  }
+
   file_line { 'grub-set-device':
-    line  => 'GRUB_DEVICE=',
+    line  => "GRUB_DEVICE=${grub_device}",
     match => '^#?GRUB_DEVICE=',
   }
 

@@ -45,7 +45,7 @@ class nest::profile::base::kernel {
     refreshonly => true,
   }
 
-  exec { '/usr/bin/emerge @module-rebuild':
+  exec { '/usr/bin/emerge --usepkg n @module-rebuild':
     timeout     => 0,
     refreshonly => true,
     subscribe   => Exec['make kernel'],

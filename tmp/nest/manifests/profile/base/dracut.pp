@@ -11,11 +11,17 @@ class nest::profile::base::dracut {
     unless  => '/usr/sbin/plymouth-set-default-theme | /bin/grep -q details',
   }
 
-  $base_config_content = @(EOT)
-    add_dracutmodules+=" crypt "
-    hostonly="yes"
-    hostonly_cmdline="no"
-    | EOT
+  # XXX: Improve this
+  if $::nest::live {
+    $base_config_content = @(EOT)
+      | EOT
+  } else {
+    $base_config_content = @(EOT)
+      add_dracutmodules+=" crypt "
+      hostonly="yes"
+      hostonly_cmdline="no"
+      | EOT
+  }
 
   file { '/etc/dracut.conf.d/00-base.conf':
     mode    => '0644',
