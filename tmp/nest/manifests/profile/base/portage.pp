@@ -49,7 +49,7 @@ class nest::profile::base::portage {
     'makeopts':
       content => $makeopts;
     'pkgdir':
-      content => "/nest/packages/${::architecture}-${::nest::profile}";
+      content => "/nest/packages/${::architecture}-${::nest['profile']}";
     'use':
       content => $::nest::use_combined,
       ensure  => $use_ensure;
