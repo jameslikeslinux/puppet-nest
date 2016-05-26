@@ -38,12 +38,14 @@ nest::package_keywords:
     version: '=20160616'
 
 nest::package_use:
-  # Ordinarily I'd define this in nest::profile::base::systemd,
-  # but since systemd is included as part of the profile, we
-  # want to have this use flag set early in the run, which this
+  # Ordinarily I'd define this in the appropriate profile class,
+  # but since they are included as part of the profile, we
+  # want to have these use flag set early in the run, which this
   # accomplishes.
   sys-apps/systemd:
     use: 'cryptsetup'
+  sys-auth/pambase:
+    use: 'pam_ssh'
 
   # For plymouth
   x11-libs/libdrm:
