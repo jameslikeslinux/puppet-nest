@@ -10,6 +10,6 @@
 
 :hierarchy:
   - "nodes/%{::trusted.certname}"
-  - "architectures/%{::architecture}/profiles/${::nest.profile}"
+  - "architectures/%{::architecture}/profiles/%{::nest.profile}"
   - "architectures/%{::architecture}"
   - "common"

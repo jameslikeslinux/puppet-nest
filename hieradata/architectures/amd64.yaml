@@ -3,6 +3,9 @@ nest::package_server: 'hawk.nest'
 nest::use: ['numa']
 
 nest::package_keywords:
+  sys-kernel/dracut:
+    version: '=044'
+
   # For better systemd units
   net-fs/nfs-utils:
     version: '=1.3.3'
