@@ -1,8 +1,4 @@
 class nest::profile::base::systemd {
-  nest::portage::package_use { 'sys-apps/systemd':
-    use => 'cryptsetup',
-  }
-
   file { '/etc/hostname':
     content => "${::trusted['certname']}\n",
   }

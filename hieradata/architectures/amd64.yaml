@@ -37,6 +37,18 @@ nest::package_keywords:
   sys-kernel/linux-firmware:
     version: '=20160616'
 
+nest::package_use:
+  # Ordinarily I'd define this in nest::profile::base::systemd,
+  # but since systemd is included as part of the profile, we
+  # want to have this use flag set early in the run, which this
+  # accomplishes.
+  sys-apps/systemd:
+    use: 'cryptsetup'
+
+  # For plymouth
+  x11-libs/libdrm:
+    use: 'libkms'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y

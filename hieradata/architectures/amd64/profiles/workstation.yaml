@@ -28,10 +28,6 @@ nest::package_keywords:
     version: '=7.7.0'
 
 nest::package_use:
-  # For plymouth
-  x11-libs/libdrm:
-    use: 'libkms'
-
   # For nvidia-drivers
   x11-libs/libXext:
     use: 'abi_x86_32'
