@@ -70,6 +70,7 @@ nest::kernel_config:
   CONFIG_BLK_DEV_NVME: m
   CONFIG_MD_RAID1: m
   CONFIG_DM_CRYPT: m
+  CONFIG_DM_SNAPSHOT: m
   CONFIG_TUN: m
   CONFIG_E1000E: m
   CONFIG_IGB: m
