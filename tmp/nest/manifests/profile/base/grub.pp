@@ -51,11 +51,15 @@ class nest::profile::base::grub {
       command     => $install_command,
       refreshonly => true,
       require     => Package['sys-boot/grub'],
-      before      => [
-        File['/boot/grub/fonts'],
-        File['/boot/grub/layouts'],
-      ],
+      before      => File['/boot/grub'],
     }
+  }
+
+  file { '/boot/grub':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
   }
 
   file { [
@@ -72,7 +76,11 @@ class nest::profile::base::grub {
 
   exec { 'grub2-mkfont':
     command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
-    creates => "/boot/grub/fonts/${font}.pf2"
+    creates => "/boot/grub/fonts/${font}.pf2",
+    require => [
+      Package['sys-boot/grub'],
+      File['/boot/grub/fonts'],
+    ],
   }
 
   file { "/boot/grub/fonts/${font}.pf2":
