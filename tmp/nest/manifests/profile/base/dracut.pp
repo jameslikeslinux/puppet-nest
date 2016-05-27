@@ -14,6 +14,7 @@ class nest::profile::base::dracut {
   # XXX: Improve this
   if $::nest::live {
     $base_config_content = @(EOT)
+      add_dracutmodules+=" dmsquash-live "
       | EOT
   } else {
     $base_config_content = @(EOT)
