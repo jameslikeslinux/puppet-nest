@@ -58,34 +58,40 @@ class nest::profile::base::puppet {
       group  => 'root',
       source => 'puppet:///modules/nest/puppet/r10k.yaml',
     }
+
+    package { 'dev-ruby/hiera-eyaml':
+      ensure =>  installed,
+    }
+
+    file { '/etc/eyaml':
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+    }
+
+    $eyaml_config = @("EOT")
+      ---
+      pkcs7_private_key: '${::settings::cakey}'
+      pkcs7_public_key: '${::settings::localcacert}'
+      | EOT
+
+    file { '/etc/eyaml/config.yaml':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => $eyaml_config,
+    }
   } else {
+    $puppet_runmode = $::nest::live ? {
+      true    => 'none',
+      default => undef,
+    }
+
     class { '::puppet':
       puppetmaster         => $::nest::server,
       unavailable_runmodes => ['cron'],
+      runmode              => $puppet_runmode,
     }
-  }
-
-  package { 'dev-ruby/hiera-eyaml':
-    ensure =>  installed,
-  }
-
-  file { '/etc/eyaml':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
-
-  $eyaml_config = @("EOT")
-    ---
-    pkcs7_private_key: '${::settings::cakey}'
-    pkcs7_public_key: '${::settings::localcacert}'
-    | EOT
-
-  file { '/etc/eyaml/config.yaml':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $eyaml_config,
   }
 }
