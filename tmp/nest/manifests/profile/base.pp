@@ -40,6 +40,10 @@ class nest::profile::base {
   Class['::nest::profile::base::mta'] ->
   Class['::nest::profile::base::sudo']
 
+  # Dracut liveimg depends on dhcp, pulled in by network class
+  Class['::nest::profile::base::network'] ->
+  Class['::nest::profile::base::dracut']
+
   # OpenVPN modifies resolvconf which is installed for NetworkManager
   Class['::nest::profile::base::network'] ->
   Class['::nest::profile::base::openvpn']
