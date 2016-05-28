@@ -8,7 +8,7 @@ class nest::profile::base::fs {
       enable  => true,
       require => Package['net-fs/nfs-utils'],
     }
-  } else {
+  } elsif !$::nest::live {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
     }
