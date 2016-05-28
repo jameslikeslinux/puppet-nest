@@ -5,6 +5,11 @@ class nest::profile::base::firewall {
     service_name => 'iptables',
   }
 
+  # Gentoo systemd services use a different save file
+  File <| title == '/var/lib/iptables/rules-save6' |> {
+    path => '/var/lib/ip6tables/rules-save',
+  }
+
   service { [
     'iptables-restore',
     'iptables-store',
