@@ -16,6 +16,13 @@ class nest::profile::base::dracut {
     $base_config_content = @(EOT)
       add_dracutmodules+=" dmsquash-live livenet "
       | EOT
+
+    # Fix bug in livenet module (script not executable)
+    file { '/usr/lib/dracut/modules.d/90livenet/livenet-generator.sh':
+      mode    => '0755',
+      require => Package['sys-kernel/dracut'],
+      notify  => Exec['dracut'],
+    }
   } else {
     $base_config_content = @(EOT)
       add_dracutmodules+=" crypt "
