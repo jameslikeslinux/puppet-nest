@@ -23,6 +23,13 @@ class nest::profile::base::dracut {
       require => Package['sys-kernel/dracut'],
       notify  => Exec['dracut'],
     }
+
+    # Pull in https://github.com/dracutdevs/dracut/commit/ce9a398771d6e8503d767b450282db52b7a4b482
+    file { '/usr/lib/dracut/modules.d/90dmsquash-live/dmsquash-live-root.sh':
+      source  => 'puppet:///modules/nest/dracut/dmsquash-live-root.sh',
+      require => Package['sys-kernel/dracut'],
+      notify  => Exec['dracut'],
+    }
   } else {
     $base_config_content = @(EOT)
       add_dracutmodules+=" crypt "
