@@ -22,7 +22,7 @@ class nest::profile::base::grub {
   }
 
   $gfxmode = $::nest::vm ? {
-    true    => 'GRUB_GFXMODE=1024x767',
+    true    => 'GRUB_GFXMODE=1024x768',
     default => '#GRUB_GFXMODE=640x480',
   }
   file_line { 'grub-set-gfxmode':
