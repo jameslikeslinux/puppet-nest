@@ -1,6 +1,7 @@
 class nest::profile::base::puppet {
   if $::nest::server == true {
     class { '::puppet':
+      autosign                    => true,
       dns_alt_names               => ['puppet', "${::trusted['certname']}.nest", 'nest.james.tl'],
       puppetmaster                => "${::trusted['certname']}.nest",
       server                      => true,
