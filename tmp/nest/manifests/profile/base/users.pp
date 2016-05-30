@@ -6,10 +6,7 @@ class nest::profile::base::users {
     group  => 'root',
   }
 
-  package { [
-    'app-shells/zsh',
-    'dev-vcs/git',
-  ]:
+  package { 'app-shells/zsh':
     ensure => installed,
   }
 
@@ -51,8 +48,7 @@ class nest::profile::base::users {
       ensure   => latest,
       provider => git,
       source   => 'https://github.com/iamjamestl/profile.git',
-      revision => 'master',
-      require  => Package['dev-vcs/git'];
+      revision => 'master';
 
     '/root':
       require  => File['/root/.keep'];
