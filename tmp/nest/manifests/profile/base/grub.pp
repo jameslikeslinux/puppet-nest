@@ -21,6 +21,15 @@ class nest::profile::base::grub {
     match   => '^#?GRUB_CMDLINE_LINUX=',
   }
 
+  $gfxmode = $::nest::vm ? {
+    true    => 'GRUB_GFXMODE=1024x767',
+    default => '#GRUB_GFXMODE=640x480',
+  }
+  file_line { 'grub-set-gfxmode':
+    line  => $gfxmode,
+    match => '^#?GRUB_GFXMODE',
+  }
+
   file_line { 'grub-set-device':
     line  => "GRUB_DEVICE=",
     match => '^#?GRUB_DEVICE=',

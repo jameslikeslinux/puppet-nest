@@ -20,6 +20,7 @@ class nest (
   $video_card       = undef,
   $lastfm_pw_hash   = undef,
   $live             = $::nest['live'],
+  $vm               = ($::virtual == 'kvm'),
 ) {
   if $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
