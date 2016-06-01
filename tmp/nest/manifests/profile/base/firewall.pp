@@ -77,9 +77,8 @@ class nest::profile::base::firewall {
     provider => ip6tables,
   }
   ->
-  firewall { '011 ping (v6)':
+  firewall { '011 icmp (v6)':
     proto    => ipv6-icmp,
-    icmp     => 'echo-request',
     state    => 'NEW',
     action   => accept,
     provider => ip6tables,
