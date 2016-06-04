@@ -1,5 +1,8 @@
 class nest::profile::base::packages {
-  package { 'sys-block/parted':
+  package { [
+    'app-editors/vim',
+    'sys-block/parted',
+  ]:
     ensure => installed,
   }
 }
