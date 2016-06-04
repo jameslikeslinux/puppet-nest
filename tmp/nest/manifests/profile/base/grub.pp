@@ -54,26 +54,20 @@ class nest::profile::base::grub {
     match => '^#?GRUB_FONT=',
   }
 
-  $grub_install_command = @("EOT"/$)
-    for esp in /dev/disk/by-partlabel/${::trusted['certname']}-efi*; do
-      mkdir /boot/efi
-      mount "\$esp" /boot/efi
-      /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt
-      umount /boot/efi
-      rm -rf /boot/efi
-    done
-
-    for bios_part in /dev/disk/by-partlabel/${::trusted['certname']}-bios*; do
-      eval `lsblk --inverse --pairs --paths --output NAME "\$bios_part"`
-      /usr/sbin/grub2-install --target=i386-pc --modules=part_gpt "\$NAME"
-    done
-    | EOT
+  file { '/usr/sbin/grub2-auto-install':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => template('nest/grub/auto-install.sh.erb'),
+  }
 
   exec { 'grub-install':
-    command     => $grub_install_command,
-    provider    => shell,
+    command     => '/usr/sbin/grub2-auto-install',
     refreshonly => true,
-    require     => Package['sys-boot/grub'],
+    require     => [
+      File['/usr/sbin/grub2-auto-install'],
+      Package['sys-boot/grub'],
+    ],
   }
 
   file { '/boot/grub':
