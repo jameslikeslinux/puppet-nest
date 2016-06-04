@@ -1,7 +1,6 @@
 ---
 nest::package_server: true
 
-nest::grub_disks: ['/dev/nvme0n1p1']
 nest::luks_disks:
   hawk-crypt0: '012d7df3-f636-49c7-9683-f1797ff32d9f'
   nest-crypt0: 'f4dc141c-b9a4-4ca7-9b1f-333b80475113'

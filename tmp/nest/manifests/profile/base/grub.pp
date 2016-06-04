@@ -54,25 +54,34 @@ class nest::profile::base::grub {
     match => '^#?GRUB_FONT=',
   }
 
-  $::nest::grub_disks.each |$grub_disk| {
-    $install_command = $grub_disk ? {
-      /p(art)?\d$/ => "/bin/mkdir /boot/efi && /bin/mount ${grub_disk} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
-      default      => "/usr/sbin/grub2-install --target=i386-pc ${grub_disk}",
-    }
+  $grub_install_command = @("EOT"/$)
+    for esp in /dev/disk/by-partlabel/${::trusted['certname']}-efi*; do
+      mkdir /boot/efi
+      mount "\$esp" /boot/efi
+      /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt
+      umount /boot/efi
+      rm -rf /boot/efi
+    done
 
-    exec { "grub-install-${grub_disk}":
-      command     => $install_command,
-      refreshonly => true,
-      require     => Package['sys-boot/grub'],
-      before      => File['/boot/grub'],
-    }
+    for bios_part in /dev/disk/by-partlabel/${::trusted['certname']}-bios*; do
+      eval `lsblk --inverse --pairs --paths --output NAME "\$bios_part"`
+      /usr/sbin/grub2-install --target=i386-pc --modules=part_gpt "\$NAME"
+    done
+    | EOT
+
+  exec { 'grub-install':
+    command     => $grub_install_command,
+    provider    => shell,
+    refreshonly => true,
+    require     => Package['sys-boot/grub'],
   }
 
   file { '/boot/grub':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
+    ensure  => directory,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    require => Exec['grub-install'],
   }
 
   file { [

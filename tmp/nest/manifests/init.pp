@@ -5,7 +5,6 @@ class nest (
   $package_keywords = {},
   $package_use      = {},
   $kernel_config    = {},
-  $grub_disks       = [],
   $kernel_cmdline   = '',
   $luks_disks       = {},
   $server           = false,
