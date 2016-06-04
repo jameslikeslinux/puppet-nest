@@ -15,6 +15,7 @@ class nest::profile::base::dracut {
   if $::nest::live {
     $base_config_content = @(EOT)
       add_dracutmodules+=" dmsquash-live livenet "
+      kernel_cmdline="rd.live.overlay.thin=1"
       | EOT
 
     # Fix bug in livenet module (script not executable)
