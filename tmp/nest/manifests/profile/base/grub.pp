@@ -76,7 +76,7 @@ class nest::profile::base::grub {
   }
 
   # Don't manage grub on live-booted systems
-  unless $::mountpoints['/']['device'] == '/dev/mapper/live-rw' {
+  unless $::mountpoints['/'] and $::mountpoints['/']['device'] == '/dev/mapper/live-rw' {
     file { '/boot/grub':
       ensure  => directory,
       mode    => '0755',
