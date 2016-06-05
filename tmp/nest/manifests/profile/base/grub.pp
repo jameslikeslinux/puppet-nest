@@ -12,7 +12,7 @@ class nest::profile::base::grub {
   File_line {
     path    => '/etc/default/grub',
     require => Package['sys-boot/grub'],
-    notify  => Exec['grub2-mkconfig'],
+    tag     => 'file-line-grub',
   }
 
   $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet splash fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
@@ -54,73 +54,72 @@ class nest::profile::base::grub {
     match => '^#?GRUB_FONT=',
   }
 
-  $grub_install_command = @("EOT"/$)
-    shopt -s nullglob
+  $partitions.each |$partition, $attributes| {
+    $disk = regsubst($partition, '\d+$', '')
 
-    for esp in /dev/disk/by-partlabel/${::trusted['certname']}-efi*; do
-        mkdir /boot/efi
-        mount "\$esp" /boot/efi
-        /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt
-        umount /boot/efi
-        rm -rf /boot/efi
-    done
+    $grub_install_command = $attributes['partlabel'] ? {
+      /^${::trusted['certname']-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
+      /^${::trusted['certname']-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
+      default                         => undef,
+    }
 
-    for bios_part in /dev/disk/by-partlabel/${::trusted['certname']}-bios*; do
-        eval `lsblk --inverse --pairs --paths --output NAME "\$bios_part"`
-        /usr/sbin/grub2-install --target=i386-pc --modules=part_gpt "\$NAME"
-    done
-    | EOT
-
-  exec { 'grub-install':
-    command     => $grub_install_command,
-    provider    => shell,
-    refreshonly => true,
-    require     => Package['sys-boot/grub'],
+    if $grub_install_command { 
+      exec { "grub-install-${disk}":
+        command     => $grub_install_command,
+        refreshonly => true,
+        require     => Package['sys-boot/grub'],
+        tag         => 'grub-install',
+      }
+    }
   }
 
-  file { '/boot/grub':
-    ensure  => directory,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    require => Exec['grub-install'],
-  }
+  if $::mountpoints['/boot'] {
+    file { '/boot/grub':
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+    }
 
-  file { [
-    '/boot/grub/fonts',
-    '/boot/grub/layouts',
-  ]:
-    ensure  => directory,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    recurse => true,
-    purge   => true,
-  }
+    file { [
+      '/boot/grub/fonts',
+      '/boot/grub/layouts',
+    ]:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+      recurse => true,
+      purge   => true,
+    }
 
-  exec { 'grub2-mkfont':
-    command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
-    creates => "/boot/grub/fonts/${font}.pf2",
-    require => [
-      Package['sys-boot/grub'],
-      File['/boot/grub/fonts'],
-    ],
-  }
+    exec { 'grub2-mkfont':
+      command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
+      creates => "/boot/grub/fonts/${font}.pf2",
+      require => [
+        Package['sys-boot/grub'],
+        File['/boot/grub/fonts'],
+      ],
+    }
 
-  file { "/boot/grub/fonts/${font}.pf2":
-    require => Exec['grub2-mkfont'],
-  }
+    file { "/boot/grub/fonts/${font}.pf2":
+      require => Exec['grub2-mkfont'],
+    }
 
-  file { '/boot/grub/layouts/dvorak.gkb':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
-  } 
+    file { '/boot/grub/layouts/dvorak.gkb':
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
+    } 
 
-  exec { 'grub2-mkconfig':
-    command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
-    refreshonly => true,
-    require     => Exec['grub2-mkfont'],
+    exec { 'grub2-mkconfig':
+      command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
+      refreshonly => true,
+      require     => Exec['grub2-mkfont'],
+    }
+
+    File_line <| tag == 'file-line-grub' |> ~> Exec['grub2-mkconfig']
+    Exec <| tag == 'grub-install' |> -> File['/boot/grub']
   }
 }
