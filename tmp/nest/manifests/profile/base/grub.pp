@@ -54,12 +54,12 @@ class nest::profile::base::grub {
     match => '^#?GRUB_FONT=',
   }
 
-  $partitions.each |$partition, $attributes| {
+  $::partitions.each |$partition, $attributes| {
     $disk = regsubst($partition, '\d+$', '')
 
     $grub_install_command = $attributes['partlabel'] ? {
-      /^${::trusted['certname']-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
-      /^${::trusted['certname']-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
+      /^${::trusted['certname']}-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
+      /^${::trusted['certname']}-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
       default                         => undef,
     }
 
