@@ -39,6 +39,8 @@ class nest::profile::base::portage {
       content => $portage_cxxflags;
     'cpu_flags_x86':
       content => $portage_cpu_flags_x86;
+    'distdir':
+      content => '/nest/portage/distfiles';
     'emerge_default_opts':
       content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
@@ -49,7 +51,7 @@ class nest::profile::base::portage {
     'makeopts':
       content => $makeopts;
     'pkgdir':
-      content => "/nest/packages/${::architecture}-${::nest['profile']}";
+      content => "/nest/portage/packages/${::architecture}-${::nest['profile']}";
     'use':
       content => $::nest::use_combined,
       ensure  => $use_ensure;
@@ -105,5 +107,46 @@ class nest::profile::base::portage {
     owner   => 'root',
     group   => 'root',
     content => $use_mask_content,
+  }
+
+  $repos_conf = @(EOT)
+    [DEFAULT]
+    main-repo = gentoo
+
+    [gentoo]
+    location = /var/cache/portage/gentoo
+    sync-type = git
+    sync-uri = https://github.com/iamjamestl/portage-gentoo.git
+    auto-sync = yes
+
+    [overlay]
+    location = /var/cache/portage/overlay
+    sync-type = git
+    sync-uri = https://github.com/iamjamestl/portage-overlay.git
+    auto-sync = yes
+    masters = gentoo
+    | EOT
+
+  file { '/etc/portage/repos.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $repos_conf,
+  }
+
+  vcsrepo { '/var/cache/portage/gentoo':
+    ensure   => present,
+    provider => git,
+    source   => 'https://github.com/iamjamestl/portage-gentoo.git',
+    force    => true,
+    depth    => 1,
+  }
+
+  vcsrepo { '/var/cache/portage/overlay':
+    ensure   => present,
+    provider => git,
+    source   => 'https://github.com/iamjamestl/portage-overlay.git',
+    force    => true,
+    depth    => 1,
   }
 }
