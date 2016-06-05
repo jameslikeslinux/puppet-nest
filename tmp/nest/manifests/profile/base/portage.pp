@@ -119,10 +119,10 @@ class nest::profile::base::portage {
     sync-uri = https://github.com/iamjamestl/portage-gentoo.git
     auto-sync = yes
 
-    [overlay]
-    location = /var/cache/portage/overlay
+    [nest]
+    location = /var/cache/portage/nest
     sync-type = git
-    sync-uri = https://github.com/iamjamestl/portage-overlay.git
+    sync-uri = https://github.com/iamjamestl/portage-nest.git
     auto-sync = yes
     masters = gentoo
     | EOT
@@ -142,7 +142,7 @@ class nest::profile::base::portage {
     depth    => 1,
   }
 
-  vcsrepo { '/var/cache/portage/overlay':
+  vcsrepo { '/var/cache/portage/nest':
     ensure   => present,
     provider => git,
     source   => 'https://github.com/iamjamestl/portage-overlay.git',
