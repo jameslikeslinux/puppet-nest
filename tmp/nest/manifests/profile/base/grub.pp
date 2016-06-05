@@ -55,7 +55,7 @@ class nest::profile::base::grub {
   }
 
   $::partitions.each |$partition, $attributes| {
-    $disk = regsubst($partition, 'p(art)?\d+$', '')
+    $disk = regsubst($partition, 'p?(art)?\d+$', '')
 
     if "${::trusted['certname']}-" in $attributes['partlabel'] {
       $grub_install_command = $attributes['partlabel'] ? {
