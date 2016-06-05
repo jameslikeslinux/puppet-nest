@@ -57,18 +57,20 @@ class nest::profile::base::grub {
   $::partitions.each |$partition, $attributes| {
     $disk = regsubst($partition, '\d+$', '')
 
-    $grub_install_command = $attributes['partlabel'] ? {
-      /^${::trusted['certname']}-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
-      /^${::trusted['certname']}-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
-      default                         => undef,
-    }
+    if "${::trusted['certname']}-" in $attributes['partlabel'] {
+      $grub_install_command = $attributes['partlabel'] ? {
+        /-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
+        /-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
+        default => undef,
+      }
 
-    if $grub_install_command { 
-      exec { "grub-install-${disk}":
-        command     => $grub_install_command,
-        refreshonly => true,
-        require     => Package['sys-boot/grub'],
-        tag         => 'grub-install',
+      if $grub_install_command { 
+        exec { "grub-install-${disk}":
+          command     => $grub_install_command,
+          refreshonly => true,
+          require     => Package['sys-boot/grub'],
+          tag         => 'grub-install',
+        }
       }
     }
   }
