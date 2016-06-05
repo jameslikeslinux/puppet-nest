@@ -12,4 +12,10 @@ class nest::profile::base::zfs {
   sysctl { 'vm.min_free_kbytes':
     value => '32768',
   }
+
+  # Not strictly ZFS related, though our swap is on ZFS, but this
+  # seems to improve stability in low memory conditions, counterintuitively.
+  sysctl { 'vm.swappiness':
+    value => '10',
+  }
 }
