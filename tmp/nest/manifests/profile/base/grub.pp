@@ -15,7 +15,7 @@ class nest::profile::base::grub {
     tag     => 'file-line-grub',
   }
 
-  $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet splash fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
+  $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
   file_line { 'grub-set-kernel-cmdline':
     line    => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
     match   => '^#?GRUB_CMDLINE_LINUX=',

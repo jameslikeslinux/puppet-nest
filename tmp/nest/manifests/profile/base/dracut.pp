@@ -6,11 +6,6 @@ class nest::profile::base::dracut {
     ensure => installed,
   }
 
-  exec { 'plymouth-set-default-theme':
-    command => '/usr/sbin/plymouth-set-default-theme details',
-    unless  => '/usr/sbin/plymouth-set-default-theme | /bin/grep -q details',
-  }
-
   # XXX: Improve this
   if $::nest::live {
     $base_config_content = @(EOT)
@@ -85,7 +80,6 @@ class nest::profile::base::dracut {
     require     => [
       Package['sys-kernel/dracut'],
       Package['sys-boot/plymouth'],
-      Exec['plymouth-set-default-theme'],
     ],
   }
 }
