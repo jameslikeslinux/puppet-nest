@@ -13,7 +13,7 @@ class nest::profile::base::distcc {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "localhost/${localhost_jobs}\n${distcc_hosts_content}",
+    content => "localhost/${localhost_jobs}\n${distcc_hosts_content}\n",
     require => Package['sys-devel/distcc'],
   }
 
