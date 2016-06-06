@@ -1,4 +1,3 @@
 ---
-nest::profile: 'workstation'
-nest::scaling_factor: 1.65
 nest::dvorak: true
+nest::scaling_factor: 1.65
