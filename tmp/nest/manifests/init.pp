@@ -2,6 +2,7 @@ class nest (
   $nullmailer_config,
   $ssh_private_key,
   $root_mail_alias,
+  $profile          = 'base',
   $package_keywords = {},
   $package_use      = {},
   $kernel_config    = {},
@@ -17,10 +18,9 @@ class nest (
   $primary_monitor  = undef,
   $video_card       = undef,
   $lastfm_pw_hash   = undef,
-  $live             = $::nest['live'],
   $vm               = ($::virtual == 'kvm'),
 ) {
-  if $::nest['profile'] == 'workstation' {
+  if $profile == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia r600 radeon'
@@ -54,7 +54,7 @@ class nest (
   # Include standard profile
   contain '::nest::profile::base'
 
-  if $::nest['profile'] == 'workstation' {
+  if $profile == 'workstation' {
     contain '::nest::profile::workstation'
   }
 }

@@ -12,7 +12,7 @@ class nest::profile::base::dracut {
   }
 
   # XXX: Improve this
-  if $::nest::live {
+  if $::live {
     $base_config_content = @(EOT)
       add_dracutmodules+=" dmsquash-live livenet "
       kernel_cmdline="rd.live.overlay.thin=1 rd.vconsole.font=ter-v16b"

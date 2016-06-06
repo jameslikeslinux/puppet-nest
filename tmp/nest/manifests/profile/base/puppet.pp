@@ -84,7 +84,7 @@ class nest::profile::base::puppet {
       content => $eyaml_config,
     }
   } else {
-    $puppet_runmode = $::nest::live ? {
+    $puppet_runmode = $::live ? {
       true    => 'none',
       default => undef,
     }
