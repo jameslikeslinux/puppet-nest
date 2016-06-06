@@ -12,7 +12,6 @@ class nest::profile::base::grub {
   File_line {
     path    => '/etc/default/grub',
     require => Package['sys-boot/grub'],
-    tag     => 'file-line-grub',
   }
 
   $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
@@ -122,7 +121,7 @@ class nest::profile::base::grub {
       require     => Exec['grub2-mkfont'],
     }
 
-    File_line <| tag == 'file-line-grub' |> ~> Exec['grub2-mkconfig']
+    File_line <| path == '/etc/default/grub' |> ~> Exec['grub2-mkconfig']
     Exec <| tag == 'grub-install' |> -> File['/boot/grub']
   }
 }
