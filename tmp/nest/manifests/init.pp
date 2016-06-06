@@ -7,7 +7,7 @@ class nest (
   $package_use      = {},
   $kernel_config    = {},
   $kernel_cmdline   = '',
-  $luks_disks       = {},
+  $extra_luks_disks = {},
   $server           = false,
   $cnames           = {},
   $libvirt          = false,
@@ -50,6 +50,16 @@ class nest (
   $cursor_size_ideal   = 24 * $::nest::scaling_factor
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal.round <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
+
+  $luks_disks = $::partitions.reduce({}) |$memo, $value| {
+    $partition  = $value[0]
+    $attributes = $value[1]
+    if $attributes['filesystem'] == 'crypto_LUKS' and "${::trusted['certname']}-" in $attributes['partlabel'] {
+      merge($memo, { $attributes['partlabel'] => $attributes['uuid'] })
+    } else {
+      $memo
+    }
+  }.merge($extra_luks_disks)
 
   # Include standard profile
   contain '::nest::profile::base'

@@ -1,8 +1,4 @@
 ---
 nest::profile: 'workstation'
-nest::luks_disks:
-  owl-crypt0: '72d772d7-76cf-4f53-bd8e-b65304945f0e'
 nest::scaling_factor: 1.65
 nest::dvorak: true
-
-puppet::environment: 'development'
