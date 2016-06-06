@@ -6,14 +6,14 @@ class nest::profile::base::distcc {
   $localhost_jobs = $::processorcount + 1
   $distcc_hosts_content = $::nest::distcc_hosts.map |$host, $processorcount| {
     $jobs = $processorcount + 1
-    "${host}/${jobs},cpp,lzo"
-  }.join("\n")
+    "${host}/${jobs},cpp,lzo\n"
+  }.join('')
 
   file { '/etc/distcc/hosts':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "localhost/${localhost_jobs}\n${distcc_hosts_content}\n",
+    content => "localhost/${localhost_jobs}\n${distcc_hosts_content}",
     require => Package['sys-devel/distcc'],
   }
 
