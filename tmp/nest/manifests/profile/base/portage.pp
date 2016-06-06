@@ -15,15 +15,15 @@ class nest::profile::base::portage {
   }
 
   $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_non_distcc = $processorcount + 1
+  $makejobs_distcc = $::nest::distcc_hosts.reduce($::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
 
-  $makejobs_non_distcc_min = ($makejobs_by_memory < $makejobs_non_distcc) ? {
+  $makejobs_distcc_min = ($makejobs_by_memory < $makejobs_distcc) ? {
     true    => $makejobs_by_memory,
-    default => $makejobs_non_distcc,
+    default => $makejobs_distcc,
   } 
 
   $loadlimit = $::processorcount + 1
-  $makeopts = "-j${makejobs_non_distcc_min} -l${loadlimit}"
+  $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
 
 
   class { '::portage':
@@ -44,7 +44,7 @@ class nest::profile::base::portage {
     'emerge_default_opts':
       content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
-      content => ['buildpkg', 'splitdebug'];
+      content => ['buildpkg', 'distcc', 'distcc-pump', 'splitdebug'];
     'input_devices':
       content => $::nest::input_devices,
       ensure  => $input_devices_ensure;

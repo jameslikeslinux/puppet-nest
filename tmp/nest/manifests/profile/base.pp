@@ -1,4 +1,6 @@
 class nest::profile::base {
+  contain '::nest::profile::base::distcc'
+  contain '::nest::profile::base::distccd'
   contain '::nest::profile::base::dracut'
   contain '::nest::profile::base::grub'
   contain '::nest::profile::base::firewall'
@@ -18,8 +20,14 @@ class nest::profile::base {
   contain '::nest::profile::base::users'
   contain '::nest::profile::base::zfs'
 
+  # Setup distcc before portage, but distccd needs systemd, which is
+  # installed after portage is configured.
+  Class['::nest::profile::base::distcc'] ->
+  Class['::nest::profile::base::portage'] ->
+  Class['::nest::profile::base::distccd']
+
   # Portage should be configured before any packages are installed/changed
-  Class['::nest::profile::base::portage'] -> Package <| |>
+  Class['::nest::profile::base::portage'] -> Package <| title != 'sys-devel/distcc' |>
   Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
   # Dracut depends on systemd/console setup

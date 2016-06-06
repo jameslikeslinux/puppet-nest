@@ -19,6 +19,8 @@ class nest (
   $lastfm_pw_hash   = undef,
   $live             = $::nest['live'],
   $vm               = ($::virtual == 'kvm'),
+  $distcc_hosts     = {},
+  $distcc_server    = false,
 ) {
   if $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'

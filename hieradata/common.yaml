@@ -3,6 +3,8 @@ classes:
   - 'nest'
 
 nest::server: 'hawk.nest'
+nest::distcc_hosts:
+  hawk.nest: 32
 
 nest::nullmailer_config: >
   ENC[PKCS7,MIIC/QYJKoZIhvcNAQcDoIIC7jCCAuoCAQAxggJEMIICQAIBADAoMCMxITAf

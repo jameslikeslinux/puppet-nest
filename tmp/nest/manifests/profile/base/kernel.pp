@@ -41,6 +41,7 @@ class nest::profile::base::kernel {
   exec { 'make kernel':
     command     => "/usr/bin/make ${::nest::profile::base::portage::makeopts} clean olddefconfig all install modules_install",
     cwd         => '/usr/src/linux',
+    environment => 'PATH=/usr/lib/distcc/bin:/usr/bin:/bin',
     timeout     => 0,
     refreshonly => true,
   }
