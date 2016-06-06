@@ -51,6 +51,7 @@ class nest::profile::base::fstab {
       "set 4/file /var/cache/fscache",
       "set 4/vfstype ext4",
       "set 4/opt[1] defaults",
+      "set 4/opt[2] discard",
       "set 4/dump 0",
       "set 4/passno 0",
 
