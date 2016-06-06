@@ -9,9 +9,61 @@ class nest::profile::base::grub {
     ensure => installed,
   }
 
+  # Don't manage grub on live-booted systems
+  unless $::mountpoints['/'] and $::mountpoints['/']['device'] == '/dev/mapper/live-rw' {
+    file { '/boot/grub':
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+    }
+
+    file { [
+      '/boot/grub/fonts',
+      '/boot/grub/layouts',
+    ]:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+      recurse => true,
+      purge   => true,
+    }
+
+    exec { 'grub2-mkfont':
+      command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
+      creates => "/boot/grub/fonts/${font}.pf2",
+      require => [
+        Package['sys-boot/grub'],
+        File['/boot/grub/fonts'],
+      ],
+    }
+
+    file { "/boot/grub/fonts/${font}.pf2":
+      require => Exec['grub2-mkfont'],
+    }
+
+    file { '/boot/grub/layouts/dvorak.gkb':
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
+    } 
+
+    exec { 'grub2-mkconfig':
+      command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
+      refreshonly => true,
+      require     => Exec['grub2-mkfont'],
+    }
+
+    $file_line_notify    = Exec['grub2-mkconfig']
+    $grub_install_before = File['/boot/grub']
+  }
+
   File_line {
     path    => '/etc/default/grub',
     require => Package['sys-boot/grub'],
+    notify  => $file_line_notify,
   }
 
   $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
@@ -68,60 +120,9 @@ class nest::profile::base::grub {
           command     => $grub_install_command,
           refreshonly => true,
           require     => Package['sys-boot/grub'],
-          tag         => 'grub-install',
+          before      => $grub_install_before,
         }
       }
     }
-  }
-
-  # Don't manage grub on live-booted systems
-  unless $::mountpoints['/'] and $::mountpoints['/']['device'] == '/dev/mapper/live-rw' {
-    file { '/boot/grub':
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
-    }
-
-    file { [
-      '/boot/grub/fonts',
-      '/boot/grub/layouts',
-    ]:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
-      recurse => true,
-      purge   => true,
-    }
-
-    exec { 'grub2-mkfont':
-      command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
-      creates => "/boot/grub/fonts/${font}.pf2",
-      require => [
-        Package['sys-boot/grub'],
-        File['/boot/grub/fonts'],
-      ],
-    }
-
-    file { "/boot/grub/fonts/${font}.pf2":
-      require => Exec['grub2-mkfont'],
-    }
-
-    file { '/boot/grub/layouts/dvorak.gkb':
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
-      source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
-    } 
-
-    exec { 'grub2-mkconfig':
-      command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
-      refreshonly => true,
-      require     => Exec['grub2-mkfont'],
-    }
-
-    File_line <| path == '/etc/default/grub' |> ~> Exec['grub2-mkconfig']
-    Exec <| tag == 'grub-install' |> -> File['/boot/grub']
   }
 }
