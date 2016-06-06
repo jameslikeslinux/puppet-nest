@@ -29,6 +29,11 @@ class nest::profile::base::portage {
   class { '::portage':
     eselect_ensure => installed,
   }
+
+  $portage_features = size($::nest::distcc_hosts) ? {
+    0       => ['buildpkg', 'distcc', 'splitdebug'],
+    default => ['buildpkg', 'distcc', 'distcc-pump', 'splitdebug'],
+  }
   
   portage::makeconf {
     'accept_license':
@@ -44,7 +49,7 @@ class nest::profile::base::portage {
     'emerge_default_opts':
       content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
-      content => ['buildpkg', 'distcc', 'distcc-pump', 'splitdebug'];
+      content => $portage_features;
     'input_devices':
       content => $::nest::input_devices,
       ensure  => $input_devices_ensure;
