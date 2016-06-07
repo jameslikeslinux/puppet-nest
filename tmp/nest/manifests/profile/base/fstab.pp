@@ -8,7 +8,7 @@ class nest::profile::base::fstab {
     ]
 
     $nfs_changes = [
-      "set 1/spec ${::nest::server}:/nest",
+      "set 1/spec ${::nest::nestfs_hostname}:/nest",
       "set 1/file /nest",
       "set 1/vfstype nfs",
       "set 1/opt[1] noauto",
@@ -55,7 +55,7 @@ class nest::profile::base::fstab {
       "set 4/dump 0",
       "set 4/passno 0",
 
-      "set 5/spec ${::nest::server}:/nest",
+      "set 5/spec ${::nest::nestfs_hostname}:/nest",
       "set 5/file /nest",
       "set 5/vfstype nfs",
       "set 5/opt[1] noauto",
@@ -68,9 +68,9 @@ class nest::profile::base::fstab {
     ]
   }
 
-  $changes = $::nest::server ? {
-    true    => $base_changes,
-    default => $base_changes + $nfs_changes,
+  $changes = $::nest::nestfs_hostname ? {
+    "${hostname}.nest" => $base_changes,
+    default            => $base_changes + $nfs_changes,
   }
 
   augeas { 'fstab':

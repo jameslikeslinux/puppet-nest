@@ -1,9 +1,20 @@
 class nest::profile::base::puppet {
-  if $::nest::server == true {
+  $dns_alt_names = [
+    $::nest::puppet_server ? {
+      true    => ['puppet', 'puppet.nest', "${::trusted['certname']}.nest"],
+      default => [],
+    },
+
+    $::nest::openvpn_server ? {
+      true    => $::nest::openvpn_hostname,
+      default => [],
+    },
+  ].flatten.unique
+
+  if $::nest::puppet_server {
     class { '::puppet':
       autosign                    => true,
-      dns_alt_names               => ['puppet', "${::trusted['certname']}.nest", 'nest.james.tl'],
-      puppetmaster                => "${::trusted['certname']}.nest",
+      dns_alt_names               => $dns_alt_names,
       server                      => true,
       server_dynamic_environments => true,
       server_environments         => [],
@@ -11,7 +22,6 @@ class nest::profile::base::puppet {
       server_foreman              => false,
       server_implementation       => 'puppetserver',
       server_jvm_config           => '/etc/conf.d/puppetserver',
-      unavailable_runmodes        => ['cron'],
     }
 
     # Package installs the log directory with incorrect permissions
@@ -84,15 +94,8 @@ class nest::profile::base::puppet {
       content => $eyaml_config,
     }
   } else {
-    $puppet_runmode = $::nest::live ? {
-      true    => 'none',
-      default => undef,
-    }
-
     class { '::puppet':
-      puppetmaster         => $::nest::server,
-      unavailable_runmodes => ['cron'],
-      runmode              => $puppet_runmode,
+      dns_alt_names => $dns_alt_names,
     }
   }
 }

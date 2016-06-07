@@ -16,10 +16,10 @@ class nest::profile::base::openvpn {
     ifconfig-pool-persist nest-ipp.txt
     | EOT
 
-  $client_config = @(EOT)
+  $client_config = @("EOT")
     client
     nobind
-    remote nest.james.tl 1194
+    remote ${::nest::openvpn_hostname} 1194
     script-security 2
     up /etc/openvpn/up.sh
     down /etc/openvpn/down.sh
@@ -59,7 +59,7 @@ class nest::profile::base::openvpn {
     group => 'root',
   }
 
-  if $::nest::server == true {
+  if $::nest::openvpn_server {
     $mode        = 'server'
     $mode_config = $server_config
 
