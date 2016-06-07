@@ -1,30 +1,36 @@
 class nest (
   $nestfs_hostname,
-  $nullmailer_config,
   $openvpn_hostname,
-  $ssh_private_key,
+
+  $lastfm_pw_hash   = undef,
+  $nullmailer_config,
   $root_mail_alias,
+  $ssh_private_key,
+
   $cnames           = {},
   $distcc_hosts     = {},
-  $distcc_server    = false,
-  $dvorak           = false,
   $extra_luks_disks = {},
-  $fileserver       = false,
   $kernel_config    = {},
   $kernel_cmdline   = '',
-  $lastfm_pw_hash   = undef,
-  $libvirt          = false,
-  $live             = $::nest['live'],
+
+  $dvorak           = false,
   $monitor_layout   = [],
-  $openvpn_server   = false,
+  $primary_monitor  = undef,
+  $scaling_factor   = 1.0,
+  $video_card       = undef,
+
+  $live             = $::nest['live'],
+  $vm               = ($::virtual == 'kvm'),
+
   $package_keywords = {},
   $package_use      = {},
-  $primary_monitor  = undef,
-  $puppet_server    = false,
-  $scaling_factor   = 1.0,
   $use              = [],
-  $video_card       = undef,
-  $vm               = ($::virtual == 'kvm'),
+
+  $distcc_server    = false,
+  $fileserver       = false,
+  $libvirt          = false,
+  $openvpn_server   = false,
+  $puppet_server    = false,
 ) {
   if $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
