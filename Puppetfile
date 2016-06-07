@@ -7,4 +7,7 @@ mod 'puppetlabs/puppetserver_gem', '0.2.0'
 mod 'puppetlabs/stdlib', '4.11.0'
 mod 'puppetlabs/vcsrepo', '1.3.2'
 mod 'theforeman/puppet', '4.3.1'
-mod 'thias/sysctl', '1.0.6'
+
+mod 'sysctl',
+  :git    => 'https://github.com/iamjamestl/puppet-sysctl.git',
+  :branch => 'fix-enforce-path'
