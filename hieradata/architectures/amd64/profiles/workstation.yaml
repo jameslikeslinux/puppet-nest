@@ -27,6 +27,12 @@ nest::package_keywords:
   x11-drivers/xf86-video-ati:
     version: '=7.7.0'
 
+  # required by kde-frameworks/kf-env-4::gentoo
+  # required by kde-plasma/user-manager-5.6.4::gentoo
+  # required by kde-plasma/plasma-meta-5.6.4::gentoo
+  x11-misc/xdg-utils:
+    version: '=1.1.1-r1'
+
 nest::package_use:
   # For nvidia-drivers
   x11-libs/libXext:
