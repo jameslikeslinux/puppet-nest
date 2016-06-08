@@ -5,6 +5,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::fonts'
   contain '::nest::profile::workstation::mpd'
   contain '::nest::profile::workstation::plasma'
+  contain '::nest::profile::workstation::pulseaudio'
   contain '::nest::profile::workstation::thunderbird'
   contain '::nest::profile::workstation::xorg'
 
@@ -13,6 +14,10 @@ class nest::profile::workstation {
   Class['::nest::profile::base::kernel'] ->
   Class['::nest::profile::workstation::plasma'] ->
   Class['::nest::profile::base::dracut']
+
+  # Plasma installs pulseaudio, so we don't need to manage it separately
+  Class['::nest::profile::workstation::plasma'] ->
+  Class['::nest::profile::workstation::pulseaudio']
 
   # Plasma installs xorg-server, so we don't need to manage it separately
   Class['::nest::profile::workstation::plasma'] ->
