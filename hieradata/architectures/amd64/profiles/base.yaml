@@ -1,5 +1,9 @@
 ---
 nest::package_use:
+  # Don't pull in X
+  dev-java/icedtea-bin:
+    use: '-gtk'
+
   # For networkmanager[wifi]
   net-wireless/wpa_supplicant:
     use: 'dbus'
