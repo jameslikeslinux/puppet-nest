@@ -15,6 +15,7 @@ class nest (
 
   $dvorak           = false,
   $monitor_layout   = [],
+  $mouse            = undef,
   $primary_monitor  = undef,
   $scaling_factor   = 1.0,
   $video_card       = undef,

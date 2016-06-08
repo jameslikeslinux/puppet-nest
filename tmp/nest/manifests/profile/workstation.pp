@@ -3,6 +3,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::cursor'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::fonts'
+  contain '::nest::profile::workstation::mouse'
   contain '::nest::profile::workstation::mpd'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::pulseaudio'
@@ -26,4 +27,8 @@ class nest::profile::workstation {
   # Plasma installs default cursors which we want to replace
   Class['::nest::profile::workstation::plasma'] ->
   Class['::nest::profile::workstation::cursor']
+
+  # Manage mouse settings after xorg
+  Class['::nest::profile::workstation::xorg'] ->
+  Class['::nest::profile::workstation::mouse']
 }
