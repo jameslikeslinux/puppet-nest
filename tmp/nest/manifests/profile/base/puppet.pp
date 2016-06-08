@@ -9,7 +9,7 @@ class nest::profile::base::puppet {
       true    => $::nest::openvpn_hostname,
       default => [],
     },
-  ].flatten.unique
+  ].flatten.unique - $::trusted['certname']
 
   if $::nest::puppet_server {
     class { '::puppet':
