@@ -8,6 +8,11 @@ class nest::profile::base::fs {
       enable  => true,
       require => Package['net-fs/nfs-utils'],
     }
+
+    service { 'zfs-share':
+      enable  => true,
+      require => Package['sys-fs/zfs'],
+    }
   } elsif !$::nest::live {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
