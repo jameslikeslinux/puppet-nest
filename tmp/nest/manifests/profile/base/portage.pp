@@ -70,11 +70,21 @@ class nest::profile::base::portage {
     require => Class['::portage'],
   }
 
-  exec { 'emerge-update-world':
+  # Account for circular dependencies
+  exec { 'emerge-update-world-first-pass':
     command     => '/usr/bin/emerge -DuN @world',
+    environment => 'USE="-vaapi"', # circular dependency exists between libva and mesa
     timeout     => 0,
     refreshonly => true,
     subscribe   => Eselect['profile'],
+  }
+
+  # Resolve circular dependencies
+  exec { 'emerge-update-world-second-pass':
+    command     => '/usr/bin/emerge -DuN @world',
+    timeout     => 0,
+    refreshonly => true,
+    subscribe   => Exec['emerge-update-world-first-pass'],
   }
 
   # Create portage package properties rebuild affected packages
