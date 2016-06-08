@@ -73,7 +73,7 @@ class nest::profile::base::portage {
   # Account for circular dependencies
   exec { 'emerge-update-world-first-pass':
     command     => '/usr/bin/emerge -DuN @world',
-    environment => 'USE="-vaapi"', # circular dependency exists between libva and mesa
+    environment => 'USE=-vaapi -cryptsetup', # circular dependency exists between libva and mesa, cryptsetup and systemd
     timeout     => 0,
     refreshonly => true,
     subscribe   => Eselect['profile'],
