@@ -2,7 +2,7 @@
 classes:
   - 'nest'
 
-puppet::puppetmaster: 'hawk.nest'
+puppet::puppetmaster: 'puppet.nest'
 # Don't manage service
 puppet::runmode: 'none'
 puppet::unavailable_runmodes: ['cron', 'service', 'systemd.timer']
