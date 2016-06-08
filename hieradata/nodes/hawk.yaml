@@ -22,4 +22,3 @@ nest::distcc_hosts: {}
 nest::distcc_server: true
 nest::fileserver: true
 nest::openvpn_server: true
-nest::puppet_server: true
