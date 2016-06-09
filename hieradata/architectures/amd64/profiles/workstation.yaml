@@ -17,6 +17,12 @@ nest::package_keywords:
   media-libs/freetype:
     version: '=2.6.3-r1'
 
+  # For compatibility with Qt 5.6
+  media-libs/phonon:
+    version: '=4.9.0'
+  media-libs/phonon-vlc:
+    version: '=0.9.0'
+
   # For better Skylake support
   x11-base/xorg-drivers:
     version: '=1.18-r1'
