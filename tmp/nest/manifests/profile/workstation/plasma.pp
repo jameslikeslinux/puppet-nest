@@ -85,6 +85,7 @@ class nest::profile::workstation::plasma {
     'kde-apps/ark',
     'kde-apps/dolphin',
     'kde-apps/gwenview',
+    'kde-apps/konsole',
     'kde-apps/kwrite',
     'kde-apps/okular',
     'kde-apps/spectacle',
