@@ -3,6 +3,7 @@ class nest::profile::workstation::mouse {
     # Logitech MX Master
     mouse:usb:v046dp4041:name:Logitech MX Master:
       MOUSE_DPI=1000@166
+
     # Lenovo Thinkpad X1 Carbon 4th gen
     evdev:name:TPPS/2 IBM TrackPoint:dmi:bvn*:bvr*:bd*:svnLENOVO:pn*:pvrThinkPadX1Carbon4th:*
       POINTINGSTICK_SENSITIVITY=200
