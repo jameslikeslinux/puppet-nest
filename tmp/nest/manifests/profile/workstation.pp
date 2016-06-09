@@ -5,6 +5,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::fonts'
   contain '::nest::profile::workstation::mouse'
   contain '::nest::profile::workstation::mpd'
+  contain '::nest::profile::workstation::packages'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::pulseaudio'
   contain '::nest::profile::workstation::thunderbird'

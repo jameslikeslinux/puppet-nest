@@ -33,6 +33,9 @@ nest::package_keywords:
   x11-misc/xdg-utils:
     version: '=1.1.1-r1'
 
+  x11-plugins/pidgin-skypeweb:
+    version: '=1.1'
+
 nest::package_use:
   # For nvidia-drivers
   x11-libs/libXext:
