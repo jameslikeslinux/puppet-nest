@@ -4,6 +4,7 @@ class nest::profile::base::packages {
     'net-dns/bind-tools',
     'sys-fs/dosfstools',
     'sys-block/parted',
+    'www-client/elinks',
   ]:
     ensure => installed,
   }
