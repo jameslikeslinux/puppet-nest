@@ -32,6 +32,7 @@ class nest::profile::workstation::plasma {
     owner   => 'root',
     group   => 'root',
     content => $scaling,
+    require => Package['kde-plasma/plasma-meta'],
   }
 
   # SDDM needs access to /dev/nvidiactl to run
