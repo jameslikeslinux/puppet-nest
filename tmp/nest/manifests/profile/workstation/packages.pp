@@ -3,10 +3,12 @@ class nest::profile::workstation::packages {
     use => 'networkmanager',
   }
 
-  package { [
-    'net-im/pidgin',
-    'x11-plugins/pidgin-skypeweb',
-  ]:
+  package { 'net-im/pidgin':
     ensure => installed,
+  }
+
+  package { 'x11-plugins/pidgin-skypeweb':
+    ensure  => installed,
+    require => Package['net-im/pidgin'],
   }
 }
