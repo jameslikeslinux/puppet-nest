@@ -8,7 +8,7 @@ puppet::runmode: 'none'
 puppet::unavailable_runmodes: ['cron', 'service', 'systemd.timer']
 
 nest::distcc_hosts:
-  hawk.nest: 32
+  falcon.nest: 32
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_hostname: 'nest.james.tl'
 

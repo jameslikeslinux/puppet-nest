@@ -18,7 +18,7 @@ nest::scaling_factor: 1.1
 nest::video_card: 'nvidia'
 nest::mouse: 'mxmaster'
 
-#nest::distcc_hosts: {}
+nest::distcc_hosts: {}
 nest::distcc_server: true
 nest::fileserver: true
 nest::openvpn_server: true
