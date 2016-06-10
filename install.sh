@@ -92,21 +92,21 @@ cleanup() {
     # Unmount if necessary
     mountpoint -q "/mnt/${name}" && command umount -R "/mnt/${name}"
 
+    # Remove mountpoint if necessary
+    if [ -e "/mnt/${name}" ] && [ ! "$(ls -A "/mnt/${name}")" ]; then
+        command rm -rf "/mnt/${name}"
+    fi
+
     # Disable swap if necessary (assume its on if the device exists)
     [ -e "/dev/zvol/${name}/swap" ] && command swapoff "/dev/zvol/${name}/swap"
 
-    # Export pool if necessary
+    # Export pool filesystem if necessary
     zpool list "$name" > /dev/null 2>&1 && command zpool export "$name"
 
     # Close LUKS devices if necessary
     for vdev in "${vdevs[@]}"; do
         [ -e "/dev/mapper/${vdev}" ] && command cryptsetup luksClose "$vdev"
     done
-
-    # Remove mountpoint if necessary
-    if [ -e "/mnt/${name}" ] && [ ! "$(ls -A "/mnt/${name}")" ]; then
-        command rm -rf "/mnt/${name}"
-    fi
 
     trap - EXIT
 }
@@ -228,7 +228,7 @@ else
 
         if [ -n "$efi" ]; then
             task "Making EFI system partition ${name}-${partition_name_suffix}${mirror_number}..."
-            command mkfs.vfat "${name}-${partition_name_suffix}${mirror_number}"
+            command mkfs.vfat "/dev/disk/by-partlabel/${name}-${partition_name_suffix}${mirror_number}"
         fi
 
         if [ -n "$encrypt" ]; then
@@ -247,7 +247,6 @@ else
     command zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "${vdevs[@]}"
     command zfs create "${name}/ROOT"
     command zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
-    command zfs create -o mountpoint=/usr/portage "${name}/ROOT/gentoo/portage"
     command zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
     command zfs create -o mountpoint=/home "${name}/home"
     command zfs create "${name}/home/james"
@@ -257,6 +256,11 @@ else
     command zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
     command mkswap "/dev/zvol/${name}/swap"
     command swapon --discard "/dev/zvol/${name}/swap"
+
+    task "Creating fscache..."
+    command zfs create -V 2G -b 4k -o com.sun:auto-snapshot=false "${name}/fscache"
+    command mkfs.ext4 "/dev/zvol/${name}/fscache"
+    command tune2fs -o discard "/dev/zvol/${name}/fscache"
 
     # XXX: This needs to support mdraid
     task "Creating boot filesystem..."
@@ -288,22 +292,32 @@ command tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-march=core-avx-i -O2 -pipe -ggdb"
 CXXFLAGS="-march=core-avx-i -O2 -pipe -ggdb"
 CPU_FLAGS_X86="aes avx mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 ssse3"
+DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"
-PKGDIR="/nest/packages/amd64-base"
+PKGDIR="/nest/portage/packages/amd64-base"
 END
+command tee "/mnt/${name}/etc/portage/repos.conf" <<END
+[DEFAULT]
+main-repo = gentoo
+
+[gentoo]
+location = /var/cache/portage/gentoo
+END
+command rm -rf "/mnt/${name}/etc/portage/make.conf.catalyst"
 command rm -rf "/mnt/${name}/etc/portage/package."*
 
 
 task "Installing Portage tree..."
 command wget --progress=dot:mega https://github.com/iamjamestl/portage-gentoo/archive/master.tar.gz -O "/mnt/${name}/portage-gentoo-master.tar.gz"
-[ ! -d "/mnt/${name}/usr/portage" ] && command mkdir "/mnt/${name}/usr/portage"
-command tar -C "/mnt/${name}/usr/portage" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
+command mkdir -p "/mnt/${name}/var/cache/portage/gentoo"
+command tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
 command rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
+chroot_command eselect profile set 1
 
 
 task "Installing Puppet..."
-chroot_command emerge -v app-admin/puppet-agent app-portage/eix dev-vcs/git
+chroot_command emerge -v app-admin/puppet-agent app-portage/eix
 
 
 task "Prepping for Puppet run..."
@@ -314,26 +328,28 @@ chroot_command mkdir -p /etc/puppetlabs/facter/facts.d
 chroot_command tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
 ---
 nest:
-  profile: 'base'
+  profile: '${profile}'
+END
+[ -n "$live" ] && chroot_command tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
   live: true
 END
 
 
 task "Running Puppet..."
-chroot_command puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server hawk.nest --environment development
+chroot_command puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest --environment development
+[ -z "$live" ] && chroot_command systemctl enable puppet
+
+task "Removing unnecessary packages..."
+chroot_command emerge --depclean
 
 
 if [ -n "$live" ]; then
     iso_label=$(echo "$name" | tr 'a-z' 'A-Z')
 
-    task "Minimizing the image..."
-    command rm -rf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" "/mnt/${name}/usr/lib/debug" "/mnt/${name}/usr/portage" "/mnt/${name}/usr/src/"*
-
     task "Configuring live CD boot..."
     command mkdir "${live_dir}/boot"
     command mv "/mnt/${name}/boot/"* "${live_dir}/boot/"
-    command chmod +r "${live_dir}/boot/initramfs"*
-    command sed -i -r '/insmod ext2/,/fi/d; s/root=UUID=[[:graph:]]+/root=live:LABEL='"$iso_label"'_FULL/g' "${live_dir}/boot/grub/grub.cfg"
+    command sed -i -r '/insmod ext2/,/fi/d; s/root=UUID=[[:graph:]]+/root=live:LABEL='"$iso_label"'/g' "${live_dir}/boot/grub/grub.cfg"
 
     cleanup
 
@@ -341,13 +357,6 @@ if [ -n "$live" ]; then
     command mksquashfs "${live_dir}/LiveOS/squashfs-root" "${live_dir}/LiveOS/squashfs.img" -comp xz
     command rm -rf "${live_dir}/LiveOS/squashfs-root"
 
-    task "Making full ISO..."
-    command grub2-mkrescue --modules=part_gpt -o "${live_dir}/${name}-full-${DATE}.iso" "$live_dir" -- -volid "${iso_label}_FULL"
-
-    task "Making netboot ISO..."
-    command mkdir -p "${live_dir}/net"
-    command cp -a "${live_dir}/boot" "${live_dir}/net/"
-    command sed -i -r 's@root=[[:graph:]]+@root=live:https://thestaticvoid.com/'"$name"'/LiveOS/squashfs.img@g' "${live_dir}/net/boot/grub/grub.cfg"
-    command grub2-mkrescue --modules=part_gpt -o "${live_dir}/${name}-net-${DATE}.iso" "${live_dir}/net" -- -volid "${iso_label}_NET"
-    command rm -rf "${live_dir}/net"
+    task "Making ISO..."
+    command grub2-mkrescue --modules=part_gpt -o "${name}-${DATE}.iso" "$live_dir" -- -volid "$iso_label"
 fi
