@@ -1,5 +1,4 @@
 ---
-nest::package_server: 'hawk.nest'
 nest::use: ['numa']
 
 nest::package_keywords:
