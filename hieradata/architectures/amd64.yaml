@@ -36,6 +36,10 @@ nest::package_keywords:
   sys-kernel/linux-firmware:
     version: '=20160616'
 
+  # For GRUB 2 support
+  dev-libs/libisofs:
+    version: '=1.4.2'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
