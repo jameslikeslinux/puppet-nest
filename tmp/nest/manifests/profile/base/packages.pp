@@ -6,9 +6,10 @@ class nest::profile::base::packages {
     'app-portage/gentoolkit',
     'dev-libs/libisoburn',
     'net-dns/bind-tools',
-    'sys-fs/dosfstools',
-    'sys-fs/squashfs-tools',
     'sys-block/parted',
+    'sys-fs/dosfstools',
+    'sys-fs/mtools',
+    'sys-fs/squashfs-tools',
     'www-client/elinks',
   ]:
     ensure => installed,
