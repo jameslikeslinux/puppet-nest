@@ -9,7 +9,7 @@ nest::extra_luks_disks:
   nest-crypt6: '557c6352-8d5e-4533-90b7-d60cf49c65ff'
   nest-crypt7: '3ab8cbc0-68e5-43e1-b50f-871b0f6cfda3'
 
-nest::kernel_cmdline: 'console=ttyS1,115200n8 console=tty0 hugepages=8192 intel_iommu=on pci-stub.ids=10de:0fbc,1b21:1142'
+nest::kernel_cmdline: 'console=ttyS1,115200n8 console=tty0 hugepages=10240 intel_iommu=on pci-stub.ids=10de:0fbc,1b21:1142'
 nest::libvirt: true
 
 nest::monitor_layout: ['DP-2', 'DP-3']
