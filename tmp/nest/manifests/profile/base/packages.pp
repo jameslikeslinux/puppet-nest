@@ -4,7 +4,7 @@ class nest::profile::base::packages {
     'app-editors/vim',
     'app-misc/screen',
     'app-portage/gentoolkit',
-    'dev-libs/libisofs',
+    'dev-libs/libisoburn',
     'net-dns/bind-tools',
     'sys-fs/dosfstools',
     'sys-fs/squashfs-tools',
