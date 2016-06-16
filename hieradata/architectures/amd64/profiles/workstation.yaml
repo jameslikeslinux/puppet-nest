@@ -95,3 +95,9 @@ nest::package_use:
     use: 'icu'
   media-libs/harfbuzz:
     use: 'icu'
+
+  # For openconnect
+  kde-plasma/plasma-nm:
+    use: 'openconnect'
+  net-misc/networkmanager-openconnect:
+    use: '-gtk'
