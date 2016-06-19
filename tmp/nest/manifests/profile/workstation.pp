@@ -11,6 +11,10 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::thunderbird'
   contain '::nest::profile::workstation::xorg'
 
+  if $::nest::synergy_config {
+    contain '::nest::profile::workstation::synergy'
+  }
+
   # Plasma pulls in xorg-drivers which builds nvidia-drivers which requires
   # a built kernel and needs to come before building the initramfs.
   Class['::nest::profile::base::kernel'] ->

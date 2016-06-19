@@ -59,6 +59,7 @@ class nest::profile::workstation::xorg {
   }
 
   package { [
+    'x11-apps/xmodmap',
     'x11-apps/xrandr',
     'x11-misc/vdpauinfo',
   ]:

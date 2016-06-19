@@ -22,3 +22,16 @@ nest::distcc_hosts: {}
 nest::distcc_server: true
 nest::fileserver: true
 nest::openvpn_server: true
+
+nest::synergy_config: |
+  section: screens
+  	falcon:
+  	hawk:
+  end
+  
+  section: options
+  	keystroke(control+alt+down) = switchToScreen(falcon)
+  	keystroke(control+alt+right) = switchToScreen(hawk)
+  	mousebutton(6) = keystroke(WWWBack)
+  	mousebutton(7) = keystroke(WWWForward)
+  end

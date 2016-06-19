@@ -18,6 +18,7 @@ class nest (
   $mouse            = undef,
   $primary_monitor  = undef,
   $scaling_factor   = 1.0,
+  $synergy_config   = undef,
   $video_card       = undef,
 
   $live             = $::nest['live'],
