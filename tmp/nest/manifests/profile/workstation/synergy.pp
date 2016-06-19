@@ -23,22 +23,14 @@ class nest::profile::workstation::synergy {
     notify => Exec['synergy-systemd-daemon-reload'],
   }
 
-  file { '/etc/systemd/user/synergys.socket':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/synergy/synergys.socket',
-    notify => Exec['synergy-systemd-daemon-reload'],
-  }
-
   exec { 'synergy-systemd-daemon-reload':
     command     => '/usr/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 
   exec { 'synergy-enable-systemd-user-service':
-    command => '/usr/bin/systemctl --user --global enable synergys.socket',
-    creates => '/etc/systemd/user/sockets.target.wants/synergys.socket',
-    require => File['/etc/systemd/user/synergys.socket'],
+    command => '/usr/bin/systemctl --user --global enable synergys.service',
+    creates => '/etc/systemd/user/sockets.target.wants/synergys.service',
+    require => File['/etc/systemd/user/synergys.service'],
   }
 }
