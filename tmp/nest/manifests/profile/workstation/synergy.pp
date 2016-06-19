@@ -30,7 +30,7 @@ class nest::profile::workstation::synergy {
 
   exec { 'synergy-enable-systemd-user-service':
     command => '/usr/bin/systemctl --user --global enable synergys.service',
-    creates => '/etc/systemd/user/sockets.target.wants/synergys.service',
+    creates => '/etc/systemd/user/default.target.wants/synergys.service',
     require => File['/etc/systemd/user/synergys.service'],
   }
 }
