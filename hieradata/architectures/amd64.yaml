@@ -54,6 +54,14 @@ nest::package_use:
   x11-libs/libdrm:
     use: 'libkms'
 
+  # For samba
+  sys-libs/ntdb:
+    use: 'python'
+  sys-libs/tdb:
+    use: 'python'
+  sys-libs/tevent:
+    use: 'python'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
