@@ -41,6 +41,44 @@ class nest::profile::base::fs {
       enable  => true,
       require => Package['sys-fs/zfs'],
     }
+
+    package { 'net-fs/samba':
+      ensure => installed,
+    }
+
+    file { '/var/lib/samba/usershares':
+      ensure  => directory,
+      mode    => '1755',
+      owner   => 'root',
+      group   => 'root',
+      require => Package['net-fs/samba'],
+    }
+
+    $samba_config = @(EOT)
+      [global]
+        usershare path = /var/lib/samba/usershares
+        usershare max shares = 100
+        usershare allow guests = yes
+        usershare owner only = no
+
+      [homes]
+        comment = Home Directories
+        browseable = no
+        writable = yes
+      | EOT
+
+    file { '/etc/samba/smb.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => $samba_config,
+      require => File['/var/lib/samba/usershares'],
+    }
+
+    service { 'smbd':
+      enable    => true,
+      subscribe => File['/etc/samba/smb.conf'],
+    }
   } elsif !$::nest::live {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
