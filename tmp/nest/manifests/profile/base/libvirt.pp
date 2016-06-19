@@ -32,22 +32,22 @@ class nest::profile::base::libvirt {
     }
   }
 
-  $after_nfs_server_ensure = $::nest::fileserver ? {
+  $after_fs_servers_ensure = $::nest::fileserver ? {
     true    => 'present',
     default => 'absent',
   }
 
-  $after_nfs_server_conf = @(EOT)
+  $after_fs_servers_conf = @(EOT)
     [Unit]
-    After=nfs-server.service
+    After=nfs-server.service smbd.service
     | EOT
 
-  file { '/etc/systemd/system/libvirt-guests.service.d/10-after-nfs-server.conf':
-    ensure  => $after_nfs_server_ensure,
+  file { '/etc/systemd/system/libvirt-guests.service.d/10-after-fs-servers.conf':
+    ensure  => $after_fs_servers_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $after_nfs_server_conf,
+    content => $after_fs_servers_conf,
     notify  => Exec['libvirt-systemd-daemon-reload'],
   }
 
