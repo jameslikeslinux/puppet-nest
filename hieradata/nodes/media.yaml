@@ -1,3 +1,6 @@
 ---
+classes:
+  - 'nest::node::media'
+
 nest::extra_luks_disks:
   media-crypt1: 'c081d83d-f529-45af-bbb7-66a124b8c058'
