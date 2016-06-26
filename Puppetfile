@@ -8,6 +8,10 @@ mod 'puppetlabs/stdlib', '4.11.0'
 mod 'puppetlabs/vcsrepo', '1.3.2'
 mod 'theforeman/puppet', '4.3.1'
 
+mod 'docker',
+  :git    => 'https://github.com/iamjamestl/garethr-docker.git',
+  :branch => 'run-systemd'
+
 mod 'sysctl',
   :git    => 'https://github.com/iamjamestl/puppet-sysctl.git',
   :branch => 'fix-enforce-path'
