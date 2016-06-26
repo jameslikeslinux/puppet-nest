@@ -16,7 +16,7 @@ class nest::profile::base::firewall {
     'ip6tables-restore',
     'ip6tables-store',
   ]:
-    enable => !$::nest::libvirt,
+    enable => false,
   }
 
 
