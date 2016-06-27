@@ -106,4 +106,12 @@ class nest::node::media {
       { 'path' => '/', 'url' => 'http://localhost:8989/' },
     ],
   }
+
+  firewall { '100 docker to nzbget':
+    iniface => 'docker0',
+    proto   => tcp,
+    dport   => 6789,
+    state   => 'NEW',
+    action  => accept,
+  }
 }
