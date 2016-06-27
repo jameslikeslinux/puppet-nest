@@ -8,6 +8,7 @@ puppet::runmode: 'none'
 puppet::unavailable_runmodes: ['cron', 'service', 'systemd.timer']
 
 nest::cnames:
+  couchpotato.nest: 'media.nest'
   nzbget.nest: 'media.nest'
   sonarr.nest: 'media.nest'
   transmission.nest: 'media.nest'

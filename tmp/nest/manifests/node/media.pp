@@ -7,6 +7,12 @@ class nest::node::media {
     mountpoint => '/srv',
   }
 
+  zfs { 'srv/couchpotato':
+    name       => "${::trusted['certname']}/srv/couchpotato",
+    mountpoint => '/srv/couchpotato',
+    require    => Zfs['srv'],
+  }
+
   zfs { 'srv/nzbget':
     name       => "${::trusted['certname']}/srv/nzbget",
     mountpoint => '/srv/nzbget',
@@ -23,6 +29,21 @@ class nest::node::media {
     name       => "${::trusted['certname']}/srv/transmission",
     mountpoint => '/srv/transmission',
     require    => Zfs['srv'],
+  }
+
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'couchpotato',
+      group   => 'media';
+
+    '/srv/couchpotato':
+      require => Zfs['srv/nzbget'];
+
+    '/srv/couchpotato/config':
+      # use defaults
+      ;
   }
 
   file {
@@ -84,6 +105,22 @@ class nest::node::media {
     after            => 'remote-fs.target',
   }
 
+  docker::run { 'couchpotato':
+    image   => 'linuxserver/couchpotato',
+    ports   => '5050:5050',
+    env     => ['PUID=5050', 'PGID=1001'],
+    volumes => [
+      '/etc/localtime:/etc/localtime:ro',
+      '/srv/couchpotato/config:/config',
+      '/srv/nzbget/downloads:/downloads',
+      '/nest/movies:/movies',
+    ],
+    require => [
+      File['/srv/couchpotato/config'],
+      File['/srv/nzbget/downloads/completed'],
+    ],
+  }
+
   docker::run { 'nzbget':
     image   => 'linuxserver/nzbget',
     ports   => '6789:6789',
@@ -129,6 +166,14 @@ class nest::node::media {
     require => [
       File['/srv/transmission/config'],
       File['/srv/transmission/downloads'],
+    ],
+  }
+
+  apache::vhost { 'couchpotato.nest':
+    port       => '80',
+    docroot    => '/var/www/couchpotato.nest',
+    proxy_pass => [
+      { 'path' => '/', 'url' => 'http://localhost:5050/' },
     ],
   }
 

@@ -35,6 +35,13 @@ class nest::profile::base::users {
         Class['::nest::profile::base::network'],  # networkmanager creates 'plugdev' group
       ];
 
+    'couchpotato':
+      uid     => '5050',
+      gid     => 'media',
+      home    => '/srv/couchpotato',
+      comment => 'CouchPotato',
+      shell   => '/sbin/nologin';
+
     'nzbget':
       uid     => '6789',
       gid     => 'media',
