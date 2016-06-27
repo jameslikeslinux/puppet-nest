@@ -48,6 +48,13 @@ class nest::profile::base::users {
       home    => '/srv/sonarr',
       comment => 'Sonarr',
       shell   => '/sbin/nologin';
+
+    'transmission':
+      uid     => '9091',
+      gid     => 'media',
+      home    => '/srv/transmission',
+      comment => 'Transmission',
+      shell   => '/sbin/nologin';
   }
 
   file {

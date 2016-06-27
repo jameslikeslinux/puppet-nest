@@ -19,6 +19,12 @@ class nest::node::media {
     require    => Zfs['srv'],
   }
 
+  zfs { 'srv/transmission':
+    name       => "${::trusted['certname']}/srv/transmission",
+    mountpoint => '/srv/transmission',
+    require    => Zfs['srv'],
+  }
+
   file {
     default:
       ensure  => directory,
@@ -55,6 +61,24 @@ class nest::node::media {
       ;
   }
 
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'transmission',
+      group   => 'media';
+
+    '/srv/transmission':
+      require => Zfs['srv/transmission'];
+
+    [
+      '/srv/transmission/config',
+      '/srv/transmission/downloads',
+    ]:
+      # use defaults
+      ;
+  }
+
   Docker::Run {
     service_provider => 'systemd',
     after            => 'remote-fs.target',
@@ -67,7 +91,7 @@ class nest::node::media {
     volumes => [
       '/srv/nzbget/config:/config',
       '/srv/nzbget/downloads:/downloads',
-      '/nest/downloads/nzbs:/downloads/nzb',
+      '/nest/downloads/nzbget/watch:/downloads/nzb',
     ],
     require => [
       File['/srv/nzbget/config'],
@@ -91,6 +115,22 @@ class nest::node::media {
     ],
   }
 
+  docker::run { 'transmission':
+    image   => 'linuxserver/transmission',
+    ports   => ['9091:9091', '51413:51413', '51413:51413/udp'],
+    env     => ['PUID=9091', 'PGID=1001'],
+    volumes => [
+      '/srv/transmission/config:/config',
+      '/srv/transmission/downloads:/downloads',
+      '/nest/downloads/transmission/complete:/downloads/complete',
+      '/nest/downloads/transmission/watch:/watch',
+    ],
+    require => [
+      File['/srv/transmission/config'],
+      File['/srv/transmission/downloads'],
+    ],
+  }
+
   apache::vhost { 'nzbget.nest':
     port       => '80',
     docroot    => '/var/www/nzbget.nest',
@@ -107,11 +147,49 @@ class nest::node::media {
     ],
   }
 
+  apache::vhost { 'transmission.nest':
+    port       => '80',
+    docroot    => '/var/www/transmission.nest',
+    proxy_pass => [
+      { 'path' => '/', 'url' => 'http://localhost:9091/' },
+    ],
+  }
+
   firewall { '100 docker to nzbget':
     iniface => 'docker0',
     proto   => tcp,
     dport   => 6789,
     state   => 'NEW',
     action  => accept,
+  }
+
+  firewall { '100 transmission (tcp)':
+    proto  => tcp,
+    dport  => 51413,
+    state  => 'NEW',
+    action => accept,
+  }
+
+  firewall { '100 transmission (udp)':
+    proto  => udp,
+    dport  => 51413,
+    state  => 'NEW',
+    action => accept,
+  }
+
+  firewall { '100 transmission (tcp6)':
+    proto    => tcp,
+    dport    => 51413,
+    state    => 'NEW',
+    action   => accept,
+    provider => ip6tables,
+  }
+
+  firewall { '100 transmission (udp6)':
+    proto    => udp,
+    dport    => 51413,
+    state    => 'NEW',
+    action   => accept,
+    provider => ip6tables,
   }
 }

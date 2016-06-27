@@ -10,6 +10,7 @@ puppet::unavailable_runmodes: ['cron', 'service', 'systemd.timer']
 nest::cnames:
   nzbget.nest: 'media.nest'
   sonarr.nest: 'media.nest'
+  transmission.nest: 'media.nest'
 nest::distcc_hosts:
   falcon.nest: 32
 nest::nestfs_hostname: 'falcon.nest'
