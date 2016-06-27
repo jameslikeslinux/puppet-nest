@@ -120,6 +120,7 @@ class nest::node::media {
     ports   => ['9091:9091', '51413:51413', '51413:51413/udp'],
     env     => ['PUID=9091', 'PGID=1001'],
     volumes => [
+      '/etc/localtime:/etc/localtime:ro',
       '/srv/transmission/config:/config',
       '/srv/transmission/downloads:/downloads',
       '/nest/downloads/transmission/complete:/downloads/complete',
