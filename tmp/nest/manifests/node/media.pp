@@ -57,8 +57,8 @@ class nest::node::media {
   apache::vhost { 'media.nest':
     port       => '80',
     docroot    => '/var/www/media.nest',
-    proxy_pass => {
-      '/nzbget' => 'http://localhost:6789',
-    },
+    proxy_pass => [
+      { 'path' => '/nzbget', 'url' => 'http://localhost:6789' },
+    ],
   }
 }
