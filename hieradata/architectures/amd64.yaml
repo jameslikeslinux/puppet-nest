@@ -62,6 +62,10 @@ nest::package_use:
   sys-libs/tevent:
     use: 'python'
 
+  # For docker
+  sys-libs/libseccomp:
+    use: 'static-libs'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
