@@ -15,6 +15,7 @@ class nest::node::media {
 
   file {
     default:
+      ensure  => directory,
       mode    => '0755',
       owner   => 'nzbget',
       group   => 'media';
@@ -51,5 +52,13 @@ class nest::node::media {
       File['/srv/nzbget/downloads'],
     ],
     after   => 'remote-fs.target',
+  }
+
+  apache::vhost { 'media.nest':
+    port       => '80',
+    docroot    => '/var/www/media.nest',
+    proxy_pass => {
+      '/nzbget' => 'http://localhost:6789',
+    },
   }
 }
