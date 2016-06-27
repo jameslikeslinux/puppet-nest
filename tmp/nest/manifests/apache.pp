@@ -8,7 +8,12 @@ class nest::apache {
 
   nest::portage::package_use { 'httpd':
     package => 'www-servers/apache',
-    use     => ['apache2_modules_access_compat', 'threads'],
+    use     => [
+      'apache2_modules_access_compat',
+      'apache2_modules_proxy',
+      'apache2_modules_proxy_http',
+      'threads'
+    ],
   }
 
   # This is not at all necessary, but the default defines are not used
