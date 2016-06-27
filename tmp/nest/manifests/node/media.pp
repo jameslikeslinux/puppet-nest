@@ -1,4 +1,5 @@
 class nest::node::media {
+  include '::nest::apache'
   include '::nest::docker'
 
   zfs { 'srv':
@@ -24,12 +25,11 @@ class nest::node::media {
     [
       '/srv/nzbget/config',
       '/srv/nzbget/downloads',
-      '/srv/nzbget/downloads/incomplete',
     ]:
       # use defaults
       ;
 
-    '/srv/nzbget/downloads/complete':
+    '/srv/nzbget/downloads/completed':
       mode    => '0775';
   }
 
@@ -44,11 +44,12 @@ class nest::node::media {
     volumes => [
       '/srv/nzbget/config:/config',
       '/srv/nzbget/downloads:/downloads',
-      '/nest',
+      '/nest/downloads/nzbs:/downloads/nzb',
     ],
     require => [
       File['/srv/nzbget/config'],
       File['/srv/nzbget/downloads'],
     ],
+    after   => 'remote-fs.target',
   }
 }
