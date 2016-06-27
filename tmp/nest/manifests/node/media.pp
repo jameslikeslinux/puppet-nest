@@ -13,6 +13,12 @@ class nest::node::media {
     require    => Zfs['srv'],
   }
 
+  zfs { 'srv/sonarr':
+    name       => "${::trusted['certname']}/srv/sonarr",
+    mountpoint => '/srv/sonarr',
+    require    => Zfs['srv'],
+  }
+
   file {
     default:
       ensure  => directory,
@@ -34,8 +40,24 @@ class nest::node::media {
       mode    => '0775';
   }
 
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'sonarr',
+      group   => 'media';
+
+    '/srv/sonarr':
+      require => Zfs['srv/sonarr'];
+
+    '/srv/sonarr/config':
+      # use defaults
+      ;
+  }
+
   Docker::Run {
     service_provider => 'systemd',
+    after            => 'remote-fs.target',
   }
 
   docker::run { 'nzbget':
@@ -51,7 +73,22 @@ class nest::node::media {
       File['/srv/nzbget/config'],
       File['/srv/nzbget/downloads'],
     ],
-    after   => 'remote-fs.target',
+  }
+
+  docker::run { 'sonarr':
+    image   => 'linuxserver/sonarr',
+    ports   => '8989:8989',
+    env     => ['PUID=8989', 'PGID=1001'],
+    volumes => [
+      '/dev/rtc:/dev/rtc:ro',
+      '/srv/sonarr/config:/config',
+      '/srv/nzbget/downloads:/downloads',
+      '/nest/tv:/tv',
+    ],
+    require => [
+      File['/srv/sonarr/config'],
+      File['/srv/nzbget/downloads/completed'],
+    ],
   }
 
   apache::vhost { 'nzbget.nest':
@@ -59,6 +96,14 @@ class nest::node::media {
     docroot    => '/var/www/nzbget.nest',
     proxy_pass => [
       { 'path' => '/', 'url' => 'http://localhost:6789/' },
+    ],
+  }
+
+  apache::vhost { 'sonarr.nest':
+    port       => '80',
+    docroot    => '/var/www/sonarr.nest',
+    proxy_pass => [
+      { 'path' => '/', 'url' => 'http://localhost:8989/' },
     ],
   }
 }

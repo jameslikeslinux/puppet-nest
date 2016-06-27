@@ -41,6 +41,13 @@ class nest::profile::base::users {
       home    => '/srv/nzbget',
       comment => 'NZBGet',
       shell   => '/sbin/nologin';
+
+    'sonarr':
+      uid     => '8989',
+      gid     => 'media',
+      home    => '/srv/sonarr',
+      comment => 'Sonarr',
+      shell   => '/sbin/nologin';
   }
 
   file {
