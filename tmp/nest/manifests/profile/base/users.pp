@@ -14,6 +14,10 @@ class nest::profile::base::users {
     gid => '1000',
   }
 
+  group { 'media':
+    gid => '1001',
+  }
+
   user {
     'root':
       shell   => '/bin/zsh',
@@ -29,7 +33,14 @@ class nest::profile::base::users {
       require => [
         Package['app-shells/zsh'],
         Class['::nest::profile::base::network'],  # networkmanager creates 'plugdev' group
-      ],
+      ];
+
+    'nzbget':
+      uid     => '6789',
+      gid     => 'media',
+      home    => '/srv/nzbget',
+      comment => 'NZBGet',
+      shell   => '/sbin/nologin';
   }
 
   file {
