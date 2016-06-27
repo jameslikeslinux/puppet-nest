@@ -7,8 +7,9 @@ class nest::node::media {
   }
 
   zfs { 'srv/nzbget':
-    name    => "${::trusted['certname']}/srv/nzbget",
-    require => Zfs['srv'],
+    name       => "${::trusted['certname']}/srv/nzbget",
+    mountpoint => '/srv/nzbget',
+    require    => Zfs['srv'],
   }
 
   file {
@@ -38,7 +39,7 @@ class nest::node::media {
 
   docker::run { 'nzbget':
     image   => 'linuxserver/nzbget',
-    ports   => '6789',
+    ports   => '6789:6789',
     env     => ['PUID=6789', 'PGID=1001'],
     volumes => [
       '/srv/nzbget/config:/config',
