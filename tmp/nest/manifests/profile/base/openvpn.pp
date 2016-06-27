@@ -113,7 +113,7 @@ class nest::profile::base::openvpn {
       notify  => Service['dnsmasq'],
     }
   
-    $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias}.nest,${cname}.nest" }
+    $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
     $dnsmasq_cnames_content = $dnsmasq_cnames.join("\n")
     $dnsmasq_cnames_ensure = $dnsmasq_cnames_content ? {
       ""      => 'absent',

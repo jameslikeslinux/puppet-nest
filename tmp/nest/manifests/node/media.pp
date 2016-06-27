@@ -54,11 +54,11 @@ class nest::node::media {
     after   => 'remote-fs.target',
   }
 
-  apache::vhost { 'media.nest':
+  apache::vhost { 'nzbget.nest':
     port       => '80',
-    docroot    => '/var/www/media.nest',
+    docroot    => '/var/www/nzbget.nest',
     proxy_pass => [
-      { 'path' => '/nzbget', 'url' => 'http://localhost:6789' },
+      { 'path' => '/', 'url' => 'http://localhost:6789/' },
     ],
   }
 }
