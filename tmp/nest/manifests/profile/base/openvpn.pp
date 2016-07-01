@@ -29,6 +29,7 @@ class nest::profile::base::openvpn {
   $common_config = @("EOT")
     dev ${device}
     persist-tun
+    txqueuelen 1000
     cipher AES-128-CBC
     ca ${::settings::localcacert}
     cert ${::settings::certdir}/${::trusted['certname']}.pem
