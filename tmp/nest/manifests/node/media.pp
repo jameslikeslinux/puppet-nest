@@ -201,10 +201,10 @@ class nest::node::media {
     ],
   }
 
-  firewall { '100 docker to nzbget':
+  firewall { '100 docker to apache':
     iniface => 'docker0',
     proto   => tcp,
-    dport   => 6789,
+    dport   => 80,
     state   => 'NEW',
     action  => accept,
   }
