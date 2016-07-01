@@ -48,6 +48,9 @@ class nest::profile::workstation::plasma {
 
     [XDisplay]
     ServerArguments=-dpi ${::nest::dpi}
+
+    [Users]
+    MaximumUid=1000
     | EOT
 
   file { '/etc/sddm.conf':
