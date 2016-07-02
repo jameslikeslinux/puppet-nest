@@ -43,8 +43,6 @@ class nest::profile::base::firewall {
   ->
   firewall { '011 ping':
     proto  => icmp,
-    icmp   => 'echo-request',
-    state  => 'NEW',
     action => accept,
   }
   ->
