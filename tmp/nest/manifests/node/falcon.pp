@@ -35,7 +35,7 @@ class nest::node::falcon {
 
   docker::run { 'plex':
     image   => 'linuxserver/plex',
-    ports   => '32400:32400',
+    net     => 'host',
     env     => ['PUID=32400', 'PGID=1001'],
     volumes => [
       '/srv/plex/config:/config',
