@@ -1,4 +1,7 @@
 ---
+classes:
+  - 'nest::node::falcon'
+
 nest::extra_luks_disks:
   nest-crypt0: 'f4dc141c-b9a4-4ca7-9b1f-333b80475113'
   nest-crypt1: 'b8bcf96c-c29e-4241-af43-4b6759fa532d'
