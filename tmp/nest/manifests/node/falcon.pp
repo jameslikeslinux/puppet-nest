@@ -72,4 +72,8 @@ class nest::node::falcon {
     state  => 'NEW',
     action => accept,
   }
+
+  sysctl { 'fs.inotify.max_user_watches':
+    value => '1048576',
+  }
 }
