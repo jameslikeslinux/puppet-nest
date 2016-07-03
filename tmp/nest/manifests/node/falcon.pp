@@ -34,6 +34,11 @@ class nest::node::falcon {
   }
 
   docker::run { 'couchpotato':
+    image  => 'linuxserver/plex',
+    ensure => absent,
+  }
+
+  docker::run { 'plex':
     image   => 'linuxserver/plex',
     ports   => '32400:32400',
     env     => ['PUID=32400', 'PGID=1001'],
