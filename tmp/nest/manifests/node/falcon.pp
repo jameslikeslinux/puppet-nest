@@ -33,11 +33,6 @@ class nest::node::falcon {
     after            => 'remote-fs.target',
   }
 
-  docker::run { 'couchpotato':
-    image  => 'linuxserver/plex',
-    ensure => absent,
-  }
-
   docker::run { 'plex':
     image   => 'linuxserver/plex',
     ports   => '32400:32400',
@@ -51,7 +46,7 @@ class nest::node::falcon {
   }
 
   apache::vhost { 'plex.nest':
-    port       => '32400',
+    port       => '80',
     docroot    => '/var/www/plex.nest',
     proxy_pass => [
       { 'path' => '/', 'url' => 'http://localhost:32400/' },
