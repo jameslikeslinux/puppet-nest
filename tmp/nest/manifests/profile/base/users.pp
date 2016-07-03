@@ -62,6 +62,13 @@ class nest::profile::base::users {
       home    => '/srv/transmission',
       comment => 'Transmission',
       shell   => '/sbin/nologin';
+
+    'plex':
+      uid     => '32400',
+      gid     => 'media',
+      home    => '/srv/plex',
+      comment => 'Plex Media Server',
+      shell   => '/sbin/nologin';
   }
 
   file {

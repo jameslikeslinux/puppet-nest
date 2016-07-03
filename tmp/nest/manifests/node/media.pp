@@ -39,7 +39,7 @@ class nest::node::media {
       group   => 'media';
 
     '/srv/couchpotato':
-      require => Zfs['srv/nzbget'];
+      require => Zfs['srv/couchpotato'];
 
     '/srv/couchpotato/config':
       # use defaults
