@@ -54,6 +54,7 @@ class nest::node::falcon {
   }
 
   firewall { '012 multicast':
+    proto   => udp,
     pkttype => 'multicast',
     action  => accept,
   }
