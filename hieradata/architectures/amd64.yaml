@@ -46,7 +46,7 @@ nest::package_keywords:
   dev-python/munkres:
     version: '=1.0.5.4-r2'
   media-sound/beets:
-    version: '1.3.13'
+    version: '=1.3.13'
 
 nest::package_use:
   # For Dracut liveimg module
@@ -153,7 +153,6 @@ nest::kernel_config:
   CONFIG_CRYPTO_USER_API: m
   CONFIG_CRYPTO_USER_API_SKCIPHER: m
   CONFIG_CRYPTO_DEFLATE: m  # for ZLIB_DEFLATE, an spl requirement
-  CONFIG_CRYPTO_ZLIB: m
   CONFIG_KVM: m
   CONFIG_KVM_INTEL: m
   CONFIG_VHOST_NET: m
