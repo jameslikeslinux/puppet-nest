@@ -10,7 +10,7 @@ mod 'theforeman/puppet', '4.3.1'
 
 mod 'docker',
   :git    => 'https://github.com/iamjamestl/garethr-docker.git',
-  :branch => 'run-systemd'
+  :branch => 'fixes'
 
 mod 'sysctl',
   :git    => 'https://github.com/iamjamestl/puppet-sysctl.git',

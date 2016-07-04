@@ -102,7 +102,7 @@ class nest::node::media {
 
   Docker::Run {
     service_provider => 'systemd',
-    after            => 'remote-fs.target',
+    depend_services  => 'remote-fs.target',
   }
 
   docker::run { 'couchpotato':
