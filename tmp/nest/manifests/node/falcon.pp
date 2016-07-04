@@ -30,7 +30,6 @@ class nest::node::falcon {
 
   Docker::Run {
     service_provider => 'systemd',
-    after            => 'remote-fs.target',
   }
 
   docker::run { 'plex':
@@ -75,5 +74,13 @@ class nest::node::falcon {
 
   sysctl { 'fs.inotify.max_user_watches':
     value => '1048576',
+  }
+
+  nest::portage::package_use { 'media-sound/beets':
+    use => ['gstreamer', 'replaygain'],
+  }
+
+  package { 'media-sound/beets':
+    ensure => installed,
   }
 }
