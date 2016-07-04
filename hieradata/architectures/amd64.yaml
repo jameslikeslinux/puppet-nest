@@ -36,6 +36,10 @@ nest::package_keywords:
   sys-kernel/linux-firmware:
     version: '=20160616'
 
+  # To support Linux 4.6
+  x11-drivers/nvidia-drivers:
+    version: '=367.27'
+
   # beets
   dev-python/jellyfish:
     version: '=0.5.6'
