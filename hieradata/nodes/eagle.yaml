@@ -1,0 +1,6 @@
+---
+nest::kernel_cmdline: 'hugepages=2048'
+nest::libvirt: true
+nest::monitor_layout: ['DVI-0', 'DVI-1']
+nest::primary_monitor: 'DVI-1'
+nest::mouse: 'mxmaster'
