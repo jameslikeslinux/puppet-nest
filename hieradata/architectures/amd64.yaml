@@ -32,7 +32,7 @@ nest::package_keywords:
 
   # For better Skylake support
   sys-kernel/gentoo-sources:
-    version: '=4.6*'
+    version: '=4.5.7'
   sys-kernel/linux-firmware:
     version: '=20160616'
 
