@@ -12,11 +12,16 @@ class nest::profile::workstation::packages {
     require => Package['net-im/pidgin'],
   }
 
+  nest::portage::package_use { 'app-text/texlive-core':
+    use => 'xetex',
+  }
+
   nest::portage::package_use { 'app-text/texlive':
     use => ['extra', 'xetex'],
   }
 
   package { 'app-text/texlive':
-    ensure => installed,
+    ensure  => installed,
+    require => Nest::Portage::Package_use['app-text/texlive-core'],
   }
 }
