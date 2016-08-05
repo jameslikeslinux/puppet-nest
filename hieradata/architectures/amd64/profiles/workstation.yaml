@@ -11,7 +11,7 @@ nest::package_keywords:
 
   # For firefox-46
   dev-libs/nss:
-    version: '=3.23'
+    version: '=3.25-r1'
 
   # For chromium[cups]
   media-libs/freetype:
