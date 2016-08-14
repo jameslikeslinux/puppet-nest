@@ -28,6 +28,7 @@ class nest (
   $package_use      = {},
   $use              = [],
 
+  $cups_servers     = [],
   $distcc_server    = false,
   $fileserver       = false,
   $libvirt          = false,
@@ -46,6 +47,7 @@ class nest (
     $use_defaults   = []
   }
   
+  $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
   $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
   $package_use_hiera = hiera_hash('nest::package_use', $package_use)
   $use_hiera = hiera_array('nest::use', $use)

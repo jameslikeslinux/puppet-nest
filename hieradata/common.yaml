@@ -13,6 +13,8 @@ nest::cnames:
   plex.nest: 'falcon.nest'
   sonarr.nest: 'media.nest'
   transmission.nest: 'media.nest'
+nest::cups_servers:
+  - 'falcon.nest'
 nest::distcc_hosts:
   falcon.nest: 32
 nest::nestfs_hostname: 'falcon.nest'
