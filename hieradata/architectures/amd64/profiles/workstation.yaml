@@ -29,7 +29,7 @@ nest::package_keywords:
   x11-base/xorg-server:
     version: '=1.18.3'
   x11-drivers/xf86-video-intel:
-    version: '=2.99.917_p20160518'
+    version: '=2.99.917_p20160812'
   x11-drivers/xf86-video-ati:
     version: '=7.7.0'
 
