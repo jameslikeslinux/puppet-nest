@@ -358,5 +358,5 @@ if [ -n "$live" ]; then
     command rm -rf "${live_dir}/LiveOS/squashfs-root"
 
     task "Making ISO..."
-    command grub2-mkrescue --modules=part_gpt -o "${name}-${DATE}.iso" "$live_dir" -- -volid "$iso_label"
+    command grub-mkrescue --modules=part_gpt -o "${name}-${DATE}.iso" "$live_dir" -- -volid "$iso_label"
 fi

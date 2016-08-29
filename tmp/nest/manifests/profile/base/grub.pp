@@ -30,8 +30,8 @@ class nest::profile::base::grub {
       purge   => true,
     }
 
-    exec { 'grub2-mkfont':
-      command => "/usr/bin/grub2-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
+    exec { 'grub-mkfont':
+      command => "/usr/bin/grub-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
       creates => "/boot/grub/fonts/${font}.pf2",
       require => [
         Package['sys-boot/grub'],
@@ -40,7 +40,7 @@ class nest::profile::base::grub {
     }
 
     file { "/boot/grub/fonts/${font}.pf2":
-      require => Exec['grub2-mkfont'],
+      require => Exec['grub-mkfont'],
     }
 
     file { '/boot/grub/layouts/dvorak.gkb':
@@ -50,13 +50,13 @@ class nest::profile::base::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     } 
 
-    exec { 'grub2-mkconfig':
-      command     => '/usr/sbin/grub2-mkconfig -o /boot/grub/grub.cfg',
+    exec { 'grub-mkconfig':
+      command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
       refreshonly => true,
-      require     => Exec['grub2-mkfont'],
+      require     => Exec['grub-mkfont'],
     }
 
-    $file_line_notify    = Exec['grub2-mkconfig']
+    $file_line_notify    = Exec['grub-mkconfig']
     $grub_install_before = File['/boot/grub']
   }
 
@@ -110,8 +110,8 @@ class nest::profile::base::grub {
 
     if "${::trusted['certname']}-" in $attributes['partlabel'] {
       $grub_install_command = $attributes['partlabel'] ? {
-        /-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub2-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
-        /-bios/ => "/usr/sbin/grub2-install --target=i386-pc --modules=part_gpt ${disk}",
+        /-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
+        /-bios/ => "/usr/sbin/grub-install --target=i386-pc --modules=part_gpt ${disk}",
         default => undef,
       }
 
