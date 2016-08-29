@@ -106,3 +106,7 @@ nest::package_use:
     use: 'openconnect'
   net-misc/networkmanager-openconnect:
     use: '-gtk'
+
+  # For vsync
+  x11-drivers/xf86-video-intel:
+    use: 'dri3'
