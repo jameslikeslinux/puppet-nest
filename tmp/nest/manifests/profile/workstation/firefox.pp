@@ -1,4 +1,9 @@
 class nest::profile::workstation::firefox {
+  package_mask { 'www-plugins/adobe-flash':
+    slot    => '22',
+    before  => Package['www-plugins/adobe-flash'],
+  }
+
   package { [
     'www-client/firefox',
     'www-plugins/adobe-flash',

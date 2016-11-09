@@ -4,7 +4,6 @@ nest::package_keywords:
   mail-client/thunderbird: {}
   media-sound/cantata: {}
   www-client/firefox: {}
-  www-plugins/adobe-flash: {}
 
   # For plasma-meta[handbook]
   dev-libs/grantlee:
