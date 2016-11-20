@@ -39,8 +39,6 @@ nest::synergy_config: |
   	mousebutton(7) = keystroke(WWWForward)
   end
 
-# Try to improve VM latency by disabling ticks on non-idle CPUs
 nest::kernel_config:
-  CONFIG_NO_HZ_IDLE: n
-  CONFIG_NO_HZ_FULL: y
-  CONFIG_NO_HZ_FULL_ALL: y
+  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
+  CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
