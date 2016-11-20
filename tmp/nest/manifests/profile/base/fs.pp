@@ -98,9 +98,36 @@ class nest::profile::base::fs {
       ensure => installed,
     }
 
+    # Work around https://bugs.gentoo.org/show_bug.cgi?id=593088
+    $cachefilesd_fix_path = @(EOT)
+      [Service]
+      ExecStart=/sbin/cachefilesd -n -f /etc/cachefilesd.conf
+      | EOT
+
+    file { '/etc/systemd/system/cachefilesd.service.d':
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+    }
+
+    file { '/etc/systemd/system/cachefilesd.service.d/10-fix-path.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => $cachefilesd_fix_path,
+      notify  => Exec['cachefilesd-systemd-daemon-reload'],
+      require => Package['sys-fs/cachefilesd'],
+    }
+
+    exec { 'cachefilesd-systemd-daemon-reload':
+      command     => '/usr/bin/systemctl daemon-reload',
+      refreshonly => true,
+    }
+
     service { 'cachefilesd':
       enable  => true,
-      require => Package['sys-fs/cachefilesd'],
+      require => Exec['cachefilesd-systemd-daemon-reload'],
     }
   }
 }
