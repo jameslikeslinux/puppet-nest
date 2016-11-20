@@ -46,7 +46,8 @@ class nest (
     $video_cards    = undef
     $use_defaults   = []
   }
-  
+
+  $kerenl_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)  
   $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
   $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
   $package_use_hiera = hiera_hash('nest::package_use', $package_use)

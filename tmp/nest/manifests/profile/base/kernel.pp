@@ -17,7 +17,7 @@ class nest::profile::base::kernel {
     require => Package['sys-kernel/gentoo-sources'],
   }
 
-  $::nest::kernel_config.each |$config, $value| {
+  $::nest::kernel_config_hiera.each |$config, $value| {
     if is_numeric($value) {
       $line = "${config}=${value}"
     } else {
