@@ -29,13 +29,13 @@ nest::package_keywords:
 
   # For better Skylake support
   sys-kernel/gentoo-sources:
-    version: '=4.5.7'
+    version: '=4.8.9'
   sys-kernel/linux-firmware:
-    version: '=20160616'
+    version: '=20161005'
 
   # To support Linux 4.6
   x11-drivers/nvidia-drivers:
-    version: '=367.27'
+    version: '=375.10-r1'
 
   # beets
   dev-python/jellyfish:
