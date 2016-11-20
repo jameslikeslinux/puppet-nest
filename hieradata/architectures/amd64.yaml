@@ -85,7 +85,6 @@ nest::kernel_config:
   CONFIG_X86_X2APIC: y
   CONFIG_MCORE2: y
   CONFIG_GENERIC_CPU: n
-  CONFIG_CPU_FREQ_STAT: m
   CONFIG_X86_INTEL_PSTATE: y
   CONFIG_INTEL_IDLE: y
   CONFIG_PCI_STUB: y
@@ -182,6 +181,9 @@ nest::kernel_config:
   CONFIG_NET_CLS_CGROUP: m
   CONFIG_CGROUP_NET_PRIO: y
   CONFIG_VETH: m
+
+  # For powertop
+  CONFIG_CPU_FREQ_STAT: y
 
   # Try to improve VM latency by disabling ticks on non-idle CPUs
   CONFIG_NO_HZ_IDLE: n
