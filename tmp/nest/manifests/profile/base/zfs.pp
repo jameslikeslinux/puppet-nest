@@ -3,7 +3,14 @@ class nest::profile::base::zfs {
     ensure => installed,
   }
 
-  service { 'zfs.target':
+  # See: https://github.com/zfsonlinux/zfs/blob/master/etc/systemd/system/50-zfs.preset.in
+  service { [
+    'zfs-import-cache.service',
+    'zfs-mount.service',
+    'zfs-share.service',
+    'zfs-zed.service',
+    'zfs.target',
+  ]:
     enable  => true,
     require => Package['sys-fs/zfs'],
   }

@@ -21,14 +21,11 @@ nest::package_keywords:
 
   # ZFS
   sys-kernel/spl:
-    version: '=0.6.5.7'
-    keywords: '**'
+    version: '=0.6.5.8'
   sys-fs/zfs-kmod:
-    version: '=0.6.5.7'
-    keywords: '**'
+    version: '=0.6.5.8'
   sys-fs/zfs:
-    version: '=0.6.5.7'
-    keywords: '**'
+    version: '=0.6.5.8'
 
   # For better Skylake support
   sys-kernel/gentoo-sources:
