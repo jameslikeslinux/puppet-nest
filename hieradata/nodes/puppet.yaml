@@ -1,4 +1,5 @@
 ---
+nest::nestfs_hostname: 'falcon.home'
 nest::puppet_server: true
 puppet::server_jvm_min_heap_size: '1G'
 puppet::server_jvm_max_heap_size: '1G'
