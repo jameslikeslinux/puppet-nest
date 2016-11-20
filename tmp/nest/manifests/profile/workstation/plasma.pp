@@ -84,6 +84,11 @@ class nest::profile::workstation::plasma {
     use => 'thumbnail',
   }
 
+  # Don't build support for online services
+  nest::portage::package_use { 'kde-apps/spectacle':
+    use => '-kipi',
+  }
+
   package { [
     'kde-apps/ark',
     'kde-apps/dolphin',
