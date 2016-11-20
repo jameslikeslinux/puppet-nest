@@ -15,6 +15,19 @@ class nest::profile::workstation::synergy {
     require => Package['x11-misc/synergy'],
   }
 
+  # Try to prevent segfaults every 10 seconds due to missing X server
+  $synergys_safe_content = @(EOT)
+    #!/bin/bash
+    [ -n "$DISPLAY" ] && exec /usr/bin/synergys "$@"
+    | EOT
+
+  file { '/usr/bin/synergys.safe':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => $synergys_safe_content,
+  }
+
   file { '/etc/systemd/user/synergys.service':
     mode   => '0644',
     owner  => 'root',
