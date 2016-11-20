@@ -9,9 +9,9 @@ nest::package_keywords:
   dev-libs/grantlee:
     version: '=5.1.0'
 
-  # For firefox-46
+  # For firefox, chromium
   dev-libs/nss:
-    version: '=3.25-r1'
+    version: '=3.27.1'
 
   # For chromium[cups]
   media-libs/freetype:
