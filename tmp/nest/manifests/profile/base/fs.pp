@@ -79,6 +79,20 @@ class nest::profile::base::fs {
       enable    => true,
       subscribe => File['/etc/samba/smb.conf'],
     }
+
+    $fileserver_rules_ensure = $::nest::libvirt ? {
+      true    => 'present',
+      default => 'absent',
+    }
+
+    firewall { '100 fileserver':
+      ensure  => $fileserver_rules_ensure,
+      proto   => tcp,
+      dport   => [139, 445, 2049],
+      iniface => 'virbr0',
+      state   => 'NEW',
+      action  => accept,
+    }
   } elsif !$::nest::live {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
