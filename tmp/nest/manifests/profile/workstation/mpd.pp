@@ -53,7 +53,7 @@ class nest::profile::workstation::mpd {
   }
 
   exec { '/bin/mkdir -p /home/james/.config/mpd':
-    unless  => '/bin/test -d /home/james/.config/mpd',
+    unless  => '/usr/bin/test -d /home/james/.config/mpd',
     require => File['/home/james'],
   }
 
