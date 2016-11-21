@@ -16,37 +16,41 @@ class nest::profile::workstation::mpd {
     ensure => installed,
   }
 
-  $mpdconf_content = "${::trusted['certname']}.nest" ? {
-    $::nest::nestfs_hostname => @(EOT)
-      music_directory    "/nest/music"
-      db_file            "~/.config/mpd/database"
-      log_file           "syslog"
-      state_file         "~/.config/mpd/state"
-      replaygain         "auto"
+  case "${::trusted['certname']}.nest" {
+    $::nest::nestfs_hostname: {
+      $mpdconf_content = @(EOT)
+        music_directory    "/nest/music"
+        db_file            "~/.config/mpd/database"
+        log_file           "syslog"
+        state_file         "~/.config/mpd/state"
+        replaygain         "auto"
 
-      audio_output {
-          type "pulse"
-          name "PulseAudio"
-      }
-      | EOT,
+        audio_output {
+            type "pulse"
+            name "PulseAudio"
+        }
+        | EOT
+    }
 
-    default                  => @("EOT")
-      music_directory    "/nest/music"
-      log_file           "syslog"
-      state_file         "~/.config/mpd/state"
-      replaygain         "auto"
+    default: {
+      $mpdconf_content = @("EOT")
+        music_directory    "/nest/music"
+        log_file           "syslog"
+        state_file         "~/.config/mpd/state"
+        replaygain         "auto"
 
-      audio_output {
-          type "pulse"
-          name "PulseAudio"
-      }
+        audio_output {
+            type "pulse"
+            name "PulseAudio"
+        }
 
-      database {
-          plugin "proxy"
-          host "${::nest::nestfs_hostname}"
-      }
-      | EOT,
-  } 
+        database {
+            plugin "proxy"
+            host "${::nest::nestfs_hostname}"
+        }
+        | EOT
+    }
+  }
 
   exec { '/bin/mkdir -p /home/james/.config/mpd':
     unless  => '/bin/test -d /home/james/.config/mpd',
