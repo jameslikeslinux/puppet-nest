@@ -20,9 +20,10 @@ class nest::profile::workstation::mpd {
     $::nest::nestfs_hostname: {
       $mpdconf_content = @(EOT)
         music_directory    "/nest/music"
+        playlist_directory "/nest/music/playlists"
         db_file            "~/.config/mpd/database"
-        log_file           "syslog"
         state_file         "~/.config/mpd/state"
+        log_file           "syslog"
         replaygain         "auto"
 
         audio_output {
@@ -35,8 +36,9 @@ class nest::profile::workstation::mpd {
     default: {
       $mpdconf_content = @("EOT")
         music_directory    "/nest/music"
-        log_file           "syslog"
+        playlist_directory "/nest/music/playlists"
         state_file         "~/.config/mpd/state"
+        log_file           "syslog"
         replaygain         "auto"
 
         audio_output {
