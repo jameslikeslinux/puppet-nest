@@ -3,6 +3,7 @@ nest::package_keywords:
   # I always want the most recent of these:
   mail-client/thunderbird: {}
   media-sound/cantata: {}
+  media-sound/google-play-music-desktop-player-bin: {}  
   www-client/firefox: {}
 
   # For plasma-meta[handbook]

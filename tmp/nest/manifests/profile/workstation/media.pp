@@ -1,4 +1,4 @@
-class nest::profile::workstation::mpd {
+class nest::profile::workstation::media {
   nest::portage::package_use { 'media-sound/cantata':
     use => ['-cdda', '-kde'],
   }
@@ -9,6 +9,7 @@ class nest::profile::workstation::mpd {
 
   package { [
     'media-sound/cantata',
+    'media-sound/google-play-music-desktop-player-bin',
     'media-sound/mpc',
     'media-sound/mpd',
     'media-sound/mpdas',
