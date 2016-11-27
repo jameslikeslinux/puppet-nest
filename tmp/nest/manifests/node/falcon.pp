@@ -77,7 +77,7 @@ class nest::node::falcon {
   }
 
   nest::portage::package_use { 'media-sound/beets':
-    use => ['gstreamer', 'replaygain'],
+    use => ['gstreamer', 'lastgenre', 'replaygain'],
   }
 
   package { 'media-sound/beets':
