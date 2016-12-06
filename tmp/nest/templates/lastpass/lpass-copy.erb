@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# lastpass-cli wrapper for X shortcuts
+#
+# Managed by Puppet
+#
+# Pass the name of a password stored in LastPass and the script will
+# log in if necessary, then copy the password to the X clipboard,
+# and provide notifications along the way with libnotify.
+#
+
+if [ $# -ne 1 ]; then
+    echo "Usage: ${0} NAME" >&2
+    exit 1
+fi
+
+NAME="$1"
+
+notify() {
+    notify-send --icon=password-copy "$NAME" "$@"
+}
+
+# lpass won't run in a subshell, so capture output to temp file
+lpass_output=$(mktemp)
+trap "rm -f '${lpass_output}'" EXIT
+
+if ! lpass status --quiet; then
+    export LPASS_ASKPASS="/usr/bin/ksshaskpass" LPASS_AGENT_TIMEOUT=0
+    lpass login --trust <%= scope['::nest::lastpass_username'] %> > "$lpass_output" 2>&1
+    notify "$(cat "$lpass_output")"
+fi
+
+lpass show --clip --password "$1" > "$lpass_output" 2>&1
+
+if [ $? -eq 0 ]; then
+    notify "Password copied to clipboard."
+else
+    notify "$(cat "$lpass_output")"
+fi

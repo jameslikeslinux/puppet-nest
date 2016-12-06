@@ -4,6 +4,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::cursor'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::fonts'
+  contain '::nest::profile::workstation::lastpass'
   contain '::nest::profile::workstation::media'
   contain '::nest::profile::workstation::mouse'
   contain '::nest::profile::workstation::packages'
