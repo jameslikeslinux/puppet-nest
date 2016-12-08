@@ -68,4 +68,12 @@ class nest::profile::base::systemd {
   file { '/etc/issue':
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
+
+  # Kill all user processes at end of session.
+  # This is the default in systemd-230.
+  file_line { 'logind.conf-KillUserProcesses':
+    path  => '/etc/systemd/logind.conf',
+    line  => 'KillUserProcesses=yes',
+    match => '^#?KillUserProcesses=',
+  }
 }
