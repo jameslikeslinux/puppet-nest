@@ -44,6 +44,9 @@ nest::package_keywords:
     version: '=1.0.5.4-r2'
   media-sound/beets: {}
 
+  # nc: all versions are unstable; don't care
+  net-analyzer/openbsd-netcat: {}
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:

@@ -6,6 +6,7 @@ class nest::profile::base::packages {
     'app-portage/gentoolkit',
     'dev-libs/libisoburn',
     'dev-util/strace',
+    'net-analyzer/openbsd-netcat',
     'net-dns/bind-tools',
     'net-misc/whois',
     'sys-block/parted',
