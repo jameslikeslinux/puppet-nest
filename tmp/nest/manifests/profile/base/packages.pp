@@ -24,6 +24,13 @@ class nest::profile::base::packages {
 
   package { 'net-misc/telnet-bsd':
     ensure  => installed,
-    require => Package['net-misc/netkit-telnetd'],
+    require => [
+      Package['net-misc/netkit-telnetd'],
+      Package_mask['sys-libs/ncurses'],
+    ],
+  }
+
+  package_mask { 'sys-libs/ncurses':
+    version => '>=6'
   }
 }
