@@ -35,7 +35,7 @@ nest::package_keywords:
 
   # To support Linux 4.6
   x11-drivers/nvidia-drivers:
-    version: '=375.10-r1'
+    slot: '0/375'
 
   # beets
   dev-python/jellyfish:
