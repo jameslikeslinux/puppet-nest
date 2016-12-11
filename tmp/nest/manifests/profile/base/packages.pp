@@ -7,7 +7,6 @@ class nest::profile::base::packages {
     'dev-libs/libisoburn',
     'dev-util/strace',
     'net-dns/bind-tools',
-    'net-misc/netkit-telnetd',
     'net-misc/whois',
     'sys-block/parted',
     'sys-fs/dosfstools',
@@ -17,5 +16,14 @@ class nest::profile::base::packages {
     'www-client/elinks',
   ]:
     ensure => installed,
+  }
+
+  package { 'net-misc/netkit-telnetd':
+    ensure => absent,
+  }
+
+  package { 'net-misc/telnet-bsd':
+    ensure  => installed,
+    require => Package['net-misc/netkit-telnetd'],
   }
 }
