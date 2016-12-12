@@ -26,4 +26,17 @@ class nest::profile::base::network {
     enable  => true,
     require => Package['net-misc/networkmanager'],
   }
+
+  # "mask" service which holds up the boot process
+  file { '/etc/systemd/system/NetworkManager-wait-online.service':
+    ensure => symlink,
+    target => '/dev/null',
+    notify => Exec['NetworkManager-systemd-daemon-reload'],
+  }
+
+  # probably not *strictly* necessary, but good practice none-the-less
+  exec { 'NetworkManager-systemd-daemon-reload':
+    command     => '/usr/bin/systemctl daemon-reload',
+    refreshonly => true,
+  }
 }
