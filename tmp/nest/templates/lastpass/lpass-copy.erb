@@ -27,13 +27,16 @@ trap "rm -f '${lpass_output}'" EXIT
 if ! lpass status --quiet; then
     export LPASS_ASKPASS="/usr/bin/ksshaskpass" LPASS_AGENT_TIMEOUT=0
     lpass login --trust <%= scope['::nest::lastpass_username'] %> > "$lpass_output" 2>&1
-    notify "$(cat "$lpass_output")"
+    notify "$(< "$lpass_output")"
+    sync='auto'
+else
+    sync='no'
 fi
 
-lpass show --clip --password "$1" > "$lpass_output" 2>&1
+lpass show --sync="$sync" --clip --password "$1" > "$lpass_output" 2>&1
 
 if [ $? -eq 0 ]; then
     notify "Password copied to clipboard."
 else
-    notify "$(cat "$lpass_output")"
+    notify "$(< "$lpass_output")"
 fi
