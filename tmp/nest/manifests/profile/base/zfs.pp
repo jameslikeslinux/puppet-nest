@@ -74,6 +74,7 @@ class nest::profile::base::zfs {
 
   exec {
     default:
+      user        => 'zfssnap',
       environment => 'XDG_RUNTIME_DIR=/run/user/5000',
       refreshonly => true;
 
