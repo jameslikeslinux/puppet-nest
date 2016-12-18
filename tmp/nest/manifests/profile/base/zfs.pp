@@ -54,4 +54,36 @@ class nest::profile::base::zfs {
     user     => 'zfssnap',
     require  => File['/var/lib/zfssnap'],
   }
+
+  file { '/etc/sudoers.d/10_zfssnap':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "zfssnap ALL=NOPASSWD: /sbin/zfs, /sbin/zpool\n",
+    require => Package['app-admin/sudo'],
+  }
+
+  exec { 'zfssnap-enable-linger':
+    command => '/usr/bin/loginctl enable-linger zfssnap',
+    creates => '/var/lib/systemd/linger/zfssnap',
+    require => [
+      Vcsrepo['/var/lib/zfssnap'],
+      File['/etc/sudoers.d/10_zfssnap'],
+    ],
+  }
+
+  exec {
+    default:
+      environment => 'XDG_RUNTIME_DIR=/run/user/5000',
+      refreshonly => true;
+
+    'zfssnap-systemd-daemon-reload':
+      command   => '/usr/bin/systemctl --user daemon-reload',
+      require   => Exec['zfssnap-enable-linger'],
+      subscribe => Vcsrepo['/var/lib/zfssnap'];
+
+    'zfssnap-restart-timers':
+      command   => '/usr/bin/systemctl --user restart timers.target',
+      subscribe => Exec['zfssnap-systemd-daemon-reload'];
+  }
 }
