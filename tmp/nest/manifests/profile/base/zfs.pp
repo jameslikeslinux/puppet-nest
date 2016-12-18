@@ -25,4 +25,33 @@ class nest::profile::base::zfs {
   sysctl { 'vm.swappiness':
     value => '10',
   }
+
+  group { 'zfssnap':
+    gid => '5000',  # last pool version ;)
+  }
+
+  user { 'zfssnap':
+    uid     => '5000',
+    gid     => 'zfssnap',
+    home    => '/var/lib/zfssnap',
+    comment => 'ZFS Auto Snapshot',
+    shell   => '/bin/zsh',
+    require => Package['app-shells/zsh'],
+  }
+
+  file { '/var/lib/zfssnap':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'zfssnap',
+    group  => 'zfssnap',
+  }
+
+  vcsrepo { '/var/lib/zfssnap':
+    ensure   => latest,
+    provider => git,
+    source   => 'https://github.com/iamjamestl/zfssnap.git',
+    revision => 'master',
+    user     => 'zfssnap',
+    require  => File['/var/lib/zfssnap'],
+  }
 }

@@ -10,12 +10,11 @@ class nest::profile::base::users {
     ensure => installed,
   }
 
-  group { 'users':
-    gid => '1000',
-  }
-
-  group { 'media':
-    gid => '1001',
+  group {
+    'users':
+      gid => '1000';
+    'media':
+      gid => '1001';
   }
 
   user {
