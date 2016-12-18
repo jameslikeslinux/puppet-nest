@@ -46,15 +46,6 @@ class nest::profile::base::zfs {
     group  => 'zfssnap',
   }
 
-  vcsrepo { '/var/lib/zfssnap':
-    ensure   => latest,
-    provider => git,
-    source   => 'https://github.com/iamjamestl/zfssnap.git',
-    revision => 'master',
-    user     => 'zfssnap',
-    require  => File['/var/lib/zfssnap'],
-  }
-
   file { '/etc/sudoers.d/10_zfssnap':
     mode    => '0644',
     owner   => 'root',
@@ -63,28 +54,67 @@ class nest::profile::base::zfs {
     require => Package['app-admin/sudo'],
   }
 
-  exec { 'zfssnap-enable-linger':
-    command => '/usr/bin/loginctl enable-linger zfssnap',
-    creates => '/var/lib/systemd/linger/zfssnap',
-    require => [
-      Vcsrepo['/var/lib/zfssnap'],
-      File['/etc/sudoers.d/10_zfssnap'],
-    ],
+  file { '/usr/sbin/zfs-auto-snapshot':
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/zfs/zfs-auto-snapshot.sh',
   }
 
-  exec {
-    default:
-      user        => 'zfssnap',
-      environment => 'XDG_RUNTIME_DIR=/run/user/5000',
-      refreshonly => true;
+  $zfs_auto_snapshot_service_content = @(EOT)
+    [Unit]
+    Description=ZFS %I auto snapshot
 
-    'zfssnap-systemd-daemon-reload':
-      command   => '/usr/bin/systemctl --user daemon-reload',
-      require   => Exec['zfssnap-enable-linger'],
-      subscribe => Vcsrepo['/var/lib/zfssnap'];
+    [Service]
+    Environment=ZFS_SNAP_KEEP_frequent=4 ZFS_SNAP_KEEP_hourly=24 ZFS_SNAP_KEEP_daily=31 ZFS_SNAP_KEEP_weekly=8 ZFS_SNAP_KEEP_monthly=12
+    Type=oneshot
+    ExecStart=/usr/sbin/zfs-auto-snapshot --verbose --label=%i --keep=${ZFS_SNAP_KEEP_%i} //
+    | EOT
 
-    'zfssnap-restart-timers':
-      command   => '/usr/bin/systemctl --user restart timers.target',
-      subscribe => Exec['zfssnap-systemd-daemon-reload'];
+  file { '/etc/systemd/system/zfs-auto-snapshot@.service':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $zfs_auto_snapshot_service_content,
+    notify  => Exec['zfs-systemctl-daemon-reload'],
+  }
+
+  $zfs_auto_snapshot_timer_frequencies = {
+    'frequent' => '*:0/15',
+    'hourly'   => 'hourly',
+    'daily'    => 'daily',
+    'weekly'   => 'weekly',
+    'monthly'  => 'monthly',
+  }
+
+  $zfs_auto_snapshot_timer_frequencies.each |$frequency, $calendar| {
+    $zfs_auto_snapshot_timer_content = @("EOT")
+      [Unit]
+      Description=ZFS %I auto snapshot timer
+
+      [Timer]
+      OnCalendar=${calendar}
+
+      [Install]
+      WantedBy=timers.target
+    | EOT
+
+    file { "/etc/systemd/system/zfs-auto-snapshot@${frequency}.timer":
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => $zfs_auto_snapshot_timer_content,
+      notify  => Exec['zfs-systemctl-daemon-reload'],
+    }
+
+    service { "zfs-auto-snapshot@${frequency}.timer":
+      enable  => true,
+      require => Exec['zfs-systemctl-daemon-reload'],
+    }
+  }
+
+  exec { 'zfs-systemctl-daemon-reload':
+    command     => '/usr/bin/systemctl daemon-reload',
+    refreshonly => true,
   }
 }
