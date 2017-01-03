@@ -106,8 +106,8 @@ class nest::profile::base::users {
     }
 
     exec { "${dir}/.refresh":
+      provider    => shell,
       user        => $user,
-      path        => '/usr/bin:/bin',
       onlyif      => "test -x '${dir}/.refresh'",
       refreshonly => true,
       subscribe   => Vcsrepo[$dir],
