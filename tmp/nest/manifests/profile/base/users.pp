@@ -72,44 +72,45 @@ class nest::profile::base::users {
 
   file {
     '/root/.keep':
-      ensure => absent;
+      ensure => absent,
+      before => Vcsrepo['/root'];
 
     '/home/james':
       ensure => directory,
       mode   => '0755',
       owner  => 'james',
-      group  => 'users';
+      group  => 'users',
+      before => Vcsrepo['/home/james'];
   }
 
-  vcsrepo {
-    default:
+  $homes = {
+    'root'  => '/root',
+    'james' => '/home/james',
+  }
+
+  $homes.each |$user, $dir| {
+    vcsrepo { $dir:
       ensure   => latest,
       provider => git,
-      source   => 'https://github.com/iamjamestl/profile.git',
-      revision => 'master';
+      source   => 'https://github.com/iamjamestl/dotfiles.git',
+      revision => 'master',
+      user     => $user,
+    }
 
-    '/root':
-      require  => File['/root/.keep'];
-
-    '/home/james':
-      user     => 'james',
-      require  => File['/home/james'];
-  }
-
-  file {
-    default:
+    file { "${dir}/.ssh/id_rsa":
       mode      => '0600',
+      owner     => $user,
       content   => $::nest::ssh_private_key,
-      show_diff => false;
+      show_diff => false,
+      require   => Vcsrepo[$dir],
+    }
 
-    '/root/.ssh/id_rsa':
-      owner     => 'root',
-      group     => 'root',
-      require   => Vcsrepo['/root'];
-
-    '/home/james/.ssh/id_rsa':
-      owner     => 'james',
-      group     => 'users',
-      require   => Vcsrepo['/home/james'];
+    exec { "${dir}/.refresh":
+      user        => $user,
+      path        => '/usr/bin:/bin',
+      onlyif      => "test -x '${dir}/.refresh'",
+      refreshonly => true,
+      subscribe   => Vcsrepo[$dir],
+    }
   }
 }
