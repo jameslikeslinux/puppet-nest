@@ -50,31 +50,46 @@ nest::package_keywords:
     keywords: '**'
 
 nest::package_use:
-  # For nvidia-drivers
+  x11-drivers/nvidia-drivers:
+    use: ['gtk3', '-abi_x86_32']
+
+  # Was for nvidia-drivers (no longer needed)
   x11-libs/libXext:
     use: 'abi_x86_32'
+    ensure: 'absent'
   dev-libs/libpthread-stubs:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/xproto:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/inputproto:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/xf86bigfontproto:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/xcb-proto:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-libs/libxcb:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-libs/libXau:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/xextproto:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-libs/libXdmcp:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-libs/libX11:
     use: 'abi_x86_32'
+    ensure: 'absent'
   x11-proto/kbproto:
     use: 'abi_x86_32'
+    ensure: 'absent'
 
   # For firefox
   dev-lang/python:
