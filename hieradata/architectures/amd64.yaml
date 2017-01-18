@@ -186,8 +186,3 @@ nest::kernel_config:
 
   # For powertop
   CONFIG_CPU_FREQ_STAT: y
-
-  # Try to improve VM latency by disabling ticks on non-idle CPUs
-  CONFIG_NO_HZ_IDLE: n
-  CONFIG_NO_HZ_FULL: y
-  CONFIG_NO_HZ_FULL_ALL: y
