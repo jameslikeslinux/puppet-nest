@@ -24,6 +24,22 @@ class nest::profile::base::puppet {
       server_jvm_config           => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
     }
 
+    # puppetserver-2.7.x doesn't create the necessary run dir
+    file { '/etc/systemd/system/puppetserver.service.d/10-run-dir-fix.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "[Service]\nRuntimeDirectory=puppetlabs\n",
+      require => Class['::puppet::server::install'],
+      notify  => Exec['puppetserver-systemd-daemon-reload'],
+    }
+
+    exec { 'puppetserver-systemd-daemon-reload':
+      command     => '/usr/bin/systemctl daemon-reload',
+      refreshonly => true,
+      before      => Class['::puppet::server::service'],
+    }
+
     # Package installs the log directory with incorrect permissions
     file { '/var/log/puppetlabs/puppetserver':
       ensure  => directory,
