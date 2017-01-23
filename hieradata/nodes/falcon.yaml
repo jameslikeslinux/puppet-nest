@@ -15,11 +15,12 @@ nest::extra_luks_disks:
 nest::kernel_cmdline: 'console=ttyS1,115200n8 console=tty0 hugepages=10240 intel_iommu=on pci-stub.ids=10de:0fbc,1b21:1142 nvidia.NVreg_AssignGpus=0:03:00.0'
 nest::libvirt: true
 
+nest::dvorak: true
+nest::mouse: 'mxmaster'
 nest::monitor_layout: ['DP-2', 'DP-3']
 nest::primary_monitor: 'DP-3'
 nest::scaling_factor: 1.1
 nest::video_card: 'nvidia'
-nest::mouse: 'mxmaster'
 
 nest::distcc_hosts: {}
 nest::distcc_server: true

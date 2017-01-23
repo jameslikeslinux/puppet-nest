@@ -1,6 +1,7 @@
 ---
-nest::kernel_cmdline: 'hugepages=1024'
-nest::libvirt: true
+nest::dvorak: true
+nest::mouse: 'mxmaster'
 nest::monitor_layout: ['DVI-0', 'DVI-1']
 nest::primary_monitor: 'DVI-1'
-nest::mouse: 'mxmaster'
+nest::kernel_cmdline: 'hugepages=1024'
+nest::libvirt: true
