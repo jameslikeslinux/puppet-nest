@@ -129,3 +129,7 @@ nest::package_use:
   # For vsync
   x11-drivers/xf86-video-intel:
     use: 'dri3'
+
+nest::kernel_config:
+  CONFIG_PREEMPT_VOLUNTARY: n
+  CONFIG_PREEMPT: y
