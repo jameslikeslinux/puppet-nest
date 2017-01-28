@@ -120,6 +120,10 @@ nest::package_use:
   media-libs/libvpx:
     use: 'svc'
 
+  # Give pulseaudio higher priority with rtkit
+  media-sound/pulseaudio:
+    use: 'realtime'
+
   # For openconnect
   kde-plasma/plasma-nm:
     use: 'openconnect'
