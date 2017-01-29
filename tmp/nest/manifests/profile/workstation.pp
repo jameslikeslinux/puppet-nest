@@ -10,6 +10,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::packages'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::pulseaudio'
+  contain '::nest::profile::workstation::terminal'
   contain '::nest::profile::workstation::thunderbird'
   contain '::nest::profile::workstation::xorg'
 
