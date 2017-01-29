@@ -1,4 +1,4 @@
-class nest::profile::workstation::terminal {
+class nest::profile::workstation::urxvt {
   nest::portage::package_use { 'x11-terms/rxvt-unicode':
     use => ['256-color', 'alt-font-width', 'secondary-wheel', 'unicode3', '-vanilla', 'xft'],
   }
