@@ -34,9 +34,19 @@ class nest::profile::base::network {
     notify => Exec['NetworkManager-systemd-daemon-reload'],
   }
 
-  # probably not *strictly* necessary, but good practice none-the-less
+  # Probably not *strictly* necessary, but good practice none-the-less
   exec { 'NetworkManager-systemd-daemon-reload':
     command     => '/usr/bin/systemctl daemon-reload',
     refreshonly => true,
+  }
+
+  # Work-around terrible SB6190 (https://www.dslreports.com/forum/r31122204-SB6190-Puma6-TCP-UDP-Network-Latency-Issue-Discussion)
+  # Use TCP for DNS resolution
+  file_line { 'resolvconf.conf-resolv_conf_options':
+    path    => '/etc/resolvconf.conf',
+    line    => 'resolv_conf_options=use-vc',
+    match   => '^#?resolv_conf_options=.*',
+    require => Package['net-misc/networkmanager'],
+    notify  => Service['NetworkManager'],
   }
 }
