@@ -1,1 +1,3 @@
 nest::vm: true
+nest::kernel_config:
+  CONFIG_HFSPLUS_FS: y
