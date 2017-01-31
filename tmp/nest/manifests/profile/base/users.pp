@@ -10,14 +10,24 @@ class nest::profile::base::users {
     ensure => installed,
   }
 
+  file_line { 'useradd-group':
+    path   => '/etc/default/useradd',
+    line   => 'GROUP=1000',
+    match  => '^GROUP=',
+  }
+
   group {
     'users':
-      gid => '1000';
+      gid     => '1000',
+      require => File_line['useradd-group'];
     'media':
       gid => '1001';
   }
 
   user {
+    default:
+      managehome => false;
+
     'root':
       shell   => '/bin/zsh',
       require => File['/bin/zsh'];
