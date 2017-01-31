@@ -34,6 +34,10 @@ class nest::profile::base {
   Class['::nest::profile::base::portage'] -> Package <| title != 'sys-devel/distcc' and title != 'dev-vcs/git' |>
   Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
+  # Portage configuration (profile) responsible for installing systemd
+  Class['::nest::profile::base::portage'] ->
+  Class['::nest::profile::base::systemd']
+
   # Dracut depends on systemd/console setup
   Class['::nest::profile::base::systemd'] ~>
   Class['::nest::profile::base::dracut']
