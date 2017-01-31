@@ -1,4 +1,13 @@
 class nest::profile::base::systemd {
+  # This exists to ensure other resources that expect to write into this
+  # directory come after systemd is installed, which is guaranteed when
+  # this class is evaluated because it comes after the portage configuration.
+  # Complicated, I know, but it leads to cleaner code overall (without
+  # dependencies on the systemd class everywhere).
+  file { '/etc/systemd':
+    ensure  => directory,
+  }
+
   file { '/etc/hostname':
     content => "${::trusted['certname']}\n",
   }
