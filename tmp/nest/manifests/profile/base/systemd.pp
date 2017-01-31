@@ -17,8 +17,9 @@ class nest::profile::base::systemd {
     target => '/usr/share/zoneinfo/America/New_York',
   }
 
-  exec { '/usr/bin/timedatectl set-ntp on':
-    creates => '/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service',
+  # Enable NTP
+  service { 'systemd-timesyncd':
+    enable => true,
   }
 
   augeas { 'nsswitch-hosts-add-myhostname':
