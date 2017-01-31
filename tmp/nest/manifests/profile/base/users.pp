@@ -24,9 +24,20 @@ class nest::profile::base::users {
       gid => '1001';
   }
 
+  # This is because I abuse UIDs (I create "system" users like
+  # plex above 1000, so useradd wants to create its home directory
+  # by default).  We can explicitly control this behavior with the
+  # 'managehome' attribute.
+  file_line { 'login.defs-create_home':
+    path  => '/etc/login.defs',
+    line  => 'CREATE_HOME no',
+    match => '^CREATE_HOME ',
+  }
+
   user {
     default:
-      managehome => false;
+      managehome => false,
+      require    => File_line['login.defs-create_home'];
 
     'root':
       shell   => '/bin/zsh',
