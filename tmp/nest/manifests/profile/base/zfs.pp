@@ -3,6 +3,14 @@ class nest::profile::base::zfs {
     ensure => installed,
   }
 
+  # On systems without ZFS root, the zfs module doesn't get loaded by dracut
+  file { '/etc/modules-load.d/zfs.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "zfs\n",
+  }
+
   # See: https://github.com/zfsonlinux/zfs/blob/master/etc/systemd/system/50-zfs.preset.in
   service { [
     'zfs-import-cache.service',
