@@ -17,7 +17,7 @@ nest::cups_servers:
   - 'eagle.nest'
   - 'falcon.nest'
 nest::distcc_hosts:
-  falcon.nest: 32
+  falcon.nest: 16
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_hostname: 'nest.james.tl'
 nest::root_mail_alias: 'james@james.tl'
