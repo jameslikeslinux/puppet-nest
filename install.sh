@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STAGE_ARCHIVE=https://thestaticvoid.com/dist/stage3-amd64-20160519.tar.bz2
+STAGE_ARCHIVE=https://thestaticvoid.com/dist/stage3-amd64-20170126.tar.bz2
 DATE=$(date '+%Y%m%d')
 
 usage() {
@@ -321,9 +321,6 @@ chroot_command emerge -v app-admin/puppet-agent app-portage/eix
 
 
 task "Prepping for Puppet run..."
-# Facter and ZFS need a valid mtab
-# (normally systemd creates this on boot)
-chroot_command ln -s ../proc/self/mounts /etc/mtab
 chroot_command mkdir -p /etc/puppetlabs/facter/facts.d
 chroot_command tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
 ---
