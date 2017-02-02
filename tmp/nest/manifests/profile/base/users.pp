@@ -46,7 +46,7 @@ class nest::profile::base::users {
     'james':
       uid     => '1000',
       gid     => 'users',
-      groups  => ['plugdev', 'wheel'],
+      groups  => ['plugdev', 'video', 'wheel'],
       home    => '/home/james',
       comment => 'James Lee',
       shell   => '/bin/zsh',
