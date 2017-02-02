@@ -18,6 +18,9 @@ nest::kernel_cmdline: >-
   intel_iommu=on
   pci-stub.ids=10de:0fbc,1b21:1142 nvidia.NVreg_AssignGpus=0:03:00.0
   isolcpus=16-31 nohz_full=16-31 rcu_nocbs=16-31
+nest::kernel_config:
+  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
+  CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
 nest::libvirt: true
 
 nest::dvorak: true
@@ -44,7 +47,3 @@ nest::synergy_config: |
   	mousebutton(6) = keystroke(WWWBack)
   	mousebutton(7) = keystroke(WWWForward)
   end
-
-nest::kernel_config:
-  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
-  CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
