@@ -46,7 +46,7 @@ class nest::profile::workstation::plasma {
     Current=breeze
     CursorTheme=breeze_cursors
 
-    [XDisplay]
+    [X11]
     ServerArguments=-dpi ${::nest::dpi}
 
     [Users]
