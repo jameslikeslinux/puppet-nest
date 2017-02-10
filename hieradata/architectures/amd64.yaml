@@ -23,17 +23,20 @@ nest::package_keywords:
 
   # ZFS
   sys-kernel/spl:
-    version: '=0.6.5.8'
+    version: '=0.6.5.9'
   sys-fs/zfs-kmod:
-    version: '=0.6.5.8'
+    version: '=0.6.5.9'
   sys-fs/zfs:
-    version: '=0.6.5.8'
+    version: '=0.6.5.9'
 
   # For better Skylake support
+  # XXX: Removed due to package stabilization
   sys-kernel/gentoo-sources:
     version: '=4.8.9'
+    ensure: 'absent'
   sys-kernel/linux-firmware:
     version: '=20161005'
+    ensure: 'absent'
 
   # To support Linux 4.6
   x11-drivers/nvidia-drivers:
