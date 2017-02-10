@@ -8,32 +8,44 @@ nest::package_keywords:
   www-client/firefox: {}
 
   # For plasma-meta[handbook]
+  # XXX: Removed due to package stabilization
   dev-libs/grantlee:
     version: '=5.1.0'
+    ensure: 'absent'
 
   # For firefox, chromium
+  # XXX: Removed due to package stabilization
   dev-libs/nss:
     version: '=3.27.1'
+    ensure: 'absent'
 
   # For the new v40 TrueType interpreter
   media-libs/freetype:
     version: '<2.8'
 
   # For compatibility with Qt 5.6
+  # XXX: Removed due to package stabilization
   media-libs/phonon:
     version: '=4.9.0'
+    ensure: 'absent'
   media-libs/phonon-vlc:
     version: '=0.9.0'
+    ensure: 'absent'
 
   # For better Skylake support
+  # XXX: Removed due to package stabilization
   x11-base/xorg-drivers:
     version: '=1.18-r1'
+    ensure: 'absent'
   x11-base/xorg-server:
     version: '=1.18.3'
+    ensure: 'absent'
   x11-drivers/xf86-video-intel:
     version: '=2.99.917_p20160812'
+    ensure: 'absent'
   x11-drivers/xf86-video-ati:
     version: '=7.7.0'
+    ensure: 'absent'
 
   # For compatibility with modern windows clients
   x11-misc/synergy:
@@ -42,12 +54,27 @@ nest::package_keywords:
   # required by kde-frameworks/kf-env-4::gentoo
   # required by kde-plasma/user-manager-5.6.4::gentoo
   # required by kde-plasma/plasma-meta-5.6.4::gentoo
+  # XXX: Removed due to package stabilization
   x11-misc/xdg-utils:
     version: '=1.1.1-r1'
+    ensure: 'absent'
 
   x11-plugins/pidgin-skypeweb:
     version: '=9999'
     keywords: '**'
+
+  # required by kde-plasma/kwin-5.9.1::gentoo
+  # required by kde-plasma/plasma-meta-5.9.1::gento
+  x11-libs/libxkbcommon:
+    version: '=0.7.1'
+
+  # required by x11-drivers/xf86-input-libinput-0.19.0::gentoo
+  # required by x11-base/xorg-drivers-1.18-r1::gentoo[input_devices_libinput]
+  # required by x11-base/xorg-server-1.18.4::gentoo[xorg]
+  # required by x11-misc/sddm-0.14.0-r2::gentoo
+  # required by kde-plasma/plasma-meta-5.9.1::gentoo[sddm,display-manager]
+  dev-libs/libinput:
+    version: '=1.6.1'
 
 nest::package_use:
   x11-drivers/nvidia-drivers:
