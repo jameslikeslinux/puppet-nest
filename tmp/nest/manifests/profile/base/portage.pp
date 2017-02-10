@@ -15,14 +15,14 @@ class nest::profile::base::portage {
   }
 
   $makejobs_by_memory = ceiling($memory['system']['total_bytes'] / (128.0 * 1024 * 1024))
-  $makejobs_distcc = $::nest::distcc_hosts.reduce($::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
+  $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
 
   $makejobs_distcc_min = ($makejobs_by_memory < $makejobs_distcc) ? {
     true    => $makejobs_by_memory,
     default => $makejobs_distcc,
-  } 
+  }
 
-  $loadlimit = $::processorcount + 1
+  $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
 
 
@@ -34,16 +34,16 @@ class nest::profile::base::portage {
     0       => ['buildpkg', 'distcc', 'splitdebug'],
     default => ['buildpkg', 'distcc', 'distcc-pump', 'splitdebug'],
   }
-  
+
   portage::makeconf {
     'accept_license':
       content => '*';
     'cflags':
-      content => $portage_cflags;
+      content => $::nest::cflags;
     'cxxflags':
-      content => $portage_cxxflags;
+      content => $::nest::cflags;
     'cpu_flags_x86':
-      content => $portage_cpu_flags_x86;
+      content => $::nest::cpu_flags_x86;
     'distdir':
       content => '/nest/portage/distfiles';
     'emerge_default_opts':

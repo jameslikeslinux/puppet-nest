@@ -289,9 +289,9 @@ command cp -L /etc/resolv.conf "/mnt/${name}/etc/resolv.conf"
 
 task "Prepping build target..."
 command tee "/mnt/${name}/etc/portage/make.conf" <<END
-CFLAGS="-march=core-avx-i -O2 -pipe -ggdb"
-CXXFLAGS="-march=core-avx-i -O2 -pipe -ggdb"
-CPU_FLAGS_X86="aes avx mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 ssse3"
+CFLAGS="-march=haswell -O2 -pipe -ggdb"
+CXXFLAGS="-march=haswell -O2 -pipe -ggdb"
+CPU_FLAGS_X86="aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 ssse3"
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"

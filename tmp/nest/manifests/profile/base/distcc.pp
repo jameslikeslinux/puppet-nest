@@ -3,7 +3,7 @@ class nest::profile::base::distcc {
     ensure => installed,
   }
 
-  $localhost_jobs = $::processorcount + 1
+  $localhost_jobs = $::nest::processorcount + 1
   $distcc_hosts_content = $::nest::distcc_hosts.map |$host, $processorcount| {
     $jobs = $processorcount + 1
     "${host}/${jobs},cpp,lzo\n"

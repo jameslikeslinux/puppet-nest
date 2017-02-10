@@ -18,6 +18,7 @@ class nest (
   $monitor_layout   = [],
   $mouse            = undef,
   $primary_monitor  = undef,
+  $processorcount   = $::processorcount,
   $scaling_factor   = 1.0,
   $synergy_config   = undef,
   $video_card       = undef,
@@ -25,6 +26,8 @@ class nest (
   $live             = $::nest['live'],
   $vm               = ($::virtual == 'kvm'),
 
+  $cflags           = $::portage_cflags,
+  $cpu_flags_x86    = $::portage_cpu_flags_x86,
   $package_keywords = {},
   $package_use      = {},
   $use              = [],
