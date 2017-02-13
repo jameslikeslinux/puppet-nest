@@ -8,4 +8,9 @@ class nest::docker {
     service_provider => 'systemd',
     require          => Zfs['docker'],
   }
+
+  User <| title == 'james' |> {
+    groups  +> 'docker',
+    require +> Class['docker'],
+  }
 }

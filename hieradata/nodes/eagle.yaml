@@ -1,4 +1,7 @@
 ---
+classes:
+  - 'nest::docker'
+
 nest::kernel_cmdline: 'hugepages=2048'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
