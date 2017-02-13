@@ -101,6 +101,7 @@ class nest::profile::base::fs {
     # Work around https://bugs.gentoo.org/show_bug.cgi?id=593088
     $cachefilesd_fix_path = @(EOT)
       [Service]
+      ExecStart=
       ExecStart=/sbin/cachefilesd -n -f /etc/cachefilesd.conf
       | EOT
 
