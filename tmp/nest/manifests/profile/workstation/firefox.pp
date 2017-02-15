@@ -23,7 +23,6 @@ class nest::profile::workstation::firefox {
   }
 
   $firefox_prefs = @("EOT")
-    pref("browser.tabs.remote.autostart", true);
     pref("layout.css.devPixelsPerPx", "${::nest::scaling_factor}");
     | EOT
 
