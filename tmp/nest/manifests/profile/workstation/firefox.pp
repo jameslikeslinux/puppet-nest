@@ -22,11 +22,16 @@ class nest::profile::workstation::firefox {
     ensure => installed,
   }
 
+  $firefox_prefs = @("EOT")
+    pref("browser.tabs.remote.autostart", true);
+    pref("layout.css.devPixelsPerPx", "${::nest::scaling_factor}");
+    | EOT
+
   file { '/usr/lib/firefox/defaults/pref/all-nest.js':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "pref(\"layout.css.devPixelsPerPx\", \"${::nest::scaling_factor}\");\n",
+    content => $firefox_prefs,
     require => Package['www-client/firefox'],
   }
 
