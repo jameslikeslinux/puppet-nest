@@ -160,3 +160,8 @@ nest::package_use:
   # For vsync
   x11-drivers/xf86-video-intel:
     use: 'dri3'
+
+  # Not that I can read any of these languages, but it is nice to be
+  # able to display Chinese, Japanese, and Korean glyphs
+  media-fonts/noto:
+    use: 'cjk'
