@@ -11,6 +11,10 @@ class nest::profile::workstation::firefox {
     ensure => absent,
   }
 
+  nest::portage::package_use { 'www-client/firefox':
+    use => 'hwaccel',
+  }
+
   package { [
     'www-client/firefox',
     'www-plugins/adobe-flash',
