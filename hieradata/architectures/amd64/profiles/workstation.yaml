@@ -165,3 +165,7 @@ nest::package_use:
   # able to display Chinese, Japanese, and Korean glyphs
   media-fonts/noto:
     use: 'cjk'
+
+nest::kernel_config:
+  CONFIG_PREEMPT_VOLUNTARY: n
+  CONFIG_PREEMPT: y
