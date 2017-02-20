@@ -52,6 +52,11 @@ nest::package_keywords:
   # nc: all versions are unstable; don't care
   net-analyzer/openbsd-netcat: {}
 
+  # I want some of the latest changes re: mouse support and key bindings
+  # (accept tmux-2.3)
+  app-misc/tmux:
+    version: '<2.4'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
