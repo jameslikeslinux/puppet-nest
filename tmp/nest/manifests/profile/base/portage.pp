@@ -93,15 +93,18 @@ class nest::profile::base::portage {
     content => $kde_keywords_content,
   }
 
-  # Enable libzfs USE flag for GRUB
-  # XXX: This could be made more generic if needed
-  file { '/etc/portage/profile':
+  file { [
+    '/etc/portage/patches',
+    '/etc/portage/profile'
+  ]:
     ensure => directory,
     mode   => '0755',
     owner  => 'root',
     group  => 'root',
   }
 
+  # Enable libzfs USE flag for GRUB
+  # XXX: This could be made more generic if needed
   $use_mask_content = @(EOT)
     -libzfs
     -input_devices_libinput
