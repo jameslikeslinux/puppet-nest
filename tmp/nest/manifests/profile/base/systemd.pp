@@ -86,4 +86,21 @@ class nest::profile::base::systemd {
     line  => 'KillUserProcesses=yes',
     match => '^#?KillUserProcesses=',
   }
+
+  # Keep james's systemd services (like tmux) running
+  file {
+    default:
+      owner => 'root',
+      group => 'root',
+      mode  => '0644',
+    ;
+
+    '/var/lib/systemd/linger':
+      ensure => directory,
+    ;
+
+    '/var/lib/systemd/linger/james':
+      ensure => file,
+    ;
+  }
 }
