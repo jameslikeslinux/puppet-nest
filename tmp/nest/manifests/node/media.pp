@@ -108,7 +108,7 @@ class nest::node::media {
   docker::run { 'couchpotato':
     image   => 'linuxserver/couchpotato',
     ports   => '5050:5050',
-    env     => ['PUID=5050', 'PGID=1001'],
+    env     => ['PUID=5050', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
       '/etc/localtime:/etc/localtime:ro',
       '/srv/couchpotato/config:/config',
@@ -124,7 +124,7 @@ class nest::node::media {
   docker::run { 'nzbget':
     image   => 'linuxserver/nzbget',
     ports   => '6789:6789',
-    env     => ['PUID=6789', 'PGID=1001'],
+    env     => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
       '/srv/nzbget/config:/config',
       '/srv/nzbget/downloads:/downloads',
@@ -139,7 +139,7 @@ class nest::node::media {
   docker::run { 'sonarr':
     image   => 'linuxserver/sonarr',
     ports   => '8989:8989',
-    env     => ['PUID=8989', 'PGID=1001'],
+    env     => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
       '/dev/rtc:/dev/rtc:ro',
       '/srv/sonarr/config:/config',
@@ -155,7 +155,7 @@ class nest::node::media {
   docker::run { 'transmission':
     image   => 'linuxserver/transmission',
     ports   => ['9091:9091', '51413:51413', '51413:51413/udp'],
-    env     => ['PUID=9091', 'PGID=1001'],
+    env     => ['PUID=9091', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
       '/etc/localtime:/etc/localtime:ro',
       '/srv/transmission/config:/config',
