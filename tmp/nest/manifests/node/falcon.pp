@@ -32,19 +32,20 @@ class nest::node::falcon {
   Docker::Run {
     service_provider => 'systemd',
   }
-notify { "Isol cpus is $::nest::isolcpus_expanded": }
-notify { "Avail cpus is $::nest::availcpus_expanded": }
+
+  $cpuset = $::nest::availcpus_expanded.join(',')
+
   docker::run { 'plex':
-    image   => 'linuxserver/plex',
-    cpuset  => $::nest::availcpus_expanded,
-    net     => 'host',
-    env     => ['VERSION=latest', 'PUID=32400', 'PGID=1001'],
-    volumes => [
+    image            => 'linuxserver/plex',
+    net              => 'host',
+    env              => ['VERSION=latest', 'PUID=32400', 'PGID=1001'],
+    volumes          => [
       '/srv/plex/config:/config',
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
-    require => File['/srv/plex/config'],
+    extra_parameters => ["--cpuset-cpus=${cpuset}"],
+    require          => File['/srv/plex/config'],
   }
 
   apache::vhost { 'plex.nest':

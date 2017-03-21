@@ -79,6 +79,19 @@ class nest::profile::base::systemd {
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
 
+  $availcpus_formatted = $::nest::availcpus_expanded.join(' ')
+
+  $cpu_affinity = $::nest::isolcpus ? {
+    undef   => '#CPUAffinity=1 2',  # the default
+    default => "CPUAffinity=${availcpus_formatted}",
+  }
+
+  file_line { 'system.conf-CPUAffinity':
+    path  => '/etc/systemd/system.conf',
+    line  => $cpu_affinity,
+    match => '^#?CPUAffinity=',
+  }
+
   # Kill all user processes at end of session.
   # This is the default in systemd-230.
   file_line { 'logind.conf-KillUserProcesses':
