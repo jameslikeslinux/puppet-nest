@@ -1,4 +1,5 @@
 class nest::node::falcon {
+  include '::nest'
   include '::nest::apache'
   include '::nest::docker'
 
@@ -31,9 +32,11 @@ class nest::node::falcon {
   Docker::Run {
     service_provider => 'systemd',
   }
-
+notify { "Isol cpus is $::nest::isolcpus_expanded": }
+notify { "Avail cpus is $::nest::availcpus_expanded": }
   docker::run { 'plex':
     image   => 'linuxserver/plex',
+    cpuset  => $::nest::availcpus_expanded,
     net     => 'host',
     env     => ['VERSION=latest', 'PUID=32400', 'PGID=1001'],
     volumes => [
