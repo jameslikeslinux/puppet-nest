@@ -110,7 +110,6 @@ class nest::node::media {
     ports   => '5050:5050',
     env     => ['PUID=5050', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
-      '/etc/localtime:/etc/localtime:ro',
       '/srv/couchpotato/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/movies:/movies',
@@ -157,7 +156,6 @@ class nest::node::media {
     ports   => ['9091:9091', '51413:51413', '51413:51413/udp'],
     env     => ['PUID=9091', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
-      '/etc/localtime:/etc/localtime:ro',
       '/srv/transmission/config:/config',
       '/srv/transmission/downloads:/downloads',
       '/nest/downloads/transmission/complete:/downloads/complete',
