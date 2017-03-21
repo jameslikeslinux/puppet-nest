@@ -47,7 +47,7 @@ nest::package_keywords:
 
   # For compatibility with modern windows clients
   x11-misc/synergy:
-    version: '=1.8.2'
+    version: '<1.9'
 
   # required by kde-frameworks/kf-env-4::gentoo
   # required by kde-plasma/user-manager-5.6.4::gentoo
