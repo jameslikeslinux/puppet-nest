@@ -38,6 +38,8 @@ class nest (
   $libvirt          = false,
   $openvpn_server   = false,
   $puppet_server    = false,
+
+  Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 ) {
   if $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/13.0/desktop/plasma/systemd'
@@ -51,7 +53,7 @@ class nest (
     $use_defaults   = []
   }
 
-  $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)  
+  $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
   $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
   $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
   $package_use_hiera = hiera_hash('nest::package_use', $package_use)
@@ -81,6 +83,21 @@ class nest (
       $memo
     }
   }.merge($extra_luks_disks)
+
+  if $isolcpus {
+    $isolcpus_expanded = $isolcpus.split(',').map |$cpuset| {
+      if $cpuset =~ /-/ {
+        $cpuset_split = $cpuset.split('-')
+        range($cpuset_split[0], $cpuset_split[1])
+      } else {
+        $cpuset
+      }
+    }.flatten
+  } else {
+    $isolcpus_expanded = []
+  }
+
+  $availcpus_expanded = range(0, $facts['processors']['count'] - 1) - $isolcpus_expanded
 
   # Include standard profile
   contain '::nest::profile::base'

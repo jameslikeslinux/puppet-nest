@@ -48,7 +48,7 @@ class nest::profile::base::grub {
       owner  => 'root',
       group  => 'root',
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
-    } 
+    }
 
     exec { 'grub-mkconfig':
       command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
@@ -66,7 +66,21 @@ class nest::profile::base::grub {
     notify  => $file_line_notify,
   }
 
-  $kernel_cmdline = strip("init=/usr/lib/systemd/systemd quiet fbcon=scrollback:1024k ${::nest::kernel_cmdline}")
+  $kernel_cmdline = [
+    'init=/usr/lib/systemd/systemd',
+    'quiet',
+    'fbcon=scrollback:1024k',
+    $::nest::isolcpus ? {
+      undef   => [],
+      default => [
+        "isolcpus=${::nest::isolcpus}",
+        "nohz_full=${::nest::isolcpus}",
+        "rcu_nocbs=${::nest::isolcpus}",
+      ],
+    },
+    $::nest::kernel_cmdline,
+  ].flatten.join(' ').strip
+
   file_line { 'grub-set-kernel-cmdline':
     line    => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
     match   => '^#?GRUB_CMDLINE_LINUX=',
@@ -115,7 +129,7 @@ class nest::profile::base::grub {
         default => undef,
       }
 
-      if $grub_install_command { 
+      if $grub_install_command {
         exec { "grub-install-${disk}":
           command     => $grub_install_command,
           refreshonly => true,
