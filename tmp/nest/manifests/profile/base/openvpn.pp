@@ -68,14 +68,14 @@ class nest::profile::base::openvpn {
       command => '/usr/bin/openssl dhparam -out /etc/openvpn/dh4096.pem 4096',
       creates => '/etc/openvpn/dh4096.pem',
       timeout => 0,
-      require => Package['net-misc/openvpn'],
+      require => Package['net-vpn/openvpn'],
       before  => Service["openvpn-${mode}@nest"],
     }
 
     file { '/etc/openvpn/learn-address.sh':
       mode    => '0755',
       source  => 'puppet:///modules/nest/openvpn/learn-address.sh',
-      require => Package['net-misc/openvpn'],
+      require => Package['net-vpn/openvpn'],
       before  => Service["openvpn-${mode}@nest"],
     }
 
@@ -189,14 +189,14 @@ class nest::profile::base::openvpn {
     $mode_config = $client_config
   }
 
-  package { 'net-misc/openvpn':
+  package { 'net-vpn/openvpn':
     ensure => installed,
   }
 
   file { "/etc/openvpn/${mode}":
     ensure  => directory,
     mode    => '0755',
-    require => Package['net-misc/openvpn'],
+    require => Package['net-vpn/openvpn'],
   }
 
   file { "/etc/openvpn/${mode}/nest.conf":
