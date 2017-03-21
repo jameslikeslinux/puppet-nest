@@ -13,11 +13,9 @@ nest::package_keywords:
     version: '=5.1.0'
     ensure: 'absent'
 
-  # For firefox, chromium
-  # XXX: Removed due to package stabilization
+  # required by www-client/firefox-52.0.1-r1::gentoo
   dev-libs/nss:
-    version: '=3.27.1'
-    ensure: 'absent'
+    version: '=3.29.3'
 
   # For the new v40 TrueType interpreter
   media-libs/freetype:
@@ -75,6 +73,12 @@ nest::package_keywords:
   # required by kde-plasma/plasma-meta-5.9.1::gentoo[sddm,display-manager]
   dev-libs/libinput:
     version: '=1.6.1'
+
+  # required by dev-qt/qtcore-5.7.1-r2::gentoo
+  # required by kde-frameworks/kfilemetadata-5.32.0::gentoo
+  # required by kde-apps/gwenview-16.12.3::gentoo[semantic-desktop]
+  dev-libs/double-conversion:
+    version: '=2.0.1'
 
 nest::package_use:
   x11-drivers/nvidia-drivers:
