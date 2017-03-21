@@ -57,6 +57,10 @@ nest::package_keywords:
   app-misc/tmux:
     version: '<2.4'
 
+  # needed to support libevent > 2.1 (pulled in by tmux-2.3)
+  net-fs/nfs-utils:
+    version: '=2.1.1'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
