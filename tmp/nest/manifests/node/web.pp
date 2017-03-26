@@ -9,7 +9,7 @@ class nest::node::web {
   }
 
   zfs { 'srv/www':
-    name       => "${::trusted['certname']}/srv/plex",
+    name       => "${::trusted['certname']}/srv/www",
     mountpoint => '/srv/www',
     require    => Zfs['srv'],
   }
