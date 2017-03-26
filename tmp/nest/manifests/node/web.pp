@@ -14,6 +14,7 @@ class nest::node::web {
   }
 
   class { '::mysql::server':
+    service_name     => 'mysqld',
     service_provider => 'systemd',
   }
 }
