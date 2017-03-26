@@ -61,6 +61,16 @@ nest::package_keywords:
   net-fs/nfs-utils:
     version: '=2.1.1'
 
+  # Let's Encrypt: all versions are currently unstable
+  app-crypt/acme: {}
+  app-crypt/certbot: {}
+  dev-python/parsedatetime:
+    version: '=2.1'
+  dev-python/pyrfc3339:
+    version: '=1.0'
+  dev-python/zope-component:
+    version: '=4.3.0'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:

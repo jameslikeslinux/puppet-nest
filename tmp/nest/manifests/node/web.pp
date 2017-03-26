@@ -13,4 +13,10 @@ class nest::node::web {
     mountpoint => '/srv/www',
     require    => Zfs['srv'],
   }
+
+  zfs { 'srv/www/thestaticvoid.com':
+    name       => "${::trusted['certname']}/srv/www/thestaticvoid.com",
+    mountpoint => '/srv/www/thestaticvoid.com',
+    require    => Zfs['srv/www'],
+  }
 }
