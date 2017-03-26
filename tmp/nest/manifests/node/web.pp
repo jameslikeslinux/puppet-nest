@@ -1,5 +1,6 @@
 class nest::node::web {
   include '::nest::apache'
+  include '::nest::mysql'
   include '::nest::php'
 
   zfs { 'srv':
@@ -11,10 +12,5 @@ class nest::node::web {
     name       => "${::trusted['certname']}/srv/plex",
     mountpoint => '/srv/www',
     require    => Zfs['srv'],
-  }
-
-  class { '::mysql::server':
-    service_name     => 'mysqld',
-    service_provider => 'systemd',
   }
 }
