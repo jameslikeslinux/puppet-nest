@@ -1,6 +1,7 @@
 class nest::node::web {
   include '::nest::apache'
   include '::nest::php'
+  include '::mysql::server'
 
   zfs { 'srv':
     name       => "${::trusted['certname']}/srv",
