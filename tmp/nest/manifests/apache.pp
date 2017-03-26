@@ -1,4 +1,7 @@
-class nest::apache {
+class nest::apache (
+  Boolean $srv_webroot     = false,
+  Boolean $manage_firewall = false,
+) {
   class { '::apache':
     mpm_module => 'worker',
   }
@@ -11,6 +14,7 @@ class nest::apache {
     use     => [
       'apache2_modules_access_compat',
       'apache2_modules_proxy',
+      'apache2_modules_proxy_fcgi',
       'apache2_modules_proxy_http',
       'threads'
     ],
@@ -24,5 +28,18 @@ class nest::apache {
     match   => '^#?APACHE2_OPTS=',
     require => Class['::apache'],
     notify  => Class['::apache::service'],
+  }
+
+  if $srv_webroot {
+    nest::srv { 'www': }
+  }
+
+  if $manage_firewall {
+    firewall { '100 http':
+      proto  => tcp,
+      dport  => [80, 443],
+      state  => 'NEW',
+      action => accept,
+    }
   }
 }

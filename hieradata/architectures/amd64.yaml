@@ -101,6 +101,11 @@ nest::package_use:
   sys-libs/libseccomp:
     use: 'static-libs'
 
+  # For some reason, apache w/ mod_proxy_fcgi won't compile without APR having
+  # LDAP support
+  dev-libs/apr-util:
+    use: 'ldap'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y

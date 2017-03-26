@@ -1,35 +1,14 @@
 class nest::node::media {
   include '::nest::apache'
   include '::nest::docker'
+  include '::nest::srv'
 
-  zfs { 'srv':
-    name       => "${::trusted['certname']}/srv",
-    mountpoint => '/srv',
-  }
-
-  zfs { 'srv/couchpotato':
-    name       => "${::trusted['certname']}/srv/couchpotato",
-    mountpoint => '/srv/couchpotato',
-    require    => Zfs['srv'],
-  }
-
-  zfs { 'srv/nzbget':
-    name       => "${::trusted['certname']}/srv/nzbget",
-    mountpoint => '/srv/nzbget',
-    require    => Zfs['srv'],
-  }
-
-  zfs { 'srv/sonarr':
-    name       => "${::trusted['certname']}/srv/sonarr",
-    mountpoint => '/srv/sonarr',
-    require    => Zfs['srv'],
-  }
-
-  zfs { 'srv/transmission':
-    name       => "${::trusted['certname']}/srv/transmission",
-    mountpoint => '/srv/transmission',
-    require    => Zfs['srv'],
-  }
+  nest::srv { [
+    'couchpotato',
+    'nzbget',
+    'sonarr',
+    'transmission',
+  ]: }
 
   file {
     default:
@@ -39,7 +18,7 @@ class nest::node::media {
       group   => 'media';
 
     '/srv/couchpotato':
-      require => Zfs['srv/couchpotato'];
+      require => Nest::Srv['couchpotato'];
 
     '/srv/couchpotato/config':
       # use defaults
@@ -54,7 +33,7 @@ class nest::node::media {
       group   => 'media';
 
     '/srv/nzbget':
-      require => Zfs['srv/nzbget'];
+      require => Nest::Srv['nzbget'];
 
     [
       '/srv/nzbget/config',
@@ -75,7 +54,7 @@ class nest::node::media {
       group   => 'media';
 
     '/srv/sonarr':
-      require => Zfs['srv/sonarr'];
+      require => Nest::Srv['sonarr'];
 
     '/srv/sonarr/config':
       # use defaults
@@ -90,7 +69,7 @@ class nest::node::media {
       group   => 'media';
 
     '/srv/transmission':
-      require => Zfs['srv/transmission'];
+      require => Nest::Srv['transmission'];
 
     [
       '/srv/transmission/config',

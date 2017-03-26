@@ -1,27 +1,13 @@
 class nest::node::web {
-  include '::nest::apache'
-  include '::nest::mysql'
-  include '::nest::php'
-
-  zfs { 'srv':
-    name       => "${::trusted['certname']}/srv",
-    mountpoint => '/srv',
+  nest::wordpress { 'thestaticvoid':
+    db_password   => 'fake',
+    servername    => 'thestaticvoid.com',
+    serveraliases => ['www.thestaticvoid.com'],
+    ip            => ['45.63.8.234', 'fe80::32:33a:d68b:26ba'],
   }
 
-  zfs { 'srv/www':
-    name       => "${::trusted['certname']}/srv/www",
-    mountpoint => '/srv/www',
-    require    => Zfs['srv'],
-  }
-
-  zfs { 'srv/www/thestaticvoid.com':
-    name       => "${::trusted['certname']}/srv/www/thestaticvoid.com",
-    mountpoint => '/srv/www/thestaticvoid.com',
-    require    => Zfs['srv/www'],
-  }
-
-  mysql::db { 'thestaticvoid':
-    user     => 'thestaticvoid',
-    password => 'fake',
+  nest::revproxy { 'heloandnala.net':
+    destination   => 'http://hawk:81/',
+    serveraliases => ['www.heloandnala.net'],
   }
 }

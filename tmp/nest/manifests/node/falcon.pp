@@ -3,16 +3,7 @@ class nest::node::falcon {
   include '::nest::apache'
   include '::nest::docker'
 
-  zfs { 'srv':
-    name       => "${::trusted['certname']}/srv",
-    mountpoint => '/srv',
-  }
-
-  zfs { 'srv/plex':
-    name       => "${::trusted['certname']}/srv/plex",
-    mountpoint => '/srv/plex',
-    require    => Zfs['srv'],
-  }
+  nest::srv { 'plex': }
 
   file {
     default:
@@ -22,7 +13,7 @@ class nest::node::falcon {
       group   => 'media';
 
     '/srv/plex':
-      require => Zfs['srv/plex'];
+      require => Nest::Srv['plex'],
 
     '/srv/plex/config':
       # use defaults
