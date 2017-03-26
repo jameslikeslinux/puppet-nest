@@ -1,4 +1,8 @@
 class nest::mysql {
+  class { '::mysql::client':
+    package_manage => false,
+  }
+
   class { '::mysql::server':
     service_name     => 'mysqld',
     service_provider => 'systemd',
