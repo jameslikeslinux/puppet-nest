@@ -19,4 +19,9 @@ class nest::node::web {
     mountpoint => '/srv/www/thestaticvoid.com',
     require    => Zfs['srv/www'],
   }
+
+  mysql::db { 'thestaticvoid':
+    user     => 'thestaticvoid',
+    password => 'fake',
+  }
 }
