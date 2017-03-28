@@ -1,7 +1,5 @@
 class nest::node::media {
-  include '::nest::apache'
   include '::nest::docker'
-  include '::nest::srv'
 
   nest::srv { [
     'couchpotato',
@@ -15,14 +13,16 @@ class nest::node::media {
       ensure  => directory,
       mode    => '0755',
       owner   => 'couchpotato',
-      group   => 'media';
+      group   => 'media',
+    ;
 
     '/srv/couchpotato':
-      require => Nest::Srv['couchpotato'];
+      require => Nest::Srv['couchpotato'],
+    ;
 
     '/srv/couchpotato/config':
       # use defaults
-      ;
+    ;
   }
 
   file {
@@ -30,20 +30,23 @@ class nest::node::media {
       ensure  => directory,
       mode    => '0755',
       owner   => 'nzbget',
-      group   => 'media';
+      group   => 'media',
+    ;
 
     '/srv/nzbget':
-      require => Nest::Srv['nzbget'];
+      require => Nest::Srv['nzbget'],
+    ;
 
     [
       '/srv/nzbget/config',
       '/srv/nzbget/downloads',
     ]:
       # use defaults
-      ;
+    ;
 
     '/srv/nzbget/downloads/completed':
-      mode    => '0775';
+      mode    => '0775',
+    ;
   }
 
   file {
@@ -51,14 +54,16 @@ class nest::node::media {
       ensure  => directory,
       mode    => '0755',
       owner   => 'sonarr',
-      group   => 'media';
+      group   => 'media',
+    ;
 
     '/srv/sonarr':
-      require => Nest::Srv['sonarr'];
+      require => Nest::Srv['sonarr'],
+    ;
 
     '/srv/sonarr/config':
       # use defaults
-      ;
+    ;
   }
 
   file {
@@ -66,17 +71,19 @@ class nest::node::media {
       ensure  => directory,
       mode    => '0755',
       owner   => 'transmission',
-      group   => 'media';
+      group   => 'media'
+    ;
 
     '/srv/transmission':
-      require => Nest::Srv['transmission'];
+      require => Nest::Srv['transmission'],
+    ;
 
     [
       '/srv/transmission/config',
       '/srv/transmission/downloads',
     ]:
       # use defaults
-      ;
+    ;
   }
 
   Docker::Run {
@@ -146,36 +153,26 @@ class nest::node::media {
     ],
   }
 
-  apache::vhost { 'couchpotato.nest':
-    port       => '80',
-    docroot    => '/var/www/couchpotato.nest',
-    proxy_pass => [
-      { 'path' => '/', 'url' => 'http://localhost:5050/' },
-    ],
-  }
+  nest::revproxy {
+    default:
+      ssl => false,
+    ;
 
-  apache::vhost { 'nzbget.nest':
-    port       => '80',
-    docroot    => '/var/www/nzbget.nest',
-    proxy_pass => [
-      { 'path' => '/', 'url' => 'http://localhost:6789/' },
-    ],
-  }
+    'couchpotato.nest':
+      destination => 'http://localhost:5050/',
+    ;
 
-  apache::vhost { 'sonarr.nest':
-    port       => '80',
-    docroot    => '/var/www/sonarr.nest',
-    proxy_pass => [
-      { 'path' => '/', 'url' => 'http://localhost:8989/' },
-    ],
-  }
+    'nzbget.nest':
+      destination => 'http://localhost:6789/',
+    ;
 
-  apache::vhost { 'transmission.nest':
-    port       => '80',
-    docroot    => '/var/www/transmission.nest',
-    proxy_pass => [
-      { 'path' => '/', 'url' => 'http://localhost:9091/' },
-    ],
+    'sonarr.nest':
+      destination => 'http://localhost:8989/',
+    ;
+
+    'transmission.nest':
+      destination => 'http://localhost:9091/',
+    ;
   }
 
   firewall { '100 docker to apache':

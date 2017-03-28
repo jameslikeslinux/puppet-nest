@@ -1,6 +1,5 @@
 class nest::node::falcon {
   include '::nest'
-  include '::nest::apache'
   include '::nest::docker'
 
   nest::srv { 'plex': }
