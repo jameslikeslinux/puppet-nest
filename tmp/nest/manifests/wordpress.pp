@@ -24,9 +24,7 @@ define nest::wordpress (
 
   # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
   $php_fpm_config = @(EOT)
-    <Proxy "fcgi://localhost:9000/" enablereuse=on max=10>
-      </Proxy>
-      <FilesMatch "\.php$">
+    <FilesMatch "\.php$">
         <If "-f %{REQUEST_FILENAME}">
           SetHandler "proxy:fcgi://localhost:9000/"
         </If>
