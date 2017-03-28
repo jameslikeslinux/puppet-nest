@@ -3,6 +3,7 @@ class nest::profile::base::packages {
     'app-admin/sysstat',
     'app-editors/vim',
     'app-misc/tmux',
+    'app-portage/genlop',
     'app-portage/gentoolkit',
     'dev-libs/libisoburn',
     'dev-util/strace',
