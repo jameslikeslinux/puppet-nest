@@ -13,6 +13,9 @@ mod 'docker',
   :git    => 'https://github.com/iamjamestl/garethr-docker.git',
   :branch => 'fixes'
 
+mod 'private',
+  :git => '/nest/home/projects/puppet-private'
+
 mod 'sysctl',
   :git    => 'https://github.com/iamjamestl/puppet-sysctl.git',
   :branch => 'fix-enforce-path'
