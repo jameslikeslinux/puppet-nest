@@ -1,7 +1,8 @@
 class nest::apache (
-  Boolean $srv_webroot     = false,
   Boolean $manage_firewall = false,
 ) {
+  nest::srv { 'www': }
+
   class { '::apache':
     mpm_module => 'worker',
   }
@@ -28,10 +29,6 @@ class nest::apache (
     match   => '^#?APACHE2_OPTS=',
     require => Class['::apache'],
     notify  => Class['::apache::service'],
-  }
-
-  if $srv_webroot {
-    nest::srv { 'www': }
   }
 
   if $manage_firewall {

@@ -6,11 +6,7 @@ define nest::vhost (
   Hash[String[1], Any] $extra_params                 = {},
   Boolean $zfs_docroot                               = true,
 ) {
-  unless defined(Class['::nest::apache']) {
-    class { '::nest::apache':
-      srv_webroot => true,
-    }
-  }
+  include '::nest::apache'
 
   ensure_resource('apache::listen', '80', {})
 
