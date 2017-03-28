@@ -8,8 +8,7 @@ define nest::vhost (
 ) {
   unless defined(Class['::nest::apache']) {
     class { '::nest::apache':
-      srv_webroot     => true,
-      manage_firewall => true,
+      srv_webroot => true,
     }
   }
 

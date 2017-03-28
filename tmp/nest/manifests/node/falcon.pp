@@ -10,14 +10,16 @@ class nest::node::falcon {
       ensure  => directory,
       mode    => '0755',
       owner   => 'plex',
-      group   => 'media';
+      group   => 'media',
+    ;
 
     '/srv/plex':
       require => Nest::Srv['plex'],
+    ;
 
     '/srv/plex/config':
       # use defaults
-      ;
+    ;
   }
 
   Docker::Run {
@@ -39,12 +41,9 @@ class nest::node::falcon {
     require          => File['/srv/plex/config'],
   }
 
-  apache::vhost { 'plex.nest':
-    port       => '80',
-    docroot    => '/var/www/plex.nest',
-    proxy_pass => [
-      { 'path' => '/', 'url' => 'http://localhost:32400/' },
-    ],
+  nest::revproxy { 'plex.nest':
+    destination => 'http://localhost:32400/',
+    ssl         => false,
   }
 
   firewall { '012 multicast':
