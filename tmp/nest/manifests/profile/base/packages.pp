@@ -9,6 +9,7 @@ class nest::profile::base::packages {
     'net-analyzer/openbsd-netcat',
     'net-dns/bind-tools',
     'net-misc/whois',
+    'sys-apps/pv',
     'sys-block/parted',
     'sys-fs/dosfstools',
     'sys-fs/mtools',
