@@ -38,5 +38,13 @@ class nest::apache (
       state  => 'NEW',
       action => accept,
     }
+
+    firewall { '100 http (v6)':
+      proto    => tcp,
+      dport    => [80, 443],
+      state    => 'NEW',
+      action   => accept,
+      provider => ip6tables,
+    }
   }
 }
