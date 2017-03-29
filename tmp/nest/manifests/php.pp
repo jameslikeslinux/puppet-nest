@@ -1,9 +1,10 @@
 class nest::php {
-  nest::portage::package_use { [
-    'app-eselect/eselect-php',
-    'dev-lang/php',
-  ]:
+  nest::portage::package_use { 'app-eselect/eselect-php':
     use => 'fpm',
+  }
+
+  nest::portage::package_use { 'dev-lang/php':
+    use => ['curl', 'fpm', 'mysql', 'mysqli', 'soap'],
   }
 
   package { 'dev-lang/php':
@@ -17,5 +18,13 @@ class nest::php {
   service { 'php-fpm@7.0':
     enable  => true,
     require => Package['dev-lang/php'],
+  }
+
+  portage::makeconf { 'php_targets':
+    content => 'php7-0',
+  }
+
+  package { 'dev-php/pecl-ssh2':
+    ensure => installed,
   }
 }

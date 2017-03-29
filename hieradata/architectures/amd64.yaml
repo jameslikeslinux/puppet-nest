@@ -71,6 +71,10 @@ nest::package_keywords:
   dev-python/zope-component:
     version: '=4.3.0'
 
+  # For Wordpress SFTP; the version that supports PHP 7 is unstable
+  dev-php/pecl-ssh2:
+    version: '=1.0'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
