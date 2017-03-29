@@ -73,7 +73,8 @@ nest::package_keywords:
 
   # For Wordpress SFTP; the version that supports PHP 7 is unstable
   dev-php/pecl-ssh2:
-    version: '=1.0'
+    version: '=9999'
+    keywords: '**'
 
 nest::package_use:
   # For Dracut liveimg module
