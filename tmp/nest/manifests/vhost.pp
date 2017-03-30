@@ -5,6 +5,7 @@ define nest::vhost (
   Boolean $ssl                                       = true,
   Hash[String[1], Any] $extra_params                 = {},
   Boolean $zfs_docroot                               = true,
+  Optional[String[1]] $priority                      = undef,
 ) {
   include '::nest::apache'
 
@@ -27,6 +28,7 @@ define nest::vhost (
     $vhost_redirect_to = 'https'
 
     apache::vhost { "${servername}-redirect":
+      priority        => $priority,
       servername      => $servername,
       serveraliases   => $serveraliases,
       ip              => $ip,
@@ -48,6 +50,7 @@ define nest::vhost (
   }
 
   apache::vhost { $vhost_name:
+    priority         => $priority,
     servername       => $servername,
     ip               => $ip,
     add_listen       => false,
@@ -60,6 +63,7 @@ define nest::vhost (
 
   unless empty($serveraliases) {
     apache::vhost { "${vhost_name}-redirect":
+      priority        => $priority,
       servername      => $serveraliases[0],
       serveraliases   => $serveraliases[1, -1],
       ip              => $ip,

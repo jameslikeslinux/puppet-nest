@@ -5,6 +5,7 @@ define nest::wordpress (
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
   Boolean $ssl                                       = true,
   Hash[String[1], Any] $extra_vhost_params           = {},
+  Optional[String[1]] $priority                      = undef,
 ) {
   unless defined(Class['::nest::apache']) {
     class { '::nest::apache':
@@ -60,6 +61,7 @@ define nest::wordpress (
   }
 
   nest::vhost { $name:
+    priority      => $priority,
     servername    => $servername,
     serveraliases => $serveraliases,
     ip            => $ip,
