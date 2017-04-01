@@ -4,7 +4,7 @@ class nest::php {
   }
 
   nest::portage::package_use { 'dev-lang/php':
-    use => ['curl', 'fpm', 'mysql', 'mysqli', 'soap'],
+    use => ['curl', 'fpm', 'gd', 'mysql', 'mysqli', 'soap'],
   }
 
   package { 'dev-lang/php':
