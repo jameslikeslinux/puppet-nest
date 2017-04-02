@@ -89,6 +89,8 @@ class nest::node::media {
   Docker::Run {
     service_provider => 'systemd',
     depend_services  => 'remote-fs.target',
+    dns              => '172.22.2.1',
+    dns_search       => 'nest',
   }
 
   docker::run { 'couchpotato':
