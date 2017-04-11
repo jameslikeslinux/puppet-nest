@@ -111,6 +111,10 @@ nest::package_use:
   dev-libs/apr-util:
     use: 'ldap'
 
+  # For net-print/cups[X]
+  app-text/xmlto:
+    use: 'text'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
