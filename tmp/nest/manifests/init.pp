@@ -50,7 +50,7 @@ class nest (
     $gentoo_profile = 'default/linux/amd64/13.0/systemd'
     $input_devices  = undef
     $video_cards    = undef
-    $use_defaults   = []
+    $use_defaults   = ['X']
   }
 
   $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
