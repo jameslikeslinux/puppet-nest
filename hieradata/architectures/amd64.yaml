@@ -115,6 +115,11 @@ nest::package_use:
   app-text/xmlto:
     use: 'text'
 
+  # To prevent ruby-2.2 from being pulled in--this is the only package
+  # that seems to do this
+  dev-ruby/trollop:
+    use: '-ruby_targets_ruby22'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
