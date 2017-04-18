@@ -149,7 +149,7 @@ nest::package_use:
   media-libs/harfbuzz:
     use: 'icu'
   media-libs/libvpx:
-    use: 'svc'
+    use: ['postproc', 'svc']
 
   # Give pulseaudio higher priority with rtkit
   media-sound/pulseaudio:
