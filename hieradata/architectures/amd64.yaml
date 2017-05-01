@@ -123,6 +123,7 @@ nest::package_use:
   # that seems to do this
   dev-ruby/trollop:
     use: '-ruby_targets_ruby22'
+    ensure: 'absent'
 
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
