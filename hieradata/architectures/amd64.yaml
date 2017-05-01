@@ -76,6 +76,10 @@ nest::package_keywords:
     version: '=9999'
     keywords: '**'
 
+  # Required by dev-java/icedtea-bin-3.3.0[-headless-awt,-multilib]
+  media-libs/libpng:
+    version: '=1.6.29'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
