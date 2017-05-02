@@ -79,6 +79,7 @@ class nest::profile::base::grub {
       ],
     },
     $::nest::kernel_cmdline,
+    'systemd.legacy_systemd_cgroup_controller',
   ].flatten.join(' ').strip
 
   file_line { 'grub-set-kernel-cmdline':
