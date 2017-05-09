@@ -7,7 +7,7 @@ class nest::profile::base::sudo {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "Defaults env_keep += \"SSH_AUTH_SOCK SSH_CLIENT TMUX TMUX_PANE XAUTHORITY\"\n",
+    content => "Defaults env_keep += \"SSH_AUTH_SOCK SSH_CLIENT SSH_CONNECTION TMUX TMUX_PANE XAUTHORITY\"\n",
     require => Package['app-admin/sudo'],
   }
 
