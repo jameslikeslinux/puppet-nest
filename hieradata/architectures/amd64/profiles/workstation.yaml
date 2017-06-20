@@ -13,9 +13,15 @@ nest::package_keywords:
     version: '=5.1.0'
     ensure: 'absent'
 
-  # required by www-client/firefox-52.0.1-r1::gentoo
+  # required by www-client/firefox-54.0::gentoo
   dev-libs/nss:
-    version: '=3.29.3'
+    version: '=3.31'
+  dev-libs/nspr:
+    version: '=4.15'
+  dev-lang/rust:
+    version: '=1.16.0'
+  dev-util/cargo:
+    version: '=0.17.0'
 
   # For the new v40 TrueType interpreter
   media-libs/freetype:
