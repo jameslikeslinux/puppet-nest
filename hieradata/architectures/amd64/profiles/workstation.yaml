@@ -2,6 +2,7 @@
 nest::package_keywords:
   # I always want the most recent of these:
   mail-client/thunderbird: {}
+  media-gfx/displaycal: {}
   media-sound/cantata: {}
   media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
