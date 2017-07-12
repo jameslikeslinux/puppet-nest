@@ -87,6 +87,20 @@ nest::package_keywords:
   dev-libs/double-conversion:
     version: '=2.0.1'
 
+  # Accept unstable libreoffice-5.3 for improved hidpi support
+  app-office/libreoffice:
+    version: '<5.4'
+  app-office/libreoffice-l10n:
+    version: '<5.4'
+  media-libs/libzmf:
+    version: '=0.0.1'
+  dev-libs/libixion:
+    version: '=0.12.2'
+  app-text/libstaroffice:
+    version: '=0.0.3'
+  dev-libs/liborcus:
+    version: '=0.12.1'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
