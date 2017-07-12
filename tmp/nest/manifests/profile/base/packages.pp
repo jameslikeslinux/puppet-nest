@@ -18,6 +18,7 @@ class nest::profile::base::packages {
     'sys-process/htop',
     'sys-process/lsof',
     'www-client/elinks',
+    'x11-misc/xsel',
   ]:
     ensure => installed,
   }
