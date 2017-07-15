@@ -23,11 +23,11 @@ nest::package_keywords:
 
   # ZFS
   sys-kernel/spl:
-    version: '=0.6.5.9'
+    version: '=0.6.5.11'
   sys-fs/zfs-kmod:
-    version: '=0.6.5.9'
+    version: '=0.6.5.11'
   sys-fs/zfs:
-    version: '=0.6.5.9'
+    version: '=0.6.5.11'
 
   # For better Skylake support
   # XXX: Removed due to package stabilization
