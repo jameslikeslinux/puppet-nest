@@ -40,17 +40,19 @@ class nest::profile::base::users {
       require    => File_line['login.defs-create_home'];
 
     'root':
-      shell   => '/bin/zsh',
-      require => File['/bin/zsh'];
+      shell    => '/bin/zsh',
+      require  => File['/bin/zsh'],
+      password => $::nest::pw_hash;
 
     'james':
-      uid     => '1000',
-      gid     => 'users',
-      groups  => ['plugdev', 'video', 'wheel'],
-      home    => '/home/james',
-      comment => 'James Lee',
-      shell   => '/bin/zsh',
-      require => [
+      uid      => '1000',
+      gid      => 'users',
+      groups   => ['plugdev', 'video', 'wheel'],
+      home     => '/home/james',
+      comment  => 'James Lee',
+      shell    => '/bin/zsh',
+      password => $::nest::pw_hash,
+      require  => [
         Package['app-shells/zsh'],
         Class['::nest::profile::base::network'],  # networkmanager creates 'plugdev' group
       ];

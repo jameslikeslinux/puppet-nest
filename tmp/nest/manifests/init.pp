@@ -7,6 +7,7 @@ class nest (
   $nullmailer_config,
   $root_mail_alias,
   $ssh_private_key,
+  $pw_hash,
 
   $cnames           = {},
   $distcc_hosts     = {},

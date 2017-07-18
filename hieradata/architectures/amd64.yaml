@@ -93,6 +93,7 @@ nest::package_use:
     use: 'cryptsetup'
   sys-auth/pambase:
     use: 'pam_ssh'
+    ensure: 'absent'
 
   # For plymouth
   x11-libs/libdrm:
