@@ -45,9 +45,10 @@ class nest::profile::base::ssh {
     require => File['/etc/systemd/user/ssh-agent.service'],
   }
 
+  # XXX: Remove this after 20170719
   file_line { 'pam_env.conf-SSH_AUTH_SOCK':
-    path  => '/etc/security/pam_env.conf',
-    line  => 'SSH_AUTH_SOCK	DEFAULT="${XDG_RUNTIME_DIR}/ssh-agent.socket"',
-    match => '^SSH_AUTH_SOCK\s',
+    ensure => absent,
+    path   => '/etc/security/pam_env.conf',
+    line   => 'SSH_AUTH_SOCK	DEFAULT="${XDG_RUNTIME_DIR}/ssh-agent.socket"',
   }
 }
