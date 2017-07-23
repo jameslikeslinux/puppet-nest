@@ -7,6 +7,21 @@ nest::package_keywords:
   media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
+  x11-misc/xmobar: {}
+  x11-wm/xmonad: {}
+  x11-wm/xmonad-contrib: {}
+
+  # For xmonad-0.13
+  dev-lang/ghc:
+    version: '=8.0.2'
+  dev-haskell/x11:
+    version: '=1.8-r1'
+  dev-haskell/cabal:
+    version: '=1.24.2.0'
+
+  # For xmobar-0.24.3
+  dev-haskell/alsa-mixer:
+    version: '=0.2.0.3'
 
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization
