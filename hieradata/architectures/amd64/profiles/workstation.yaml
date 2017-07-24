@@ -18,6 +18,8 @@ nest::package_keywords:
     version: '=1.8-r1'
   dev-haskell/cabal:
     version: '=1.24.2.0'
+  dev-haskell/transformers:
+    version: '=0.5.2.0'
 
   # For xmobar-0.24.3
   dev-haskell/alsa-mixer:
