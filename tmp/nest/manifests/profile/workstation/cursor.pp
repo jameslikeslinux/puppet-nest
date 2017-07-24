@@ -24,7 +24,7 @@ class nest::profile::workstation::cursor {
       group   => 'root';
 
     '/etc/X11/Xresources':
-      content => "Xcursor.size: ${::nest::cursor_size}\n";
+      content => "Xcursor.theme: breeze_cursors\nXcursor.size: ${::nest::cursor_size}\n";
 
     '/etc/plasma/startup/10-cursor.sh':
       content => "export XCURSOR_SIZE=${::nest::cursor_size}\n";
