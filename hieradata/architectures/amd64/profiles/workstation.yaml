@@ -26,6 +26,8 @@ nest::package_keywords:
     version: '=0.2.0.3'
   dev-haskell/quickcheck:
     version: '=2.9.2'
+  dev-haskell/http:
+    version: '=4000.3.5'
 
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization
