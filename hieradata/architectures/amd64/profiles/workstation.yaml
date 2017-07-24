@@ -24,6 +24,8 @@ nest::package_keywords:
   # For xmobar-0.24.3
   dev-haskell/alsa-mixer:
     version: '=0.2.0.3'
+  dev-haskell/quickcheck:
+    version: '=2.9.2'
 
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization
