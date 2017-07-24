@@ -19,16 +19,18 @@ class nest::profile::workstation::xorg {
   $video_card      = $::nest::video_card
 
   if $video_card == 'nvidia' {
-    $eselect_opengl       = 'nvidia'
-    $nvidia_conf_ensure   = 'present'
-    $monitors_conf_ensure = 'absent'
+    $eselect_opengl            = 'nvidia'
+    $nvidia_conf_ensure        = 'present'
+    $monitors_conf_ensure      = 'absent'
+    $kwin_triple_buffer_ensure = 'present'
   } else {
-    $eselect_opengl     = 'xorg-x11'
-    $nvidia_conf_ensure = 'absent'
-    $monitors_conf_ensure = $monitor_layout ? {
+    $eselect_opengl            = 'xorg-x11'
+    $nvidia_conf_ensure        = 'absent'
+    $monitors_conf_ensure      = $monitor_layout ? {
       []      => 'absent',
       default => 'present',
     }
+    $kwin_triple_buffer_ensure = 'absent'
   }
 
   file { '/etc/X11/xorg.conf.d/10-nvidia.conf':
@@ -54,6 +56,28 @@ class nest::profile::workstation::xorg {
     content => template('nest/xorg/libinput.conf.erb'),
   }
 
+  file { '/etc/X11/xinit/xinitrc.d/10-kwin-triple-buffer':
+    ensure  => $kwin_triple_buffer_ensure,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => "#!/bin/bash\nexport KWIN_TRIPLE_BUFFER=1\n",
+  }
+
+  $scaling = @("EOT")
+    #!/bin/bash
+    export GDK_SCALE=${::nest::scaling_factor_rounded}
+    export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
+    export QT_AUTO_SCREEN_SCALE_FACTOR=1
+    | EOT
+
+  file { '/etc/X11/xinit/xinitrc.d/10-scaling':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => $scaling,
+  }
+
   eselect { 'opengl':
     set => $eselect_opengl,
   }
@@ -65,4 +89,5 @@ class nest::profile::workstation::xorg {
   ]:
     ensure => installed,
   }
+
 }

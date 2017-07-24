@@ -7,31 +7,12 @@ class nest::profile::workstation::plasma {
     ensure => installed,
   }
 
-  $kwin_triple_buffer_ensure = $::nest::video_card ? {
-    'nvidia' => 'present',
-    default  => 'absent',
-  }
-
-  file { '/etc/plasma/startup/10-kwin-triple-buffer.sh':
-    ensure  => $kwin_triple_buffer_ensure,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "export KWIN_TRIPLE_BUFFER=1\n",
-    require => Package['kde-plasma/plasma-meta'],
-  }
-
-  $scaling = @("EOT")
-    export GDK_SCALE=${::nest::scaling_factor_rounded}
-    export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
-    export QT_AUTO_SCREEN_SCALE_FACTOR=1
-    | EOT
-
-  file { '/etc/plasma/startup/10-scaling.sh':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $scaling,
+  # XXX: Replaced by scripts in /etc/X11/xinit/xinitrc.d
+  file { [
+    '/etc/plasma/startup/10-kwin-triple-buffer.sh',
+    '/etc/plasma/startup/10-scaling.sh',
+  ]:
+    ensure  => absent,
     require => Package['kde-plasma/plasma-meta'],
   }
 
