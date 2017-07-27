@@ -6,6 +6,7 @@ nest::package_keywords:
   media-sound/cantata: {}
   media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
+  net-im/skypeforlinux: {}
   www-client/firefox: {}
   x11-misc/xmobar: {}
   x11-wm/xmonad: {}
@@ -211,3 +212,7 @@ nest::package_use:
   # able to display Chinese, Japanese, and Korean glyphs
   media-fonts/noto:
     use: 'cjk'
+
+  # For skypeforlinux
+  app-crypt/pinentry:
+    use: 'gnome-keyring'
