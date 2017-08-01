@@ -8,27 +8,29 @@ nest::package_keywords:
   media-sound/google-play-music-desktop-player-bin: {}
   net-im/skypeforlinux: {}
   www-client/firefox: {}
-  x11-misc/xmobar: {}
-  x11-wm/xmonad: {}
-  x11-wm/xmonad-contrib: {}
 
-  # For xmonad-0.13
+
+  # Now the whole haskell overlay is accepted
+  x11-misc/xmobar:
+    ensure: 'absent'
+  x11-wm/xmonad:
+    ensure: 'absent'
+  x11-wm/xmonad-contrib:
+    ensure: 'absent'
   dev-lang/ghc:
-    version: '=8.0.2'
+    ensure: 'absent'
   dev-haskell/x11:
-    version: '=1.8-r1'
+    ensure: 'absent'
   dev-haskell/cabal:
-    version: '=1.24.2.0'
+    ensure: 'absent'
   dev-haskell/transformers:
-    version: '=0.5.2.0'
-
-  # For xmobar-0.24.3
+    ensure: 'absent'
   dev-haskell/alsa-mixer:
-    version: '=0.2.0.3'
+    ensure: 'absent'
   dev-haskell/quickcheck:
-    version: '=2.9.2'
+    ensure: 'absent'
   dev-haskell/http:
-    version: '=4000.3.5'
+    ensure: 'absent'
 
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization

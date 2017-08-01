@@ -81,6 +81,30 @@ class nest::profile::base::portage {
   create_resources(package_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
+
+  # Don't let eix-sync override my tmux window title
+  file { '/etc/eixrc/10-disable-statusline':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "NOSTATUSLINE=true\n",
+  }
+
+  # Speed up metadata resolution of haskell overlay in eix-sync
+  # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
+  $eix_conf_content = @("EOT")
+    *
+    @egencache --jobs=${loadlimit} --repo=haskell --update --update-use-local-desc
+    | EOT
+
+  file { '/etc/eix-sync.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $eix_conf_content,
+  }
+
+
   $kde_keywords_content = @(EOT)
     dev-qt/*:5
     kde-*/*:5
@@ -91,6 +115,13 @@ class nest::profile::base::portage {
     owner   => 'root',
     group   => 'root',
     content => $kde_keywords_content,
+  }
+
+  file { '/etc/portage/package.keywords/haskell':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::haskell ~amd64\n",
   }
 
   file { [
@@ -133,6 +164,13 @@ class nest::profile::base::portage {
     sync-uri = https://github.com/iamjamestl/portage-nest.git
     auto-sync = yes
     masters = gentoo
+
+    [haskell]
+    location = /var/cache/portage/haskell
+    sync-type = git
+    sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
+    auto-sync = yes
+    masters = gentoo
     | EOT
 
   file { '/etc/portage/repos.conf':
@@ -154,6 +192,14 @@ class nest::profile::base::portage {
     ensure   => present,
     provider => git,
     source   => 'https://github.com/iamjamestl/portage-overlay.git',
+    force    => true,
+    depth    => 1,
+  }
+
+  vcsrepo { '/var/cache/portage/haskell':
+    ensure   => present,
+    provider => git,
+    source   => 'https://github.com/iamjamestl/gentoo-haskell.git',
     force    => true,
     depth    => 1,
   }
