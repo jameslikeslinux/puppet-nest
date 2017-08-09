@@ -9,7 +9,9 @@ class nest::profile::workstation::plasma {
 
   # XXX: This is also managed in xinitrc.d, but /usr/bin/startkde overrides it.
   # Then it sources scripts in /etc/plasma/startup, so we can re-set it there.
+  # XXX: Remove due to change to QT_SCALE_FACTOR instead
   file { '/etc/plasma/startup/10-scaling.sh':
+    ensure  => absent,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
