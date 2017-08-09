@@ -1,7 +1,7 @@
 nest::vm: true
 
 # Try to be readable on a wide variety of screens
-nest::scaling_factor: 1.25
+nest::text_scaling_factor: 1.25
 
 # xorriso makes GPT-compatible ISO images using an HFS+ filesystem
 nest::kernel_config:

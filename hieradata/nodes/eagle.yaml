@@ -12,5 +12,5 @@ nest::dvorak: true
 nest::mouse: 'mxmaster'
 nest::monitor_layout: ['DP-4', 'DP-6']
 nest::primary_monitor: 'DP-6'
-nest::scaling_factor: 1.1
+nest::text_scaling_factor: 1.1
 nest::video_card: 'nvidia'

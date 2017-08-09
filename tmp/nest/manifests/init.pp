@@ -2,43 +2,44 @@ class nest (
   $nestfs_hostname,
   $openvpn_hostname,
 
-  $lastfm_pw_hash    = undef,
-  $lastpass_username = undef,
+  $lastfm_pw_hash      = undef,
+  $lastpass_username   = undef,
   $nullmailer_config,
   $root_mail_alias,
   $ssh_private_key,
   $pw_hash,
 
-  $cnames           = {},
-  $distcc_hosts     = {},
-  $extra_luks_disks = {},
-  $kernel_config    = {},
-  $kernel_cmdline   = '',
+  $cnames              = {},
+  $distcc_hosts        = {},
+  $extra_luks_disks    = {},
+  $kernel_config       = {},
+  $kernel_cmdline      = '',
 
-  $dvorak           = false,
-  $monitor_layout   = [],
-  $mouse            = undef,
-  $primary_monitor  = undef,
-  $processorcount   = $::processorcount,
-  $scaling_factor   = 1.0,
-  $synergy_config   = undef,
-  $video_card       = undef,
+  $dvorak              = false,
+  $monitor_layout      = [],
+  $mouse               = undef,
+  $primary_monitor     = undef,
+  $processorcount      = $::processorcount,
+  $gui_scaling_factor  = 1.0,
+  $text_scaling_factor = 1.0,
+  $synergy_config      = undef,
+  $video_card          = undef,
 
-  $live             = $::nest['live'],
-  $vm               = ($::virtual == 'kvm'),
+  $live                = $::nest['live'],
+  $vm                  = ($::virtual == 'kvm'),
 
-  $cflags           = $::portage_cflags,
-  $cpu_flags_x86    = $::portage_cpu_flags_x86,
-  $package_keywords = {},
-  $package_use      = {},
-  $use              = [],
+  $cflags              = $::portage_cflags,
+  $cpu_flags_x86       = $::portage_cpu_flags_x86,
+  $package_keywords    = {},
+  $package_use         = {},
+  $use                 = [],
 
-  $cups_servers     = [],
-  $distcc_server    = false,
-  $fileserver       = false,
-  $libvirt          = false,
-  $openvpn_server   = false,
-  $puppet_server    = false,
+  $cups_servers        = [],
+  $distcc_server       = false,
+  $fileserver          = false,
+  $libvirt             = false,
+  $openvpn_server      = false,
+  $puppet_server       = false,
 
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 ) {
@@ -61,17 +62,18 @@ class nest (
   $use_hiera = hiera_array('nest::use', $use)
   $use_combined = union($use_defaults, $use_hiera).sort
 
-  $dpi = inline_template('<%= (@scaling_factor * 96.0).round %>')
-  $scaling_factor_rounded = inline_template('<%= @scaling_factor.round %>')
-  $scaling_factor_percent_of_rounded = floor(($dpi / ($scaling_factor_rounded * 96.0)) * 1000) / 1000.0
+  $dpi = inline_template('<%= (@text_scaling_factor * 96.0).round %>')
+  $gui_scaling_factor_rounded = inline_template('<%= @gui_scaling_factor.round %>')
+  $text_scaling_factor_percent_of_gui = floor(($dpi / ($gui_scaling_factor * 96.0)) * 1000) / 1000.0
+  $text_scaling_factor_percent_of_rounded_gui = floor(($dpi / ($gui_scaling_factor_rounded * 96.0)) * 1000) / 1000.0
 
   $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
-  $console_font_size_ideal   = 16 * $::nest::scaling_factor
+  $console_font_size_ideal   = 16 * $::nest::text_scaling_factor
   $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(16) { |size| size - @console_font_size_ideal.round <= 0 } %>')
   $console_font_size         = $console_font_size_smaller
 
   $cursor_sizes        = [24, 32, 36, 40, 48, 64, 96]
-  $cursor_size_ideal   = 24 * $::nest::scaling_factor
+  $cursor_size_ideal   = 24 * $::nest::gui_scaling_factor
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal.round <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
 

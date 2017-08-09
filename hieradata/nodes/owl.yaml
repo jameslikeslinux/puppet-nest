@@ -1,4 +1,5 @@
 ---
 nest::dvorak: true
 nest::mouse: 'trackpoint'
-nest::scaling_factor: 1.67
+nest::gui_scaling_factor: 1.5
+nest::text_scaling_factor: 1.67

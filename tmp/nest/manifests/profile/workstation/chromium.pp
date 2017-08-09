@@ -14,7 +14,7 @@ class nest::profile::workstation::chromium {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::scaling_factor} --enable-use-zoom-for-dsf\"\n",
+    content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::text_scaling_factor} --enable-use-zoom-for-dsf\"\n",
     require => Package['www-client/chromium'],
   }
 }

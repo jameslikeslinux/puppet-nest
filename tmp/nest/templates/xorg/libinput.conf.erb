@@ -8,5 +8,5 @@ Section "InputClass"
     Driver          "libinput"
     MatchDevicePath "/dev/input/event*"
     Option          "Tapping" "yes"
-    Option          "AccelSpeed" "<%= (scope.lookupvar('nest::scaling_factor').to_d - 1).to_f %>"
+    Option          "AccelSpeed" "<%= (scope.lookupvar('nest::text_scaling_factor').to_d - 1).to_f %>"
 EndSection

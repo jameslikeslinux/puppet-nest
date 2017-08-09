@@ -64,11 +64,13 @@ class nest::profile::workstation::xorg {
     content => "#!/bin/bash\nexport KWIN_TRIPLE_BUFFER=1\n",
   }
 
+  $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
   $scaling = @("EOT")
     #!/bin/bash
-    export GDK_SCALE=${::nest::scaling_factor_rounded}
-    export GDK_DPI_SCALE=${::nest::scaling_factor_percent_of_rounded}
-    export QT_AUTO_SCREEN_SCALE_FACTOR=1
+    export GDK_SCALE=${::nest::gui_scaling_factor_rounded}
+    export GDK_DPI_SCALE=${::nest::text_scaling_factor_percent_of_rounded_gui}
+    export QT_SCALE_FACTOR=${::nest::gui_scaling_factor}
+    export QT_FONT_DPI=${qt_font_dpi}
     | EOT
 
   file { '/etc/X11/xinit/xinitrc.d/10-scaling':

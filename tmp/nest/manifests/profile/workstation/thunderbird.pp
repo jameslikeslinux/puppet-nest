@@ -7,7 +7,7 @@ class nest::profile::workstation::thunderbird {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "pref(\"layout.css.devPixelsPerPx\", \"${::nest::scaling_factor}\");\n",
+    content => "pref(\"layout.css.devPixelsPerPx\", \"${::nest::text_scaling_factor}\");\n",
     require => Package['mail-client/thunderbird'],
   }
 }
