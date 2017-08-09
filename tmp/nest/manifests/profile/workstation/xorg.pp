@@ -69,6 +69,7 @@ class nest::profile::workstation::xorg {
     #!/bin/bash
     export GDK_SCALE=${::nest::gui_scaling_factor_rounded}
     export GDK_DPI_SCALE=${::nest::text_scaling_factor_percent_of_rounded_gui}
+    export QT_AUTO_SCREEN_SCALE_FACTOR=0
     export QT_SCALE_FACTOR=${::nest::gui_scaling_factor}
     export QT_FONT_DPI=${qt_font_dpi}
     | EOT
