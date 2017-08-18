@@ -9,28 +9,16 @@ nest::package_keywords:
   net-im/skypeforlinux: {}
   www-client/firefox: {}
 
-
-  # Now the whole haskell overlay is accepted
-  x11-misc/xmobar:
-    ensure: 'absent'
+  # Get the latest bug fixes and features for xmonad & co.
   x11-wm/xmonad:
-    ensure: 'absent'
+    version: '=9999'
+    keywords: '**'
   x11-wm/xmonad-contrib:
-    ensure: 'absent'
-  dev-lang/ghc:
-    ensure: 'absent'
-  dev-haskell/x11:
-    ensure: 'absent'
-  dev-haskell/cabal:
-    ensure: 'absent'
-  dev-haskell/transformers:
-    ensure: 'absent'
-  dev-haskell/alsa-mixer:
-    ensure: 'absent'
-  dev-haskell/quickcheck:
-    ensure: 'absent'
-  dev-haskell/http:
-    ensure: 'absent'
+    version: '=9999'
+    keywords: '**'
+  x11-misc/taffybar:
+    version: '=9999'
+    keywords: '**'
 
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization

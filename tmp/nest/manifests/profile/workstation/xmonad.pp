@@ -6,9 +6,13 @@ class nest::profile::workstation::xmonad {
   package { [
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
-    'x11-misc/xmobar',
     'x11-misc/rofi',
+    'x11-misc/taffybar',
   ]:
     ensure => installed,
+  }
+
+  package { 'x11-misc/xmobar':
+    ensure => absent,
   }
 }

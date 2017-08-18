@@ -5,6 +5,7 @@ class nest::profile::workstation::fonts {
 
   package { [
     'media-fonts/corefonts',
+    'media-fonts/fontawesome',
     'media-fonts/liberation-fonts', # primarily for GitHub, tbh
   ]:
     ensure => installed,
