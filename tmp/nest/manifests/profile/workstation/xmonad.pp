@@ -6,6 +6,8 @@ class nest::profile::workstation::xmonad {
   package { [
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
+    'x11-misc/compton',
+    'x11-misc/dunst',
     'x11-misc/rofi',
     'x11-misc/taffybar',
   ]:
