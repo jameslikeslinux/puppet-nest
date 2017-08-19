@@ -16,6 +16,7 @@ class nest (
   $kernel_cmdline      = '',
 
   $dvorak              = false,
+  $swap_alt_win        = false,
   $monitor_layout      = [],
   $mouse               = undef,
   $primary_monitor     = undef,

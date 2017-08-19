@@ -5,7 +5,9 @@ See: http://www.kaufmann.no/roland/dvorak/linux.html
 
 ```
 ./ckbcomp -layout us -option ctrl:nocaps | gzip > us-nocaps.map.gz
+./ckbcomp -layout us -option ctrl:nocaps -option altwin:swap_alt_win | gzip > us-nocaps-swap_alt_win.map.gz
 ./ckbcomp -layout us -variant dvorak -option ctrl:nocaps | gzip > dvorak-nocaps.map.gz
+./ckbcomp -layout us -variant dvorak -option ctrl:nocaps -option altwin:swap_alt_win | gzip > dvorak-nocaps-swap_alt_win.map.gz
 gzip -dc dvorak-nocaps.map.gz | grub-mklayout -o dvorak.gkb
 ```
 

@@ -5,5 +5,5 @@ Section "InputClass"
 <% if @keyboard_variant -%>
     Option          "XkbVariant" "<%= @keyboard_variant %>"
 <% end -%>
-    Option          "XkbOptions" "ctrl:nocaps,terminate:ctrl_alt_bksp"
+    Option          "XkbOptions" "<%= @keyboard_options %>"
 EndSection

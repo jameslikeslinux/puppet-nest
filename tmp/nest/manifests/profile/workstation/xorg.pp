@@ -5,6 +5,11 @@ class nest::profile::workstation::xorg {
     $keyboard_variant = 'dvorak'
   }
 
+  $keyboard_options = $::nest::swap_alt_win ? {
+    true    => 'ctrl:nocaps,terminate:ctrl_alt_bksp,altwin:swap_alt_win',
+    default => 'ctrl:nocaps,terminate:ctrl_alt_bksp',
+  }
+
   # This file is ordinarily managed by localectl.
   # This tries to be compatible.
   file { '/etc/X11/xorg.conf.d/00-keyboard.conf':
