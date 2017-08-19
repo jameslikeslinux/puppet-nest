@@ -58,28 +58,23 @@ class nest::profile::base::systemd {
       source => 'puppet:///modules/nest/keymaps/dvorak-nocaps.map.gz';
 
     '/usr/share/keymaps/i386/dvorak/dvorak-nocaps-swap_alt_win.map.gz':
-      source => 'puppet:///modules/nest/keymaps/dvorak-nocaps-swap_alt_win.map.gz';
+      ensure => absent;
 
     '/usr/share/keymaps/i386/qwerty/us-nocaps.map.gz':
       source => 'puppet:///modules/nest/keymaps/us-nocaps.map.gz';
 
     '/usr/share/keymaps/i386/qwerty/us-nocaps-swap_alt_win.map.gz':
-      source => 'puppet:///modules/nest/keymaps/us-nocaps-swap_alt_win.map.gz';
+      ensure => absent;
   }
 
-  $keymap_base = $::nest::dvorak ? {
+  $keymap = $::nest::dvorak ? {
     true    => 'dvorak-nocaps',
     default => 'us-nocaps',
   }
 
-  $keymap_real = $::nest::swap_alt_win ? {
-    true    => "${keymap_base}-swap_alt_win",
-    default => $keymap_base,
-  }
-
   $vconsole_conf_content = @("EOT")
     FONT=ter-v${::nest::console_font_size}b
-    KEYMAP=${keymap_real}
+    KEYMAP=${keymap}
     | EOT
 
   file { '/etc/vconsole.conf':
