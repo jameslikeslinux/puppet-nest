@@ -3,6 +3,10 @@ class nest::profile::workstation::xmonad {
     use => 'xft',
   }
 
+  nest::portage::package_use { 'x11-misc/rofi':
+    use => 'windowmode',
+  }
+
   package { [
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
