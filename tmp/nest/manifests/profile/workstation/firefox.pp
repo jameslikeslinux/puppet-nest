@@ -7,10 +7,6 @@ class nest::profile::workstation::firefox {
     before  => Package['www-plugins/adobe-flash'],
   }
 
-  package { 'media-libs/hal-flash':
-    ensure => absent,
-  }
-
   nest::portage::package_use { 'www-client/firefox':
     use => 'hwaccel',
   }
