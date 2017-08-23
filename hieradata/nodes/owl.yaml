@@ -1,4 +1,9 @@
 ---
+classes:
+  - 'nest::docker'
+
+nest::libvirt: true
+
 nest::dvorak: true
 nest::swap_alt_win: true
 nest::mouse: 'trackpoint'
