@@ -90,7 +90,7 @@ class nest::profile::workstation::xorg {
   }
 
   package { [
-    'x11-apps/xclock',
+    'x11-apps/xeyes',
     'x11-apps/xkill',
     'x11-apps/xmodmap',
     'x11-apps/xrandr',
