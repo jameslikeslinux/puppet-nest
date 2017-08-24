@@ -1,13 +1,16 @@
 ---
 nest::package_keywords:
   # I always want the most recent of these:
-  mail-client/thunderbird: {}
   media-gfx/displaycal: {}
   media-sound/cantata: {}
   media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
   net-im/skypeforlinux: {}
   www-client/firefox: {}
+
+  # Just use gmail now :(
+  mail-client/thunderbird:
+    ensure: 'absent'
 
   # Get the latest bug fixes and features for xmonad & co.
   x11-wm/xmonad:
