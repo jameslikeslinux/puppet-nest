@@ -200,7 +200,9 @@ nest::package_use:
     use: '-gtk'
 
   # For vsync
+  # (nevermind, sna/dri2 works better)
   x11-drivers/xf86-video-intel:
+    ensure: 'absent'
     use: 'dri3'
 
   # Not that I can read any of these languages, but it is nice to be

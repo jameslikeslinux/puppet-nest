@@ -97,4 +97,18 @@ class nest::profile::workstation::xorg {
     ensure => installed,
   }
 
+  # Whatever people say about the state and quality of this driver, it just
+  # works.  SNA/DRI2 + the TearFree option enables perfectly tear-free
+  # everything, even without a compositor.  It's also very fast.  The
+  # modesetting driver with DRI3 just isn't there yet.
+  package { 'x11-drivers/xf86-video-intel':
+    ensure => installed,
+  }
+
+  file { '/etc/X11/xorg.conf.d/10-intel.conf':
+    mode   => '0644',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/xorg/intel.conf',
+  }
 }
