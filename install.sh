@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STAGE_ARCHIVE=https://thestaticvoid.com/dist/stage3-amd64-20170316.tar.bz2
+STAGE_ARCHIVE=https://thestaticvoid.com/dist/stage3-amd64-systemd-20170818.tar.bz2
 DATE=$(date '+%Y%m%d')
 
 usage() {

@@ -26,8 +26,18 @@ class nest::profile::base::portage {
   $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
 
 
+  # Basically, this goes:
+  #  1. Install portage stuff, like eselect
+  #  2. eselect profile/change make.conf
+  #  3. Rebuild packages as necessary (Exec[changed_makeconf])
   class { '::portage':
     eselect_ensure => installed,
+  }
+
+  eselect { 'profile':
+    set     => $::nest::gentoo_profile,
+    require => Package['app-admin/eselect'],
+    before  => Class['::portage'],
   }
 
   $portage_features = size($::nest::distcc_hosts) ? {
@@ -63,18 +73,6 @@ class nest::profile::base::portage {
     'video_cards':
       content => $::nest::video_cards,
       ensure  => $video_cards_ensure;
-  }
-
-  eselect { 'profile':
-    set     => $::nest::gentoo_profile,
-    require => Class['::portage'],
-  }
-
-  exec { 'emerge-update-world':
-    command     => '/usr/bin/emerge -DuN @world',
-    timeout     => 0,
-    refreshonly => true,
-    subscribe   => Eselect['profile'],
   }
 
   # Create portage package properties rebuild affected packages

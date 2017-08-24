@@ -31,7 +31,7 @@ class nest::profile::base {
   Class['::nest::profile::base::git'] -> Vcsrepo <| provider == git |>
 
   # Portage should be configured before any packages are installed/changed
-  Class['::nest::profile::base::portage'] -> Package <| title != 'sys-devel/distcc' and title != 'dev-vcs/git' |>
+  Class['::nest::profile::base::portage'] -> Package <| title != 'sys-devel/distcc' and title != 'dev-vcs/git' and title != 'app-admin/eselect' |>
   Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
   # Portage configuration (profile) responsible for installing systemd
