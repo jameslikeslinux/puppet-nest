@@ -98,7 +98,7 @@ class nest::profile::base::openvpn {
     file_line { 'dnsmasq.conf-conf-dir':
       path    => '/etc/dnsmasq.conf',
       line    => 'conf-dir=/etc/dnsmasq.d/,*.conf',
-      match   => '^#conf-dir=/etc/dnsmasq.d/,\*.conf',
+      match   => '^#?conf-dir=/etc/dnsmasq.d/,\*.conf',
       require => Package['net-dns/dnsmasq'],
     }
 
