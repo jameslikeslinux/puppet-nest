@@ -55,7 +55,7 @@ class nest::profile::base::puppet {
       provider => puppetserver_gem,
     }
 
-    file { '/etc/puppetlabs/code/hiera.yaml':
+    file { '/etc/puppetlabs/puppet/hiera.yaml':
       mode => '0644',
       owner => 'root',
       group => 'root',
@@ -64,7 +64,7 @@ class nest::profile::base::puppet {
 
     Class['::puppet::server::install'] ->
     Package['hiera-eyaml'] ->
-    File['/etc/puppetlabs/code/hiera.yaml'] ~>
+    File['/etc/puppetlabs/puppet/hiera.yaml'] ~>
     Class['::puppet::server::service']
 
     package { 'r10k':
