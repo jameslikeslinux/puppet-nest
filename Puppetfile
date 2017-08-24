@@ -5,9 +5,9 @@ mod 'puppetlabs-concat', '2.1.0'
 mod 'puppetlabs-firewall', '1.8.0'
 mod 'puppetlabs-mysql', '3.10.0'
 mod 'puppetlabs-puppetserver_gem', '0.2.0'
-mod 'puppetlabs-stdlib', '4.11.0'
+mod 'puppetlabs-stdlib', '4.19.0'
 mod 'puppetlabs-vcsrepo', '1.3.2'
-mod 'theforeman-puppet', '4.3.1'
+mod 'theforeman-puppet', '8.0.2'
 
 mod 'docker',
   :git    => 'https://github.com/iamjamestl/garethr-docker.git',
