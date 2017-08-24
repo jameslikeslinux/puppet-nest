@@ -90,8 +90,10 @@ class nest::profile::workstation::xorg {
   }
 
   package { [
+    'x11-apps/xkill',
     'x11-apps/xmodmap',
     'x11-apps/xrandr',
+    'x11-apps/xwininfo',
     'x11-misc/vdpauinfo',
   ]:
     ensure => installed,
