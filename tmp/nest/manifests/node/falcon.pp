@@ -194,6 +194,14 @@ class nest::node::falcon {
     action  => accept,
   }
 
+  firewall { '100 docker to dns':
+    iniface => 'docker0',
+    proto   => udp,
+    dport   => 53,
+    state   => 'NEW',
+    action  => accept,
+  }
+
   firewall { '100 plex':
     proto  => tcp,
     dport  => 32400,
