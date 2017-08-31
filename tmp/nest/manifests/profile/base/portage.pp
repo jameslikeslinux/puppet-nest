@@ -75,6 +75,25 @@ class nest::profile::base::portage {
       ensure  => $video_cards_ensure;
   }
 
+  $cflags_no_debug = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
+
+  file {
+    default:
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+      before => Class['::portage'],
+    ;
+
+    '/etc/portage/env':
+      ensure => directory,
+    ;
+
+    '/etc/portage/env/no-debug.conf':
+      content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
+    ;
+  }
+
   # Create portage package properties rebuild affected packages
   create_resources(package_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })

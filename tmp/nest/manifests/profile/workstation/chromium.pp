@@ -3,6 +3,11 @@ class nest::profile::workstation::chromium {
     use => 'widevine',
   }
 
+  package_env { 'www-client/chromium':
+    env    => 'no-debug.conf',
+    before => Package['www-client/chromium'],
+  }
+
   package { [
     'www-client/chromium',
     'www-plugins/chrome-binary-plugins'
