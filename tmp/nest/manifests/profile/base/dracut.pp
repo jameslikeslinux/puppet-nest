@@ -60,8 +60,14 @@ class nest::profile::base::dracut {
     notify  => Exec['dracut'],
   }
 
+  $partlabels = $facts['partitions'].map |$disk, $attributes| { $attributes['partlabel'] }
+  $keyfile    = ('key' in $partlabels) ? {
+    true    => '/dev/disk/by-partlabel/key',
+    default => 'none',
+  }
+
   $crypttab_content = $::nest::luks_disks.map |$luks_disk| {
-    "${luks_disk[0]} UUID=${luks_disk[1]} none luks"
+    "${luks_disk[0]} UUID=${luks_disk[1]} ${keyfile} luks"
   }.join("\n")
 
   file { '/etc/crypttab':
