@@ -22,4 +22,9 @@ class nest::profile::workstation::fonts {
     # establish that relationship.
     require => Package['media-fonts/corefonts'],
   }
+
+  file { '/etc/fonts/conf.d/10-hinting-slight.conf':
+    ensure  => absent,
+    require => Package['media-fonts/corefonts'],
+  }
 }
