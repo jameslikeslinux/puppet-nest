@@ -110,8 +110,12 @@ class nest::profile::workstation::xorg {
     set => $eselect_opengl,
   }
 
+  package { 'x11-apps/xeyes':
+    ensure => absent,
+  }
+
   package { [
-    'x11-apps/xeyes',
+    'x11-apps/xlogo',
     'x11-apps/xkill',
     'x11-apps/xmodmap',
     'x11-apps/xrandr',
