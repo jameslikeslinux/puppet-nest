@@ -145,10 +145,12 @@ class nest::profile::base::portage {
     '/etc/portage/patches',
     '/etc/portage/profile'
   ]:
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
+    ensure  => directory,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    purge   => true,
+    recurse => true,
   }
 
   # Enable libzfs USE flag for GRUB

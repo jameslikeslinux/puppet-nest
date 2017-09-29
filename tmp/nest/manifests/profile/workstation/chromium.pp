@@ -9,19 +9,22 @@ class nest::profile::workstation::chromium {
     group  => 'root',
   }
 
-  file { '/etc/portage/patches/www-client/chromium/chromium-enable-scaled-font-hinting.patch':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/chromium/chromium-enable-scaled-font-hinting.patch',
-  }
+  $patches = [
+    'chromium-disable-scaling-factor-blacklist.patch',
+    'chromium-enable-scaled-font-hinting.patch',
 
-  # Related to: https://bugs.chromium.org/p/skia/issues/detail?id=6931
-  file { '/etc/portage/patches/www-client/chromium/chromium-skia-allow-full-hinting-with-subpixel-positioning.patch':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/chromium/chromium-skia-allow-full-hinting-with-subpixel-positioning.patch',
+    # Related to: https://bugs.chromium.org/p/skia/issues/detail?id=6931
+    'chromium-skia-allow-full-hinting-with-subpixel-positioning.patch',
+  ]
+
+  $patches.each |$patch| {
+    file { "/etc/portage/patches/www-client/chromium/${patch}":
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => "puppet:///modules/nest/chromium/${patch}",
+      before => Package['www-client/chromium'],
+    }
   }
 
   nest::portage::package_use { 'www-client/chromium':
@@ -38,10 +41,6 @@ class nest::profile::workstation::chromium {
     'www-plugins/chrome-binary-plugins'
   ]:
     ensure  => installed,
-    require => [
-      File['/etc/portage/patches/www-client/chromium/chromium-enable-scaled-font-hinting.patch'],
-      File['/etc/portage/patches/www-client/chromium/chromium-skia-allow-full-hinting-with-subpixel-positioning.patch'],
-    ],
   }
 
   file { '/etc/chromium/scaling':
