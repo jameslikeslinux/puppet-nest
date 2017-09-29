@@ -24,7 +24,8 @@ class nest::profile::workstation::fonts {
   }
 
   file { '/etc/fonts/conf.d/10-hinting-slight.conf':
-    ensure  => absent,
+    ensure  => link,
+    target  => '../conf.avail/10-hinting-slight.conf',
     require => Package['media-fonts/corefonts'],
   }
 }
