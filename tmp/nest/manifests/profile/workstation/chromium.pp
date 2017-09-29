@@ -10,9 +10,7 @@ class nest::profile::workstation::chromium {
   }
 
   $patches = [
-    'chromium-disable-scaling-factor-blacklist.patch',
     'chromium-enable-scaled-font-hinting.patch',
-
     # Related to: https://bugs.chromium.org/p/skia/issues/detail?id=6931
     'chromium-skia-allow-full-hinting-with-subpixel-positioning.patch',
   ]
