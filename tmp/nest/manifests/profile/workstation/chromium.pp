@@ -1,4 +1,21 @@
 class nest::profile::workstation::chromium {
+  file { [
+    '/etc/portage/patches/www-client',
+    '/etc/portage/patches/www-client/chromium',
+  ]:
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
+  file { '/etc/portage/patches/www-client/chromium/chromium-enable-scaled-font-hinting.patch':
+    mode   => '0644',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/chromium/chromium-enable-scaled-font-hinting.patch',
+  }
+
   nest::portage::package_use { 'www-client/chromium':
     use => 'widevine',
   }
@@ -12,7 +29,8 @@ class nest::profile::workstation::chromium {
     'www-client/chromium',
     'www-plugins/chrome-binary-plugins'
   ]:
-    ensure => installed,
+    ensure  => installed,
+    require => File['/etc/portage/patches/www-client/chromium/chromium-enable-scaled-font-hinting.patch'],
   }
 
   file { '/etc/chromium/scaling':
