@@ -40,4 +40,12 @@ class nest::profile::workstation::chromium {
     content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::text_scaling_factor} --enable-use-zoom-for-dsf\"\n",
     require => Package['www-client/chromium'],
   }
+
+  file { '/etc/chromium/scrolling':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --disable-smooth-scrolling\"\n",
+    require => Package['www-client/chromium'],
+  }
 }
