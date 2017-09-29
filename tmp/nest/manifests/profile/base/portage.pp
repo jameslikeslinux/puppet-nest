@@ -149,9 +149,6 @@ class nest::profile::base::portage {
     mode    => '0755',
     owner   => 'root',
     group   => 'root',
-    purge   => true,
-    recurse => true,
-    force   => true,
   }
 
   # Enable libzfs USE flag for GRUB

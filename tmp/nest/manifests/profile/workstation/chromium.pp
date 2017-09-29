@@ -1,28 +1,21 @@
 class nest::profile::workstation::chromium {
-  file { [
-    '/etc/portage/patches/www-client',
-    '/etc/portage/patches/www-client/chromium',
-  ]:
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
-
-  $patches = [
-    'chromium-enable-scaled-font-hinting.patch',
-    # Related to: https://bugs.chromium.org/p/skia/issues/detail?id=6931
-    'chromium-skia-allow-full-hinting-with-subpixel-positioning.patch',
-  ]
-
-  $patches.each |$patch| {
-    file { "/etc/portage/patches/www-client/chromium/${patch}":
+  file {
+    default:
+      ensure => directory,
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      source => "puppet:///modules/nest/chromium/${patch}",
-      before => Package['www-client/chromium'],
-    }
+    ;
+
+    '/etc/portage/patches/www-client':
+    ;
+
+    '/etc/portage/patches/www-client/chromium':
+      source  => "puppet:///modules/nest/chromium/",
+      recurse => true,
+      purge   => true,
+      before  => Package['www-client/chromium'],
+    ;
   }
 
   nest::portage::package_use { 'www-client/chromium':
