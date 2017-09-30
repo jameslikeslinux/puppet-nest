@@ -11,6 +11,11 @@ class nest::profile::workstation::fonts {
     ensure => installed,
   }
 
+  # The intention here is to express configurations that are related to the
+  # system, not necessarily my preference.  In this case, all of my systems are
+  # RGB LCDs; however, this could be made configurable in Hiera with some
+  # module parameters.  User preference type configurations, like hinting,
+  # belong in the user's home directory (~/.config/fontconfig/fonts.conf)
   file { '/etc/fonts/local.conf':
     mode    => '0644',
     owner   => 'root',
@@ -20,11 +25,6 @@ class nest::profile::workstation::fonts {
     # fontconfig is pulled in by the portage profile, and all packages
     # depend on the portage profile, so this is just an easy way to
     # establish that relationship.
-    require => Package['media-fonts/corefonts'],
-  }
-
-  file { '/etc/fonts/conf.d/10-hinting-slight.conf':
-    ensure  => absent,
     require => Package['media-fonts/corefonts'],
   }
 }
