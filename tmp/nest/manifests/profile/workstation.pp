@@ -1,4 +1,5 @@
 class nest::profile::workstation {
+  contain '::nest::profile::workstation::bluetooth'
   contain '::nest::profile::workstation::chromium'
   contain '::nest::profile::workstation::cups'
   contain '::nest::profile::workstation::cursor'
@@ -41,4 +42,8 @@ class nest::profile::workstation {
   # Manage mouse settings after xorg
   Class['::nest::profile::workstation::xorg'] ->
   Class['::nest::profile::workstation::mouse']
+
+  # NetworkManager pulls in bluez
+  Class['::nest::profile::base::network'] ->
+  Class['::nest::profile::workstation::bluetooth']
 }

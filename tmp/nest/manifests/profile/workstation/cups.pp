@@ -12,7 +12,7 @@ class nest::profile::workstation::cups {
   ]:
     ensure => installed,
   }
-  
+
   package { 'net-print/foomatic-db':
     ensure => absent,
   }
