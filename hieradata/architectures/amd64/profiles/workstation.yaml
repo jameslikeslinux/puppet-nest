@@ -31,7 +31,7 @@ nest::package_keywords:
 
   # required by www-client/firefox-55.0::gentoo
   dev-libs/nss:
-    version: '=3.32'
+    version: '=3.33'
   dev-libs/nspr:
     version: '=4.16'
   dev-lang/rust:

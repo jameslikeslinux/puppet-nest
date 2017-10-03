@@ -78,7 +78,7 @@ nest::package_keywords:
 
   # Required by dev-java/icedtea-bin-3.3.0[-headless-awt,-multilib]
   media-libs/libpng:
-    version: '=1.6.29'
+    version: '=1.6.34'
 
 nest::package_use:
   # For Dracut liveimg module
