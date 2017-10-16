@@ -115,10 +115,24 @@ class nest::profile::base::puppet {
     }
   }
 
+  $facter_conf = @(FACTER_CONF)
+    global : {
+          external-dir : [ "/etc/puppetlabs/facter/facts.d" ]
+    }
+    | FACTER_CONF
+
+  file { '/etc/puppetlabs/facter/facter.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $facter_conf,
+  }
+
   $scaling_facts = @("SCALING_FACTS")
     ---
-    gui_scaling_factor: $::nest::gui_scaling_factor
-    test_scaling_factor: $::nest::text_scaling_factor
+    scaling:
+      gui: $::nest::gui_scaling_factor
+      text: $::nest::text_scaling_factor
     | SCALING_FACTS
 
   file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':
