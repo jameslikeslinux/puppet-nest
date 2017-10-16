@@ -114,4 +114,17 @@ class nest::profile::base::puppet {
       dns_alt_names => $dns_alt_names,
     }
   }
+
+  $scaling_facts = @("SCALING_FACTS")
+    ---
+    gui_scaling_factor: $::nest::gui_scaling_factor
+    test_scaling_factor: $::nest::text_scaling_factor
+    | SCALING_FACTS
+
+  file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $scaling_facts,
+  }
 }
