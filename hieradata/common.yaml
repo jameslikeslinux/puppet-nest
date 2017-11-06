@@ -11,6 +11,7 @@ nest::cnames:
   couchpotato.nest: 'falcon.nest'
   nzbget.nest: 'falcon.nest'
   plex.nest: 'falcon.nest'
+  radarr.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
 nest::cups_servers:
   - 'eagle.nest'
