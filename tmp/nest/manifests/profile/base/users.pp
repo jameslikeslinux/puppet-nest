@@ -57,6 +57,13 @@ class nest::profile::base::users {
         Class['::nest::profile::base::network'],  # networkmanager creates 'plugdev' group
       ];
 
+    'ombi':
+      uid     => '3579',
+      gid     => 'media',
+      home    => '/srv/ombi',
+      comment => 'Ombi',
+      shell   => '/sbin/nologin';
+
     'couchpotato':
       uid     => '5050',
       gid     => 'media',

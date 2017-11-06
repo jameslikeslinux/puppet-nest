@@ -5,6 +5,7 @@ class nest::node::falcon {
   nest::srv { [
     'nzbget',
     'nzbget/downloads',
+    'ombi',
     'plex',
     'plex/transcode',
     'radarr',
@@ -32,6 +33,23 @@ class nest::node::falcon {
 
     '/srv/nzbget/downloads/completed':
       mode    => '0775',
+    ;
+  }
+
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0755',
+      owner   => 'ombi',
+      group   => 'media',
+    ;
+
+    '/srv/ombi':
+      require => Nest::Srv['ombi'],
+    ;
+
+    '/srv/ombi/config':
+      # use defaults
     ;
   }
 
@@ -112,6 +130,16 @@ class nest::node::falcon {
     ],
   }
 
+  docker::run { 'ombi':
+    image   => 'linuxserver/ombi',
+    ports   => '3579:3579',
+    env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
+    volumes => [
+      '/srv/ombi/config:/config',
+    ],
+    require => File['/srv/ombi'],
+  }
+
   docker::run { 'plex':
     image            => 'plexinc/pms-docker:plexpass',
     net              => 'host',
@@ -163,6 +191,10 @@ class nest::node::falcon {
 
     'nzbget.nest':
       destination => 'http://localhost:6789/',
+    ;
+
+    'ombi.nest':
+      destination => 'http://localhost:3579/'
     ;
 
     'plex.nest':
