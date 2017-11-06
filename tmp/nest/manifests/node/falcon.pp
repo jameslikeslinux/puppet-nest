@@ -48,10 +48,7 @@ class nest::node::falcon {
       require => Nest::Srv['ombi'],
     ;
 
-    [
-      '/srv/ombi/config-v2',
-      '/srv/ombi/config-v3',
-    ]:
+    '/srv/ombi/config':
       # use defaults
     ;
   }
@@ -139,7 +136,7 @@ class nest::node::falcon {
     ports   => '3579:3579',
     env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
-      '/srv/ombi/config-v3:/config',
+      '/srv/ombi/config:/config',
     ],
     require => File['/srv/ombi'],
   }
