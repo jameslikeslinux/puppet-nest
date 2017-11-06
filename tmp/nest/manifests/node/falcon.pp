@@ -146,7 +146,6 @@ class nest::node::falcon {
     ports   => '8989:8989',
     env     => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
-      '/dev/rtc:/dev/rtc:ro',
       '/srv/sonarr/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/tv:/tv',
