@@ -3,30 +3,13 @@ class nest::node::falcon {
   include '::nest::docker'
 
   nest::srv { [
-    'couchpotato',
     'nzbget',
     'nzbget/downloads',
     'plex',
     'plex/transcode',
+    'radarr',
     'sonarr',
   ]: }
-
-  file {
-    default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'couchpotato',
-      group   => 'media',
-    ;
-
-    '/srv/couchpotato':
-      require => Nest::Srv['couchpotato'],
-    ;
-
-    '/srv/couchpotato/config':
-      # use defaults
-    ;
-  }
 
   file {
     default:
@@ -76,6 +59,23 @@ class nest::node::falcon {
     default:
       ensure  => directory,
       mode    => '0755',
+      owner   => 'radarr',
+      group   => 'media',
+    ;
+
+    '/srv/radarr':
+      require => Nest::Srv['radarr'],
+    ;
+
+    '/srv/radarr/config':
+      # use defaults
+    ;
+  }
+
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0755',
       owner   => 'sonarr',
       group   => 'media',
     ;
@@ -96,21 +96,6 @@ class nest::node::falcon {
   }
 
   $cpuset = $::nest::availcpus_expanded.join(',')
-
-  docker::run { 'couchpotato':
-    image   => 'linuxserver/couchpotato',
-    ports   => '5050:5050',
-    env     => ['PUID=5050', 'PGID=1001', 'TZ=America/New_York'],
-    volumes => [
-      '/srv/couchpotato/config:/config',
-      '/srv/nzbget/downloads:/downloads',
-      '/nest/movies:/movies',
-    ],
-    require => [
-      File['/srv/couchpotato/config'],
-      File['/srv/nzbget/downloads/completed'],
-    ],
-  }
 
   docker::run { 'nzbget':
     image   => 'linuxserver/nzbget',
@@ -141,6 +126,21 @@ class nest::node::falcon {
     require          => File['/srv/plex/config'],
   }
 
+  docker::run { 'radarr':
+    image   => 'linuxserver/radarr',
+    ports   => '7878:7878',
+    env     => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
+    volumes => [
+      '/srv/radarr/config:/config',
+      '/srv/nzbget/downloads:/downloads',
+      '/nest/movies:/movies',
+    ],
+    require => [
+      File['/srv/radarr/config'],
+      File['/srv/nzbget/downloads/completed'],
+    ],
+  }
+
   docker::run { 'sonarr':
     image   => 'linuxserver/sonarr',
     ports   => '8989:8989',
@@ -162,16 +162,16 @@ class nest::node::falcon {
       ssl => false,
     ;
 
-    'couchpotato.nest':
-      destination => 'http://localhost:5050/',
-    ;
-
     'nzbget.nest':
       destination => 'http://localhost:6789/',
     ;
 
     'plex.nest':
       destination => 'http://localhost:32400/'
+    ;
+
+    'radarr.nest':
+      destination => 'http://localhost:7878/',
     ;
 
     'sonarr.nest':

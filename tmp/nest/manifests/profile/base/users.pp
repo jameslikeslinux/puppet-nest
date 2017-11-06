@@ -71,6 +71,13 @@ class nest::profile::base::users {
       comment => 'NZBGet',
       shell   => '/sbin/nologin';
 
+    'radarr':
+      uid     => '7878',
+      gid     => 'media',
+      home    => '/srv/radarr',
+      comment => 'Radarr',
+      shell   => '/sbin/nologin';
+
     'sonarr':
       uid     => '8989',
       gid     => 'media',
