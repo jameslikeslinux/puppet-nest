@@ -131,7 +131,7 @@ class nest::node::falcon {
   }
 
   docker::run { 'ombi':
-    image   => 'linuxserver/ombi',
+    image   => 'lsiodev/ombi-preview',
     ports   => '3579:3579',
     env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
