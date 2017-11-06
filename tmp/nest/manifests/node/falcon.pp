@@ -107,13 +107,14 @@ class nest::node::falcon {
     ;
   }
 
+  $cpuset = $::nest::availcpus_expanded.join(',')
+
   Docker::Run {
     dns              => '172.22.2.1',
     dns_search       => 'nest',
+    extra_parameters => ["--cpuset-cpus=${cpuset}"],
     service_provider => 'systemd',
   }
-
-  $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'nzbget':
     image   => 'linuxserver/nzbget',
@@ -150,7 +151,6 @@ class nest::node::falcon {
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
-    extra_parameters => ["--cpuset-cpus=${cpuset}"],
     require          => File['/srv/plex/config'],
   }
 
