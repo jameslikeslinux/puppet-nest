@@ -48,7 +48,10 @@ class nest::node::falcon {
       require => Nest::Srv['ombi'],
     ;
 
-    '/srv/ombi/config':
+    [
+      '/srv/ombi/config-v2',
+      '/srv/ombi/config-v3',
+    ]:
       # use defaults
     ;
   }
@@ -132,11 +135,11 @@ class nest::node::falcon {
   }
 
   docker::run { 'ombi':
-    image   => 'linuxserver/ombi',
+    image   => 'lsiodev/ombi-preview',
     ports   => '3579:3579',
     env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
     volumes => [
-      '/srv/ombi/config:/config',
+      '/srv/ombi/config-v3:/config',
     ],
     require => File['/srv/ombi'],
   }
