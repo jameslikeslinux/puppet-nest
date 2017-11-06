@@ -5,7 +5,9 @@ class nest::node::falcon {
   nest::srv { [
     'couchpotato',
     'nzbget',
+    'nzbget/downloads',
     'plex',
+    'plex/transcode',
     'sonarr',
   ]: }
 
@@ -62,7 +64,10 @@ class nest::node::falcon {
       require => Nest::Srv['plex'],
     ;
 
-    '/srv/plex/config':
+    [
+      '/srv/plex/config',
+      '/srv/plex/transcode',
+    ]:
       # use defaults
     ;
   }
@@ -123,11 +128,12 @@ class nest::node::falcon {
   }
 
   docker::run { 'plex':
-    image            => 'linuxserver/plex',
+    image            => 'plexinc/pms-docker:plexpass',
     net              => 'host',
-    env              => ['VERSION=latest', 'PUID=32400', 'PGID=1001', 'TZ=America/New_York'],
+    env              => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
     volumes          => [
       '/srv/plex/config:/config',
+      '/srv/plex/transcode:/transcode',
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
