@@ -219,3 +219,7 @@ nest::package_use:
   # required by kde-plasma/plasma-meta-5.11.2::gentoo
   sys-apps/dbus:
     use: 'user-session'
+
+  # required for sys-apps/dbus[user-session]
+  net-wireless/bluez:
+    use: 'user-session'
