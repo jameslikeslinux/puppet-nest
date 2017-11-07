@@ -213,3 +213,9 @@ nest::package_use:
   # For skypeforlinux
   app-crypt/pinentry:
     use: 'gnome-keyring'
+
+  # required by kde-plasma/plasma-workspace-5.11.2::gentoo[systemd]
+  # required by kde-plasma/kdeplasma-addons-5.11.2::gentoo
+  # required by kde-plasma/plasma-meta-5.11.2::gentoo
+  sys-apps/dbus:
+    use: 'user-session'
