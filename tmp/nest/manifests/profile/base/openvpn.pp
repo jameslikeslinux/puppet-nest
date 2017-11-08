@@ -113,7 +113,7 @@ class nest::profile::base::openvpn {
       content => $dnsmasq_config,
       notify  => Service['dnsmasq'],
     }
-  
+
     $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
     $dnsmasq_cnames_content = $dnsmasq_cnames.join("\n")
     $dnsmasq_cnames_ensure = $dnsmasq_cnames_content ? {
@@ -125,6 +125,18 @@ class nest::profile::base::openvpn {
       ensure  => $dnsmasq_cnames_ensure,
       mode    => '0644',
       content => "${dnsmasq_cnames_content}\n",
+      notify  => Service['dnsmasq'],
+    }
+
+    $dnsmasq_aws_content = @(AWS)
+      address=/ec2.internal/compute.internal/127.0.0.1
+      synth-domain=ec2.internal,0.0.0.0,255.255.255.255,ip-
+      synth-domain=compute.internal,0.0.0.0,255.255.255.255,ip-
+      | AWS
+
+    file { '/etc/dnsmasq.d/aws.conf':
+      mode    => '0644',
+      content => $dnsmasq_aws_content,
       notify  => Service['dnsmasq'],
     }
 
