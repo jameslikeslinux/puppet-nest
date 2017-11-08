@@ -15,6 +15,7 @@ class nest::profile::base::packages {
     'sys-fs/dosfstools',
     'sys-fs/mtools',
     'sys-fs/squashfs-tools',
+    'sys-libs/nss_wrapper',
     'sys-process/htop',
     'sys-process/lsof',
     'www-client/elinks',
