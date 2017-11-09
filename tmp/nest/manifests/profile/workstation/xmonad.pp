@@ -15,6 +15,7 @@ class nest::profile::workstation::xmonad {
     'x11-misc/rofi',
     'x11-misc/taffybar',
     'dev-haskell/missingh',
+    'media-gfx/feh',
   ]:
     ensure => installed,
   }
