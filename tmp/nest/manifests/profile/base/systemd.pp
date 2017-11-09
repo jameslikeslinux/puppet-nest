@@ -32,6 +32,18 @@ class nest::profile::base::systemd {
     enable => true,
   }
 
+  $nsswitch_changes = ['passwd', 'shadow', 'group'].map |$database| {
+    [
+      "rm database[. = '${database}']/service",
+      "set database[. = '${database}']/service files",
+    ]
+  }
+
+  augeas { 'nsswitch-passwd-shadow-group-files':
+    context => '/files/etc/nsswitch.conf',
+    changes => flatten($nsswitch_changes),
+  }
+
   augeas { 'nsswitch-hosts-add-myhostname':
     context => '/files/etc/nsswitch.conf',
     changes => "set database[. = 'hosts']/service[last()+1] myhostname",
