@@ -57,7 +57,7 @@ nest::package_keywords:
 
   # To support llvm-5.0.0:
   media-libs/mesa:
-    version: '=17.1.8'
+    version: '=17.2.4'
 
   # For the new v40 TrueType interpreter
   media-libs/freetype:
