@@ -58,6 +58,10 @@ nest::package_keywords:
   # To support llvm-5.0.0:
   media-libs/mesa:
     version: '=17.2.4'
+  x11-libs/libdrm:
+    version: '=2.4.87'
+  dev-libs/wayland-protocols:
+    version: '=1.11'
 
   # For the new v40 TrueType interpreter
   media-libs/freetype:
