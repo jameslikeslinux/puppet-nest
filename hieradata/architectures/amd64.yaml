@@ -53,7 +53,9 @@ nest::package_keywords:
   net-analyzer/openbsd-netcat: {}
 
   # I always want the latest tmux features and improvements
-  app-misc/tmux: {}
+  app-misc/tmux:
+    version: '=9999'
+    keywords: '**'
 
   # needed to support libevent > 2.1 (pulled in by tmux-2.3)
   net-fs/nfs-utils:
