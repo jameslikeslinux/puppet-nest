@@ -52,10 +52,8 @@ nest::package_keywords:
   # nc: all versions are unstable; don't care
   net-analyzer/openbsd-netcat: {}
 
-  # I want some of the latest changes re: mouse support and key bindings
-  # (accept tmux-2.3; 2.4 is unstable)
-  app-misc/tmux:
-    version: '<2.4'
+  # I always want the latest tmux features and improvements
+  app-misc/tmux: {}
 
   # needed to support libevent > 2.1 (pulled in by tmux-2.3)
   net-fs/nfs-utils:
