@@ -245,3 +245,7 @@ nest::package_use:
   # required for sys-apps/dbus[user-session]
   net-wireless/bluez:
     use: 'user-session'
+
+  # required by app-office/libreoffice-5.4.2.2::gentoo
+  dev-libs/xmlsec:
+    use: 'nss'
