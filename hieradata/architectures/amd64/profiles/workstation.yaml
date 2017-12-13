@@ -140,6 +140,13 @@ nest::package_keywords:
   dev-libs/liborcus:
     version: '=0.12.1'
 
+  # required by kde-plasma/plasma-vault-5.11.4::gentoo
+  # required by kde-plasma/plasma-meta-5.11.4::gentoo[crypt]
+  sys-fs/encfs:
+    version: '=1.9.2'
+  dev-libs/tinyxml2:
+    version: '=3.0.0'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
