@@ -126,6 +126,10 @@ nest::package_use:
     use: '-ruby_targets_ruby22'
     ensure: 'absent'
 
+  # Just install the drivers, not all the GUI crap
+  net-print/hplip:
+    use: 'minimal'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
