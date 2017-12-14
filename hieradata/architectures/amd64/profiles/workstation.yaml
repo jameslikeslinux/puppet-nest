@@ -57,7 +57,7 @@ nest::package_keywords:
 
   # To support llvm-5.0.0:
   media-libs/mesa:
-    version: '=17.2.4'
+    version: '<17.3'
   x11-libs/libdrm:
     version: '=2.4.87'
   dev-libs/wayland-protocols:
