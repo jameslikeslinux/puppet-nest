@@ -59,15 +59,17 @@ nest::package_keywords:
   net-fs/nfs-utils:
     version: '=2.1.1'
 
-  # Let's Encrypt: all versions are currently unstable
-  app-crypt/acme: {}
-  app-crypt/certbot: {}
+  # Let's Encrypt: all versions were unstable, but no longer
+  app-crypt/acme:
+    ensure: 'absent'
+  app-crypt/certbot:
+    ensure: 'absent'
   dev-python/parsedatetime:
-    version: '=2.1'
+    ensure: 'absent'
   dev-python/pyrfc3339:
-    version: '=1.0'
+    ensure: 'absent'
   dev-python/zope-component:
-    version: '=4.3.0'
+    ensure: 'absent'
 
   # For Wordpress SFTP; the version that supports PHP 7 is unstable
   dev-php/pecl-ssh2:
