@@ -23,11 +23,11 @@ nest::package_keywords:
 
   # ZFS
   sys-kernel/spl:
-    version: '=0.7.2'
+    version: '=0.7.3'
   sys-fs/zfs-kmod:
-    version: '=0.7.2'
+    version: '=0.7.3'
   sys-fs/zfs:
-    version: '=0.7.2'
+    version: '=0.7.3'
 
   # For better Skylake support
   # XXX: Removed due to package stabilization
@@ -79,6 +79,9 @@ nest::package_keywords:
   # Required by dev-java/icedtea-bin-3.3.0[-headless-awt,-multilib]
   media-libs/libpng:
     version: '=1.6.34'
+
+  sys-apps/nvme-cli:
+    version: '=1.4'
 
 nest::package_use:
   # For Dracut liveimg module
