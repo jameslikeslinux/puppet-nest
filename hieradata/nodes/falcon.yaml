@@ -8,7 +8,7 @@ nest::extra_luks_disks:
   nest-crypt2: 'eab4b536-fe5e-4ea4-91aa-85107dcb224c'
   nest-crypt3: '25a93cd2-ad0d-4bc4-a437-8e2f5211f87a'
   nest-crypt4: '5be63f44-761f-4044-9169-ca7ed5923a87'
-  #  nest-crypt5: '92e07c04-1a1f-491e-acfe-e1fc5e7b70fd'
+  nest-crypt5: '3a2a3a1e-c491-45a9-9664-072acc9fbe56'
   nest-crypt6: '557c6352-8d5e-4533-90b7-d60cf49c65ff'
   nest-crypt7: '3ab8cbc0-68e5-43e1-b50f-871b0f6cfda3'
 
