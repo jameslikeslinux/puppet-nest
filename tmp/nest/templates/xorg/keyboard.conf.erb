@@ -1,9 +1,0 @@
-Section "InputClass"
-    Identifier      "system-keyboard"
-    MatchIsKeyboard "yes"
-    Option          "XkbLayout" "<%= @keyboard_layout %>"
-<% if @keyboard_variant -%>
-    Option          "XkbVariant" "<%= @keyboard_variant %>"
-<% end -%>
-    Option          "XkbOptions" "<%= @keyboard_options %>"
-EndSection
