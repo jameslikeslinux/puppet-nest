@@ -41,6 +41,10 @@
       "version_requirement": "5.x"
     },
     {
+      "name": "puppetlabs-puppetserver_gem",
+      "version_requirement": "1.x"
+    },
+    {
       "name": "puppetlabs-vcsrepo",
       "version_requirement": "2.x"
     },
