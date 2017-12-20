@@ -7,6 +7,15 @@ class nest::apache (
     mpm_module => 'worker',
   }
 
+  # I don't use this command, and it doesn't work on systemd systems, but the
+  # apache_version fact depends on being able to run this with the `-v`
+  # argument, so just make it work.
+  file { '/usr/sbin/apache2ctl':
+    ensure  => link,
+    target  => '/usr/sbin/apache2',
+    require => Class['::apache'],
+  }
+
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
 
