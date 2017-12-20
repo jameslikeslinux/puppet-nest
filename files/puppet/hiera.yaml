@@ -1,0 +1,15 @@
+---
+:backends:
+  - eyaml
+
+:eyaml:
+  :datadir: "/etc/puppetlabs/code/environments/%{::environment}/hieradata"
+  :extension: 'yaml'
+  :pkcs7_private_key: '/etc/puppetlabs/puppet/ssl/ca/ca_key.pem'
+  :pkcs7_public_key: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
+
+:hierarchy:
+  - "nodes/%{::trusted.certname}"
+  - "architectures/%{::architecture}/profiles/%{::nest.profile}"
+  - "architectures/%{::architecture}"
+  - "common"

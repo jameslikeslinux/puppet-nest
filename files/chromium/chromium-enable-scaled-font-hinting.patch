@@ -1,0 +1,17 @@
+diff --git a/ui/gfx/font_render_params_linux.cc b/ui/gfx/font_render_params_linux.cc
+index 92f9edc5edd8..d0d4d3ee16c6 100644
+--- a/ui/gfx/font_render_params_linux.cc
++++ b/ui/gfx/font_render_params_linux.cc
+@@ -278,12 +278,6 @@ FontRenderParams GetFontRenderParams(const FontRenderParamsQuery& query,
+     params.hinting = FontRenderParams::HINTING_FULL;
+     params.subpixel_rendering = FontRenderParams::SUBPIXEL_RENDERING_NONE;
+     params.subpixel_positioning = false;
+-  } else {
+-    params.subpixel_positioning = actual_query.device_scale_factor > 1.0f;
+-
+-    // To enable subpixel positioning, we need to disable hinting.
+-    if (params.subpixel_positioning)
+-      params.hinting = FontRenderParams::HINTING_NONE;
+   }
+ 
+   // Use the first family from the list if Fontconfig didn't suggest a family.

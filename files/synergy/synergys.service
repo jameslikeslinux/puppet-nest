@@ -1,0 +1,11 @@
+[Unit]
+Description=Synergy Server Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/synergys.safe --no-daemon --config /etc/synergy.conf
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
