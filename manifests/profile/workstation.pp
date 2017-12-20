@@ -23,27 +23,27 @@ class nest::profile::workstation {
 
   # Plasma pulls in xorg-drivers which builds nvidia-drivers which requires
   # a built kernel and needs to come before building the initramfs.
-  Class['::nest::profile::base::kernel'] ->
-  Class['::nest::profile::workstation::plasma'] ->
-  Class['::nest::profile::base::dracut']
+  Class['::nest::profile::base::kernel']
+  -> Class['::nest::profile::workstation::plasma']
+  -> Class['::nest::profile::base::dracut']
 
   # Plasma installs pulseaudio, so we don't need to manage it separately
-  Class['::nest::profile::workstation::plasma'] ->
-  Class['::nest::profile::workstation::pulseaudio']
+  Class['::nest::profile::workstation::plasma']
+  -> Class['::nest::profile::workstation::pulseaudio']
 
   # Plasma installs xorg-server, so we don't need to manage it separately
-  Class['::nest::profile::workstation::plasma'] ->
-  Class['::nest::profile::workstation::xorg']
+  Class['::nest::profile::workstation::plasma']
+  -> Class['::nest::profile::workstation::xorg']
 
   # Plasma installs default cursors which we want to replace
-  Class['::nest::profile::workstation::plasma'] ->
-  Class['::nest::profile::workstation::cursor']
+  Class['::nest::profile::workstation::plasma']
+  -> Class['::nest::profile::workstation::cursor']
 
   # Manage mouse settings after xorg
-  Class['::nest::profile::workstation::xorg'] ->
-  Class['::nest::profile::workstation::mouse']
+  Class['::nest::profile::workstation::xorg']
+  -> Class['::nest::profile::workstation::mouse']
 
   # NetworkManager pulls in bluez
-  Class['::nest::profile::base::network'] ->
-  Class['::nest::profile::workstation::bluetooth']
+  Class['::nest::profile::base::network']
+  -> Class['::nest::profile::workstation::bluetooth']
 }

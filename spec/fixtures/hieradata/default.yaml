@@ -1,0 +1,7 @@
+---
+nest::nestfs_hostname: 'nestfs.example.com'
+nest::openvpn_hostname: 'openvpn.example.com'
+nest::nullmailer_config: ''
+nest::root_mail_alias: 'root@example.com'
+nest::ssh_private_key: ''
+nest::pw_hash: ''

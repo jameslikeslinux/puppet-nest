@@ -11,7 +11,7 @@ class nest::profile::workstation::chromium {
     ;
 
     '/etc/portage/patches/www-client/chromium':
-      source  => "puppet:///modules/nest/chromium/",
+      source  => 'puppet:///modules/nest/chromium/',
       recurse => true,
       purge   => true,
       before  => Package['www-client/chromium'],

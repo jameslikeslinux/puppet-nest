@@ -1,12 +1,4 @@
 class nest::profile::workstation::firefox {
-  # XXX: Support for 11 has been dropped.
-  # Remove the next two resources after everything's been updated to 24.
-  package_mask { 'www-plugins/adobe-flash':
-    ensure  => absent,
-    slot    => '22',
-    before  => Package['www-plugins/adobe-flash'],
-  }
-
   nest::portage::package_use { 'www-client/firefox':
     use => 'hwaccel',
   }

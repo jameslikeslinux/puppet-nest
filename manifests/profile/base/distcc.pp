@@ -32,7 +32,7 @@ class nest::profile::base::distcc {
     '/usr/lib/distcc/bin/gcc',
   ]:
     ensure  => link,
-    target  => "/usr/lib/distcc/bin/${toolchain}-wrapper",
-    require => File["/usr/lib/distcc/bin/${toolchain}-wrapper"],
+    target  => "/usr/lib/distcc/bin/${::toolchain}-wrapper",
+    require => File["/usr/lib/distcc/bin/${::toolchain}-wrapper"],
   }
 }

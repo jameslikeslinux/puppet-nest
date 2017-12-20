@@ -2,12 +2,12 @@ class nest (
   $nestfs_hostname,
   $openvpn_hostname,
 
-  $lastfm_pw_hash      = undef,
-  $lastpass_username   = undef,
   $nullmailer_config,
   $root_mail_alias,
   $ssh_private_key,
   $pw_hash,
+  $lastfm_pw_hash      = undef,
+  $lastpass_username   = undef,
 
   $cnames              = {},
   $distcc_hosts        = {},

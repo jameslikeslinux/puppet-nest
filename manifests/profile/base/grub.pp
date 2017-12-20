@@ -12,10 +12,10 @@ class nest::profile::base::grub {
   # Don't manage grub on live-booted systems
   unless $::mountpoints['/'] and $::mountpoints['/']['device'] == '/dev/mapper/live-rw' {
     file { '/boot/grub':
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
     }
 
     file { [
@@ -83,8 +83,8 @@ class nest::profile::base::grub {
   ].flatten.join(' ').strip
 
   file_line { 'grub-set-kernel-cmdline':
-    line    => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
-    match   => '^#?GRUB_CMDLINE_LINUX=',
+    line  => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
+    match => '^#?GRUB_CMDLINE_LINUX=',
   }
 
   if $::nest::vm {
@@ -106,7 +106,7 @@ class nest::profile::base::grub {
   }
 
   file_line { 'grub-set-device':
-    line  => "GRUB_DEVICE=",
+    line  => 'GRUB_DEVICE=',
     match => '^#?GRUB_DEVICE=',
   }
 

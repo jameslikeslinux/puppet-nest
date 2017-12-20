@@ -1,6 +1,6 @@
 define nest::portage::package_use (
-  $package = $name,
   $use,
+  $package = $name,
 ) {
   package_use { $package:
     use => $use,
@@ -14,8 +14,8 @@ define nest::portage::package_use (
   }
 
   if defined(Package[$name]) {
-    Package_use[$package] ->
-    Package[$name] ->
-    Exec["emerge-newuse-${name}"]
+    Package_use[$package]
+    -> Package[$name]
+    -> Exec["emerge-newuse-${name}"]
   }
 }

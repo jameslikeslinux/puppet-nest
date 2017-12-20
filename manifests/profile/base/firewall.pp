@@ -21,10 +21,10 @@ class nest::profile::base::firewall {
 
   #
   # Default IPv4 ruleset
-  # 
+  #
   firewallchain { 'INPUT:filter:IPv4':
     ensure => present,
-    purge  => !str2bool("$::chroot"),
+    purge  => !str2bool($::chroot),
     ignore => 'virbr\d+',
   }
 
@@ -33,18 +33,18 @@ class nest::profile::base::firewall {
     iniface => 'lo',
     action  => accept,
   }
-  ->
+
   firewall { '010 related established':
     proto  => all,
     state  => ['RELATED', 'ESTABLISHED'],
     action => accept,
   }
-  ->
+
   firewall { '011 ping':
     proto  => icmp,
     action => accept,
   }
-  ->
+
   firewall { '9999 drop all':
     proto  => all,
     action => drop,
@@ -57,7 +57,7 @@ class nest::profile::base::firewall {
   #
   firewallchain { 'INPUT:filter:IPv6':
     ensure => present,
-    purge  => !str2bool("$::chroot"),
+    purge  => !str2bool($::chroot),
   }
 
   firewall { '000 loopback (v6)':
@@ -66,20 +66,20 @@ class nest::profile::base::firewall {
     action   => accept,
     provider => ip6tables,
   }
-  ->
+
   firewall { '010 related established (v6)':
     proto    => all,
     state    => ['RELATED', 'ESTABLISHED'],
     action   => accept,
     provider => ip6tables,
   }
-  ->
+
   firewall { '011 icmp (v6)':
     proto    => ipv6-icmp,
     action   => accept,
     provider => ip6tables,
   }
-  ->
+
   firewall { '9999 drop all (v6)':
     proto    => all,
     action   => drop,

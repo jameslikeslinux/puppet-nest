@@ -56,16 +56,16 @@ class nest::profile::base::puppet {
     }
 
     file { '/etc/puppetlabs/puppet/hiera.yaml':
-      mode => '0644',
-      owner => 'root',
-      group => 'root',
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
       source => 'puppet:///modules/nest/puppet/hiera.yaml'
     }
 
-    Class['::puppet::server::install'] ->
-    Package['hiera-eyaml'] ->
-    File['/etc/puppetlabs/puppet/hiera.yaml'] ~>
-    Class['::puppet::server::service']
+    Class['::puppet::server::install']
+    -> Package['hiera-eyaml']
+    -> File['/etc/puppetlabs/puppet/hiera.yaml']
+    ~> Class['::puppet::server::service']
 
     package { 'r10k':
       ensure   => installed,
@@ -131,8 +131,8 @@ class nest::profile::base::puppet {
   $scaling_facts = @("SCALING_FACTS")
     ---
     scaling:
-      gui: $::nest::gui_scaling_factor
-      text: $::nest::text_scaling_factor
+      gui: ${::nest::gui_scaling_factor}
+      text: ${::nest::text_scaling_factor}
     | SCALING_FACTS
 
   file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':

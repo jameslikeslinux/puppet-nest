@@ -14,10 +14,10 @@ class nest::node::falcon {
 
   file {
     default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'nzbget',
-      group   => 'media',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'nzbget',
+      group  => 'media',
     ;
 
     '/srv/nzbget':
@@ -38,10 +38,10 @@ class nest::node::falcon {
 
   file {
     default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'ombi',
-      group   => 'media',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'ombi',
+      group  => 'media',
     ;
 
     '/srv/ombi':
@@ -55,10 +55,10 @@ class nest::node::falcon {
 
   file {
     default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'plex',
-      group   => 'media',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'plex',
+      group  => 'media',
     ;
 
     '/srv/plex':
@@ -75,10 +75,10 @@ class nest::node::falcon {
 
   file {
     default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'radarr',
-      group   => 'media',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'radarr',
+      group  => 'media',
     ;
 
     '/srv/radarr':
@@ -92,10 +92,10 @@ class nest::node::falcon {
 
   file {
     default:
-      ensure  => directory,
-      mode    => '0755',
-      owner   => 'sonarr',
-      group   => 'media',
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'sonarr',
+      group  => 'media',
     ;
 
     '/srv/sonarr':
@@ -142,16 +142,16 @@ class nest::node::falcon {
   }
 
   docker::run { 'plex':
-    image            => 'plexinc/pms-docker:plexpass',
-    net              => 'host',
-    env              => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
-    volumes          => [
+    image   => 'plexinc/pms-docker:plexpass',
+    net     => 'host',
+    env     => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
+    volumes => [
       '/srv/plex/config:/config',
       '/srv/plex/transcode:/transcode',
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
-    require          => File['/srv/plex/config'],
+    require => File['/srv/plex/config'],
   }
 
   docker::run { 'radarr':
@@ -247,7 +247,8 @@ class nest::node::falcon {
   }
 
   sysctl { 'fs.inotify.max_user_watches':
-    value => '1048576',
+    value  => '1048576',
+    target => '/etc/sysctl.d/nest.conf',
   }
 
   nest::portage::package_use { 'media-sound/beets':

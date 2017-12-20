@@ -50,15 +50,15 @@ define nest::vhost (
   }
 
   apache::vhost { $vhost_name:
-    priority         => $priority,
-    servername       => $servername,
-    ip               => $ip,
-    add_listen       => false,
-    docroot          => "/srv/www/${servername}",
-    docroot_owner    => 'james',
-    docroot_group    => 'users',
-    require          => Nest::Srv["www/${servername}"],
-    *                => $vhost_params + $extra_params,
+    priority      => $priority,
+    servername    => $servername,
+    ip            => $ip,
+    add_listen    => false,
+    docroot       => "/srv/www/${servername}",
+    docroot_owner => 'james',
+    docroot_group => 'users',
+    require       => Nest::Srv["www/${servername}"],
+    *             => $vhost_params + $extra_params,
   }
 
   unless empty($serveraliases) {

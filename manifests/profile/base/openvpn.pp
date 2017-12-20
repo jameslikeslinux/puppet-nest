@@ -113,11 +113,11 @@ class nest::profile::base::openvpn {
       content => $dnsmasq_config,
       notify  => Service['dnsmasq'],
     }
-  
+
     $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
     $dnsmasq_cnames_content = $dnsmasq_cnames.join("\n")
     $dnsmasq_cnames_ensure = $dnsmasq_cnames_content ? {
-      ""      => 'absent',
+      ''      => 'absent',
       default => 'present',
     }
 
@@ -129,8 +129,8 @@ class nest::profile::base::openvpn {
     }
 
     file { '/etc/systemd/system/dnsmasq.service.d':
-      ensure  => directory,
-      mode    => '0755',
+      ensure => directory,
+      mode   => '0755',
     }
 
     file { '/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf':

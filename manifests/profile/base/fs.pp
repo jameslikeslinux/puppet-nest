@@ -4,10 +4,10 @@ class nest::profile::base::fs {
   }
 
   file { '/etc/systemd/system/nfs-server.service.d':
-    ensure => directory,
-    mode   => '0655',
-    owner  => 'root',
-    group  => 'root',
+    ensure  => directory,
+    mode    => '0655',
+    owner   => 'root',
+    group   => 'root',
 
     # Not strictly required, but packages pull in systemd
     require => Package['net-fs/nfs-utils'],

@@ -19,9 +19,9 @@ class nest::profile::workstation::cursor {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root';
+      mode  => '0644',
+      owner => 'root',
+      group => 'root';
 
     '/etc/X11/Xresources':
       content => "Xcursor.theme: breeze_cursors\nXcursor.size: ${::nest::cursor_size}\n";

@@ -11,9 +11,9 @@ class nest::profile::base::users {
   }
 
   file_line { 'useradd-group':
-    path   => '/etc/default/useradd',
-    line   => 'GROUP=1000',
-    match  => '^GROUP=',
+    path  => '/etc/default/useradd',
+    line  => 'GROUP=1000',
+    match => '^GROUP=',
   }
 
   group {

@@ -23,9 +23,9 @@ class nest::profile::base {
 
   # Setup distcc before portage, but distccd needs systemd, which is
   # installed after portage is configured.
-  Class['::nest::profile::base::distcc'] ->
-  Class['::nest::profile::base::portage'] ->
-  Class['::nest::profile::base::distccd']
+  Class['::nest::profile::base::distcc']
+  -> Class['::nest::profile::base::portage']
+  -> Class['::nest::profile::base::distccd']
 
   # Git should be installed before managing any Vcsrepos
   Class['::nest::profile::base::git'] -> Vcsrepo <| provider == git |>
@@ -35,44 +35,44 @@ class nest::profile::base {
   Class['::nest::profile::base::portage'] -> Nest::Portage::Package_use <| |>
 
   # Portage configuration (profile) responsible for installing systemd
-  Class['::nest::profile::base::portage'] ->
-  Class['::nest::profile::base::systemd']
+  Class['::nest::profile::base::portage']
+  -> Class['::nest::profile::base::systemd']
 
   # Dracut depends on systemd/console setup
-  Class['::nest::profile::base::systemd'] ~>
-  Class['::nest::profile::base::dracut']
+  Class['::nest::profile::base::systemd']
+  ~> Class['::nest::profile::base::dracut']
 
   # Rebuild initramfs and reconfigure GRUB after kernel changes
-  Class['::nest::profile::base::kernel'] ~>
-  Class['::nest::profile::base::dracut'] ~>
-  Class['::nest::profile::base::grub']
+  Class['::nest::profile::base::kernel']
+  ~> Class['::nest::profile::base::dracut']
+  ~> Class['::nest::profile::base::grub']
 
   # Rebuild initramfs after ZFS changes
-  Class['::nest::profile::base::kernel'] ->
-  Class['::nest::profile::base::zfs'] ~>
-  Class['::nest::profile::base::dracut']
+  Class['::nest::profile::base::kernel']
+  -> Class['::nest::profile::base::zfs']
+  ~> Class['::nest::profile::base::dracut']
 
   # Sudo requires configured MTA
-  Class['::nest::profile::base::mta'] ->
-  Class['::nest::profile::base::sudo']
+  Class['::nest::profile::base::mta']
+  -> Class['::nest::profile::base::sudo']
 
   # Dracut liveimg depends on dhcp, pulled in by network class
-  Class['::nest::profile::base::network'] ->
-  Class['::nest::profile::base::dracut']
+  Class['::nest::profile::base::network']
+  -> Class['::nest::profile::base::dracut']
 
   # OpenVPN modifies resolvconf which is installed for NetworkManager
-  Class['::nest::profile::base::network'] ->
-  Class['::nest::profile::base::openvpn']
+  Class['::nest::profile::base::network']
+  -> Class['::nest::profile::base::openvpn']
 
   # PolicyKit is pulled in by NetworkManager
-  Class['::nest::profile::base::network'] ->
-  Class['::nest::profile::base::policykit']
+  Class['::nest::profile::base::network']
+  -> Class['::nest::profile::base::policykit']
 
   if $::nest::libvirt {
     contain '::nest::profile::base::libvirt'
 
     # libvirt ebuild checks kernel config
-    Class['::nest::profile::base::kernel'] ->
-    Class['::nest::profile::base::libvirt']
+    Class['::nest::profile::base::kernel']
+    -> Class['::nest::profile::base::libvirt']
   }
 }
