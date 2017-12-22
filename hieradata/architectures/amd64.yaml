@@ -133,10 +133,6 @@ nest::package_use:
   net-print/hplip:
     use: 'minimal'
 
-  # To read FLAC files directly
-  media-sound/lame:
-    use: 'sndfile'
-
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
