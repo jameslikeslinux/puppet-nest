@@ -1,15 +1,20 @@
 class nest::profile::workstation::packages {
   nest::portage::package_use { 'net-im/pidgin':
-    use => 'networkmanager',
+    ensure => absent,
+    use    => 'networkmanager',
   }
 
   package { 'net-im/pidgin':
-    ensure => installed,
+    ensure => absent,
   }
 
   package { 'x11-plugins/pidgin-skypeweb':
-    ensure  => installed,
-    require => Package['net-im/pidgin'],
+    ensure => absent,
+    before => Package['net-im/pidgin'],
+  }
+
+  package { 'net-im/skypeforlinux':
+    ensure => absent,
   }
 
   nest::portage::package_use { 'app-text/texlive-core':

@@ -1,9 +1,11 @@
 define nest::portage::package_use (
   $use,
   $package = $name,
+  $ensure  = 'present',
 ) {
   package_use { $package:
-    use => $use,
+    ensure => $ensure,
+    use    => $use,
   }
 
   exec { "emerge-newuse-${name}":
