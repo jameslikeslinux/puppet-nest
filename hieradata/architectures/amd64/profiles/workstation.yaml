@@ -5,8 +5,11 @@ nest::package_keywords:
   media-sound/cantata: {}
   media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
-  net-im/skypeforlinux: {}
   www-client/firefox: {}
+
+  # Use Spark and other web clients now :(
+  net-im/skypeforlinux:
+    ensure: 'absent'
 
   # Just use gmail now :(
   mail-client/thunderbird:
@@ -106,6 +109,7 @@ nest::package_keywords:
   x11-plugins/pidgin-skypeweb:
     version: '=9999'
     keywords: '**'
+    ensure: 'absent'
 
   # required by kde-plasma/kwin-5.9.1::gentoo
   # required by kde-plasma/plasma-meta-5.9.1::gento
@@ -245,6 +249,7 @@ nest::package_use:
   # For skypeforlinux
   app-crypt/pinentry:
     use: 'gnome-keyring'
+    ensure: 'absent'
 
   # required by kde-plasma/plasma-workspace-5.11.2::gentoo[systemd]
   # required by kde-plasma/kdeplasma-addons-5.11.2::gentoo
