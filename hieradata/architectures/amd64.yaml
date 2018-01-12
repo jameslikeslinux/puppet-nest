@@ -83,6 +83,13 @@ nest::package_keywords:
   sys-apps/nvme-cli:
     version: '=1.4'
 
+  # For Meltdown/Spectre
+  # See: https://wiki.gentoo.org/wiki/Project:Security/Vulnerabilities/Meltdown_and_Spectre
+  sys-kernel/gentoo-sources:
+    version: '=4.14.11-r2'
+  sys-firmware/intel-microcode:
+    version: '=20171117_p20171215'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
