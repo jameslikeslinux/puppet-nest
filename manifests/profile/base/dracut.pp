@@ -2,6 +2,7 @@ class nest::profile::base::dracut {
   package { [
     'sys-kernel/dracut',
     'sys-boot/plymouth',
+    'sys-firmware/intel-microcode',
   ]:
     ensure => installed,
   }
@@ -29,6 +30,7 @@ class nest::profile::base::dracut {
   } else {
     $base_config_content = @(EOT)
       add_dracutmodules+=" crypt "
+      early_microcode="yes"
       hostonly="yes"
       hostonly_cmdline="no"
       | EOT
@@ -86,6 +88,7 @@ class nest::profile::base::dracut {
     require     => [
       Package['sys-kernel/dracut'],
       Package['sys-boot/plymouth'],
+      Package['sys-firmware/intel-microcode'],
     ],
   }
 }
