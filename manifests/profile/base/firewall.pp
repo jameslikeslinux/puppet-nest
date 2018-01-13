@@ -45,7 +45,7 @@ class nest::profile::base::firewall {
     action => accept,
   }
 
-  firewall { '9999 drop all':
+  firewall { '999 drop all':
     proto  => all,
     action => drop,
     before => undef,
@@ -80,7 +80,7 @@ class nest::profile::base::firewall {
     provider => ip6tables,
   }
 
-  firewall { '9999 drop all (v6)':
+  firewall { '999 drop all (v6)':
     proto    => all,
     action   => drop,
     before   => undef,
