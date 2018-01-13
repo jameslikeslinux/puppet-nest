@@ -39,9 +39,9 @@ class nest::profile::base::kernel {
 
   include '::nest::profile::base::portage'
   exec { 'make kernel':
-    command     => "/usr/bin/make ${::nest::profile::base::portage::makeopts} clean olddefconfig all install modules_install",
+    command     => "/usr/bin/make CC=/usr/lib/distcc/bin/gcc ${::nest::profile::base::portage::makeopts} clean olddefconfig all install modules_install",
     cwd         => '/usr/src/linux',
-    environment => ['HOME=/var/tmp/portage/.distcc', 'PATH=/usr/lib/distcc/bin:/usr/bin:/bin'],
+    environment => 'HOME=/var/tmp/portage/.distcc',
     timeout     => 0,
     refreshonly => true,
   }
