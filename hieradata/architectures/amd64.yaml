@@ -83,9 +83,9 @@ nest::package_keywords:
   # For Meltdown/Spectre
   # See: https://wiki.gentoo.org/wiki/Project:Security/Vulnerabilities/Meltdown_and_Spectre
   sys-kernel/gentoo-sources:
-    version: '=4.14.11-r2'
+    version: '=4.14.13'
   sys-firmware/intel-microcode:
-    version: '=20171117_p20171215'
+    ensure: 'absent'
 
 nest::package_use:
   # For Dracut liveimg module
