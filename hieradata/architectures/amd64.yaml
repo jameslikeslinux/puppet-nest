@@ -68,10 +68,11 @@ nest::package_keywords:
   dev-python/zope-component:
     ensure: 'absent'
 
-  # For Wordpress SFTP; the version that supports PHP 7 is unstable
+  # For Wordpress SFTP; the version that supports PHP 7 was unstable
   dev-php/pecl-ssh2:
     version: '=9999'
     keywords: '**'
+    ensure: 'absent'
 
   # Required by dev-java/icedtea-bin-3.3.0[-headless-awt,-multilib]
   media-libs/libpng:
