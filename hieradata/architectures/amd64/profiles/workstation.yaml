@@ -32,17 +32,17 @@ nest::package_keywords:
     version: '=5.1.0'
     ensure: 'absent'
 
-  # required by www-client/firefox-57.0::gentoo
+  # required by www-client/firefox-58.0::gentoo
   dev-libs/nss:
-    version: '=3.33'
+    version: '=3.35'
   dev-libs/nspr:
     version: '=4.17'
   dev-lang/rust:
-    version: '=1.19.0'
+    version: '=1.23.0-r1'
   virtual/rust:
-    version: '=1.19.0'
+    version: '=1.23.0'
   dev-util/cargo:
-    version: '=0.20.0'
+    version: '=0.24.0'
   sys-libs/libomp:
     version: '=5.0.0'
   sys-libs/compiler-rt:
