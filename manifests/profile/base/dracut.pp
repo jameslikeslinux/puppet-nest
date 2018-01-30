@@ -1,7 +1,13 @@
 class nest::profile::base::dracut {
+  # Password prompting in systemd seems to have improved in versions >=227
+  # XXX: Remove this after plymouth has been removed everywhere
+  package { 'sys-boot/plymouth':
+    ensure => absent,
+    notify => Exec['dracut'],
+  }
+
   package { [
     'sys-kernel/dracut',
-    'sys-boot/plymouth',
     'sys-firmware/intel-microcode',
   ]:
     ensure => installed,
@@ -87,7 +93,6 @@ class nest::profile::base::dracut {
     provider    => shell,
     require     => [
       Package['sys-kernel/dracut'],
-      Package['sys-boot/plymouth'],
       Package['sys-firmware/intel-microcode'],
     ],
   }
