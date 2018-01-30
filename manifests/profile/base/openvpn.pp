@@ -139,7 +139,7 @@ class nest::profile::base::openvpn {
     }
 
     exec { 'dnsmasq-systemd-daemon-reload':
-      command     => '/usr/bin/systemctl daemon-reload',
+      command     => '/bin/systemctl daemon-reload',
       refreshonly => true,
       subscribe   => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
     }

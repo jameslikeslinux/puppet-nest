@@ -14,7 +14,7 @@ add_host() {
     echo -e "${ip}\t${cn}" >> "$HOSTS"
 
     # Load it into DNS
-    /usr/bin/systemctl reload dnsmasq
+    /bin/systemctl reload dnsmasq
 }
 
 case "$1" in

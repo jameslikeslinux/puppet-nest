@@ -3,7 +3,7 @@ class nest::profile::workstation::pulseaudio {
   # the first thing to use it, like mpd; and when it does, it will respawn
   # itself like a virus, preventing clean shutdowns.
   exec { 'pulseaudio-enable-systemd-user-service':
-    command => '/usr/bin/systemctl --user --global enable pulseaudio.socket',
+    command => '/bin/systemctl --user --global enable pulseaudio.socket',
     creates => '/etc/systemd/user/sockets.target.wants/pulseaudio.socket',
   }
 }

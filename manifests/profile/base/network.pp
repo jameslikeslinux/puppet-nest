@@ -36,7 +36,7 @@ class nest::profile::base::network {
 
   # probably not *strictly* necessary, but good practice none-the-less
   exec { 'NetworkManager-systemd-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 }

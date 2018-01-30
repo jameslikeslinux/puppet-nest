@@ -27,7 +27,7 @@ class nest::profile::base::fs {
   }
 
   exec { 'nfs-server-systemd-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 
@@ -122,7 +122,7 @@ class nest::profile::base::fs {
     }
 
     exec { 'cachefilesd-systemd-daemon-reload':
-      command     => '/usr/bin/systemctl daemon-reload',
+      command     => '/bin/systemctl daemon-reload',
       refreshonly => true,
     }
 

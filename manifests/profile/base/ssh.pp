@@ -35,12 +35,12 @@ class nest::profile::base::ssh {
   }
 
   exec { 'ssh-systemd-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 
   exec { 'ssh-agent-enable-systemd-user-service':
-    command => '/usr/bin/systemctl --user --global enable ssh-agent.service',
+    command => '/bin/systemctl --user --global enable ssh-agent.service',
     creates => '/etc/systemd/user/default.target.wants/ssh-agent.service',
     require => File['/etc/systemd/user/ssh-agent.service'],
   }

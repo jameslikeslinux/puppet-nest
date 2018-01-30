@@ -35,7 +35,7 @@ class nest::profile::base::puppet {
     }
 
     exec { 'puppetserver-systemd-daemon-reload':
-      command     => '/usr/bin/systemctl daemon-reload',
+      command     => '/bin/systemctl daemon-reload',
       refreshonly => true,
       before      => Class['::puppet::server::service'],
     }

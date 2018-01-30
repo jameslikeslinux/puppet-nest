@@ -71,7 +71,7 @@ class nest::profile::base::libvirt {
   }
 
   exec { 'libvirt-systemd-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 }

@@ -124,7 +124,7 @@ class nest::profile::base::zfs {
   }
 
   exec { 'zfs-systemctl-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 }

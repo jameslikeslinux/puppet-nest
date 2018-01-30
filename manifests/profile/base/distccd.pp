@@ -15,7 +15,7 @@ class nest::profile::base::distccd {
     }
 
     exec { 'distccd-systemd-daemon-reload':
-      command     => '/usr/bin/systemctl daemon-reload',
+      command     => '/bin/systemctl daemon-reload',
       refreshonly => true,
       notify      => Service['distccd']
     }

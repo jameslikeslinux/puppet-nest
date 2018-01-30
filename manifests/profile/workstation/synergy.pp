@@ -37,12 +37,12 @@ class nest::profile::workstation::synergy {
   }
 
   exec { 'synergy-systemd-daemon-reload':
-    command     => '/usr/bin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
 
   exec { 'synergy-enable-systemd-user-service':
-    command => '/usr/bin/systemctl --user --global enable synergys.service',
+    command => '/bin/systemctl --user --global enable synergys.service',
     creates => '/etc/systemd/user/default.target.wants/synergys.service',
     require => File['/etc/systemd/user/synergys.service'],
   }
