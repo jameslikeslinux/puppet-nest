@@ -74,4 +74,15 @@ class nest::profile::base::libvirt {
     command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
+
+  # Do not filter bridge packets
+  # See: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf
+  sysctl { [
+    'net.bridge.bridge-nf-call-arptables',
+    'net.bridge.bridge-nf-call-ip6tables',
+    'net.bridge.bridge-nf-call-iptables',
+  ]:
+    value  => '0',
+    target => '/etc/sysctl.d/bridge.conf',
+  }
 }
