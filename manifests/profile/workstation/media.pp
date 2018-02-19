@@ -14,31 +14,4 @@ class nest::profile::workstation::media {
     group   => 'root',
     content => $gpmdp_wrapper,
   }
-
-  nest::portage::package_use { [
-    'media-sound/cantata',
-    'media-sound/mpd',
-  ]:
-    ensure => absent,
-    use    => [],
-  }
-
-  package { [
-    'media-sound/cantata',
-    'media-sound/mpc',
-    'media-sound/mpd',
-    'media-sound/mpdas',
-  ]:
-    ensure => absent,
-  }
-
-  file { '/home/james/.config/mpd':
-    ensure  => absent,
-    recurse => true,
-    force   => true,
-  }
-
-  file { '/home/james/.mpdasrc':
-    ensure => absent,
-  }
 }
