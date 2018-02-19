@@ -2,10 +2,16 @@
 nest::package_keywords:
   # I always want the most recent of these:
   media-gfx/displaycal: {}
-  media-sound/cantata: {}
-  media-sound/google-musicmanager: {}
   media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
+
+  # Switch to Google Play Music :(
+  media-sound/cantata:
+    ensure: 'absent'
+
+  # Removed from Portage; use https://hub.docker.com/r/iamjamestl/google-musicmanager/
+  media-sound/google-musicmanager:
+    ensure: 'absent'
 
   # Use Spark and other web clients now :(
   net-im/skypeforlinux:
