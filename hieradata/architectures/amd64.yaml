@@ -138,6 +138,10 @@ nest::package_use:
   net-print/hplip:
     use: 'minimal'
 
+  # For puppet-agent
+  sys-libs/ncurses:
+    use: 'tinfo'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
