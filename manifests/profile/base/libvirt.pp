@@ -85,4 +85,17 @@ class nest::profile::base::libvirt {
     value  => '0',
     target => '/etc/sysctl.d/bridge.conf',
   }
+
+  $bridge_udev_rules = @(EOT)
+    ACTION=="add", SUBSYSTEM=="module", KERNEL=="bridge", RUN+="/lib/systemd/systemd-sysctl --prefix=/proc/sys/net/bridge"
+    | EOT
+
+  # Apply the parameters from above when the bridge module is loaded
+  # See sysctl.d(5)
+  file { '/etc/udev/rules.d/99-bridge.rules':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $bridge_udev_rules,
+  }
 }
