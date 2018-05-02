@@ -160,6 +160,10 @@ nest::package_keywords:
   app-misc/ddccontrol:
     version: '=0.4.2_p20140105-r2'
 
+  # Always want the latest version of the LastPass binary component for the
+  # best compatibility with the browser plugin
+  app-admin/lastpass-binary-component: {}
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
