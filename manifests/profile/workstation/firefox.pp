@@ -6,6 +6,7 @@ class nest::profile::workstation::firefox {
   package { [
     'www-client/firefox',
     'www-plugins/adobe-flash',
+    'app-admin/lastpass-binary-component',
   ]:
     ensure => installed,
   }
