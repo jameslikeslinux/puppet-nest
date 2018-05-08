@@ -42,7 +42,7 @@ nest::package_keywords:
   dev-libs/nss:
     version: '=3.35'
   dev-libs/nspr:
-    version: '=4.17'
+    version: '=4.19'
   dev-lang/rust:
     version: '=1.23.0-r1'
   virtual/rust:
