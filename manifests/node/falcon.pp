@@ -240,6 +240,9 @@ class nest::node::falcon {
     ;
   }
 
+  # For unifi.nest reverse proxy
+  ::apache::mod { 'ssl': }
+
   firewall { '012 multicast':
     proto   => udp,
     pkttype => 'multicast',
