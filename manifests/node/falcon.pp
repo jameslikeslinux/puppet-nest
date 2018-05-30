@@ -234,6 +234,10 @@ class nest::node::falcon {
     'sonarr.nest':
       destination => 'http://localhost:8989/',
     ;
+
+    'unifi.nest':
+      destination   => 'https://localhost:8443/',
+    ;
   }
 
   firewall { '012 multicast':
