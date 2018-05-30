@@ -111,7 +111,7 @@ class nest::node::falcon {
   file {
     default:
       ensure => directory,
-      mode   => '0755',
+      mode   => '0750',
       owner  => 'unifi',
       group  => 'unifi',
     ;
