@@ -202,25 +202,19 @@ class nest::node::falcon {
     ],
   }
 
-  docker_network { 'home':
-    ensure  => present,
-    driver  => 'macvlan',
-    subnet  => '192.168.1.0/24',
-    gateway => '192.168.1.1',
-    options => 'parent=enp5s0',
+  docker::run { 'unifi':
+    image   => 'linuxserver/unifi',
+    net     => 'host',
+    env     => ['PUID=1002', 'PGID=1002'],
+    volumes => ['/srv/unifi/config:/config'],
+    require => File['/srv/unifi/config'],
   }
 
-  docker::run { 'unifi':
-    image            => 'linuxserver/unifi',
-    env              => ['PUID=1002', 'PGID=1002'],
-    volumes          => ['/srv/unifi/config:/config'],
-    net              => 'home',
-    extra_parameters => ["--cpuset-cpus=${cpuset}", '--ip=192.168.1.4'],
-    dns              => ['192.168.1.1'],
-    require          => [
-      File['/srv/unifi/config'],
-      Docker_network['home'],
-    ],
+  firewall { '100 unifi':
+    proto  => tcp,
+    dport  => [8080, 8443],
+    state  => 'NEW',
+    action => accept,
   }
 
   nest::revproxy {
