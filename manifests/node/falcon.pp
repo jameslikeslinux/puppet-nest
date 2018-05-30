@@ -10,6 +10,7 @@ class nest::node::falcon {
     'plex/transcode',
     'radarr',
     'sonarr',
+    'unifi',
   ]: }
 
   file {
@@ -107,6 +108,23 @@ class nest::node::falcon {
     ;
   }
 
+  file {
+    default:
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'unifi',
+      group  => 'unifi',
+    ;
+
+    '/srv/unifi':
+      require => Nest::Srv['unifi'],
+    ;
+
+    '/srv/unifi/config':
+      # use defaults
+    ;
+  }
+
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   Docker::Run {
@@ -182,6 +200,14 @@ class nest::node::falcon {
       File['/srv/sonarr/config'],
       File['/srv/nzbget/downloads/completed'],
     ],
+  }
+
+  docker::run { 'unifi':
+    image   => 'linuxserver/unifi',
+    ports   => ['8080:8080', '8443:8443'],
+    env     => ['PUID=1002', 'PGID=1002'],
+    volumes => ['/srv/unifi/config:/config'],
+    require => File['/srv/unifi/config'],
   }
 
   nest::revproxy {

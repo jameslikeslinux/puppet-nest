@@ -22,6 +22,8 @@ class nest::profile::base::users {
       require => File_line['useradd-group'];
     'media':
       gid => '1001';
+    'unifi':
+      gid => '1002';
   }
 
   # This is because I abuse UIDs (I create "system" users like
@@ -104,6 +106,13 @@ class nest::profile::base::users {
       gid     => 'media',
       home    => '/srv/plex',
       comment => 'Plex Media Server',
+      shell   => '/sbin/nologin';
+
+    'unifi':
+      uid     => '1002',
+      gid     => '1002',
+      home    => '/srv/unifi',
+      comment => 'UniFi',
       shell   => '/sbin/nologin';
   }
 
