@@ -28,7 +28,6 @@ mod 'theforeman-puppet', '8.1.0'
 mod 'docker',
   :git    => 'https://github.com/iamjamestl/puppetlabs-docker.git',
   :branch => 'fixes'
-mod 'camptocamp/openssl', '1.10.0'
 
 # Required by theforeman/puppet
 mod 'puppet-extlib', '2.0.1'
