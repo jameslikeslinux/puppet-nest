@@ -88,6 +88,10 @@ nest::package_keywords:
   sys-firmware/intel-microcode:
     ensure: 'absent'
 
+nest::package_mask:
+  media-fonts/hack:
+    version: '>=3.000'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
