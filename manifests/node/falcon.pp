@@ -10,7 +10,6 @@ class nest::node::falcon {
     'plex/transcode',
     'radarr',
     'sonarr',
-    'unifi',
   ]: }
 
   file {
@@ -108,23 +107,6 @@ class nest::node::falcon {
     ;
   }
 
-  file {
-    default:
-      ensure => directory,
-      mode   => '0750',
-      owner  => 'unifi',
-      group  => 'unifi',
-    ;
-
-    '/srv/unifi':
-      require => Nest::Srv['unifi'],
-    ;
-
-    '/srv/unifi/config':
-      # use defaults
-    ;
-  }
-
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   Docker::Run {
@@ -202,21 +184,6 @@ class nest::node::falcon {
     ],
   }
 
-  docker::run { 'unifi':
-    image   => 'linuxserver/unifi',
-    net     => 'host',
-    env     => ['PUID=1002', 'PGID=1002'],
-    volumes => ['/srv/unifi/config:/config'],
-    require => File['/srv/unifi/config'],
-  }
-
-  firewall { '100 unifi':
-    proto  => tcp,
-    dport  => [8080, 8443],
-    state  => 'NEW',
-    action => accept,
-  }
-
   nest::revproxy {
     default:
       ssl => false,
@@ -291,4 +258,6 @@ class nest::node::falcon {
   package { 'media-sound/beets':
     ensure => installed,
   }
+
+  include '::nest::unifi'
 }
