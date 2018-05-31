@@ -60,6 +60,7 @@ class nest::unifi {
   docker::run { 'unifi':
     image            => 'linuxserver/unifi',
     net              => 'mgmt',
+    dns              => '172.22.2.1',
     env              => ['PUID=1002', 'PGID=1002'],
     volumes          => ['/srv/unifi/config:/config'],
     extra_parameters => [
