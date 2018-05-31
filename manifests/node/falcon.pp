@@ -110,7 +110,7 @@ class nest::node::falcon {
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   Docker::Run {
-    dns              => '172.22.2.1',
+    dns              => '172.22.0.1',
     dns_search       => 'nest',
     extra_parameters => ["--cpuset-cpus=${cpuset}"],
     service_provider => 'systemd',
