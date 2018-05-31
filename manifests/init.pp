@@ -32,6 +32,7 @@ class nest (
   $cflags              = $::portage_cflags,
   $cpu_flags_x86       = $::portage_cpu_flags_x86,
   $package_keywords    = {},
+  $package_mask        = {},
   $package_use         = {},
   $use                 = [],
 
@@ -59,6 +60,7 @@ class nest (
   $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
   $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
   $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
+  $package_mask_hiera = hiera_hash('nest::package_mask', $package_mask)
   $package_use_hiera = hiera_hash('nest::package_use', $package_use)
   $use_hiera = hiera_array('nest::use', $use)
   $use_combined = union($use_defaults, $use_hiera).sort
