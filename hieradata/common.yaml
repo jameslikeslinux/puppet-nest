@@ -8,13 +8,11 @@ puppet::runmode: 'none'
 puppet::unavailable_runmodes: ['cron', 'service', 'systemd.timer']
 
 nest::cnames:
-  couchpotato.nest: 'falcon.nest'
   nzbget.nest: 'falcon.nest'
   ombi.nest: 'falcon.nest'
   plex.nest: 'falcon.nest'
   radarr.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
-  unifi.nest: 'falcon.nest'
 nest::cups_servers:
   - 'eagle.nest'
   - 'falcon.nest'
