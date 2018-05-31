@@ -25,6 +25,7 @@ class nest::unifi {
 
     '/srv/unifi/config/data/system.properties':
       ensure => file,
+      mode   => '0644',
     ;
   }
 
