@@ -7,12 +7,12 @@ class nest::unifi {
   file {
     default:
       ensure => directory,
-      mode   => '0755',
       owner  => 'ubnt',
       group  => 'ubnt',
     ;
 
     '/srv/unifi':
+      mode    => '0750',
       require => Nest::Srv['unifi'],
     ;
 
@@ -20,7 +20,7 @@ class nest::unifi {
       '/srv/unifi/config',
       '/srv/unifi/config/data',
     ]:
-      # use defaults
+      mode => '0755',
     ;
 
     '/srv/unifi/config/data/system.properties':
