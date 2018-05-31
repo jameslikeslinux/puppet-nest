@@ -52,7 +52,7 @@ class nest::unifi {
     driver  => 'macvlan',
     subnet  => '172.22.2.0/24',
     gateway => '172.22.2.1',
-    options => "parent=enp5s0.2",
+    options => "parent=enp5s0.1002",
   }
 
   $cpuset = $::nest::availcpus_expanded.join(',')
