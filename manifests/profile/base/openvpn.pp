@@ -185,6 +185,21 @@ class nest::profile::base::openvpn {
       action   => accept,
       provider => ip6tables,
     }
+
+    firewall { '100 block connections into nest VPN':
+      chain    => 'FORWARD',
+      proto    => all,
+      outiface => $device,
+      state    => ['RELATED', 'ESTABLISHED'],
+      action   => accept,
+    }
+
+    firewall { '101 block connections into nest VPN':
+      chain    => 'FORWARD',
+      proto    => all,
+      outiface => $device,
+      action   => drop,
+    }
   } else {
     $mode        = 'client'
     $mode_config = $client_config
