@@ -22,7 +22,7 @@ class nest::profile::base::users {
       require => File_line['useradd-group'];
     'media':
       gid => '1001';
-    'unifi':
+    'ubnt':
       gid => '1002';
   }
 
@@ -108,11 +108,11 @@ class nest::profile::base::users {
       comment => 'Plex Media Server',
       shell   => '/sbin/nologin';
 
-    'unifi':
+    'ubnt':
       uid     => '1002',
       gid     => '1002',
       home    => '/srv/unifi',
-      comment => 'UniFi',
+      comment => 'Ubiquiti UniFi',
       shell   => '/sbin/nologin';
   }
 
