@@ -185,6 +185,14 @@ class nest::profile::base::openvpn {
       action   => accept,
       provider => ip6tables,
     }
+
+    firewall { '100 nest NAT':
+      table  => 'nat',
+      chain  => 'POSTROUTING',
+      proto  => all,
+      source => '172.22.0.0/24',
+      jump   => 'MASQUERADE',
+    }
   } else {
     $mode        = 'client'
     $mode_config = $client_config
