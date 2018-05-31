@@ -58,7 +58,7 @@ class nest::unifi {
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'unifi':
-    image            => 'linuxserver/unifi',
+    image            => 'linuxserver/unifi:unstable',
     net              => 'mgmt',
     dns              => '172.22.2.1',
     env              => ['PUID=1002', 'PGID=1002'],
