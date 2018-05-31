@@ -50,8 +50,8 @@ class nest::unifi {
   docker_network { 'mgmt':
     ensure  => present,
     driver  => 'macvlan',
-    subnet  => '192.168.2.0/24',
-    gateway => '192.168.2.1',
+    subnet  => '172.22.2.0/24',
+    gateway => '172.22.2.1',
     options => "parent=enp5s0.2",
   }
 
@@ -64,7 +64,7 @@ class nest::unifi {
     volumes          => ['/srv/unifi/config:/config'],
     extra_parameters => [
       "--cpuset-cpus=${cpuset}",
-      '--ip=192.168.2.2',
+      '--ip=172.22.2.2',
       '--sysctl net.ipv4.ip_unprivileged_port_start=0'
     ],
     service_provider => 'systemd',
