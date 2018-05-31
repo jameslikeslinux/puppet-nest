@@ -61,7 +61,11 @@ class nest::unifi {
     net              => 'mgmt',
     env              => ['PUID=1002', 'PGID=1002'],
     volumes          => ['/srv/unifi/config:/config'],
-    extra_parameters => ["--cpuset-cpus=${cpuset}", "--ip=192.168.2.2"],
+    extra_parameters => [
+      "--cpuset-cpus=${cpuset}",
+      '--ip=192.168.2.2',
+      '--sysctl net.ipv4.ip_unprivileged_port_start=0'
+    ],
     service_provider => 'systemd',
     require          => [
       Docker_network['mgmt'],
