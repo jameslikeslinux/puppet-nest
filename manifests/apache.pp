@@ -26,6 +26,7 @@ class nest::apache (
       'apache2_modules_proxy',
       'apache2_modules_proxy_fcgi',
       'apache2_modules_proxy_http',
+      'apache2_modules_proxy_wstunnel',
       'threads'
     ],
   }
