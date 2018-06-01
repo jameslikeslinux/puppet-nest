@@ -3,9 +3,7 @@ class nest::apache (
 ) {
   nest::srv { 'www': }
 
-  class { '::apache':
-    mpm_module => 'worker',
-  }
+  include '::apache'
 
   # I don't use this command, and it doesn't work on systemd systems, but the
   # apache_version fact depends on being able to run this with the `-v`
@@ -18,9 +16,6 @@ class nest::apache (
 
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
-
-  # Support proxying websockets
-  ::apache::mod { 'proxy_wstunnel': }
 
   nest::portage::package_use { 'httpd':
     package => 'www-servers/apache',

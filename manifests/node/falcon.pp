@@ -194,11 +194,12 @@ class nest::node::falcon {
     ;
 
     'ombi.nest':
-      destination => 'http://localhost:3579/'
+      destination => 'http://localhost:3579/',
     ;
 
     'plex.nest':
-      destination => 'http://localhost:32400/'
+      destination => 'http://localhost:32400/',
+      websockets  => '/:/websockets/',
     ;
 
     'radarr.nest':
