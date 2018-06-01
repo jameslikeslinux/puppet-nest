@@ -19,6 +19,9 @@ class nest::apache (
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
 
+  # Support proxying websockets
+  ::apache::mod { 'proxy_wstunnel': }
+
   nest::portage::package_use { 'httpd':
     package => 'www-servers/apache',
     use     => [
