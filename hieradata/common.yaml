@@ -190,3 +190,5 @@ nest::lastpass_username: >
   lAsqLlfnZbISF2u9L/b30b7oatnzqwDh2UwytwVasDmSF/b1udvO2ozDh/C+
   rCq7HqzttY9WaDJ3KhskHf0tMDwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
   EM1/HAq1trGEnC3jMA3TdO2AEE7Bq/qI6VmsftwMS7OXeg8=]
+
+apache::mpm_module: 'worker'
