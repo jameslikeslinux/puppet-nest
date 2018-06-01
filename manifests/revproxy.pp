@@ -23,7 +23,7 @@ define nest::revproxy (
   $proxy_pass = [
     $websockets ? {
       undef   => [],
-      default => { 'path' => $websockets, 'url' => "${wsdestination}/${websockets}" }
+      default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}" }
     },
 
     { 'path' => '/', 'url' => $destination },
