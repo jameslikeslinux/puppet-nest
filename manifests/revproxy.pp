@@ -6,6 +6,7 @@ define nest::revproxy (
   Optional[Integer] $port                            = undef,
   Boolean $ssl                                       = true,
   Optional[String[1]] $websockets                    = undef,
+  Boolean $preserve_host                             = false,
 ) {
   $certbot_exception = @(EOT)
     <Location "/.well-known">
@@ -41,8 +42,9 @@ define nest::revproxy (
     ssl           => $ssl,
     zfs_docroot   => false,
     extra_params  => {
-      'custom_fragment' => $certbot_exception,
-      'proxy_pass'      => $proxy_pass,
+      'custom_fragment'     => $certbot_exception,
+      'proxy_pass'          => $proxy_pass,
+      'proxy_preserve_host' => $preserve_host,
     },
   }
 }
