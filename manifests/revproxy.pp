@@ -3,6 +3,7 @@ define nest::revproxy (
   String[1] $servername                              = $name,
   Array[String[1]] $serveraliases                    = [],
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
+  Optional[Integer] $port                            = undef,
   Boolean $ssl                                       = true,
   Optional[String[1]] $websockets                    = undef,
 ) {
@@ -26,13 +27,17 @@ define nest::revproxy (
       default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}" }
     },
 
-    { 'path' => '/', 'url' => $destination },
+    $websockets ? {
+      '/'     => [],
+      default => { 'path' => '/', 'url' => $destination },
+    }
   ].flatten
 
   nest::vhost { $name:
     servername    => $servername,
     serveraliases => $serveraliases,
     ip            => $ip,
+    port          => $port,
     ssl           => $ssl,
     zfs_docroot   => false,
     extra_params  => {
