@@ -17,13 +17,12 @@ class nest::unifi {
     ;
 
     [
-      '/srv/unifi/config',
-      '/srv/unifi/config/data',
+      '/srv/unifi/data',
     ]:
       mode => '0755',
     ;
 
-    '/srv/unifi/config/data/system.properties':
+    '/srv/unifi/data/system.properties':
       ensure => file,
       mode   => '0644',
     ;
@@ -31,9 +30,9 @@ class nest::unifi {
 
   file_line {
     default:
-      require => File['/srv/unifi/config/data/system.properties'],
+      require => File['/srv/unifi/data/system.properties'],
       notify  => Docker::Run['unifi'],
-      path    => '/srv/unifi/config/data/system.properties',
+      path    => '/srv/unifi/data/system.properties',
     ;
 
     'unifi.http.port':
@@ -58,20 +57,24 @@ class nest::unifi {
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'unifi':
-    image            => 'linuxserver/unifi:unstable',
+    image            => 'jacobalberty/unifi',
     net              => 'mgmt',
     dns              => '172.22.2.1',
-    env              => ['PUID=1002', 'PGID=1002'],
-    volumes          => ['/srv/unifi/config:/config'],
+    env              => [
+      'RUNAS_UID0=false',
+      'UNIFI_UID=1002',
+      'UNIFI_GID=1002',
+      'TZ=America/New_York',
+    ],
+    volumes          => ['/srv/unifi:/unifi'],
     extra_parameters => [
       "--cpuset-cpus=${cpuset}",
       '--ip=172.22.2.2',
-      '--sysctl net.ipv4.ip_unprivileged_port_start=0'
     ],
     service_provider => 'systemd',
     require          => [
       Docker_network['mgmt'],
-      File['/srv/unifi/config'],
+      File['/srv/unifi'],
     ],
   }
 }
