@@ -6,39 +6,28 @@ class nest::unifi_video {
 
   file {
     default:
-      ensure => directory,
       owner  => 'ubnt',
       group  => 'ubnt',
     ;
 
     '/srv/unifi-video':
-      mode    => '0750',
+      ensure  => directory,
+      mode    => '0775',
       require => Nest::Srv['unifi-video'],
     ;
 
-    [
-      '/srv/unifi-video/data',
-    ]:
-      mode => '0755',
-    ;
-
-    '/srv/unifi-video/data/system.properties':
+    '/srv/unifi-video/system.properties':
       ensure => file,
-      mode   => '0644',
+      mode   => '0664',
     ;
   }
 
-  file_line {
-    default:
-      require => File['/srv/unifi-video/data/system.properties'],
+  file_line { 'unifi-video-app.http.port':
+      path    => '/srv/unifi-video/system.properties',
+      line    => 'app.http.port=80',
+      match   => '^app\.http\.port=',
+      require => File['/srv/unifi-video/system.properties'],
       notify  => Docker::Run['unifi-video'],
-      path    => '/srv/unifi-video/data/system.properties',
-    ;
-
-    'app.http.port':
-      line  => 'app.http.port=80',
-      match => '^app\.http\.port=',
-    ;
   }
 
   docker_network { 'cams':
@@ -60,11 +49,16 @@ class nest::unifi_video {
       'PGID=1002',
       'TZ=America/New_York',
     ],
-    volumes          => ['/srv/unifi-video:/var/lib/unifi-video'],
+    volumes          => [
+      '/srv/unifi-video:/var/lib/unifi-video',
+      '/nest/cameras:/var/lib/unifi-video/videos',
+    ],
     extra_parameters => [
       "--cpuset-cpus=${cpuset}",
       '--ip=172.22.3.2',
-      '--cap-add=NET_BIND_SERVICE',
+      '--cap-add=SYS_ADMIN',
+      '--cap-add=DAC_READ_SEARCH',
+      '--sysctl net.ipv4.ip_unprivileged_port_start=0',
     ],
     service_provider => 'systemd',
     require          => [
