@@ -261,4 +261,5 @@ class nest::node::falcon {
   }
 
   include '::nest::unifi'
+  include '::nest::unifi_video'
 }
