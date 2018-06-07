@@ -25,6 +25,23 @@ define nest::vhost (
     default => ":${port}",
   }
 
+  if $port and $::nest::apache::manage_firewall {
+    firewall { "100 ${name}":
+      proto  => tcp,
+      dport  => $port,
+      state  => 'NEW',
+      action => accept,
+    }
+
+    firewall { "100 ${name} (v6)":
+      proto    => tcp,
+      dport    => $port,
+      state    => 'NEW',
+      action   => accept,
+      provider => ip6tables,
+    }
+  }
+
   ensure_resource('apache::listen', $http_port, {})
 
   ensure_resource('nest::srv', "www/${servername}", { zfs => $zfs_docroot })
