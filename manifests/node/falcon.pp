@@ -187,6 +187,7 @@ class nest::node::falcon {
   nest::revproxy {
     default:
       ssl => false,
+      ip  => '172.22.0.1',
     ;
 
     'nzbget.nest':
