@@ -22,12 +22,22 @@ class nest::unifi_video {
     ;
   }
 
-  file_line { 'unifi-video-app.http.port':
+  file_line {
+    default:
       path    => '/srv/unifi-video/system.properties',
-      line    => 'app.http.port=80',
-      match   => '^app\.http\.port=',
       require => File['/srv/unifi-video/system.properties'],
       notify  => Docker::Run['unifi-video'],
+    ;
+
+    'unifi-video-is_default':
+      line    => 'is_default=true',
+      match   => '^is_default=',
+    ;
+
+    'unifi-video-app.http.port':
+      line    => 'app.http.port=80',
+      match   => '^app\.http\.port=',
+    ;
   }
 
   docker_network { 'cams':
