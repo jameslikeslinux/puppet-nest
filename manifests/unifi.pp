@@ -69,7 +69,7 @@ class nest::unifi {
     volumes          => ['/srv/unifi:/unifi'],
     extra_parameters => [
       "--cpuset-cpus=${cpuset}",
-      '--ip=172.22.2.2',
+      '--ip=172.22.2.3',
     ],
     service_provider => 'systemd',
     require          => [
