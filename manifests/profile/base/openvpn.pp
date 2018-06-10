@@ -10,7 +10,8 @@ class nest::profile::base::openvpn {
     keepalive 10 30
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DNS 172.22.0.1"
-    push "route 172.22.1.2 255.255.255.255"
+    push "route-metric 1000"
+    push "route 172.22.1.0 255.255.255.0"
     push "route 172.22.2.0 255.255.255.0"
     push "route 172.22.3.0 255.255.255.0"
     script-security 2
