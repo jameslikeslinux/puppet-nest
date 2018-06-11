@@ -32,7 +32,7 @@ class nest::unifi_video {
     notify  => Docker::Run['unifi-video'],
   }
 
-  docker_network { 'cams':
+  docker_network { 'video':
     ensure  => present,
     driver  => 'macvlan',
     subnet  => '172.22.3.0/24',
@@ -44,7 +44,7 @@ class nest::unifi_video {
 
   docker::run { 'unifi-video':
     image            => 'pducharme/unifi-video-controller',
-    net              => 'cams',
+    net              => 'video',
     dns              => '172.22.3.1',
     env              => [
       'PUID=1002',
@@ -64,7 +64,7 @@ class nest::unifi_video {
     ],
     service_provider => 'systemd',
     require          => [
-      Docker_network['cams'],
+      Docker_network['video'],
       File['/srv/unifi-video'],
     ],
   }
