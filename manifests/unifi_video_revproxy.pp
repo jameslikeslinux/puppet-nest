@@ -3,7 +3,7 @@ class nest::unifi_video_revproxy (
 ) {
   nest::revproxy { 'unifi-video':
     servername    => 'heloandnala.net',
-    destination   => 'http://unifi.cams/',
+    destination   => 'http://unifi.video.home/',
     websockets    => '/ws/',
     serveraliases => ['www.heloandnala.net'],
     ip            => $ip,
@@ -12,7 +12,7 @@ class nest::unifi_video_revproxy (
 
   nest::revproxy { 'unifi-video-default-port':
     servername    => 'heloandnala.net',
-    destination   => 'http://unifi.cams/',
+    destination   => 'http://unifi.video.home/',
     websockets    => '/ws/',
     ip            => $ip,
     port          => 7443,
@@ -21,7 +21,7 @@ class nest::unifi_video_revproxy (
 
   nest::revproxy { 'unifi-video-video':
     servername    => 'heloandnala.net',
-    destination   => 'http://unifi.cams:7445/',
+    destination   => 'http://unifi.video.home:7445/',
     websockets    => '/',
     ip            => $ip,
     port          => 7446,
