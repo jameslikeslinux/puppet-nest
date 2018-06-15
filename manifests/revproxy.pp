@@ -22,15 +22,20 @@ define nest::revproxy (
 
   $wsdestination = $destination.regsubst('^http', 'ws').regsubst('/$', '')
 
+  $proxy_params = $destination ? {
+    /(localhost|127\.0\.0\.1)/ => {},
+    default                    => { 'keepalive' => 'On' },
+  }
+
   $proxy_pass = [
     $websockets ? {
       undef   => [],
-      default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}" }
+      default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}", 'params' => $proxy_params },
     },
 
     $websockets ? {
       '/'     => [],
-      default => { 'path' => '/', 'url' => $destination },
+      default => { 'path' => '/', 'url' => $destination, 'params' => $proxy_params },
     }
   ].flatten
 
