@@ -36,6 +36,20 @@ class nest::bitwarden (
     require => Vcsrepo['/srv/bitwarden/core'],
   }
 
+  file { '/srv/bitwarden/nodirect_open.c':
+    mode   => '0644',
+    owner  => 'bitwarden',
+    group  => 'bitwarden',
+    source => 'puppet:///modules/nest/bitwarden/nodirect_open.c',
+    notify => Exec['compile-nodirect_open.c'],
+  }
+
+  exec { 'compile-nodirect_open.c':
+    command     => '/usr/bin/gcc -shared /srv/bitwarden/nodirect_open.c -o /srv/bitwarden/nodirect_open.so',
+    user        => 'bitwarden',
+    refreshonly => true,
+  }
+
   $service_ensure = $facts['bitwarden_installed'] ? {
     true    => present,
     default => absent,
