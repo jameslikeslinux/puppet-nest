@@ -24,6 +24,8 @@ class nest::profile::base::users {
       gid => '1001';
     'ubnt':
       gid => '1002';
+    'bitwarden':
+      gid => '1003';
   }
 
   # This is because I abuse UIDs (I create "system" users like
@@ -114,6 +116,13 @@ class nest::profile::base::users {
       home    => '/srv/unifi',
       comment => 'Ubiquiti UniFi',
       shell   => '/sbin/nologin';
+
+    'bitwarden':
+      uid     => '1003',
+      gid     => '1003',
+      home    => '/srv/bitwarden',
+      comment => 'Bitwarden',
+      shell   => '/bin/zsh';
   }
 
   file {
