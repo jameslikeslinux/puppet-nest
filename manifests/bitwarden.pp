@@ -1,4 +1,6 @@
-class nest::bitwarden {
+class nest::bitwarden (
+  Hash[String[1], String[1]] $env = {},
+) {
   include '::nest'
   include '::nest::docker'
 
@@ -54,6 +56,17 @@ class nest::bitwarden {
   }
 
   if $facts['bitwarden_installed'] {
+    $env.each |$key, $value| {
+      $key_escaped = regexpescape($key)
+
+      file_line { "bitwarden-env-${key}":
+        path   => '/srv/bitwarden/bwdata/env/global.override.env',
+        line   => "${key}=${value}",
+        match  => "^${key_escaped}=",
+        notify => Service['bitwarden'],
+      }
+    }
+
     service { 'bitwarden':
       enable  => true,
       require => Exec['bitwarden-systemd-daemon-reload'],
