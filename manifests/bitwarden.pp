@@ -19,7 +19,8 @@ class nest::bitwarden (
       'set 99/vfstype ext4',
       'set 99/opt[1] defaults',
       'set 99/opt[2] discard',
-      'set 99/opt[3] x-systemd.requires=zfs-mount.service',
+      'set 99/opt[3] x-systemd.requires',
+      'set 99/opt[3]/value zfs-mount.service',
       'set 99/dump 0',
       'set 99/passno 0',
     ]
