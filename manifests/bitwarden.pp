@@ -47,7 +47,7 @@ class nest::bitwarden (
   }
 
   exec { 'compile-nodirect_open.c':
-    command     => '/usr/bin/gcc -shared /srv/bitwarden/nodirect_open.c -o /srv/bitwarden/nodirect_open.so',
+    command     => '/usr/bin/gcc -shared -fpic /srv/bitwarden/nodirect_open.c -o /srv/bitwarden/nodirect_open.so -ldl',
     user        => 'bitwarden',
     refreshonly => true,
   }
