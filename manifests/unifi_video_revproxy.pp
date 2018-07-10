@@ -1,17 +1,21 @@
 class nest::unifi_video_revproxy (
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
 ) {
+  Nest::Revproxy {
+    ssl => false,
+  }
+
   nest::revproxy { 'unifi-video':
-    servername    => 'heloandnala.net',
+    servername    => 'video.heloandnala.net',
     destination   => 'http://unifi.video.home/',
     websockets    => '/ws/',
-    serveraliases => ['www.heloandnala.net'],
+    serveraliases => ['heloandnala.net', 'www.heloandnala.net'],
     ip            => $ip,
     preserve_host => true,
   }
 
   nest::revproxy { 'unifi-video-default-port':
-    servername    => 'heloandnala.net',
+    servername    => 'video.heloandnala.net',
     destination   => 'http://unifi.video.home/',
     websockets    => '/ws/',
     ip            => $ip,
@@ -20,7 +24,7 @@ class nest::unifi_video_revproxy (
   }
 
   nest::revproxy { 'unifi-video-video':
-    servername    => 'heloandnala.net',
+    servername    => 'video.heloandnala.net',
     destination   => 'http://unifi.video.home:7445/',
     websockets    => '/',
     ip            => $ip,
