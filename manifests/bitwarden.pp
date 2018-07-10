@@ -33,4 +33,30 @@ class nest::bitwarden {
     group   => 'bitwarden',
     require => Vcsrepo['/srv/bitwarden/core'],
   }
+
+  $service_ensure = $facts['bitwarden_installed'] ? {
+    true    => present,
+    default => absent,
+  }
+
+  file { '/etc/systemd/system/bitwarden.service':
+    ensure => $service_ensure,
+    mode   => '0644',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/bitwarden/bitwarden.service',
+    notify => Exec['bitwarden-systemd-daemon-reload'],
+  }
+
+  exec { 'bitwarden-systemd-daemon-reload':
+    command     => '/bin/systemctl daemon-reload',
+    refreshonly => true,
+  }
+
+  if $facts['bitwarden_installed'] {
+    service { 'bitwarden':
+      enable  => true,
+      require => Exec['bitwarden-systemd-daemon-reload'],
+    }
+  }
 }

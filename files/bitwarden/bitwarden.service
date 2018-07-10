@@ -1,0 +1,14 @@
+[Unit]
+Description=Bitwarden
+After=docker.socket
+Requires=docker.socket
+
+[Service]
+Type=oneshot
+User=bitwarden
+ExecStart=/srv/bitwarden/bitwarden.sh start
+ExecStop=/srv/bitwarden/bitwarden.sh stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
