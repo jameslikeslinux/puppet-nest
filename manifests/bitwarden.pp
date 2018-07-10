@@ -38,18 +38,11 @@ class nest::bitwarden (
 
   # Deploy workaround for running mssql on ZFS
   # See: https://github.com/t-oster/mssql-docker-zfs
-  file { '/srv/bitwarden/nodirect_open.c':
-    mode   => '0644',
+  file { '/srv/bitwarden/nodirect_open.so':
+    mode   => '0755',
     owner  => 'bitwarden',
     group  => 'bitwarden',
-    source => 'puppet:///modules/nest/bitwarden/nodirect_open.c',
-    notify => Exec['compile-nodirect_open.c'],
-  }
-
-  exec { 'compile-nodirect_open.c':
-    command     => '/usr/bin/gcc -shared -fpic /srv/bitwarden/nodirect_open.c -o /srv/bitwarden/nodirect_open.so -ldl',
-    user        => 'bitwarden',
-    refreshonly => true,
+    source => 'puppet:///modules/nest/bitwarden/nodirect_open.so',
   }
 
   $service_ensure = $facts['bitwarden_installed'] ? {
