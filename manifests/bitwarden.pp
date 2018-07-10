@@ -19,6 +19,7 @@ class nest::bitwarden (
       'set 99/vfstype ext4',
       'set 99/opt[1] defaults',
       'set 99/opt[2] discard',
+      'set 99/opt[3] x-systemd.requires=zfs-mount.service',
       'set 99/dump 0',
       'set 99/passno 0',
     ]
@@ -49,25 +50,6 @@ class nest::bitwarden (
     require => Vcsrepo['/srv/bitwarden/core'],
   }
 
-  $service_ensure = $facts['bitwarden_installed'] ? {
-    true    => present,
-    default => absent,
-  }
-
-  file { '/etc/systemd/system/bitwarden.service':
-    ensure => $service_ensure,
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/bitwarden/bitwarden.service',
-    notify => Exec['bitwarden-systemd-daemon-reload'],
-  }
-
-  exec { 'bitwarden-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
-
   if $facts['bitwarden_installed'] {
     $env.each |$key, $value| {
       $key_escaped = regexpescape($key)
@@ -76,13 +58,14 @@ class nest::bitwarden (
         path   => '/srv/bitwarden/bwdata/env/global.override.env',
         line   => "${key}=${value}",
         match  => "^${key_escaped}=",
-        notify => Service['bitwarden'],
+        notify => Exec['restart-bitwarden'],
       }
     }
 
-    service { 'bitwarden':
-      enable  => true,
-      require => Exec['bitwarden-systemd-daemon-reload'],
+    exec { 'restart-bitwarden':
+      command     => '/srv/bitwarden/bitwarden.sh restart',
+      user        => 'bitwarden',
+      refreshonly => true,
     }
   }
 }
