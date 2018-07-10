@@ -36,6 +36,8 @@ class nest::bitwarden (
     require => Vcsrepo['/srv/bitwarden/core'],
   }
 
+  # Deploy workaround for running mssql on ZFS
+  # See: https://github.com/t-oster/mssql-docker-zfs
   file { '/srv/bitwarden/nodirect_open.c':
     mode   => '0644',
     owner  => 'bitwarden',
@@ -79,6 +81,19 @@ class nest::bitwarden (
         match  => "^${key_escaped}=",
         notify => Service['bitwarden'],
       }
+    }
+
+    file_line { 'bitwarden-docker-compose-nodirect_open-volume':
+      path   => '/srv/bitwarden/bwdata/docker/docker-compose.yml',
+      line   => '      - ../../nodirect_open.so:/nodirect_open.so',
+      after  => '      - ../mssql/data:/var/opt/mssql/data',
+      notify => Service['bitwarden'],
+    }
+
+    file_line { 'bitwarden-mssql-env-LD_PRELOAD':
+      path   => '/srv/bitwarden/bwdata/env/mssql.override.env',
+      line   => 'LD_PRELOAD=/nodirect_open.so',
+      notify => Service['bitwarden'],
     }
 
     service { 'bitwarden':
