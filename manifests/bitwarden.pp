@@ -15,7 +15,7 @@ class nest::bitwarden (
   Augeas <| title == 'fstab' |> {
     changes +> [
       "set 99/spec /dev/zvol/${hostname}/srv/bitwarden/mssql",
-      'set 99/file /srv/bitwarden/bwdata/mssql',
+      'set 99/file /srv/bitwarden/bwdata/mssql/data',
       'set 99/vfstype ext4',
       'set 99/opt[1] defaults',
       'set 99/opt[2] discard',
