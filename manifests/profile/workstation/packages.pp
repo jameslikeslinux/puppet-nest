@@ -12,10 +12,7 @@ class nest::profile::workstation::packages {
     require => Nest::Portage::Package_use['app-text/texlive-core'],
   }
 
-  package { [
-    'media-gfx/displaycal',
-    'x11-misc/xdotool',
-  ]:
+  package { 'media-gfx/displaycal':
     ensure => installed,
   }
 }
