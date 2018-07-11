@@ -121,7 +121,17 @@ class nest::profile::workstation::xorg {
     'x11-apps/xrandr',
     'x11-apps/xwininfo',
     'x11-misc/vdpauinfo',
+    'x11-misc/xdotool',
   ]:
     ensure => installed,
+  }
+
+  # Workaround xdotool layout issue
+  # See: https://github.com/jordansissel/xdotool/issues/211
+  file { '/etc/X11/xinit/xinitrc.d/99-setxkbmap':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => "#!/bin/sh\nsetxkbmap -synch\n",
   }
 }
