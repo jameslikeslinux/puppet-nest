@@ -11,7 +11,6 @@ class nest::profile::workstation::xmonad {
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
     'x11-misc/compton',
-    'x11-misc/dunst',
     'x11-misc/rofi',
     'x11-misc/taffybar',
     'dev-haskell/missingh',

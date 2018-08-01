@@ -3,6 +3,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::chromium'
   contain '::nest::profile::workstation::cups'
   contain '::nest::profile::workstation::cursor'
+  contain '::nest::profile::workstation::dunst'
   contain '::nest::profile::workstation::firefox'
   contain '::nest::profile::workstation::fonts'
   contain '::nest::profile::workstation::lastpass'
@@ -38,6 +39,10 @@ class nest::profile::workstation {
   # Plasma installs default cursors which we want to replace
   Class['::nest::profile::workstation::plasma']
   -> Class['::nest::profile::workstation::cursor']
+
+  # Plasma installs icons which we want to copy and transform for dunst
+  Class['::nest::profile::workstation::plasma']
+  -> Class['::nest::profile::workstation::dunst']
 
   # Manage mouse settings after xorg
   Class['::nest::profile::workstation::xorg']
