@@ -14,6 +14,8 @@ class nest::profile::workstation::dunst {
     group  => 'root',
   }
 
+  $icon_size = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
+
   ['actions', 'devices', 'status'].each |$category| {
     file { "/usr/share/dunst/icons/${category}":
       ensure       => directory,
@@ -23,7 +25,7 @@ class nest::profile::workstation::dunst {
       source       => "/usr/share/icons/breeze-dark/${category}/22",
       recurse      => true,
       purge        => true,
-      validate_cmd => 'rsvg-convert -w 96 -h 96 -f svg \'%\' | sed \'s/96pt/96px/g\' > \'%.tmp\' && mv \'%.tmp\' \'%\'',
+      validate_cmd => "rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' | sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' && mv '%.tmp' '%'",
       checksum     => mtime,
       links        => follow,
       require      => Package['gnome-base/librsvg'],
