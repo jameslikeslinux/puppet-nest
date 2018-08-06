@@ -134,4 +134,17 @@ class nest::profile::workstation::xorg {
     group   => 'root',
     content => "#!/bin/sh\nsetxkbmap -synch\n",
   }
+
+  if $video_card == 'nvidia' and $primary_monitor =~ /\./ {
+    $mst_workaround = present
+  } else {
+    $mst_workaronud = absent
+  }
+
+  # Workaround DP 1.2 MST sleep issue
+  file_line { 'sddm-workaround-mst-sleep-issue':
+    ensure => $mst_workaround,
+    path   => '/usr/share/sddm/scripts/Xsetup',
+    line   => 'xset dpms force off && xset dpms force on',
+  }
 }
