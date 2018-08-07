@@ -138,7 +138,7 @@ class nest::profile::workstation::xorg {
   if $video_card == 'nvidia' and $primary_monitor =~ /\./ {
     $mst_workaround = present
   } else {
-    $mst_workaronud = absent
+    $mst_workaround = absent
   }
 
   # Workaround DP 1.2 MST sleep issue
