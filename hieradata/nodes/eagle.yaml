@@ -10,7 +10,7 @@ nest::libvirt: true
 
 nest::dvorak: true
 nest::mouse: 'mxmaster'
-nest::monitor_layout: ['DP-6.8', 'DP-6.1']
-nest::primary_monitor: 'DP-6.1'
+nest::monitor_layout: ['DP-4', 'DP-6']
+nest::primary_monitor: 'DP-6'
 nest::text_scaling_factor: 1.1
 nest::video_card: 'nvidia'
