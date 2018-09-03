@@ -43,7 +43,7 @@ class nest::unifi_video {
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'unifi-video':
-    image            => 'pducharme/unifi-video-controller',
+    image            => 'unifi-video-controller',
     net              => 'video',
     dns              => '172.22.3.1',
     env              => [
