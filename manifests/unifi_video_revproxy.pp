@@ -1,6 +1,14 @@
 class nest::unifi_video_revproxy (
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
 ) {
+  Nest::Revproxy {
+    extra_params => {
+      'setenv' => [
+        'proxy-initial-not-pooled 1',
+      ],
+    }
+  }
+
   nest::revproxy { 'unifi-video':
     servername    => 'video.thesatelliteoflove.net',
     destination   => 'http://unifi.video.home/',
