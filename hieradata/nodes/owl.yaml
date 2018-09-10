@@ -10,3 +10,4 @@ nest::mouse: 'trackpoint'
 nest::gui_scaling_factor: 1.5
 nest::text_scaling_factor: 1.67
 nest::video_card: 'intel'
+nest::kernel_cmdline: 'snd-hda-intel.probe_mask=8'
