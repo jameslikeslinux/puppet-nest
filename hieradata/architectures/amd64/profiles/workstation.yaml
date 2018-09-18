@@ -264,3 +264,7 @@ nest::package_use:
   # required by app-office/libreoffice-5.4.2.2::gentoo
   dev-libs/xmlsec:
     use: 'nss'
+
+  # required by x11-misc/taffybar-3.0.0::haskell
+  dev-libs/libdbusmenu:
+    use: 'gtk3'

@@ -43,7 +43,7 @@ nest::package_keywords:
   dev-python/jellyfish:
     version: '=0.5.6'
   dev-python/munkres:
-    version: '=1.0.5.4-r2'
+    version: '=1.0.12'
   media-sound/beets: {}
 
   # nc: all versions are unstable; don't care
@@ -145,6 +145,10 @@ nest::package_use:
   # For puppet-agent
   sys-libs/ncurses:
     use: 'tinfo'
+
+  # For beets[gstreamer,replaygain]
+  media-plugins/gst-plugins-meta:
+    use: 'ffmpeg'
 
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
