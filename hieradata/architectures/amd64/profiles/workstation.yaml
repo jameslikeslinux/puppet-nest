@@ -22,17 +22,6 @@ nest::package_keywords:
   mail-client/thunderbird:
     ensure: 'absent'
 
-  # Get the latest bug fixes and features for xmonad & co.
-  x11-wm/xmonad:
-    version: '=9999'
-    keywords: '**'
-  x11-wm/xmonad-contrib:
-    version: '=9999'
-    keywords: '**'
-  x11-misc/taffybar:
-    version: '=9999'
-    keywords: '**'
-
   # For plasma-meta[handbook]
   # XXX: Removed due to package stabilization
   dev-libs/grantlee:
