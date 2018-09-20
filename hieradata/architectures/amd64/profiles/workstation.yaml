@@ -154,6 +154,11 @@ nest::package_keywords:
   # best compatibility with the browser plugin
   app-admin/lastpass-binary-component: {}
 
+  # Get the latest bug fixes and features for xmonad & co.
+  x11-misc/taffybar:
+    version: '=9999'
+    keywords: '**'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
