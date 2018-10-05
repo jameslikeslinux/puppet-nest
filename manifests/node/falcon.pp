@@ -254,7 +254,7 @@ class nest::node::falcon {
   }
 
   nest::portage::package_use { 'media-sound/beets':
-    use => ['convert', 'gstreamer', 'lastgenre', 'replaygain'],
+    use => ['ffmpeg', 'gstreamer', 'lastfm', 'replaygain'],
   }
 
   package { 'media-sound/beets':
