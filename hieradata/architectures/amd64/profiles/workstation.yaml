@@ -232,7 +232,7 @@ nest::package_use:
   media-libs/libvpx:
     use: ['postproc', 'svc']
   net-libs/nodejs:
-    use: 'inspector'
+    use: ['inspector', 'icu']
 
   # Give pulseaudio higher priority with rtkit
   media-sound/pulseaudio:
