@@ -28,13 +28,15 @@ nest::package_keywords:
     version: '=5.1.0'
     ensure: 'absent'
 
-  # required by www-client/firefox-60.0::gentoo
+  # required by www-client/firefox-63.0::gentoo
   dev-libs/nss:
-    version: '=3.38'
+    version: '=3.39'
   dev-libs/nspr:
     version: '=4.19'
   dev-lang/rust:
     version: '=1.25.0'
+  dev-util/cbindgen:
+    version: '=0.6.6'
   virtual/rust:
     version: '=1.25.0'
   dev-util/cargo:
