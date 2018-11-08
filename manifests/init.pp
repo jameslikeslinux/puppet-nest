@@ -25,6 +25,7 @@ class nest (
   $text_scaling_factor = 1.0,
   $synergy_config      = undef,
   $video_card          = undef,
+  $pulse_sample_format = undef,
 
   $live                = $::nest['live'],
   $vm                  = ($::virtual == 'kvm'),
