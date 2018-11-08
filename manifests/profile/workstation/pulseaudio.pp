@@ -7,14 +7,9 @@ class nest::profile::workstation::pulseaudio {
     creates => '/etc/systemd/user/sockets.target.wants/pulseaudio.socket',
   }
 
-  $default_sample_format_line = $::nest::pulse_sample_format ? {
-    undef   => '; default-sample-format = s16le',
-    default => "default-sample-format = ${::nest::pulse_sample_format}",
-  }
-
   file_line { 'pulse-daemon.conf-default-sample-format':
     path  => '/etc/pulse/daemon.conf',
-    match => 'default-sample-format = ',
-    line  => $default_sample_format_line,
+    match => '^(; )?default-sample-format = ',
+    line  => 'default-sample-format = s24le',
   }
 }
