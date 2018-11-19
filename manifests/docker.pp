@@ -5,6 +5,7 @@ class nest::docker {
   }
 
   class { 'docker':
+    acknowledge_unsupported_os => true,
     docker_ce_package_name     => 'app-emulation/docker',
     service_config             => '/etc/conf.d/docker',
     service_config_template    => 'docker/etc/sysconfig/docker.systemd.erb',
