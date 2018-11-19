@@ -92,6 +92,11 @@ nest::package_mask:
   media-fonts/hack:
     version: '>=3.000'
 
+  app-admin/puppet-agent:
+    version: '>=6.0.0'
+  app-admin/puppetserver:
+    version: '>=6.0.0'
+
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
