@@ -17,9 +17,10 @@ nest::package_keywords:
 
   # hiera-eyaml
   dev-ruby/hiera-eyaml:
-    version: '=2.1.0'
+    version: '=2.1.0-r2'
   dev-ruby/trollop:
     version: '=2.1.2'
+    ensure: 'absent'
 
   # ZFS
   sys-kernel/spl: {}
