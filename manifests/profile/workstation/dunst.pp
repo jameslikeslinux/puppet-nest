@@ -25,6 +25,8 @@ class nest::profile::workstation::dunst {
       source       => "/usr/share/icons/breeze-dark/${category}/22",
       recurse      => true,
       purge        => true,
+      backup       => false,
+      show_diff    => false,
       validate_cmd => "rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' | sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' && mv '%.tmp' '%'",
       checksum     => mtime,
       links        => follow,
