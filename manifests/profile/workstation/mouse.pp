@@ -8,10 +8,11 @@ class nest::profile::workstation::mouse {
     evdev:name:TPPS/2 IBM TrackPoint:dmi:bvn*:bvr*:bd*:svnLENOVO:pn*:pvrThinkPadX1Carbon4th:*
       POINTINGSTICK_SENSITIVITY=200
       POINTINGSTICK_CONST_ACCEL=1.0
-      LIBINPUT_ATTR_TRACKPOINT_RANGE=35
     | EOT
 
   file { '/etc/udev/hwdb.d/71-mouse-local.hwdb':
+    # These customizations are now in upstream udev
+    ensure  => absent,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
