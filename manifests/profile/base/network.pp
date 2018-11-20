@@ -13,6 +13,9 @@ class nest::profile::base::network {
   $networkmanager_conf = @(EOT)
     [connection]
     ipv6.ip6-privacy=2
+
+    [keyfile]
+    unmanaged-devices=interface-name:tun0
     | EOT
 
   file { '/etc/NetworkManager/NetworkManager.conf':
