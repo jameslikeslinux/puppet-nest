@@ -1,18 +1,14 @@
 class nest::profile::workstation::mouse {
   $mouse_hwdb = @(EOT)
-    # Logitech MX Master
-    mouse:usb:v046dp4041:name:Logitech MX Master:
-      MOUSE_DPI=1000@166
-
-    # Lenovo Thinkpad X1 Carbon 4th gen
-    evdev:name:TPPS/2 IBM TrackPoint:dmi:bvn*:bvr*:bd*:svnLENOVO:pn*:pvrThinkPadX1Carbon4th:*
-      POINTINGSTICK_SENSITIVITY=200
-      POINTINGSTICK_CONST_ACCEL=1.0
+    # Logitech Anywhere MX
+    mouse:usb:v046dpc52b:name:Logitech Unifying Device. Wireless PID:1017:
+    mouse:usb:v046dp1017:name:Logitech Anywhere MX:
+    # Logitech Anywhere MX 2S
+    mouse:usb:v046dp406a:name:Logitech MX Anywhere 2S:
+    MOUSE_WHEEL_CLICK_ANGLE=20
     | EOT
 
   file { '/etc/udev/hwdb.d/71-mouse-local.hwdb':
-    # These customizations are now in upstream udev
-    ensure  => absent,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
