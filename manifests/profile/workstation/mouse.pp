@@ -17,7 +17,7 @@ class nest::profile::workstation::mouse {
   }
 
   exec { 'udev-hwdb-update':
-    command     => '/usr/bin/udevadm hwdb --update',
+    command     => '/bin/udevadm hwdb --update',
     refreshonly => true,
   }
 
