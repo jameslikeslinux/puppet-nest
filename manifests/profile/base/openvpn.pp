@@ -8,13 +8,14 @@ class nest::profile::base::openvpn {
     topology subnet
     client-to-client
     keepalive 10 30
+    dhcp-option DOMAIN nest
+    dhcp-option DNS 172.22.0.1
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DNS 172.22.0.1"
     push "route-metric 1000"
     push "route 172.22.1.0 255.255.255.0"
     push "route 172.22.2.0 255.255.255.0"
     push "route 172.22.3.0 255.255.255.0"
-    script-security 2
     setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
     ifconfig-pool-persist nest-ipp.txt
@@ -24,10 +25,6 @@ class nest::profile::base::openvpn {
     client
     nobind
     remote ${::nest::openvpn_hostname} 1194
-    script-security 2
-    up /etc/openvpn/up.sh
-    down /etc/openvpn/down.sh
-    down-pre
     | EOT
 
   $common_config = @("EOT")
@@ -39,10 +36,14 @@ class nest::profile::base::openvpn {
     cert ${::settings::certdir}/${::trusted['certname']}.pem
     key ${::settings::privatekeydir}/${::trusted['certname']}.pem
     crl-verify ${::settings::hostcrl}
+    script-security 2
+    up /etc/openvpn/up.sh
+    down /etc/openvpn/down.sh
+    down-pre
     | EOT
 
   $dnsmasq_config = @("EOT")
-    resolv-file=/etc/resolv.conf.dnsmasq
+    resolv-file=/run/systemd/resolve/resolv.conf
     interface=lo
     interface=${device}
     bind-interfaces
@@ -154,24 +155,6 @@ class nest::profile::base::openvpn {
         Exec['dnsmasq-systemd-daemon-reload'],
         Service["openvpn-${mode}@nest"],
       ],
-    }
-
-    file_line {
-      default:
-        path => '/etc/resolvconf.conf';
-
-      'resolvconf.conf-name_servers':
-        line  => 'name_servers=127.0.0.1',
-        match => '^#?name_servers=';
-
-      'resolvconf.conf-search_domains':
-        line => 'search_domains=nest';
-
-      'resolvconf.conf-dnsmasq_conf':
-        line => 'dnsmasq_conf=/etc/dnsmasq.d/resolv.conf';
-
-      'resolvconf.conf-dnsmasq_resolv':
-        line => 'dnsmasq_resolv=/etc/resolv.conf.dnsmasq';
     }
 
     firewall { '100 openvpn':

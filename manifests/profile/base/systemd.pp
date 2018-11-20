@@ -50,6 +50,11 @@ class nest::profile::base::systemd {
     onlyif  => "get database[. = 'hosts']/service[last()] != 'myhostname'",
   }
 
+  file { '/etc/resolv.conf':
+    ensure => link,
+    target => '/run/systemd/resolve/stub-resolv.conf',
+  }
+
   file_line { 'locale.gen-en_US.UTF-8':
     path  => '/etc/locale.gen',
     line  => 'en_US.UTF-8 UTF-8',
