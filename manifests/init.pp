@@ -7,7 +7,6 @@ class nest (
   $ssh_private_key,
   $pw_hash,
   $lastfm_pw_hash      = undef,
-  $lastpass_username   = undef,
 
   $cnames              = {},
   $distcc_hosts        = {},

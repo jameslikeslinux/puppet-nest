@@ -6,9 +6,12 @@ class nest::profile::workstation::firefox {
   package { [
     'www-client/firefox',
     'www-plugins/adobe-flash',
-    'app-admin/lastpass-binary-component',
   ]:
     ensure => installed,
+  }
+
+  package { 'app-admin/lastpass-binary-component':
+    ensure => absent,
   }
 
   $firefox_prefs = @("EOT")
