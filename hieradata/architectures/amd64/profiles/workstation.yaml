@@ -1,10 +1,15 @@
 ---
 nest::package_keywords:
   # I always want the most recent of these:
-  app-admin/lastpass-cli: {}
   media-gfx/displaycal: {}
   media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
+
+  # Switched to Bitwarden
+  app-admin/lastpass-cli:
+    ensure: 'absent'
+  app-admin/lastpass-binary-component:
+    ensure: 'absent'
 
   # Switch to Google Play Music :(
   media-sound/cantata:
@@ -151,10 +156,6 @@ nest::package_keywords:
 
   app-misc/ddccontrol:
     version: '=0.4.2_p20140105-r2'
-
-  # Always want the latest version of the LastPass binary component for the
-  # best compatibility with the browser plugin
-  app-admin/lastpass-binary-component: {}
 
   # Get the latest bug fixes and features for xmonad & co.
   x11-misc/taffybar:
