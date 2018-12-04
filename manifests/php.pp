@@ -7,6 +7,11 @@ class nest::php {
     use => ['curl', 'fpm', 'gd', 'mysql', 'mysqli', 'soap'],
   }
 
+  portage::makeconf { 'php_targets':
+    ensure  => absent,
+    content => 'php7-0',
+  }
+
   package { 'dev-lang/php':
     ensure  => installed,
 
@@ -16,12 +21,15 @@ class nest::php {
   }
 
   service { 'php-fpm@7.0':
-    enable  => true,
+    ensure  => stopped,
+    enable  => false,
     require => Package['dev-lang/php'],
   }
 
-  portage::makeconf { 'php_targets':
-    content => 'php7-0',
+  service { 'php-fpm@7.2':
+    ensure  => running,
+    enable  => true,
+    require => Service['php-fpm@7.0'],
   }
 
   package { 'dev-php/pecl-ssh2':
