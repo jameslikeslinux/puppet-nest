@@ -6,6 +6,7 @@ define nest::revproxy (
   Optional[Integer] $port                            = undef,
   Boolean $ssl                                       = true,
   Optional[String[1]] $websockets                    = undef,
+  Array[String[1]] $websockets_exceptions            = [],
   Boolean $preserve_host                             = false,
   Hash[String[1], Any] $extra_params                 = {},
 ) {
@@ -22,13 +23,20 @@ define nest::revproxy (
   }
 
   $wsdestination = $destination.regsubst('^http', 'ws').regsubst('/$', '')
+  $wsexceptiondest = $destination.regsubst('/$', '')
 
   $proxy_params = $destination ? {
     /(localhost|127\.0\.0\.1)/ => {},
     default                    => { 'keepalive' => 'On' },
   }
 
+  $websockets_exceptions_proxy_pass = $websockets_exceptions.map |$ex| {
+    { 'path' => $ex, 'url' => "${wsexceptiondest}${ex}", 'params' => $proxy_params }
+  }
+
   $proxy_pass = [
+    $websockets_exceptions_proxy_pass,
+
     $websockets ? {
       undef   => [],
       default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}", 'params' => $proxy_params },
