@@ -60,6 +60,27 @@ class nest::profile::base::systemd {
     target => '/run/systemd/resolve/stub-resolv.conf',
   }
 
+  file {
+    default:
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+    ;
+
+    '/etc/dnssec-trust-anchors.d':
+      ensure => directory,
+    ;
+
+    '/etc/dnssec-trust-anchors.d/local.negative':
+      source => 'puppet:///modules/nest/systemd/dnssec-trust-anchors-local.negative',
+      notify => Service['systemd-resolved'],
+    ;
+  }
+
+  service { 'systemd-resolved':
+    enable => true,
+  }
+
   file_line { 'locale.gen-en_US.UTF-8':
     path  => '/etc/locale.gen',
     line  => 'en_US.UTF-8 UTF-8',
