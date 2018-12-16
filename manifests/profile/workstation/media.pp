@@ -13,5 +13,6 @@ class nest::profile::workstation::media {
     owner   => 'root',
     group   => 'root',
     content => $gpmdp_wrapper,
+    require => Package['media-sound/google-play-music-desktop-player-bin'],
   }
 }
