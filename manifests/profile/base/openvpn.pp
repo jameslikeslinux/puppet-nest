@@ -11,6 +11,7 @@ class nest::profile::base::openvpn {
     dhcp-option DOMAIN nest
     dhcp-option DNS 172.22.0.1
     push "dhcp-option DOMAIN nest"
+    push "dhcp-option DOMAIN home"
     push "dhcp-option DNS 172.22.0.1"
     push "route-metric 1000"
     push "route 172.22.1.0 255.255.255.0"
