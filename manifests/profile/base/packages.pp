@@ -18,6 +18,7 @@ class nest::profile::base::packages {
     'sys-libs/nss_wrapper',
     'sys-process/htop',
     'sys-process/lsof',
+    'sys-process/parallel',
     'www-client/elinks',
     'x11-misc/xsel',
   ]:
