@@ -142,6 +142,13 @@ class nest::profile::base::portage {
     content => "*/*::haskell ~amd64\n",
   }
 
+  file { '/etc/portage/package.keywords/nest':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::nest ~amd64\n",
+  }
+
   file { [
     '/etc/portage/patches',
     '/etc/portage/profile'
