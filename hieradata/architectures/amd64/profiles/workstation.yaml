@@ -159,6 +159,7 @@ nest::package_keywords:
 
   # Get the latest bug fixes and features for xmonad & co.
   x11-misc/taffybar:
+    ensure: 'absent'
     version: '=9999'
     keywords: '**'
 
