@@ -1,6 +1,7 @@
 ---
 nest::package_keywords:
   # I always want the most recent of these:
+  media-fonts/fontawesome: {}
   media-gfx/displaycal: {}
   media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
