@@ -15,12 +15,9 @@ class nest::profile::workstation::xmonad {
     'x11-misc/taffybar',
     'dev-haskell/missingh',
     'media-gfx/feh',
+    'net-wireless/iw',  # for taffybar status
   ]:
     ensure => installed,
-  }
-
-  package { 'x11-misc/xmobar':
-    ensure => absent,
   }
 
   # Gtk scaling for Taffybar doesn't work well
