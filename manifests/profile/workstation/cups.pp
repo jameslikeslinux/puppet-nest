@@ -22,7 +22,7 @@ class nest::profile::workstation::cups {
     line    => 'SystemGroup wheel',
     match   => '^SystemGroup',
     require => Package['net-print/cups'],
-    notify  => Service['cups.service'],
+    notify  => Service['cups'],
   }
 
   augeas { 'cups-browsed-browse-poll':
@@ -33,7 +33,7 @@ class nest::profile::workstation::cups {
   }
 
   service { [
-    'cups.service',
+    'cups',
     'cups-browsed',
   ]:
     enable  => true,
