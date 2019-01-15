@@ -17,25 +17,21 @@ class nest::profile::workstation::cups {
     ensure => absent,
   }
 
+  file { '/etc/cups/cupsd.conf':
+    mode    => '0640',
+    owner   => 'root',
+    group   => 'lp',
+    content => template('nest/cups/cupsd.conf.erb'),
+    require => Package['net-print/cups'],
+    notify  => Service['cups'],
+  }
 
-  file_line { 
-    default:
-      require => Package['net-print/cups'],
-      notify  => Service['cups'],
-    ;
-
-    'cupsd-server-alias':
-      path  => '/etc/cups/cupsd.conf',
-      line  => "ServerAlias ${::trusted['certname']}.nest",
-      match => '^#?ServerAlias ',
-      after => '^Listen ',
-    ;
-
-    'cups-files-system-group-wheel':
-      path    => '/etc/cups/cups-files.conf',
-      line    => 'SystemGroup wheel',
-      match   => '^SystemGroup',
-    ;
+  file_line { 'cups-files-system-group-wheel':
+    path    => '/etc/cups/cups-files.conf',
+    line    => 'SystemGroup wheel',
+    match   => '^SystemGroup',
+    require => Package['net-print/cups'],
+    notify  => Service['cups'],
   }
 
   augeas { 'cups-browsed-browse-poll':
