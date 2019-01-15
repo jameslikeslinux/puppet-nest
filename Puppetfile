@@ -19,6 +19,7 @@ mod 'private',
 # Required by nest
 mod 'gentoo-portage', '2.3.0'
 mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
+mod 'leoarnold-cups', '2.0.3'
 mod 'puppetlabs-apache', '3.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
 mod 'puppetlabs-mysql', '7.0.0'
