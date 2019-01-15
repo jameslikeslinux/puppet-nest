@@ -164,6 +164,10 @@ nest::package_keywords:
     version: '=9999'
     keywords: '**'
 
+  # Use 'unstable' version for bug fixes
+  net-print/cups:
+    version: '=2.2.10'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
