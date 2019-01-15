@@ -13,8 +13,9 @@ Port 631
 Listen /run/cups/cups.sock
 ServerAlias <%= @trusted['certname'] %>.nest
 
-# Let cups-browsed handle finding remote printers
-Browsing Off
+# Show shared printers on the local network.
+Browsing On
+BrowseLocalProtocols
 
 # Default authentication type, when authentication is required...
 DefaultAuthType Basic
