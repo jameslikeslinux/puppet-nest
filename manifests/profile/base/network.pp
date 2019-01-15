@@ -15,7 +15,7 @@ class nest::profile::base::network {
     ipv6.ip6-privacy=2
 
     [keyfile]
-    unmanaged-devices=interface-name:tun0
+    unmanaged-devices=interface-name:docker*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
     | EOT
 
   file { '/etc/NetworkManager/NetworkManager.conf':
