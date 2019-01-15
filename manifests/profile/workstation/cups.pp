@@ -1,10 +1,5 @@
 class nest::profile::workstation::cups {
-  $cups_browsed_changes = ($::nest::cups_servers_hiera - "${::trusted['certname']}.nest").map |$server| {
-    [
-      'set directive[last() + 1] BrowsePoll',
-      "set directive[. = 'BrowsePoll'][last()]/arg ${server}",
-    ]
-  }.flatten
+  $cups_browsed_hosts = $::nest::cups_servers_hiera - "${::trusted['certname']}.nest"
 
   package { [
     'net-print/cups',
@@ -34,9 +29,11 @@ class nest::profile::workstation::cups {
     notify  => Service['cups'],
   }
 
-  augeas { 'cups-browsed-browse-poll':
-    context => '/files/etc/cups/cups-browsed.conf',
-    changes => ['rm directive[. = \'BrowsePoll\']'] + $cups_browsed_changes,
+  file { '/etc/cups/cups-browsed.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => template('nest/cups/cups-browsed.conf.erb'),
     require => Package['net-print/cups'],
     notify  => Service['cups-browsed'],
   }
