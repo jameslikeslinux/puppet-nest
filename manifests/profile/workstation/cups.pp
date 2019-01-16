@@ -35,14 +35,19 @@ class nest::profile::workstation::cups {
     group   => 'root',
     content => template('nest/cups/cups-browsed.conf.erb'),
     require => Package['net-print/cups'],
-    notify  => Service['cups-browsed'],
+    notify  => [
+      Service['cups'],
+      Service['cups-browsed'],
+    ],
   }
 
-  service { [
-    'cups',
-    'cups-browsed',
-  ]:
+  service { 'cups':
     enable  => true,
     require => Package['net-print/cups'],
+  }
+
+  service { 'cups-browsed':
+    enable  => true,
+    require => Service['cups'],
   }
 }
