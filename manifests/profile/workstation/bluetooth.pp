@@ -16,4 +16,31 @@ class nest::profile::workstation::bluetooth {
     creates => '/lib/firmware/brcm/BCM20702A1-0a5c-21e8.hcd',
     require => Package['sys-kernel/linux-firmware'],
   }
+
+  $systemd_dropin_content = @(DROPIN)
+    [Unit]
+    Conflicts=bluetooth.service
+    | DROPIN
+
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/etc/systemd/system/sleep.target.d':
+      ensure => directory,
+    ;
+
+    '/etc/systemd/system/sleep.target.d/bluetooth-conflict.conf':
+      content => $systemd_dropin_content,
+      notify  => Exec['bluetooth-systemd-daemon-reload'],
+    ;
+  }
+
+  exec { 'bluetooth-systemd-daemon-reload':
+    command     => '/bin/systemctl daemon-reload',
+    refreshonly => true,
+  }
 }
