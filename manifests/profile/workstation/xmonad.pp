@@ -16,6 +16,7 @@ class nest::profile::workstation::xmonad {
     'dev-haskell/missingh',
     'media-gfx/feh',
     'net-wireless/iw',  # for taffybar status
+    'x11-apps/xev',     # for taffybar status
   ]:
     ensure => installed,
   }
