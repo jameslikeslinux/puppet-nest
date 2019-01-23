@@ -64,10 +64,10 @@ class nest (
   $use_hiera = hiera_array('nest::use', $use)
   $use_combined = union($use_defaults, $use_hiera).sort
 
-  $dpi = inline_template('<%= (@text_scaling_factor * 96.0).round %>')
-  $gui_scaling_factor_rounded = inline_template('<%= @gui_scaling_factor.round %>')
-  $text_scaling_factor_percent_of_gui = floor(($dpi / ($gui_scaling_factor * 96.0)) * 1000) / 1000.0
-  $text_scaling_factor_percent_of_rounded_gui = floor(($dpi / ($gui_scaling_factor_rounded * 96.0)) * 1000) / 1000.0
+  $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')
+  $gui_scaling_factor_rounded = 0 + inline_template('<%= @gui_scaling_factor.round %>')
+  $text_scaling_factor_percent_of_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor * 96.0)).round(3) %>')
+  $text_scaling_factor_percent_of_rounded_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor_rounded * 96.0)).round(3) %>')
 
   $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
   $console_font_size_ideal   = 16 * $::nest::text_scaling_factor
