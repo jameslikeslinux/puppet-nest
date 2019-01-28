@@ -14,6 +14,8 @@ class nest::docker {
     require                    => Zfs['docker'],
   }
 
+  Class['docker'] -> Docker_network <||>
+
   User <| title == 'james' or title == 'bitwarden' |> {
     groups  +> 'docker',
     require +> Class['docker'],
