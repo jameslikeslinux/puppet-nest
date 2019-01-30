@@ -77,4 +77,34 @@ class nest::profile::base::fstab {
     context => '/files/etc/fstab',
     changes => $changes,
   }
+
+  # XXX: Hide harmless error at shutdown when trying to unmount /var due to
+  # journald still writing to /var/log/journal
+  # See: https://github.com/systemd/systemd/issues/867
+  $var_lazy_unmount = @(END_OVERRIDE)
+    [Mount]
+    LazyUnmount=yes
+    | END_OVERRIDE
+
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/etc/systemd/system/var.mount.d':
+      ensure => directory,
+    ;
+
+    '/etc/systemd/system/var.mount.d/lazyunmount.conf':
+      content => $var_lazy_unmount,
+      notify  => Exec['fstab-systemd-daemon-reload'],
+    ;
+  }
+
+  exec { 'fstab-systemd-daemon-reload':
+    command     => '/bin/systemctl daemon-reload',
+    refreshonly => true,
+  }
 }
