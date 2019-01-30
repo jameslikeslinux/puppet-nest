@@ -63,6 +63,8 @@ nest::package_keywords:
     version: '=5.0.0'
   sys-devel/llvm-common:
     version: '=5.0.0'
+  virtual/cargo:
+    version: '=1.32.0'
   virtual/rust:
     version: '=1.32.0'
 
