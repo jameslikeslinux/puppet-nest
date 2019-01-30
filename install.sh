@@ -1,7 +1,7 @@
 #!/bin/bash
 
-STAGE_ARCHIVE=https://thestaticvoid.com/dist/stage3-amd64-systemd-20170818.tar.bz2
-DATE=$(date '+%Y%m%d')
+STAGE_ARCHIVE='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190128.tar.bz2'
+DATE="$(date '+%Y%m%d')"
 
 usage() {
     cat >&2 <<END
@@ -313,11 +313,11 @@ cmd wget --progress=dot:mega https://github.com/iamjamestl/portage-gentoo/archiv
 cmd mkdir -p "/mnt/${name}/var/cache/portage/gentoo"
 cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
 cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
-chroot_cmd eselect profile set 1
+chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
 
 
 task "Installing Puppet..."
-chroot_cmd emerge -v app-admin/puppet-agent app-portage/eix
+chroot_cmd emerge -v '<app-admin/puppet-agent-6' app-portage/eix
 
 
 task "Prepping for Puppet run..."
