@@ -34,33 +34,37 @@ nest::package_keywords:
     version: '=5.1.0'
     ensure: 'absent'
 
-  # required by www-client/firefox-63.0::gentoo
-  dev-libs/nss:
-    version: '=3.39'
+  # required by www-client/firefox-65.0::gentoo
+  dev-util/cargo:
+    version: '=1.32.0'
+  dev-util/cbindgen:
+    version: '=0.7.1'
   dev-libs/nspr:
     version: '=4.19'
+  dev-libs/nss:
+    version: '=3.41-r1'
   dev-lang/rust:
-    version: '=1.25.0'
-  dev-util/cbindgen:
-    version: '=0.6.6'
-  virtual/rust:
-    version: '=1.25.0'
-  dev-util/cargo:
-    version: '=0.26.0'
-  sys-libs/libomp:
+    version: '=1.32.0'
+  media-libs/libvpx:
+    version: '=1.7.0'
+  media-libs/libwebp:
+    version: '=1.0.2'
+  sys-devel/clang:
+    version: '=5.0.0'
+  sys-devel/clang-runtime:
     version: '=5.0.0'
   sys-libs/compiler-rt:
     version: '=5.0.0'
   sys-libs/compiler-rt-sanitizers:
     version: '=5.0.0'
-  sys-devel/clang:
-    version: '=5.0.0'
-  sys-devel/clang-runtime:
-    version: '=5.0.0'
-  sys-devel/llvm-common:
+  sys-libs/libomp:
     version: '=5.0.0'
   sys-devel/llvm:
     version: '=5.0.0'
+  sys-devel/llvm-common:
+    version: '=5.0.0'
+  virtual/rust:
+    version: '=1.32.0'
 
   # To support llvm-5.0.0:
   media-libs/mesa:
@@ -209,6 +213,8 @@ nest::package_use:
     ensure: 'absent'
 
   # For firefox
+  dev-db/sqlite
+    use: 'secure-delete'
   dev-lang/python:
     use: 'sqlite'
 
