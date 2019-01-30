@@ -15,6 +15,13 @@ class nest::profile::base::libvirt {
     before  => Service['libvirt-guests'],
   }
 
+  # Ensure libvirt can find UEFI firmware in the place it expects
+  file { '/usr/share/OVMF':
+    ensure  => link,
+    target  => '/usr/share/edk2-ovmf',
+    require => Package['app-emulation/libvirt'],
+  }
+
   service { [
     'libvirtd',
     'libvirt-guests',
