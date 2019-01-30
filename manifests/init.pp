@@ -22,7 +22,7 @@ class nest (
   $processorcount      = $::processorcount,
   $gui_scaling_factor  = 1.0,
   $text_scaling_factor = 1.0,
-  $synergy_config      = undef,
+  $barrier_config      = undef,
   $video_card          = undef,
 
   $live                = $::nest['live'],

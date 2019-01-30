@@ -3,7 +3,7 @@ Description=Synergy Server Daemon
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/synergys.safe --no-daemon --config /etc/synergy.conf
+ExecStart=/usr/bin/barriers.safe --no-daemon --config /etc/barrier.conf
 Restart=on-failure
 RestartSec=10
 

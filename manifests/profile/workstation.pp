@@ -18,8 +18,8 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::xmonad'
   contain '::nest::profile::workstation::xorg'
 
-  if $::nest::synergy_config {
-    contain '::nest::profile::workstation::synergy'
+  if $::nest::barrier_config {
+    contain '::nest::profile::workstation::barrier'
   }
 
   # Plasma pulls in xorg-drivers which builds nvidia-drivers which requires
