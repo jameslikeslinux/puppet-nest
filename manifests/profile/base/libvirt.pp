@@ -15,11 +15,13 @@ class nest::profile::base::libvirt {
     before  => Service['libvirt-guests'],
   }
 
-  # Ensure libvirt can find UEFI firmware in the place it expects
-  file { '/usr/share/OVMF':
-    ensure  => link,
-    target  => '/usr/share/edk2-ovmf',
+  # Ensure libvirt can find the UEFI firmware
+  file_line { 'libvirt-qemu-nvram':
+    path    => '/etc/libvirt/qemu.conf',
+    line    => 'nvram = ["/usr/share/edk2-ovmf/OVMF_CODE.fd:/usr/share/edk2-ovmf/OVMF_VARS.fd"]',
+    match   => '^#?nvram = \[',
     require => Package['app-emulation/libvirt'],
+    notify  => Service['libvirtd'],
   }
 
   service { [
