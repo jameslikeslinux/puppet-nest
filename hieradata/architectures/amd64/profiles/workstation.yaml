@@ -280,3 +280,7 @@ nest::package_use:
   # required by x11-misc/taffybar-3.0.0::haskell
   dev-libs/libdbusmenu:
     use: 'gtk3'
+
+  # required by x11-misc/barrier-2.1.2::nest[qt5]
+  net-dns/avahi:
+    use: 'mdnsresponder-compat'
