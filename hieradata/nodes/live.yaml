@@ -1,3 +1,4 @@
+nest::processorcount: 1
 nest::vm: true
 
 # Try to be readable on a wide variety of screens
