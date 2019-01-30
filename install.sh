@@ -333,7 +333,7 @@ END
 
 
 task "Running Puppet..."
-chroot_command puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest --environment development
+chroot_command puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest
 [ -z "$live" ] && chroot_command systemctl enable puppet
 
 task "Removing unnecessary packages..."
