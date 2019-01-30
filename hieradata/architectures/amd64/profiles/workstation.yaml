@@ -213,7 +213,7 @@ nest::package_use:
     ensure: 'absent'
 
   # For firefox
-  dev-db/sqlite
+  dev-db/sqlite:
     use: 'secure-delete'
   dev-lang/python:
     use: 'sqlite'
