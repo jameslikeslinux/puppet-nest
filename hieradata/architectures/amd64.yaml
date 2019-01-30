@@ -145,8 +145,10 @@ nest::package_use:
     ensure: 'absent'
 
   # Just install the drivers, not all the GUI crap
+  # XXX: We don't have any HP printers anymore
   net-print/hplip:
     use: 'minimal'
+    ensure: 'absent'
 
   # For puppet-agent
   sys-libs/ncurses:
