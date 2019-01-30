@@ -11,6 +11,7 @@ class nest::profile::workstation {
   contain '::nest::profile::workstation::media'
   contain '::nest::profile::workstation::mouse'
   contain '::nest::profile::workstation::packages'
+  contain '::nest::profile::workstation::policykit'
   contain '::nest::profile::workstation::plasma'
   contain '::nest::profile::workstation::pulseaudio'
   contain '::nest::profile::workstation::thunderbird'
@@ -51,4 +52,8 @@ class nest::profile::workstation {
   # NetworkManager pulls in bluez
   Class['::nest::profile::base::network']
   -> Class['::nest::profile::workstation::bluetooth']
+
+  # NetworkManager, systemd, libvirt pull in policykit
+  Class['::nest::profile::base']
+  -> Class['::nest::profile::workstation::policykit']
 }

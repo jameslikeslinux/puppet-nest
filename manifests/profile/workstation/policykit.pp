@@ -1,4 +1,4 @@
-class nest::profile::base::policykit {
+class nest::profile::workstation::policykit {
   $admin_rules_content = @(EOT)
     polkit.addAdminRule(function(action, subject) {
         return ["unix-group:wheel"];

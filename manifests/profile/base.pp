@@ -12,7 +12,6 @@ class nest::profile::base {
   contain '::nest::profile::base::network'
   contain '::nest::profile::base::openvpn'
   contain '::nest::profile::base::packages'
-  contain '::nest::profile::base::policykit'
   contain '::nest::profile::base::portage'
   contain '::nest::profile::base::puppet'
   contain '::nest::profile::base::ssh'
@@ -63,10 +62,6 @@ class nest::profile::base {
   # OpenVPN modifies resolvconf which is installed for NetworkManager
   Class['::nest::profile::base::network']
   -> Class['::nest::profile::base::openvpn']
-
-  # PolicyKit is pulled in by NetworkManager
-  Class['::nest::profile::base::network']
-  -> Class['::nest::profile::base::policykit']
 
   if $::nest::libvirt {
     contain '::nest::profile::base::libvirt'
