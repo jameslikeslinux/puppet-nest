@@ -12,12 +12,13 @@ Options:
                          (can be specified multiple times)
   -e, --encrypt          encrypt the resulting pool
   -n, --dry-run          just print out what would be done
+  --partition-only       just partition/format the disks and exit
   -p, --profile PROFILE  the type of system to install
                          (default: 'base')
 END
 }
 
-ARGS=$(getopt -o "ed:np:" -l "encrypt,disk:,dry-run,profile:" -n install.sh -- "$@")
+ARGS=$(getopt -o "ed:np:" -l "encrypt,disk:,dry-run,partition-only,profile:" -n install.sh -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -43,6 +44,9 @@ while true; do
             shift
             dryrun='yes'
             ;;
+        --partition-only)
+            shift
+            partition_only='yes'
         -p|--profile)
             shift
             profile=$1
@@ -142,17 +146,19 @@ chroot_cmd() {
     fi
 }
 
-echo
-echo -n "Did you make sure ${name} doesn't already have a Puppet certificate? "
-read puppet_clean
-case "$puppet_clean" in
-    y*|Y*)
-        ;;
-    *)
-        echo "Check for an existing Puppet cert for ${name} before continuing." >&2
-        exit 1
-        ;;
-esac
+if [[ ! $partition_only ]]; then
+    echo
+    echo -n "Did you make sure ${name} doesn't already have a Puppet certificate? "
+    read puppet_clean
+    case "$puppet_clean" in
+        y*|Y*)
+            ;;
+        *)
+            echo "Check for an existing Puppet cert for ${name} before continuing." >&2
+            exit 1
+            ;;
+    esac
+fi
 
 
 if [ -n "$encrypt" ]; then
@@ -268,6 +274,8 @@ else
     cmd mkdir "/mnt/${name}/boot"
     cmd mount LABEL="${name}-boot" "/mnt/${name}/boot"
 fi
+
+[[ $partition_only ]] && exit
 
 
 task "Downloading and extracting stage archive..."
