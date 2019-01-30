@@ -47,6 +47,7 @@ while true; do
         --partition-only)
             shift
             partition_only='yes'
+            ;;
         -p|--profile)
             shift
             profile=$1
