@@ -2,7 +2,7 @@
 classes:
   - 'nest::docker'
 
-nest::kernel_cmdline: 'hugepages=2048'
+nest::isolcpus: '4-7'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
@@ -12,5 +12,6 @@ nest::dvorak: true
 nest::mouse: 'mxmaster'
 nest::monitor_layout: ['DP-4', 'DP-6']
 nest::primary_monitor: 'DP-6'
+nest::processorcount: 4
 nest::text_scaling_factor: 1.1
 nest::video_card: 'nvidia'
