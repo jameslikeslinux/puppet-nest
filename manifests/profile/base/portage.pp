@@ -162,8 +162,9 @@ class nest::profile::base::portage {
   # Enable libzfs USE flag for GRUB
   # XXX: This could be made more generic if needed
   $use_mask_content = @(EOT)
-    -libzfs
     -input_devices_libinput
+    -libzfs
+    -zfs
     | EOT
 
   file { '/etc/portage/profile/use.mask':
