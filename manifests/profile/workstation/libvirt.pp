@@ -4,7 +4,10 @@ class nest::profile::workstation::libvirt {
     default => 'absent',
   }
 
-  package { 'app-emulation/virt-manager':
+  package { [
+    'app-emulation/virt-manager',
+    'app-emulation/virt-viewer',
+  ]:
     ensure => $virt_manager_ensure,
   }
 }
