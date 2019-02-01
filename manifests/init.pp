@@ -95,7 +95,7 @@ class nest (
         $cpuset_split = $cpuset.split('-')
         range($cpuset_split[0], $cpuset_split[1])
       } else {
-        $cpuset
+        0 + $cpuset
       }
     }.flatten
   } else {
