@@ -32,9 +32,14 @@ class nest::profile::base::network {
     require => Package['net-misc/networkmanager'],
   }
 
-  # "mask" service which holds up the boot process
+  # "mask" service which potentially holds up the boot process when on wireless
+  $wait_online_ensure = $facts['interfaces'] ? {
+    /(^|,)wl/ => symlink,
+    default   => absent,
+  }
+
   file { '/etc/systemd/system/NetworkManager-wait-online.service':
-    ensure => symlink,
+    ensure => $wait_online_ensure,
     target => '/dev/null',
     notify => Exec['NetworkManager-systemd-daemon-reload'],
   }
