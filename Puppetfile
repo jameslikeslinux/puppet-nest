@@ -24,6 +24,7 @@ mod 'puppetlabs-registry', '2.1.0'
 # Required by nest
 mod 'gentoo-portage', '2.3.0'
 mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
+mod 'mdelaney-cygwin', '0.1.0'
 mod 'puppetlabs-apache', '3.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
 mod 'puppetlabs-mysql', '7.0.0'
@@ -42,3 +43,6 @@ mod 'herculesteam-augeasproviders_core', '2.2.0'
 
 # Required by puppetlabs-mysql
 mod 'puppetlabs-translate', '1.2.0'
+
+# Required by mdelaney-cygwin
+mod 'puppet-staging', '3.2.0'

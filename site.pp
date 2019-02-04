@@ -15,7 +15,10 @@ if $facts['osfamily'] == 'windows' {
     before => Stage['main'],
   }
 
-  class { 'chocolatey':
+  class { [
+    'chocolatey',
+    'cygwin'
+  ]:
     stage => 'first',
   }
 
