@@ -34,7 +34,6 @@ class nest::profile::base::packages {
 
     'windows': {
       package { [
-        'procps-ng',
         'tmux',
         'vim',
       ]:
