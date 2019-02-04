@@ -183,7 +183,7 @@ class nest::profile::base::users {
         'C:/tools/cygwin/bin/bash', '-c',
         shellquote([
           'git', 'ls-files', $dir,
-          '|'
+          '|',
           'xargs', 'chown', 'james',
         ]),
       ])
