@@ -1,12 +1,15 @@
 class nest::profile::base {
   contain '::nest::profile::base::puppet'
+  contain '::nest::profile::base::git'
+
+  # Git should be installed before managing any Vcsrepos
+  Class['::nest::profile::base::git'] -> Vcsrepo <| provider == git |>
 
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::profile::base::distcc'
       contain '::nest::profile::base::distccd'
       contain '::nest::profile::base::dracut'
-      contain '::nest::profile::base::git'
       contain '::nest::profile::base::grub'
       contain '::nest::profile::base::firewall'
       contain '::nest::profile::base::fs'
@@ -28,9 +31,6 @@ class nest::profile::base {
       Class['::nest::profile::base::distcc']
       -> Class['::nest::profile::base::portage']
       -> Class['::nest::profile::base::distccd']
-
-      # Git should be installed before managing any Vcsrepos
-      Class['::nest::profile::base::git'] -> Vcsrepo <| provider == git |>
 
       # Portage should be configured before any packages are installed/changed
       Class['::nest::profile::base::portage'] -> Package <| title != 'sys-devel/distcc' and title != 'dev-vcs/git' and title != 'app-admin/eselect' |>
