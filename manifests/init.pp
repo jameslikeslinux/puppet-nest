@@ -25,7 +25,7 @@ class nest (
   $barrier_config      = undef,
   $video_card          = undef,
 
-  $live                = $::nest['live'],
+  $live                = ($::nest and $::nest['live']),
   $vm                  = ($::virtual == 'kvm'),
 
   $cflags              = $::portage_cflags,
@@ -44,7 +44,7 @@ class nest (
 
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 ) {
-  if $::nest['profile'] == 'workstation' {
+  if $nest and $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/17.0/desktop/plasma/systemd'
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia'
