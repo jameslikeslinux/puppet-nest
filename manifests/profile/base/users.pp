@@ -153,10 +153,10 @@ class nest::profile::base::users {
       }
 
       file { 'C:/tools/cygwin/home/james':
-        ensure => directory,
-        mode   => '0755',
-        owner  => 'james',
-        before => Vcsrepo['C:/tools/cygwin/home/james'];
+        ensure  => directory,
+        owner   => 'james',
+        recurse => true,
+        require => Vcsrepo['C:/tools/cygwin/home/james'];
       }
 
       $homes = {
@@ -166,12 +166,17 @@ class nest::profile::base::users {
   }
 
   $homes.each |$user, $dir| {
+    $vcsrepo_user = $facts['osfamily'] ? {
+      'windows' => undef,
+      default   => $user,
+    }
+
     vcsrepo { $dir:
       ensure   => latest,
       provider => git,
       source   => 'https://github.com/iamjamestl/dotfiles.git',
       revision => 'master',
-      user     => $user,
+      user     => $vcsrepo_user,
     }
 
     file { "${dir}/.ssh/id_rsa":
