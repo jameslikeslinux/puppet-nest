@@ -144,32 +144,6 @@ class nest::profile::base::users {
         'root'  => '/root',
         'james' => '/home/james',
       }
-
-      $homes.each |$user, $dir| {
-        vcsrepo { $dir:
-          ensure   => latest,
-          provider => git,
-          source   => 'https://github.com/iamjamestl/dotfiles.git',
-          revision => 'master',
-          user     => $user,
-        }
-
-        file { "${dir}/.ssh/id_rsa":
-          mode      => '0600',
-          owner     => $user,
-          content   => $::nest::ssh_private_key,
-          show_diff => false,
-          require   => Vcsrepo[$dir],
-        }
-
-        exec { "${dir}/.refresh":
-          user        => $user,
-          path        => '/usr/bin:/bin',
-          onlyif      => "test -x '${dir}/.refresh'",
-          refreshonly => true,
-          subscribe   => Vcsrepo[$dir],
-        }
-      }
     }
 
     'windows': {
@@ -177,6 +151,43 @@ class nest::profile::base::users {
         ensure   => installed,
         provider => 'cygwin',
       }
+
+      file { 'C:/tools/cygwin/home/james':
+        ensure => directory,
+        mode   => '0755',
+        owner  => 'james',
+        before => Vcsrepo['C:/tools/cygwin/home/james'];
+      }
+
+      $homes = {
+        'james' => 'C:/tools/cygwin/home/james',
+      }
+    }
+  }
+
+  $homes.each |$user, $dir| {
+    vcsrepo { $dir:
+      ensure   => latest,
+      provider => git,
+      source   => 'https://github.com/iamjamestl/dotfiles.git',
+      revision => 'master',
+      user     => $user,
+    }
+
+    file { "${dir}/.ssh/id_rsa":
+      mode      => '0600',
+      owner     => $user,
+      content   => $::nest::ssh_private_key,
+      show_diff => false,
+      require   => Vcsrepo[$dir],
+    }
+
+    exec { "${dir}/.refresh":
+      user        => $user,
+      path        => '/usr/bin:/bin',
+      onlyif      => "test -x '${dir}/.refresh'",
+      refreshonly => true,
+      subscribe   => Vcsrepo[$dir],
     }
   }
 }

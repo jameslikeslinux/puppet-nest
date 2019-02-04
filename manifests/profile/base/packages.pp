@@ -34,6 +34,7 @@ class nest::profile::base::packages {
 
     'windows': {
       package { [
+        'tmux',
         'vim',
       ]:
         ensure   => installed,
