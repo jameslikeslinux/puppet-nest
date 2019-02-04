@@ -1,6 +1,7 @@
 class nest::profile::base {
   contain '::nest::profile::base::puppet'
   contain '::nest::profile::base::git'
+  contain '::nest::profile::base::users'
 
   # Git should be installed before managing any Vcsrepos
   Class['::nest::profile::base::git'] -> Vcsrepo <| provider == git |>
@@ -23,7 +24,6 @@ class nest::profile::base {
       contain '::nest::profile::base::ssh'
       contain '::nest::profile::base::sudo'
       contain '::nest::profile::base::systemd'
-      contain '::nest::profile::base::users'
       contain '::nest::profile::base::zfs'
 
       # Setup distcc before portage, but distccd needs systemd, which is
