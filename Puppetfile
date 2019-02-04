@@ -29,13 +29,13 @@ mod 'puppetlabs-firewall', '1.14.0'
 mod 'puppetlabs-mysql', '7.0.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
-mod 'theforeman-puppet', '10.0.0'
+mod 'theforeman-puppet', '11.0.0'
 mod 'docker',
   :git    => 'https://github.com/iamjamestl/puppetlabs-docker.git',
   :branch => 'fixes'
 
 # Required by theforeman-puppet
-mod 'puppet-extlib', '3.0.0'
+mod 'puppet-extlib', '3.1.0'
 
 # Required by augeasproviders_sysctl
 mod 'herculesteam-augeasproviders_core', '2.2.0'
