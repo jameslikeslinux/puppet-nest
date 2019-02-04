@@ -51,7 +51,7 @@ Puppet::Type.type(:package).provide(:cygwin, :parent => Puppet::Provider::Packag
   #
   def self.cygwin(*args)
     cygwin_cmd = File.join install_dir, 'cygwinsetup.exe'
-    cmd = [ cygwin_cmd ] + args
+    cmd = [ cygwin_cmd, '--no-desktop' ] + args
     Puppet::Util::Execution.execute(cmd)
   end
 
