@@ -18,11 +18,8 @@ class nest::profile::base::puppet {
           autosign                    => true,
           dns_alt_names               => $dns_alt_names,
           server                      => true,
-          server_dynamic_environments => true,
-          server_environments         => [],
           server_external_nodes       => '',
           server_foreman              => false,
-          server_implementation       => 'puppetserver',
           server_jvm_config           => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
         }
 
