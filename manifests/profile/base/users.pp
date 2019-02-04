@@ -152,13 +152,6 @@ class nest::profile::base::users {
         provider => 'cygwin',
       }
 
-      file { 'C:/tools/cygwin/home/james':
-        ensure  => directory,
-        owner   => 'james',
-        recurse => true,
-        require => Vcsrepo['C:/tools/cygwin/home/james'];
-      }
-
       $homes = {
         'james' => 'C:/tools/cygwin/home/james',
       }
@@ -177,6 +170,23 @@ class nest::profile::base::users {
       source   => 'https://github.com/iamjamestl/dotfiles.git',
       revision => 'master',
       user     => $vcsrepo_user,
+    }
+
+    if $facts['osfamily'] == 'windows' {
+      $chown_command = shellquote([
+        'C:/tools/cygwin/bin/bash', '-c',
+        shellquote([
+          'git', 'ls-files', $dir,
+          '|'
+          'xargs', 'chown', 'james',
+        ]),
+      ])
+
+      exec { "chown-${user}-dotfiles":
+        command     => $chown_command,
+        refreshonly => true,
+        subscribe   => Vcsrepo[$dir],
+      }
     }
 
     file { "${dir}/.ssh/id_rsa":
