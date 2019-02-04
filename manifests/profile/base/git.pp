@@ -1,16 +1,10 @@
 class nest::profile::base::git {
-  case $facts['osfamily'] {
-    'Gentoo': {
-      package { 'dev-vcs/git':
-        ensure => installed,
-      }
-    }
+  $package_name = $facts['osfamily'] ? {
+    'Gentoo' => 'dev-vcs/git',
+    default  => git,
+  }
 
-    'windows': {
-      package { 'git':
-        ensure   => installed,
-        provider => 'cygwin',
-      }
-    }
+  package { $package_name:
+    ensure => installed,
   }
 }
