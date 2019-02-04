@@ -1,4 +1,6 @@
 class nest::profile::workstation {
+  contain '::nest::profile::workstation::firefox'
+
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::profile::workstation::bluetooth'
@@ -6,7 +8,6 @@ class nest::profile::workstation {
       contain '::nest::profile::workstation::cups'
       contain '::nest::profile::workstation::cursor'
       contain '::nest::profile::workstation::dunst'
-      contain '::nest::profile::workstation::firefox'
       contain '::nest::profile::workstation::fonts'
       contain '::nest::profile::workstation::lastpass'
       contain '::nest::profile::workstation::libvirt'
