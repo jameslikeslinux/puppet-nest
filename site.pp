@@ -10,7 +10,7 @@ Firewallchain {
   noop => str2bool("$::chroot")
 }
 
-if $facts['kernel'] == 'windows' {
+if $facts['osfamily'] == 'windows' {
   stage { 'first':
     before => Stage['main'],
   }
