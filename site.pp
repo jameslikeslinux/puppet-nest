@@ -18,6 +18,10 @@ if $facts['osfamily'] == 'windows' {
   class { 'chocolatey':
     stage => 'first',
   }
+
+  Package {
+    provider => 'chocolatey',
+  }
 }
 
 hiera_include('classes')
