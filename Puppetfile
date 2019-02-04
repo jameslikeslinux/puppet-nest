@@ -5,6 +5,7 @@ mod 'puppetlabs-concat', '5.1.0'
 #
 # Forge modules
 #
+mod 'puppetlabs-chocolatey', '3.1.1'
 
 #
 # My modules
@@ -15,6 +16,10 @@ mod 'nest',
 mod 'private',
   :git => '/nest/home/projects/puppet-private'
 
+
+# Required by chocolatey
+mod 'puppetlabs-powershell', '2.2.0'
+mod 'puppetlabs-registry', '2.1.0'
 
 # Required by nest
 mod 'gentoo-portage', '2.3.0'
