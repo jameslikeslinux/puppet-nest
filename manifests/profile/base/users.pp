@@ -191,6 +191,20 @@ class nest::profile::base::users {
         refreshonly => true,
         subscribe   => Vcsrepo[$dir],
       }
+
+      exec { "refresh-${user}-dotfiles":
+        command     => "C:/tools/cygwin/bin/bash.exe ${dir_quoted}/.refresh ${user_quoted}",
+        onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
+        refreshonly => true,
+        subscribe   => Exec["chown-${user}-dotfiles"],
+      }
+    } else {
+      exec { "${dir}/.refresh":
+        user        => $user,
+        onlyif      => "/usr/bin/test -x '${dir}/.refresh'",
+        refreshonly => true,
+        subscribe   => Vcsrepo[$dir],
+      }
     }
 
     file { "${dir}/.ssh/id_rsa":
@@ -199,16 +213,6 @@ class nest::profile::base::users {
       content   => $::nest::ssh_private_key,
       show_diff => false,
       require   => Vcsrepo[$dir],
-    }
-
-    if $facts['osfamily'] != 'windows' {
-      exec { "${dir}/.refresh":
-        user        => $user,
-        path        => '/usr/bin:/bin',
-        onlyif      => "test -x '${dir}/.refresh'",
-        refreshonly => true,
-        subscribe   => Vcsrepo[$dir],
-      }
     }
   }
 }
