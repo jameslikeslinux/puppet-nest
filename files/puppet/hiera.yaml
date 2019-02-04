@@ -12,4 +12,5 @@
   - "nodes/%{::trusted.certname}"
   - "architectures/%{::architecture}/profiles/%{::nest.profile}"
   - "architectures/%{::architecture}"
+  - "oses/%{::facts.osfamily}"
   - "common"
