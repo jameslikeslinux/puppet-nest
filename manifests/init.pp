@@ -109,7 +109,7 @@ class nest (
   # Include standard profile
   contain '::nest::profile::base'
 
-  if $::nest['profile'] == 'workstation' {
+  if ($::nest and $::nest['profile'] == 'workstation') {
     contain '::nest::profile::workstation'
   }
 }
