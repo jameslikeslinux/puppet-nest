@@ -1,6 +1,6 @@
 # Required by everything
-mod 'puppetlabs-stdlib', '5.1.0'
-mod 'puppetlabs-concat', '5.1.0'
+mod 'puppetlabs-stdlib', '5.2.0'
+mod 'puppetlabs-concat', '5.2.0'
 
 #
 # Forge modules
