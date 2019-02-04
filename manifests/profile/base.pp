@@ -74,5 +74,9 @@ class nest::profile::base {
         -> Class['::nest::profile::base::libvirt']
       }
     }
+
+    'windows': {
+      contain '::nest::profile::base::cygwin'
+    }
   }
 }
