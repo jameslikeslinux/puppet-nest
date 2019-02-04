@@ -180,7 +180,7 @@ class nest::profile::base::users {
 
     if $facts['osfamily'] == 'windows' {
       $chown_command = shellquote([
-        'C:/tools/cygwin/bin/bash', '-c',
+        'C:/tools/cygwin/bin/bash.exe', '-c',
         shellquote([
           'git', 'ls-files', $dir,
           '|',
