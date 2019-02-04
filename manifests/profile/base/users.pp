@@ -179,14 +179,12 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-      $chown_command = shellquote([
+      $dir_quoted    = shellquote($dir)
+      $user_quoted   = shellquote($user)
+      $chown_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
-        shellquote([
-          'git', 'ls-files', $dir,
-          '|',
-          'xargs', 'chown', 'james',
-        ]),
-      ])
+        "cd ${dir_quoted}; git ls-files | xargs chown ${user_quoted}",
+      )
 
       exec { "chown-${user}-dotfiles":
         command     => $chown_command,
