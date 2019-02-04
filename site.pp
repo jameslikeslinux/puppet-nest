@@ -11,6 +11,12 @@ Firewallchain {
 }
 
 if $facts['osfamily'] == 'windows' {
+  Concat {
+    # The default is usually 0644, but Windows keeps changing it to 0674, so
+    # just accept what it does.
+    mode => '0674',
+  }
+
   stage { 'first':
     before => Stage['main'],
   }
