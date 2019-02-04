@@ -79,30 +79,32 @@ class nest (
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal.round <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
 
-  $luks_disks = $::partitions.reduce({}) |$memo, $value| {
-    $partition  = $value[0]
-    $attributes = $value[1]
-    if $attributes['filesystem'] == 'crypto_LUKS' and "${::trusted['certname']}-" in $attributes['partlabel'] {
-      merge($memo, { $attributes['partlabel'] => $attributes['uuid'] })
-    } else {
-      $memo
-    }
-  }.merge($extra_luks_disks)
-
-  if $isolcpus {
-    $isolcpus_expanded = $isolcpus.split(',').map |$cpuset| {
-      if $cpuset =~ /-/ {
-        $cpuset_split = $cpuset.split('-')
-        range($cpuset_split[0], $cpuset_split[1])
+  if $facts['kernel'] == 'Linux' {
+    $luks_disks = $::partitions.reduce({}) |$memo, $value| {
+      $partition  = $value[0]
+      $attributes = $value[1]
+      if $attributes['filesystem'] == 'crypto_LUKS' and "${::trusted['certname']}-" in $attributes['partlabel'] {
+        merge($memo, { $attributes['partlabel'] => $attributes['uuid'] })
       } else {
-        0 + $cpuset
+        $memo
       }
-    }.flatten
-  } else {
-    $isolcpus_expanded = []
-  }
+    }.merge($extra_luks_disks)
 
-  $availcpus_expanded = range(0, $facts['processors']['count'] - 1) - $isolcpus_expanded
+    if $isolcpus {
+      $isolcpus_expanded = $isolcpus.split(',').map |$cpuset| {
+        if $cpuset =~ /-/ {
+          $cpuset_split = $cpuset.split('-')
+          range($cpuset_split[0], $cpuset_split[1])
+        } else {
+          0 + $cpuset
+        }
+      }.flatten
+    } else {
+      $isolcpus_expanded = []
+    }
+
+    $availcpus_expanded = range(0, $facts['processors']['count'] - 1) - $isolcpus_expanded
+  }
 
   # Include standard profile
   contain '::nest::profile::base'
