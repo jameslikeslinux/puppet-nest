@@ -182,12 +182,14 @@ class nest::profile::base::users {
       require   => Vcsrepo[$dir],
     }
 
-    exec { "${dir}/.refresh":
-      user        => $user,
-      path        => '/usr/bin:/bin',
-      onlyif      => "test -x '${dir}/.refresh'",
-      refreshonly => true,
-      subscribe   => Vcsrepo[$dir],
+    if $facts['osfamily'] != 'windows' {
+      exec { "${dir}/.refresh":
+        user        => $user,
+        path        => '/usr/bin:/bin',
+        onlyif      => "test -x '${dir}/.refresh'",
+        refreshonly => true,
+        subscribe   => Vcsrepo[$dir],
+      }
     }
   }
 }
