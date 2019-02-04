@@ -152,6 +152,12 @@ class nest::profile::base::users {
         provider => 'cygwin',
       }
 
+      file { 'C:/tools/cygwin/home/james':
+        ensure  => directory,
+        owner   => 'james',
+        before  => Vcsrepo['C:/tools/cygwin/home/james'];
+      }
+
       $homes = {
         'james' => 'C:/tools/cygwin/home/james',
       }
