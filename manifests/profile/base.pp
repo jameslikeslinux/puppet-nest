@@ -21,6 +21,7 @@ class nest::profile::base {
       contain '::nest::profile::base::network'
       contain '::nest::profile::base::openvpn'
       contain '::nest::profile::base::portage'
+      contain '::nest::profile::base::qemu'
       contain '::nest::profile::base::ssh'
       contain '::nest::profile::base::sudo'
       contain '::nest::profile::base::systemd'
