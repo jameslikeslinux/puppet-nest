@@ -22,6 +22,10 @@ class nest::profile::base::puppet {
           server_external_nodes      => '',
           server_foreman             => false,
           server_jvm_config          => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
+          server_ruby_load_paths     => [
+            '/opt/puppetlabs/puppet/lib/ruby/vendor_ruby',
+            '/opt/puppetlabs/puppet/cache/lib',
+          ],
         }
 
         # puppetserver-2.7.x doesn't create the necessary run dir
