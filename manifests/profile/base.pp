@@ -78,6 +78,9 @@ class nest::profile::base {
     'windows': {
       contain '::nest::profile::base::cygwin'
       Class['::nest::profile::base::cygwin'] -> Package <| provider == 'cygwin' |>
+
+      # The users class manages my cygwin home directory
+      Class['::nest::profile::base::cygwin'] -> Class['::nest::profile::base::users']
     }
   }
 }
