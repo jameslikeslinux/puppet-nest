@@ -28,10 +28,6 @@ if $facts['osfamily'] == 'windows' {
   Package {
     provider => 'chocolatey',
   }
-
-  package { 'cygwin':
-    ensure => installed,
-  }
 }
 
 hiera_include('classes')
