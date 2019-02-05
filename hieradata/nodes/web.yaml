@@ -1,5 +1,3 @@
 ---
 classes:
   - 'private::web'
-
-nest::qemu_ga_enable: false
