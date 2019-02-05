@@ -36,6 +36,8 @@ mod 'docker',
 
 # Required by theforeman-puppet
 mod 'puppet-extlib', '3.1.0'
+mod 'puppetdb',
+  :git => 'https://github.com/iamjamestl/puppetlabs-puppetdb.git'
 
 # Required by augeasproviders_sysctl
 mod 'herculesteam-augeasproviders_core', '2.2.0'

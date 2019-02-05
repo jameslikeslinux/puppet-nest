@@ -7,8 +7,6 @@ nest::dvorak: true
 nest::kernel_cmdline: 'console=ttyS0 console=tty0'
 nest::nestfs_hostname: 'falcon.home'
 nest::puppet_server: true
-nest::packages:
-  puppetdb-termini: {}
 
 puppet::server_jvm_min_heap_size: '1G'
 puppet::server_jvm_max_heap_size: '1G'
