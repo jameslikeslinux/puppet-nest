@@ -3,7 +3,6 @@ classes:
   - 'nest'
 
 puppet::puppetmaster: 'puppet.nest'
-puppet::report: true
 puppet::runmode: 'unmanaged'
 
 nest::cnames:
