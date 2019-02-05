@@ -22,7 +22,6 @@ mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-registry', '2.1.0'
 
 # Required by nest
-mod 'gentoo-portage', '2.3.0'
 mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
 mod 'puppetlabs-apache', '3.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
@@ -33,6 +32,8 @@ mod 'theforeman-puppet', '11.0.0'
 mod 'docker',
   :git    => 'https://github.com/iamjamestl/puppetlabs-docker.git',
   :branch => 'fixes'
+mod 'portage',
+  :git => 'https://github.com/iamjamestl/puppet-portage.git'
 
 # Required by theforeman-puppet
 mod 'puppet-extlib', '3.1.0'
