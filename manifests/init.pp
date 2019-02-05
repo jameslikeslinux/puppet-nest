@@ -27,7 +27,6 @@ class nest (
 
   $live                = ($::nest and $::nest['live']),
   $vm                  = ($::virtual == 'kvm'),
-  $qemu_ga_enable      = $vm,
 
   $cflags              = $::portage_cflags,
   $cpu_flags_x86       = $::portage_cpu_flags_x86,

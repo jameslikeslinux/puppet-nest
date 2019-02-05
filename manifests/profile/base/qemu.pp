@@ -1,21 +1,10 @@
 class nest::profile::base::qemu {
-  if $::nest::qemu_ga_enable {
-    package { 'app-emulation/qemu-guest-agent':
-      ensure => installed,
-    }
+  $qemu_guest_agent_ensure = $::nest::vm ? {
+    true    => installed,
+    default => absent,
+  }
 
-    service { 'qemu-guest-agent':
-      enable  => true,
-      require => Package['app-emulation/qemu-guest-agent'],
-    }
-  } else {
-    service { 'qemu-guest-agent':
-      enable => false,
-    }
-
-    package { 'app-emulation/qemu-guest-agent':
-      ensure  => absent,
-      require => Service['qemu-guest-agent'],
-    }
+  package { 'app-emulation/qemu-guest-agent':
+    ensure => $qemu_guest_agent_ensure,
   }
 }
