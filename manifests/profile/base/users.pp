@@ -184,7 +184,7 @@ class nest::profile::base::users {
       $user_quoted   = shellquote($user)
       $chown_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
-        "PATH=/usr/bin:/bin:$PATH; cd ${dir_quoted}; git ls-files | xargs chown ${user_quoted}",
+        "/bin/chown -R ${user_quoted}:Administrators ${dir_quoted}",
       )
 
       exec { "chown-${user}-dotfiles":
