@@ -159,12 +159,19 @@ class nest::profile::base::users {
   }
 
   $homes.each |$user, $dir| {
-    $vcsrepo_user = $facts['osfamily'] ? {
-      'windows' => undef,
-      default   => $user,
+    case $facts['osfamily'] {
+      'windows': {
+        $vcsrepo_user = undef
+        $vcsrepo_dir  = "C:/tools/cygwin${dir}"
+      }
+
+      default: {
+        $vcsrepo_user = $user
+        $vcsrepo_dir  = $dir
+      }
     }
 
-    vcsrepo { "C:/tools/cygwin${dir}":
+    vcsrepo { "$vcsrepo_dir":
       ensure   => latest,
       provider => git,
       source   => 'https://github.com/iamjamestl/dotfiles.git',
@@ -183,7 +190,7 @@ class nest::profile::base::users {
       exec { "chown-${user}-dotfiles-pre-refresh":
         command     => $chown_command,
         refreshonly => true,
-        subscribe   => Vcsrepo["C:/tools/cygwin${dir}"],
+        subscribe   => Vcsrepo["$vcsrepo_dir"],
       }
 
       $refresh_command = shellquote(
@@ -208,7 +215,7 @@ class nest::profile::base::users {
         user        => $user,
         onlyif      => "/usr/bin/test -x '${dir}/.refresh'",
         refreshonly => true,
-        subscribe   => Vcsrepo[$dir],
+        subscribe   => Vcsrepo[$vcsrepo_dir],
       }
 
       file { "${dir}/.ssh/id_rsa":
@@ -216,7 +223,7 @@ class nest::profile::base::users {
         owner     => $user,
         content   => $::nest::ssh_private_key,
         show_diff => false,
-        require   => Vcsrepo[$dir],
+        require   => Vcsrepo[$vcsrepo_dir],
       }
     }
   }
