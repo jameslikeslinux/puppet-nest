@@ -152,15 +152,8 @@ class nest::profile::base::users {
         provider => 'cygwin',
       }
 
-      file { 'C:/tools/cygwin/home/james':
-        ensure => directory,
-        owner  => 'james',
-        group  => 'Administrators',
-        before => Vcsrepo['C:/tools/cygwin/home/james'];
-      }
-
       $homes = {
-        'james' => 'C:/tools/cygwin/home/james',
+        'james' => '/home/james',
       }
     }
   }
@@ -171,7 +164,7 @@ class nest::profile::base::users {
       default   => $user,
     }
 
-    vcsrepo { $dir:
+    vcsrepo { "C:/tools/cygwin${dir}":
       ensure   => latest,
       provider => git,
       source   => 'https://github.com/iamjamestl/dotfiles.git',
@@ -190,7 +183,7 @@ class nest::profile::base::users {
       exec { "chown-${user}-dotfiles-pre-refresh":
         command     => $chown_command,
         refreshonly => true,
-        subscribe   => Vcsrepo[$dir],
+        subscribe   => Vcsrepo["C:/tools/cygwin${dir}"],
       }
 
       $refresh_command = shellquote(
@@ -217,14 +210,14 @@ class nest::profile::base::users {
         refreshonly => true,
         subscribe   => Vcsrepo[$dir],
       }
-    }
 
-    file { "${dir}/.ssh/id_rsa":
-      mode      => '0600',
-      owner     => $user,
-      content   => $::nest::ssh_private_key,
-      show_diff => false,
-      require   => Vcsrepo[$dir],
+      file { "${dir}/.ssh/id_rsa":
+        mode      => '0600',
+        owner     => $user,
+        content   => $::nest::ssh_private_key,
+        show_diff => false,
+        require   => Vcsrepo[$dir],
+      }
     }
   }
 }
