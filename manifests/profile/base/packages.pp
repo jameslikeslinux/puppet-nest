@@ -42,4 +42,6 @@ class nest::profile::base::packages {
       }
     }
   }
+
+  create_resources(package, $::nest::packages)
 }
