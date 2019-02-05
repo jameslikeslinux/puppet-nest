@@ -4,7 +4,7 @@ class nest::profile::base::cygwin {
   }
 
   $fix_perms_content = @(END_FIX_PERMS)
-    find "$(cygpath -am /)" -not -path "$(cygpath -am /home)*" -exec chown -h Administrators {} +
+    find "$(cygpath -am /)" -not -path "$(cygpath -am /home)*" | xargs cygpath | xargs chown -h Administrators
     | END_FIX_PERMS
 
   file { 'C:/tools/cygwin/etc/postinstall/zzz-fix-perms.sh':
