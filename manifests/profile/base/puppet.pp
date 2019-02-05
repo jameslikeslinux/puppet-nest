@@ -15,12 +15,13 @@ class nest::profile::base::puppet {
     'Gentoo': {
       if $::nest::puppet_server {
         class { '::puppet':
-          autosign                    => true,
-          dns_alt_names               => $dns_alt_names,
-          server                      => true,
-          server_external_nodes       => '',
-          server_foreman              => false,
-          server_jvm_config           => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
+          autosign                   => true,
+          dns_alt_names              => $dns_alt_names,
+          server                     => true,
+          server_common_modules_path => [],
+          server_external_nodes      => '',
+          server_foreman             => false,
+          server_jvm_config          => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
         }
 
         # puppetserver-2.7.x doesn't create the necessary run dir
