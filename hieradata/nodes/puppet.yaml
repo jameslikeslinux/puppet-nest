@@ -1,6 +1,7 @@
 ---
 classes:
   - 'nest::docker'
+  - 'nest::node::puppet'
 
 nest::dvorak: true
 nest::kernel_cmdline: 'console=ttyS0 console=tty0'
