@@ -6,4 +6,9 @@ class nest::node::puppet {
     state   => 'NEW',
     action  => accept,
   }
+
+  # Give host name to access the SSL-protected PuppetDB running in Docker
+  host { 'puppetdb':
+    ip => '127.0.80.81',
+  }
 }
