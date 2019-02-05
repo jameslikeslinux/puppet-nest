@@ -7,7 +7,7 @@ class nest::profile::base::cygwin {
     find "$(cygpath -am /)" -not -path "$(cygpath -am /home)*" | xargs cygpath | xargs chown -h Administrators
     | END_FIX_PERMS
 
-  file { 'C:/tools/cygwin/etc/postinstall/zzz-fix-perms.sh':
+  file { 'C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh':
     content => $fix_perms_content,
     notify  => Exec['cygwin-fix-perms'],
   }
@@ -15,7 +15,7 @@ class nest::profile::base::cygwin {
   exec { 'cygwin-fix-perms':
     command     => shellquote(
       'C:/tools/cygwin/bin/bash.exe', '-c',
-      'source /etc/profile && source /etc/postinstall/zzz-fix-perms.sh'
+      'source /etc/profile && source /etc/postinstall/zp_fix-perms.sh'
     ),
     refreshonly => true,
   }
