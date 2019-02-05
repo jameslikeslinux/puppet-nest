@@ -1,5 +1,5 @@
 class nest::profile::base::qemu {
-  if $::nest::qemu_ga_enabe {
+  if $::nest::qemu_ga_enable {
     package { 'app-emulation/qemu-guest-agent':
       ensure => installed,
     }
