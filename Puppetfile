@@ -44,3 +44,6 @@ mod 'herculesteam-augeasproviders_core', '2.2.0'
 
 # Required by puppetlabs-mysql
 mod 'puppetlabs-translate', '1.2.0'
+
+# Required by puppetlabs-puppetdb
+mod 'puppetlabs-inifile', '2.5.0'
