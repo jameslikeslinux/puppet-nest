@@ -32,6 +32,13 @@ if $facts['osfamily'] == 'windows' {
   package { 'cygwin':
     ensure => installed,
   }
+
+  acl { 'C:/tools':
+    permissions => [
+      { identity => 'Administrators', rights => ['full'] },
+    ],
+    require     => Package['cygwin'],
+  }
 }
 
 hiera_include('classes')
