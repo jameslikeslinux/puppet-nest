@@ -5,6 +5,7 @@ mod 'puppetlabs-concat', '5.2.0'
 #
 # Forge modules
 #
+mod 'puppetlabs-acl', '2.1.0'
 mod 'puppetlabs-chocolatey', '3.1.1'
 
 #
