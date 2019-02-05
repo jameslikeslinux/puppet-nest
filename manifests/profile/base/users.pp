@@ -180,30 +180,30 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-      $dir_quoted    = shellquote($dir)
-      $user_quoted   = shellquote($user)
-      $chown_command = shellquote(
-        'C:/tools/cygwin/bin/bash.exe', '-c',
-        "source /etc/profile && chown -R ${user_quoted}:Administrators ${dir_quoted} && chmod -R g+w ${dir_quoted} && find ${dir_quoted} -type d -exec chmod g+s {} +",
-      )
-
-      exec { "chown-${user}-dotfiles":
-        command     => $chown_command,
-        refreshonly => true,
-        subscribe   => Vcsrepo[$dir],
-      }
-
-      $refresh_command = shellquote(
-        'C:/tools/cygwin/bin/bash.exe', '-c',
-        "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
-      )
-
-      exec { "refresh-${user}-dotfiles":
-        command     => $refresh_command,
-        onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
-        refreshonly => true,
-        subscribe   => Exec["chown-${user}-dotfiles"],
-      }
+#      $dir_quoted    = shellquote($dir)
+#      $user_quoted   = shellquote($user)
+#      $chown_command = shellquote(
+#        'C:/tools/cygwin/bin/bash.exe', '-c',
+#        "source /etc/profile && chown -R ${user_quoted}:Administrators ${dir_quoted} && chmod -R g+w ${dir_quoted} && find ${dir_quoted} -type d -exec chmod g+s {} +",
+#      )
+#
+#      exec { "chown-${user}-dotfiles":
+#        command     => $chown_command,
+#        refreshonly => true,
+#        subscribe   => Vcsrepo[$dir],
+#      }
+#
+#      $refresh_command = shellquote(
+#        'C:/tools/cygwin/bin/bash.exe', '-c',
+#        "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
+#      )
+#
+#      exec { "refresh-${user}-dotfiles":
+#        command     => $refresh_command,
+#        onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
+#        refreshonly => true,
+#        subscribe   => Exec["chown-${user}-dotfiles"],
+#      }
     } else {
       exec { "${dir}/.refresh":
         user        => $user,
