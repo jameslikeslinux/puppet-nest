@@ -30,7 +30,6 @@ class nest (
 
   $cflags              = $::portage_cflags,
   $cpu_flags_x86       = $::portage_cpu_flags_x86,
-  $packages            = {},
   $package_keywords    = {},
   $package_mask        = {},
   $package_use         = {},
