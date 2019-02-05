@@ -97,6 +97,8 @@ nest::package_mask:
     version: '>=6.0.0'
   app-admin/puppetserver:
     version: '>=6.0.0'
+  dev-ruby/puppetdb-termini:
+    version: '>=6.0.0'
 
 nest::package_use:
   # For Dracut liveimg module
