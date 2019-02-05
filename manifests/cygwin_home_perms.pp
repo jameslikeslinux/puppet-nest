@@ -7,7 +7,7 @@ define nest::cygwin_home_perms (
   $ownership_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && output=\"\$(${find_bad_ownership})\" && [[ \$output == \"\" ]]'"
   $fix_ownership = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_ownership} -exec chown -h ${user_quoted}:Administrators {} +'"
 
-  $find_bad_group_perms = "find ~${user_quoted} -not -perm -g=w"
+  $find_bad_group_perms = "find ~${user_quoted} -perm -g=r -not -perm -g=w"
   $group_perms_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && output=\"\$(${find_bad_group_perms})\" && [[ \$output == \"\" ]]'"
   $fix_group_perms = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_group_perms} -exec chmod g+w {} +'"
 
