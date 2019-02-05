@@ -10,6 +10,7 @@ class nest::profile::base::cygwin {
   file { 'C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh':
     content => $fix_perms_content,
     notify  => Exec['cygwin-fix-perms'],
+    require => Package['cygwin'],
   }
 
   exec { 'cygwin-fix-perms':
