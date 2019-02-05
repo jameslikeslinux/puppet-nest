@@ -180,11 +180,11 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-#      ::nest::cygwin_home_perms { 'pre-refresh':
-#        user    => $user,
-#        require => Vcsrepo["$vcsrepo_dir"],
-#        before  => Exec["refresh-${user}-dotfiles"],
-#      }
+      ::nest::cygwin_home_perms { 'pre-refresh':
+        user    => $user,
+        require => Vcsrepo["$vcsrepo_dir"],
+        before  => Exec["refresh-${user}-dotfiles"],
+      }
 
       $user_quoted     = shellquote($user)
       $dir_quoted      = shellquote($dir)
@@ -200,10 +200,10 @@ class nest::profile::base::users {
         subscribe   => Vcsrepo["$vcsrepo_dir"],
       }
 
-#      ::nest::cygwin_home_perms { 'post-refresh':
-#        user    => $user,
-#        require => Exec["refresh-${user}-dotfiles"],
-#      }
+      ::nest::cygwin_home_perms { 'post-refresh':
+        user    => $user,
+        require => Exec["refresh-${user}-dotfiles"],
+      }
     } else {
       exec { "${dir}/.refresh":
         user        => $user,
