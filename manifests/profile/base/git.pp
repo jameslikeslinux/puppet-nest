@@ -19,6 +19,8 @@ class nest::profile::base::git {
 
       $git_batch_content = @(END_GIT_BAT)
         @echo off
+        setlocal
+        set PATH=C:/tools/cygwin/bin
         C:/tools/cygwin/bin/git.exe %*
         | END_GIT_BAT
 
