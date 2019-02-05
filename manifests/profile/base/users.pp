@@ -186,6 +186,8 @@ class nest::profile::base::users {
         before  => Exec["refresh-${user}-dotfiles"],
       }
 
+      $user_quoted     = shellquote($user)
+      $dir_quoted      = shellquote($dir)
       $refresh_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
         "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
