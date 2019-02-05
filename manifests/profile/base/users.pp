@@ -184,7 +184,7 @@ class nest::profile::base::users {
       $user_quoted   = shellquote($user)
       $chown_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
-        "/bin/chown -R ${user_quoted}:Administrators ${dir_quoted}",
+        "source /etc/profile && chown -R ${user_quoted}:Administrators ${dir_quoted} && chmod -R g+w ${dir_quoted} && find ${dir_quoted} -type d -exec chmod g+s {} +",
       )
 
       exec { "chown-${user}-dotfiles":
@@ -193,8 +193,13 @@ class nest::profile::base::users {
         subscribe   => Vcsrepo[$dir],
       }
 
+      $refresh_command = shellquote(
+        'C:/tools/cygwin/bin/bash.exe', '-c',
+        "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
+      )
+
       exec { "refresh-${user}-dotfiles":
-        command     => "C:/tools/cygwin/bin/bash.exe ${dir_quoted}/.refresh ${user_quoted}",
+        command     => $refresh_command,
         onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
         refreshonly => true,
         subscribe   => Exec["chown-${user}-dotfiles"],
