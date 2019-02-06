@@ -24,7 +24,7 @@ fi
 
 parent_dirs() {
     local file="$1"
-    if [[ $file != $dir ]]; then
+    if [[ $file != '.' ]]; then
         local parent="$(dirname "$file")"
         parent_dirs "$parent"
         echo "$parent"
