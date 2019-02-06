@@ -22,9 +22,18 @@ if [[ ! -d "${dir}/.git" ]]; then
     exit 2
 fi
 
+parent_dirs() {
+    local file="$1"
+    if [[ $file != $dir ]]; then
+        local parent="$(dirname "$file")"
+        parent_dirs "$parent"
+        echo "$parent"
+    fi
+}
+
 cd "$dir"
 
 chown -R "$ownership" .git && git ls-files | while read file; do
-    dirname "$file"
+    parent_dirs "$file"
     echo "$file"
-done | sort -u | xargs chown "$ownership" 2>&1 | tee /tmp/chown.txt
+done | sort -u | xargs chown -h "$ownership"
