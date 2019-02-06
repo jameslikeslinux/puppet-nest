@@ -1,32 +1,36 @@
-Service {
-  provider => systemd,
-}
+case $facts['osfamily'] {
+  'Gentoo': {
+    Service {
+      provider => systemd,
+    }
 
-Firewall {
-  noop => str2bool("$::chroot")
-}
+    Firewall {
+      noop => str2bool("$::chroot")
+    }
 
-Firewallchain {
-  noop => str2bool("$::chroot")
-}
-
-if $facts['osfamily'] == 'windows' {
-  Concat {
-    # The default is usually 0644, but Windows keeps changing it to 0674, so
-    # just accept what it does.
-    mode => '0674',
+    Firewallchain {
+      noop => str2bool("$::chroot")
+    }
   }
 
-  stage { 'first':
-    before => Stage['main'],
-  }
+  'windows': {
+    Concat {
+      # The default is usually 0644, but Windows keeps changing it to 0674, so
+      # just accept what it does.
+      mode => '0674',
+    }
 
-  class { 'chocolatey':
-    stage => 'first',
-  }
+    stage { 'first':
+      before => Stage['main'],
+    }
 
-  Package {
-    provider => 'chocolatey',
+    class { 'chocolatey':
+      stage => 'first',
+    }
+
+    Package {
+      provider => 'chocolatey',
+    }
   }
 }
 
