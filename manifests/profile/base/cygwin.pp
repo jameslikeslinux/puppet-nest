@@ -13,11 +13,30 @@ class nest::profile::base::cygwin {
     require => Package['cygwin'],
   }
 
+  exec { 'cygserver-config':
+    command => 'C:/tools/cygwin/bin/bash.exe /usr/bin/cygserver-config --yes',
+    creates => 'C:/tools/cygwin/etc/cygserver.conf',
+    require => Package['cygwin'],
+    notify  => [
+      Exec['cygwin-fix-perms'],
+      Service['cygserver'],
+    ],
+  }
+
   exec { 'cygwin-fix-perms':
     command     => shellquote(
       'C:/tools/cygwin/bin/bash.exe', '-c',
       'source /etc/profile && source /etc/postinstall/zp_fix-perms.sh'
     ),
     refreshonly => true,
+  }
+
+  service { 'cygserver':
+    ensure  => running,
+    enable  => true,
+    require => [
+      Exec['cygserver-config'],
+      Exec['cygwin-fix-perms'],
+    ],
   }
 }
