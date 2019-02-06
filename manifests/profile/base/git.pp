@@ -28,6 +28,8 @@ class nest::profile::base::git {
 
       file { 'C:/tools/cygwin/usr/local/bin/git-win':
         mode    => '0775',
+        owner   => 'Administrators',
+        group   => 'Administrators',
         content => $git_win_wrapper_content,
         require => Package['git'],
       }
