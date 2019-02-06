@@ -3,16 +3,49 @@ class nest::profile::base::cygwin {
     ensure => installed,
   }
 
-  package { 'cygrunsrv':
-    ensure   => installed,
-    provider => 'cygwin',
-    require  => Package['cygwin'],
-  }
-
   # Ensure any files managed under the cygwin root implicitcly depend on
   # Package[cygwin]
   file { 'C:/tools/cygwin':
     require => Package['cygwin'],
+  }
+
+
+  #
+  # Deterministic Permissions
+  #
+  # Cygwin sets file ownership to whoever installs it, which may be me, or
+  # SYSTEM, depending on how Puppet runs.  Reassign such files to the
+  # Administrators group.
+  #
+  $fix_perms_content = @(END_FIX_PERMS)
+    #!/bin/bash
+    find "$(cygpath -am /)" -not -path "$(cygpath -am /home)/*" -not -path "*/tmp/*" | xargs cygpath | xargs chown -h Administrators:Administrators
+    | END_FIX_PERMS
+
+  file { 'C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh':
+    mode    => '0775',
+    owner   => 'Administrators',
+    group   => 'Administrators',
+    content => $fix_perms_content,
+  }
+
+  exec { 'cygwin-fix-perms':
+    command     => shellquote(
+      'C:/tools/cygwin/bin/bash.exe', '-c',
+      'source /etc/profile && /etc/postinstall/zp_fix-perms.sh'
+    ),
+    refreshonly => true,
+    subscribe   => File['C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh'],
+  }
+
+
+  #
+  # Cygserver Config
+  #
+  package { 'cygrunsrv':
+    ensure   => installed,
+    provider => 'cygwin',
+    require  => Package['cygwin'],
   }
 
   exec { 'cygserver-config':
