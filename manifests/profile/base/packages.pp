@@ -34,6 +34,7 @@ class nest::profile::base::packages {
 
     'windows': {
       package { [
+        'cygutils-extra',
         'tmux',
         'vim',
       ]:
