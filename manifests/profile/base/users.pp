@@ -185,7 +185,7 @@ class nest::profile::base::users {
 
       $vcsrepo_chown_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
-        "PATH=\"/bin:\$PATH\"; /usr/local/bin/git-chown ${user_quoted}:\$(id -g ${user_quoted}) ${dir_quoted}",
+        "source /etc/profile && /usr/local/bin/git-chown ${user_quoted}:\$(id -g ${user_quoted}) ${dir_quoted}",
       )
 
       exec { "vcsrepo-chown-${dir}":
@@ -196,7 +196,7 @@ class nest::profile::base::users {
 
       $refresh_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
-        "PATH=\"/bin:\$PATH\"; ${dir_quoted}/.refresh ${user_quoted}",
+        "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
       )
 
       exec { "refresh-${user}-dotfiles":
