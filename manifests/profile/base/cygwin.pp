@@ -3,6 +3,12 @@ class nest::profile::base::cygwin {
     ensure => installed,
   }
 
+  package { 'cygrunsrv':
+    ensure   => installed,
+    provider => 'cygwin',
+    require  => Package['cygwin'],
+  }
+
   # Ensure any files managed under the cygwin root implicitcly depend on
   # Package[cygwin]
   file { 'C:/tools/cygwin':
@@ -15,7 +21,7 @@ class nest::profile::base::cygwin {
       'source /etc/profile && /usr/bin/cygserver-config --yes'
     ),
     creates => 'C:/tools/cygwin/etc/cygserver.conf',
-    require => Package['cygwin'],
+    require => Package['cygrunsrv'],
     notify  => Service['cygserver'],
   }
 
