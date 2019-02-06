@@ -27,4 +27,4 @@ cd "$dir"
 chown -R "$ownership" .git && git ls-files | while read file; do
     dirname "$file"
     echo "$file"
-done | sort -u | xargs chown "$ownership"
+done | sort -u | xargs chown "$ownership" 2>&1 | tee /tmp/chown.txt

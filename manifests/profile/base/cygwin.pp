@@ -23,7 +23,7 @@ class nest::profile::base::cygwin {
     | END_FIX_PERMS
 
   file { 'C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh':
-    mode    => '0775',
+    mode    => '0755',
     owner   => 'Administrators',
     group   => 'Administrators',
     content => $fix_perms_content,
