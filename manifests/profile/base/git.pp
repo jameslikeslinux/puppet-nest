@@ -19,7 +19,11 @@ class nest::profile::base::git {
 
       $git_win_wrapper_content = @(END_GIT_WIN_WRAPPER)
         #!/bin/bash
-        cygpath -- "$@" | xargs git
+        if (( $# > 0 )); then
+            cygpath -- "$@" | xargs git
+        else
+            exec git
+        fi
         | END_GIT_WIN_WRAPPER
 
       file { 'C:/tools/cygwin/usr/local/bin/git-win':
