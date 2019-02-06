@@ -180,14 +180,20 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-      ::nest::cygwin_home_perms { 'pre-refresh':
-        user    => $user,
-        require => Vcsrepo["$vcsrepo_dir"],
-        before  => Exec["refresh-${user}-dotfiles"],
-      }
-
       $user_quoted     = shellquote($user)
       $dir_quoted      = shellquote($dir)
+
+      $vcsrepo_chown_command = shellquote(
+        'C:/tools/cygwin/bin/bash.exe', '-c',
+        "source /etc/profile && /usr/local/bin/git-chown ${user_quoted}:\$(id -g ${user_quoted}) ${dir_quoted}",
+      )
+
+      exec { "vcsrepo-chown-${dir}":
+        command     => $vcsrepo_chown_command,
+        refreshonly => true,
+        subscribe   => Vcsrepo["$vcsrepo_dir"],
+      }
+
       $refresh_command = shellquote(
         'C:/tools/cygwin/bin/bash.exe', '-c',
         "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
@@ -197,12 +203,8 @@ class nest::profile::base::users {
         command     => $refresh_command,
         onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
         refreshonly => true,
+        require     => Exec["vcsrepo-chown-${dir}"],
         subscribe   => Vcsrepo["$vcsrepo_dir"],
-      }
-
-      ::nest::cygwin_home_perms { 'post-refresh':
-        user    => $user,
-        require => Exec["refresh-${user}-dotfiles"],
       }
     } else {
       exec { "${dir}/.refresh":
