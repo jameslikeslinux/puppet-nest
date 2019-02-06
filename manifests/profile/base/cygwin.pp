@@ -14,7 +14,10 @@ class nest::profile::base::cygwin {
   }
 
   exec { 'cygserver-config':
-    command => 'C:/tools/cygwin/bin/bash.exe /usr/bin/cygserver-config --yes',
+    command     => shellquote(
+      'C:/tools/cygwin/bin/bash.exe', '-c',
+      'source /etc/profile && /usr/bin/cygserver-config --yes'
+    ),
     creates => 'C:/tools/cygwin/etc/cygserver.conf',
     require => Package['cygwin'],
     notify  => [
