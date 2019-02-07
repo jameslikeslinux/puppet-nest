@@ -49,6 +49,10 @@
       "version_requirement": "2.x"
     },
     {
+      "name": "puppet-windows_env",
+      "version_requirement": "3.x"
+    },
+    {
       "name": "theforeman-puppet",
       "version_requirement": "8.x"
     }

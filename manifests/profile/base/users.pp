@@ -152,6 +152,13 @@ class nest::profile::base::users {
         provider => 'cygwin',
       }
 
+      windows_env { 'james-SHELL':
+        user     => 'james',
+        variable => 'SHELL',
+        value    => '/bin/zsh',
+        require  => Package['zsh'],
+      }
+
       $homes = {
         'james' => '/home/james',
       }
