@@ -9,6 +9,13 @@ class nest::profile::base::cygwin {
     require => Package['cygwin'],
   }
 
+  # Disable performance-crippling real-time scanning of cygwin
+  registry_value { 'HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths\\\C:\tools\cygwin':
+    type    => dword,
+    data    => 0,
+    require => File['C:/tools/cygwin'],
+  }
+
 
   #
   # Deterministic Permissions
