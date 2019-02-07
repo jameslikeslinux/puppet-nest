@@ -7,6 +7,7 @@ mod 'puppetlabs-concat', '5.2.0'
 #
 mod 'puppetlabs-acl', '2.1.0'
 mod 'puppetlabs-chocolatey', '3.1.1'
+mod 'puppet-windows_env', '3.2.0'
 
 #
 # My modules
