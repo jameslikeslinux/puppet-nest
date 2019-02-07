@@ -10,10 +10,11 @@ class nest::profile::base::cygwin {
   }
 
   # Disable performance-crippling real-time scanning of cygwin
-  registry_value { 'HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths\\\C:\tools\cygwin':
-    type    => dword,
-    data    => 0,
-    require => File['C:/tools/cygwin'],
+  exec { 'windows-defender-exclude-cygwin':
+    command  => 'Add-MpPreference -ExclusionPath "C:\tools\cygwin"',
+    unless   => 'if ((Get-MpPreference)."ExclusionPath" -notcontains "C:\tools\cygwin") { exit 1 }',
+    provider => powershell,
+    require  => File['C:/tools/cygwin'],
   }
 
 
