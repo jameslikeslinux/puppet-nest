@@ -39,6 +39,21 @@ class nest::profile::workstation::firefox {
       package { 'firefox':
         ensure => installed,
       }
+
+      file {
+        default:
+          owner => 'james',
+        ;
+
+        'C:/Users/james/AppData/Roaming/Mozilla':
+          ensure => directory,
+        ;
+
+        'C:/Users/james/AppData/Roaming/Mozilla/Firefox':
+          ensure => link,
+          target => 'C:/tools/cygwin/home/james/.mozilla/firefox',
+        ;
+      }
     }
   }
 }
