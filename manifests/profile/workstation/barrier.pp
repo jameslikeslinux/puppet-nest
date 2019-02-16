@@ -42,4 +42,12 @@ class nest::profile::workstation::barrier {
     creates => '/etc/systemd/user/default.target.wants/barriers.service',
     require => File['/etc/systemd/user/barriers.service'],
   }
+
+  firewall { '100 barrier':
+    proto   => tcp,
+    dport   => 24800,
+    iniface => 'virbr0',
+    state   => 'NEW',
+    action  => accept,
+  }
 }
