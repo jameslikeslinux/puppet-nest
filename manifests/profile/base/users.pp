@@ -209,7 +209,10 @@ class nest::profile::base::users {
 
       ::nest::cygwin_home_perms { 'post-refresh':
         user    => $user,
-        require => Exec["refresh-${user}-dotfiles"],
+        require => [
+          Exec["refresh-${user}-dotfiles"],
+          File["${vcsrepo_dir}/.ssh/id_rsa"],
+        ],
       }
     } else {
       exec { "${dir}/.refresh":
@@ -218,14 +221,14 @@ class nest::profile::base::users {
         refreshonly => true,
         subscribe   => Vcsrepo[$vcsrepo_dir],
       }
+    }
 
-      file { "${dir}/.ssh/id_rsa":
-        mode      => '0600',
-        owner     => $user,
-        content   => $::nest::ssh_private_key,
-        show_diff => false,
-        require   => Vcsrepo[$vcsrepo_dir],
-      }
+    file { "${vcsrepo_dir}/.ssh/id_rsa":
+      mode      => '0600',
+      owner     => $user,
+      content   => $::nest::ssh_private_key,
+      show_diff => false,
+      require   => Vcsrepo[$vcsrepo_dir],
     }
   }
 }

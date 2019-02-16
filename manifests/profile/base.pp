@@ -3,6 +3,7 @@ class nest::profile::base {
   contain '::nest::profile::base::git'
   contain '::nest::profile::base::packages'
   contain '::nest::profile::base::qemu'
+  contain '::nest::profile::base::ssh'
   contain '::nest::profile::base::users'
 
   # Git should be installed before managing any Vcsrepos
@@ -22,7 +23,6 @@ class nest::profile::base {
       contain '::nest::profile::base::network'
       contain '::nest::profile::base::openvpn'
       contain '::nest::profile::base::portage'
-      contain '::nest::profile::base::ssh'
       contain '::nest::profile::base::sudo'
       contain '::nest::profile::base::systemd'
       contain '::nest::profile::base::zfs'
