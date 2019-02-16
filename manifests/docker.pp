@@ -1,6 +1,8 @@
-class nest::docker {
+class nest::docker (
+  $zpool = $trusted['certname'],
+) {
   zfs { 'docker':
-    name       => "${::trusted['certname']}/docker",
+    name       => "${zpool}/docker",
     mountpoint => '/var/lib/docker',
   }
 
