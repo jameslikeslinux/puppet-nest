@@ -20,9 +20,6 @@ nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_hostname: 'nest.james.tl'
 nest::root_mail_alias: 'james@james.tl'
 
-# Make all of my keyboards more like HHKB.
-nest::swap_alt_win: true
-
 nest::nullmailer_config: >
   ENC[PKCS7,MIIC9gYJKoZIhvcNAQcDoIIC5zCCAuMCAQAxggI9MIICOQIBADAhMBwxGjAY
   BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
