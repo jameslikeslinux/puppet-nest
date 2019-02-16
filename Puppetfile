@@ -21,10 +21,6 @@ mod 'private',
   :git => '/nest/home/projects/puppet-private'
 
 
-# Required by chocolatey
-mod 'puppetlabs-powershell', '2.2.0'
-mod 'puppetlabs-registry', '2.1.0'
-
 # Required by nest
 mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
 mod 'puppetlabs-apache', '3.4.0'
