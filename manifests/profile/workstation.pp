@@ -1,10 +1,10 @@
 class nest::profile::workstation {
+  contain '::nest::profile::workstation::chromium'
   contain '::nest::profile::workstation::firefox'
 
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::profile::workstation::bluetooth'
-      contain '::nest::profile::workstation::chromium'
       contain '::nest::profile::workstation::cups'
       contain '::nest::profile::workstation::cursor'
       contain '::nest::profile::workstation::dunst'
