@@ -24,8 +24,8 @@ class nest::unifi_video {
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
-      '--cap-add SYS_ADMIN',
       '--cap-add DAC_READ_SEARCH',
+      '--cap-add SYS_ADMIN',
       '--sysctl net.ipv4.ip_unprivileged_port_start=0',
     ],
     service_provider => 'systemd',
