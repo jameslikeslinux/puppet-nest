@@ -2,50 +2,6 @@ class nest::unifi {
   include '::nest'
   include '::nest::docker'
 
-  nest::srv { 'unifi': }
-
-  file {
-    default:
-      ensure => directory,
-      owner  => 'ubnt',
-      group  => 'ubnt',
-    ;
-
-    '/srv/unifi':
-      mode    => '0750',
-      require => Nest::Srv['unifi'],
-    ;
-
-    [
-      '/srv/unifi/data',
-    ]:
-      mode => '0755',
-    ;
-
-    '/srv/unifi/data/system.properties':
-      ensure => file,
-      mode   => '0644',
-    ;
-  }
-
-  file_line {
-    default:
-      require => File['/srv/unifi/data/system.properties'],
-      notify  => Docker::Run['unifi'],
-      path    => '/srv/unifi/data/system.properties',
-    ;
-
-    'unifi.http.port':
-      line  => 'unifi.http.port=80',
-      match => '^unifi\.http\.port=',
-    ;
-
-    'unifi.https.port':
-      line  => 'unifi.https.port=443',
-      match => '^unifi\.https\.port=',
-    ;
-  }
-
   docker_network { 'mgmt':
     ensure  => present,
     driver  => 'macvlan',
@@ -54,27 +10,30 @@ class nest::unifi {
     options => "parent=bond0.1002",
   }
 
+  docker_volume { 'unifi':
+    ensure => present,
+  }
+
   $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'unifi':
-    image            => 'jacobalberty/unifi',
+    image            => 'iamjamestl/unifi',
     net              => 'mgmt',
     dns              => '172.22.2.1',
-    env              => [
-      'RUNAS_UID0=false',
-      'UNIFI_UID=1002',
-      'UNIFI_GID=1002',
-      'TZ=America/New_York',
-    ],
-    volumes          => ['/srv/unifi:/unifi'],
+    volumes          => 'unifi:/unifi',
     extra_parameters => [
-      "--cpuset-cpus=${cpuset}",
-      '--ip=172.22.2.3',
+      "--cpuset-cpus ${cpuset}",
+      '--ip 172.22.2.3',
+      '--cap-add DAC_READ_SEARCH',
+      '--cap-add NET_BIND_SERVICE',
+      '--cap-add SETGID',
+      '--cap-add SETUID',
     ],
     service_provider => 'systemd',
+    stop_wait_time   => 30,
     require          => [
       Docker_network['mgmt'],
-      File['/srv/unifi'],
+      Docker_volume['unifi'],
     ],
   }
 }
