@@ -20,7 +20,7 @@ class nest::unifi {
     image            => 'iamjamestl/unifi',
     net              => 'mgmt',
     dns              => '172.22.2.1',
-    volumes          => 'unifi:/unifi',
+    volumes          => 'unifi:/var/lib/unifi',
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.2.3',
