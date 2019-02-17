@@ -28,6 +28,7 @@ class nest::unifi {
       '--cap-add NET_BIND_SERVICE',
       '--cap-add SETGID',
       '--cap-add SETUID',
+      '--sysctl net.ipv4.ip_unprivileged_port_start=0',
     ],
     service_provider => 'systemd',
     stop_wait_time   => 30,
