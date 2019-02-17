@@ -25,7 +25,9 @@ class nest::profile::base::users {
         'media':
           gid => '1001';
         'ubnt':
-          gid => '1002';
+          ensure  => absent,
+          gid     => '1002',
+          require => User['ubnt'];
         'bitwarden':
           gid => '1003';
       }
@@ -113,6 +115,7 @@ class nest::profile::base::users {
           shell   => '/sbin/nologin';
 
         'ubnt':
+          ensure  => absent,
           uid     => '1002',
           gid     => '1002',
           home    => '/srv/unifi',
