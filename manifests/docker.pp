@@ -17,6 +17,7 @@ class nest::docker (
   }
 
   Class['docker'] -> Docker_network <||>
+  Class['docker'] -> Docker_volume <||>
 
   User <| title == 'james' or title == 'bitwarden' |> {
     groups  +> 'docker',
