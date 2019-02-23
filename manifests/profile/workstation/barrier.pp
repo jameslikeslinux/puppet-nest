@@ -32,6 +32,18 @@ class nest::profile::workstation::barrier {
     notify => Exec['barrier-systemd-daemon-reload'],
   }
 
+  # barrier pulls in avahi, which I don't want, and it gets started by
+  # cups-browsed.service.  Mask it:
+  file { [
+    '/etc/systemd/system/avahi-daemon.service',
+    '/etc/systemd/system/avahi-daemon.socket',
+  ]:
+    ensure  => link,
+    target  => '/dev/null',
+    require => Package['x11-misc/barrier'],
+    notify  => Exec['barrier-systemd-daemon-reload'],
+  }
+
   exec { 'barrier-systemd-daemon-reload':
     command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
