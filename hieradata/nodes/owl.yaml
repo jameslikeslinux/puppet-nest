@@ -6,6 +6,7 @@ nest::isolcpus: '2,3'
 nest::libvirt: true
 
 nest::dvorak: true
+nest::swap_alt_win: true
 nest::mouse: 'trackpoint'
 nest::gui_scaling_factor: 1.5
 nest::processorcount: 2
