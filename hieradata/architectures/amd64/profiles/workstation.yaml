@@ -172,6 +172,11 @@ nest::package_keywords:
     version: '=9999'
     keywords: '**'
 
+  # required by kde-plasma/xdg-desktop-portal-kde-5.15.2::gentoo
+  # required by kde-plasma/plasma-meta-5.15.2::gentoo[desktop-portal]
+  sys-apps/xdg-desktop-portal:
+    version: '=1.2.0'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
