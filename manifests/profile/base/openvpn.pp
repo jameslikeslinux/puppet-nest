@@ -173,6 +173,14 @@ class nest::profile::base::openvpn {
       provider => ip6tables,
     }
 
+    firewall { '100 allow kvm guests into nest VPN':
+      chain    => 'FORWARD',
+      proto    => all,
+      iniface  => 'virbr0',
+      outiface => $device,
+      action   => accept,
+    }
+
     firewall { '100 allow connections out from nest VPN':
       chain   => 'FORWARD',
       proto   => all,
@@ -180,7 +188,7 @@ class nest::profile::base::openvpn {
       action  => accept,
     }
 
-    firewall { '100 block connections into nest VPN':
+    firewall { '100 allow return packets into nest VPN':
       chain    => 'FORWARD',
       proto    => all,
       outiface => $device,
