@@ -52,6 +52,8 @@ nest::package_keywords:
 
   # I always want the latest tmux features and improvements
   app-misc/tmux: {}
+  app-editors/vim: {}
+  app-editors/vim-core: {}
 
   # needed to support libevent > 2.1 (pulled in by tmux-2.3)
   net-fs/nfs-utils:
