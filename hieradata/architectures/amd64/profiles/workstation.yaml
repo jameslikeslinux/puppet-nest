@@ -43,9 +43,13 @@ nest::package_keywords:
   dev-libs/nspr:
     version: '=4.19'
   dev-libs/nss:
-    version: '=3.41-r1'
+    version: '=3.43'
   dev-lang/rust:
     version: '=1.32.0'
+  media-libs/dav1d:
+    version: '=0.2.1'
+  media-libs/libaom:
+    version: '=1.0.0-r1'
   media-libs/libvpx:
     version: '=1.7.0'
   media-libs/libwebp:
@@ -177,6 +181,16 @@ nest::package_keywords:
   # required by kde-plasma/plasma-meta-5.15.2::gentoo[desktop-portal]
   sys-apps/xdg-desktop-portal:
     version: '=1.2.0'
+
+  # required by dev-lang/python-2.7.15::gentoo[sqlite]
+  # required by dev-python/pyparsing-2.2.0::gentoo[python_targets_python2_7]
+  # required by app-emulation/spice-0.14.0-r2::gentoo
+  # required by app-emulation/qemu-3.1.0-r1::gentoo[spice]
+  # required by app-emulation/libvirt-4.9.0::gentoo[qemu]
+  # required by dev-python/libvirt-python-4.9.0::gentoo
+  # required by app-emulation/virt-manager-2.0.0::gentoo
+  dev-db/sqlite:
+    version: '=3.27.2'
 
 nest::package_use:
   x11-drivers/nvidia-drivers:
