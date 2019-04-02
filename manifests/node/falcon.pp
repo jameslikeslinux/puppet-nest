@@ -142,7 +142,7 @@ class nest::node::falcon {
   }
 
   docker::run { 'plex':
-    image   => 'plexinc/pms-docker:plexpass',
+    image   => 'plexinc/pms-docker:public',
     net     => 'host',
     env     => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
     volumes => [
