@@ -34,7 +34,7 @@ class nest::profile::base::network {
 
   # "mask" service which potentially holds up the boot process when on wireless
   $wait_online_ensure = $facts['interfaces'] ? {
-    /(^|,)wl/ => symlink,
+    #/(^|,)wl/ => symlink,
     default   => absent,
   }
 
