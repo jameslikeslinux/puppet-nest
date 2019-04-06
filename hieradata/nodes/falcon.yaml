@@ -43,14 +43,14 @@ nest::barrier_config: |
   end
   
   section: options
-  	keystroke(alt+up) = keystroke(alt+up,falcon)
-  	keystroke(alt+down) = keystroke(alt+down,falcon)
-  	keystroke(alt+left) = keystroke(alt+left,falcon)
-  	keystroke(alt+right) = keystroke(alt+right,falcon)
   	keystroke(super+alt+left) = switchToScreen(falcon)
   	keystroke(super+alt+right) = switchToScreen(hawk)
-  	mousebutton(6) = keystroke(WWWBack)
-  	mousebutton(7) = keystroke(WWWForward)
+  	keystroke(super+up,hawk) = keystroke(super+shift+up,falcon)
+  	keystroke(super+down,hawk) = keystroke(super+shift+down,falcon)
+  	keystroke(super+left,hawk) = keystroke(super+shift+left,falcon)
+  	keystroke(super+right,hawk) = keystroke(super+shift+right,falcon)
+  	mousebutton(6,hawk) = keystroke(WWWBack)
+  	mousebutton(7,hawk) = keystroke(WWWForward)
   end
 
 nest::apache::manage_firewall: true
