@@ -24,17 +24,8 @@ define nest::wordpress (
     password => $db_password,
   }
 
-  # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
-  $php_fpm_config = @(EOT)
-    <FilesMatch "\.php$">
-        <If "-f %{REQUEST_FILENAME}">
-          SetHandler "proxy:fcgi://localhost:9000/"
-        </If>
-      </FilesMatch>
-    | EOT
-
   $vhost_params = {
-    'custom_fragment' => $php_fpm_config,
+    'custom_fragment' => 'AddType application/x-httpd-php .php',
     'directories'     => [
       {
         'path'           => "/srv/www/${servername}",

@@ -35,4 +35,13 @@ class nest::php {
   package { 'dev-php/pecl-ssh2':
     ensure => installed,
   }
+
+  apache::fastcgi::server { 'php':
+    host       => '127.0.0.1:9000',
+    timeout    => 600,
+    flush      => false,
+    faux_path  => '/var/www/php.fcgi',
+    fcgi_alias => '/php.fcgi',
+    file_type  => 'application/x-httpd-php'
+  }
 }
