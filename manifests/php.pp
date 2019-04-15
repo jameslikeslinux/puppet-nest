@@ -20,16 +20,16 @@ class nest::php {
     require => Nest::Portage::Package_use['app-eselect/eselect-php'],
   }
 
-  service { 'php-fpm@7.0':
+  service { 'php-fpm@7.2':
     ensure  => stopped,
     enable  => false,
     require => Package['dev-lang/php'],
   }
 
-  service { 'php-fpm@7.2':
+  service { 'php-fpm@7.1':
     ensure  => running,
     enable  => true,
-    require => Service['php-fpm@7.0'],
+    require => Service['php-fpm@7.2'],
   }
 
   package { 'dev-php/pecl-ssh2':
