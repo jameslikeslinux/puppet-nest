@@ -26,6 +26,10 @@ define nest::wordpress (
 
   # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
   $php_fpm_config = @(EOT)
+    <Proxy "fcgi://localhost:9000/">
+        ProxySet timeout=600
+    </Proxy>
+
     <FilesMatch "\.php$">
         <If "-f %{REQUEST_FILENAME}">
           SetHandler "proxy:fcgi://localhost:9000/"
