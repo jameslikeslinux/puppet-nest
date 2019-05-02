@@ -21,7 +21,7 @@ class nest::profile::base::puppet {
           server_common_modules_path => [],
           server_external_nodes      => '',
           server_foreman             => false,
-          server_jvm_config          => '/etc/systemd/system/puppetserver.service.d/gentoo.conf',
+          server_jvm_config          => '/etc/default/puppetserver',
           server_ruby_load_paths     => [
             '/opt/puppetlabs/puppet/lib/ruby/vendor_ruby',
             '/opt/puppetlabs/puppet/cache/lib',
