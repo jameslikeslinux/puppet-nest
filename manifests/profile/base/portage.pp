@@ -40,6 +40,17 @@ class nest::profile::base::portage {
     before  => Class['::portage'],
   }
 
+  # Mesa has circular dependencies when USE=vaapi is set, so just build it
+  # before any USE variables are set and it will eventually converge.
+  if $nest and $::nest['profile'] == 'workstation' {
+    exec { '/usr/bin/emerge --oneshot media-libs/mesa':
+      timeout     => 0,
+      refreshonly => true,
+      subscribe   => Eselect['profile'],
+      before      => Portage::Makeconf['use'],
+    }
+  }
+
   $portage_features = size($::nest::distcc_hosts) ? {
     0       => ['buildpkg', 'distcc', 'splitdebug'],
     default => ['buildpkg', 'distcc', 'distcc-pump', 'splitdebug'],
