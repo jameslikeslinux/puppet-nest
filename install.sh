@@ -290,7 +290,7 @@ CPU_FLAGS_X86="aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 s
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"
-PKGDIR="/nest/portage/packages/amd64-${profile}"
+PKGDIR="/nest/portage/packages/amd64-base"
 END
 cmd tee "/mnt/${name}/etc/portage/repos.conf" <<END
 [DEFAULT]
