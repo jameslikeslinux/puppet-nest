@@ -94,16 +94,7 @@ echo "Started install at $(date --rfc-3339=seconds)" > "$LOGFILE"
 cleanup() {
     task "Cleaning up..."
 
-    # Unmount if necessary
-    mountpoint -q "/mnt/${name}" && cmd umount -R "/mnt/${name}"
-
-    # Remove mountpoint if necessary
-    if [ -e "/mnt/${name}" ] && [ ! "$(ls -A "/mnt/${name}")" ]; then
-        cmd rm -rf "/mnt/${name}"
-    fi
-
-    # Disable swap if necessary (assume its on if the device exists)
-    [ -e "/dev/zvol/${name}/swap" ] && cmd swapoff "/dev/zvol/${name}/swap"
+    machinectl poweroff "$name"
 
     # Export pool filesystem if necessary
     zpool list "$name" > /dev/null 2>&1 && cmd zpool export "$name"
@@ -139,7 +130,7 @@ cmd() {
 chroot_cmd() {
     echo ">> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
-        FACTER_chroot=true chroot "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
+        systemd-run -M "$name" -E FACTER_chroot=true -qP "$@" >> "$LOGFILE" 2>&1
         if [ $? -ne 0 ]; then
             echo "FAILED"
             exit 1
@@ -262,7 +253,6 @@ else
     task "Creating swap space..."
     cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
     cmd mkswap "/dev/zvol/${name}/swap"
-    cmd swapon --discard "/dev/zvol/${name}/swap"
 
     task "Creating fscache..."
     cmd zfs create -V 2G -b 4k -o com.sun:auto-snapshot=false "${name}/fscache"
@@ -285,15 +275,7 @@ cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --x
 
 
 task "Initializing chroot..."
-cmd mount -t proc proc "/mnt/${name}/proc"
-cmd mount --rbind /sys "/mnt/${name}/sys"
-cmd mount --make-rslave "/mnt/${name}/sys"
-cmd mount --rbind /dev "/mnt/${name}/dev"
-cmd mount --make-rslave "/mnt/${name}/dev"
-cmd mkdir "/mnt/${name}/nest"
-cmd mount --rbind /nest "/mnt/${name}/nest"
-cmd mount --make-rslave "/mnt/${name}/nest"
-cmd cp -L /etc/resolv.conf "/mnt/${name}/etc/resolv.conf"
+cmd systemd-nspawn -q --bind /nest -b -D "/mnt/${name}" > /dev/null &
 
 
 task "Prepping build target..."
@@ -322,31 +304,31 @@ cmd wget --progress=dot:mega https://github.com/iamjamestl/portage-gentoo/archiv
 cmd mkdir -p "/mnt/${name}/var/cache/portage/gentoo"
 cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
 cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
-chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
+chroot_cmd /usr/bin/eselect profile set default/linux/amd64/17.0/systemd
 
 
 task "Installing Puppet..."
-chroot_cmd emerge -v '<app-admin/puppet-agent-6' app-portage/eix
+chroot_cmd /usr/bin/emerge -v '<app-admin/puppet-agent-6' app-portage/eix
 
 
 task "Prepping for Puppet run..."
-chroot_cmd mkdir -p /etc/puppetlabs/facter/facts.d
-chroot_cmd tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
+chroot_cmd /bin/mkdir -p /etc/puppetlabs/facter/facts.d
+chroot_cmd /usr/bin/tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
 ---
 nest:
   profile: '${profile}'
 END
-[ -n "$live" ] && chroot_cmd tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
+[ -n "$live" ] && chroot_cmd /usr/bin/tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
   live: true
 END
 
 
 task "Running Puppet..."
-chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest
-[ -z "$live" ] && chroot_cmd systemctl enable puppet
+chroot_cmd /usr/bin/puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest
+[ -z "$live" ] && chroot_cmd /sbin/systemctl enable puppet
 
 task "Removing unnecessary packages..."
-chroot_cmd emerge --depclean
+chroot_cmd /usr/bin/emerge --depclean
 
 
 if [ -n "$live" ]; then
