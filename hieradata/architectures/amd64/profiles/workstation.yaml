@@ -7,6 +7,11 @@ nest::package_keywords:
   media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
 
+  # The intel driver doesn't have formal releases
+  x11-drivers/xf86-video-intel:
+    version: '=9999'
+    keywords: '**'
+
   # Switched to Bitwarden
   app-admin/lastpass-cli:
     ensure: 'absent'
@@ -101,9 +106,6 @@ nest::package_keywords:
     ensure: 'absent'
   x11-base/xorg-server:
     version: '=1.18.3'
-    ensure: 'absent'
-  x11-drivers/xf86-video-intel:
-    version: '=2.99.917_p20160812'
     ensure: 'absent'
   x11-drivers/xf86-video-ati:
     version: '=7.7.0'
