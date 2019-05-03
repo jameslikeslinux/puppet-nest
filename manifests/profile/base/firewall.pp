@@ -24,7 +24,7 @@ class nest::profile::base::firewall {
   #
   firewallchain { 'INPUT:filter:IPv4':
     ensure => present,
-    purge  => true,
+    purge  => !str2bool($::chroot),
     ignore => 'virbr\d+',
   }
 
@@ -57,7 +57,7 @@ class nest::profile::base::firewall {
   #
   firewallchain { 'INPUT:filter:IPv6':
     ensure => present,
-    purge  => true,
+    purge  => !str2bool($::chroot),
   }
 
   firewall { '000 loopback (v6)':
