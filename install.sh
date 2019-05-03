@@ -279,7 +279,7 @@ cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --x
 
 
 task "Initializing chroot..."
-cmd systemd-nspawn -q --bind=/dev --bind=/dev/zfs --bind=/nest --capability=CAP_NET_ADMIN -b -D "/mnt/${name}" > /dev/null &
+cmd systemd-nspawn -q --bind=/dev/zfs --bind=/nest --capability=CAP_NET_ADMIN -b -D "/mnt/${name}" > /dev/null &
 
 
 task "Prepping build target..."
