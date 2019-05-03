@@ -1,15 +1,16 @@
---- src/command.C	2014-12-13 13:22:09.000000000 +0100
-+++ src/command.C	2016-01-13 04:50:39.161862513 +0100
-@@ -1280,6 +1280,8 @@
+diff -ur rxvt-unicode-9.22.orig/src/command.C rxvt-unicode-9.22/src/command.C
+--- rxvt-unicode-9.22.orig/src/command.C	2019-05-03 14:55:38.609852359 -0400
++++ rxvt-unicode-9.22/src/command.C	2019-05-03 14:55:47.016879887 -0400
+@@ -1283,6 +1283,8 @@
    int x, y;
    int code = 32;
-
+ 
 +  if (priv_modes & PrivMode_ExtMouseSgr) code = 0;
 +
    x = Pixel2Col (ev.x) + 1;
    y = Pixel2Row (ev.y) + 1;
  
-@@ -1293,11 +1295,18 @@
+@@ -1296,11 +1298,18 @@
        code += 32;
      }
  
@@ -30,31 +31,22 @@
        /* add 0x3D for wheel events, like xterm does */
        if (button_number >= 3)
          button_number += 64 - 3;
-@@ -1347,16 +1356,22 @@
+@@ -1350,7 +1359,13 @@
  #endif
  
  #if ENABLE_FRILLS
+-  if (priv_modes & PrivMode_ExtMouseRight)
 +  if (priv_modes & PrivMode_ExtMouseSgr)
 +    tt_printf ("\033[<%d;%d;%d%c",
 +              code + button_number + key_state,
 +              x,
 +              y,
 +              (ev.type == ButtonRelease ? 'm' : 'M'));
--  if (priv_modes & PrivMode_ExtMouseRight)
 +  else if (priv_modes & PrivMode_ExtMouseRight)
      tt_printf ("\033[%d;%d;%dM",
                code + button_number + key_state,
                x,
-               y);
-   else if (priv_modes & PrivMode_ExtModeMouse)
-     tt_printf ("\033[M%c%lc%lc",
-               code + button_number + key_state,
-               wint_t (32 + x),
-               wint_t (32 + y));
-   else
- #endif
-     tt_printf ("\033[M%c%c%c",
-@@ -2908,7 +2913,7 @@
+@@ -2904,7 +2919,7 @@
                  scr_soft_reset ();
  
                  static const int pm_h[] = { 7, 25 };
@@ -63,8 +55,7 @@
  
                  process_terminal_mode ('h', 0, ecb_array_length (pm_h), pm_h);
                  process_terminal_mode ('l', 0, ecb_array_length (pm_l), pm_l);
-@@ -3713,13 +3718,14 @@
-                   { 1002, PrivMode_MouseBtnEvent },
+@@ -3710,6 +3725,7 @@
                    { 1003, PrivMode_MouseAnyEvent },
  #if ENABLE_FRILLS
                    { 1005, PrivMode_ExtModeMouse },
@@ -72,15 +63,10 @@
  #endif
                    { 1010, PrivMode_TtyOutputInh }, // rxvt extension
                    { 1011, PrivMode_Keypress }, // rxvt extension
- #if ENABLE_FRILLS
-                   { 1015, PrivMode_ExtMouseRight }, // urxvt extension of 1005
- #endif
-                  // 1035 enable modifiers for alt, numlock NYI
-                  // 1036 send ESC for meta keys NYI
-                  // 1037 send DEL for keypad delete NYI
---- src/rxvt.h	2014-12-17 16:33:08.000000000 +0100
-+++ src/rxvt.h	2016-01-13 03:42:31.508911380 +0100
-@@ -644,6 +644,7 @@
+diff -ur rxvt-unicode-9.22.orig/src/rxvt.h rxvt-unicode-9.22/src/rxvt.h
+--- rxvt-unicode-9.22.orig/src/rxvt.h	2019-05-03 14:55:38.613852372 -0400
++++ rxvt-unicode-9.22/src/rxvt.h	2019-05-03 14:55:47.017879890 -0400
+@@ -645,6 +645,7 @@
  #define PrivMode_ExtModeMouse   (1UL<<23) // xterm pseudo-utf-8 hack
  #define PrivMode_ExtMouseRight  (1UL<<24) // xterm pseudo-utf-8, but works in non-utf-8-locales
  #define PrivMode_BlinkingCursor (1UL<<25)
