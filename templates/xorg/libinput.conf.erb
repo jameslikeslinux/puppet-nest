@@ -4,4 +4,5 @@ Section "InputClass"
     Driver          "libinput"
     MatchDevicePath "/dev/input/event*"
     Option          "Tapping" "yes"
+    Option          "DPIScaleFactor" "<%= scope['::nest::text_scaling_factor'] %>"
 EndSection
