@@ -6,10 +6,3 @@ Section "InputClass"
     Option          "Tapping" "yes"
     Option          "DPIScaleFactor" "<%= scope['::nest::text_scaling_factor'] %>"
 EndSection
-
-Section "InputClass"
-    Identifier      "libinput Acceleration"
-    MatchDriver     "libinput"
-    MatchIsTouchpad "on"
-    Option          "AccelSpeeed" "0.25"
-EndSection
