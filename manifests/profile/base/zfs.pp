@@ -23,19 +23,17 @@ class nest::profile::base::zfs {
     require => Package['sys-fs/zfs'],
   }
 
-  unless $facts['virtual'] == 'lxc' {
-    # ZFS likes to have a little extra headroom on low memory systems
-    sysctl { 'vm.min_free_kbytes':
-      value  => '32768',
-      target => '/etc/sysctl.d/nest.conf',
-    }
+  # ZFS likes to have a little extra headroom on low memory systems
+  sysctl { 'vm.min_free_kbytes':
+    value  => '32768',
+    target => '/etc/sysctl.d/nest.conf',
+  }
 
-    # Not strictly ZFS related, though our swap is on ZFS, but this
-    # seems to improve stability in low memory conditions, counterintuitively.
-    sysctl { 'vm.swappiness':
-      value  => '10',
-      target => '/etc/sysctl.d/nest.conf',
-    }
+  # Not strictly ZFS related, though our swap is on ZFS, but this
+  # seems to improve stability in low memory conditions, counterintuitively.
+  sysctl { 'vm.swappiness':
+    value  => '10',
+    target => '/etc/sysctl.d/nest.conf',
   }
 
   group { 'zfssnap':

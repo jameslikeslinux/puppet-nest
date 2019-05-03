@@ -55,11 +55,9 @@ class nest::profile::base::systemd {
     changes => flatten($nsswitch_id_changes + $nsswitch_hosts_changes),
   }
 
-  unless $facts['virtual'] == 'lxc' {
-    file { '/etc/resolv.conf':
-      ensure => link,
-      target => '/run/systemd/resolve/stub-resolv.conf',
-    }
+  file { '/etc/resolv.conf':
+    ensure => link,
+    target => '/run/systemd/resolve/stub-resolv.conf',
   }
 
   file {
