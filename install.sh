@@ -96,6 +96,10 @@ cleanup() {
 
     machinectl poweroff "$name"
 
+    # Unmount /boot if necessary
+    mountpoint -q "/mnt/${name}/boot" && cmd umount "/mnt/${name}/boot"
+
+
     # Export pool filesystem if necessary
     zpool list "$name" > /dev/null 2>&1 && cmd zpool export "$name"
 
