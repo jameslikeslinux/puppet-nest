@@ -15,7 +15,6 @@ class nest::profile::base {
       contain '::nest::profile::base::distccd'
       contain '::nest::profile::base::dracut'
       contain '::nest::profile::base::grub'
-      contain '::nest::profile::base::firewall'
       contain '::nest::profile::base::fs'
       contain '::nest::profile::base::fstab'
       contain '::nest::profile::base::kernel'
@@ -26,6 +25,10 @@ class nest::profile::base {
       contain '::nest::profile::base::sudo'
       contain '::nest::profile::base::systemd'
       contain '::nest::profile::base::zfs'
+
+      unless str2bool($::chroot) {
+        contain '::nest::profile::base::firewall'
+      }
 
       # Setup distcc before portage, but distccd needs systemd, which is
       # installed after portage is configured.
