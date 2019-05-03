@@ -217,27 +217,29 @@ class nest::profile::base::portage {
     content => $repos_conf,
   }
 
-  vcsrepo { '/var/cache/portage/gentoo':
-    ensure   => present,
-    provider => git,
-    source   => 'https://github.com/iamjamestl/portage-gentoo.git',
-    force    => true,
-    depth    => 1,
+  vcsrepo {
+    default:
+      ensure   => present,
+      provider => git,
+      force    => true,
+      depth    => 1,
+      notify   => Exec['/usr/bin/eix-update'],
+    ;
+
+    '/var/cache/portage/gentoo':
+      source => 'https://github.com/iamjamestl/portage-gentoo.git',
+    ;
+
+    '/var/cache/portage/nest':
+      source => 'https://github.com/iamjamestl/portage-overlay.git',
+    ;
+
+    '/var/cache/portage/haskell':
+      source => 'https://github.com/iamjamestl/gentoo-haskell.git',
+    ;
   }
 
-  vcsrepo { '/var/cache/portage/nest':
-    ensure   => present,
-    provider => git,
-    source   => 'https://github.com/iamjamestl/portage-overlay.git',
-    force    => true,
-    depth    => 1,
-  }
-
-  vcsrepo { '/var/cache/portage/haskell':
-    ensure   => present,
-    provider => git,
-    source   => 'https://github.com/iamjamestl/gentoo-haskell.git',
-    force    => true,
-    depth    => 1,
+  exec { '/usr/bin/eix-update':
+    refreshonly => true,
   }
 }
