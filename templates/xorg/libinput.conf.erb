@@ -11,12 +11,12 @@ Section "InputClass"
     Identifier      "libinput-touchpad-acceleration"
     MatchDriver     "libinput"
     MatchIsTouchpad "on"
-    Option          "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 0.8) / 2.0).round(2) %>"
+    Option          "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 1) / 1.5).round(2) %>"
 EndSection
 
 Section "InputClass"
     Identifier   "libinput-trackpoint-acceleration"
     MatchDriver  "libinput"
     MatchProduct "TPPS/2 IBM TrackPoint"
-    Option       "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 0.8) / 2.0 - 0.5).round(2) %>"
+    Option       "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 1) / 1.5 - 0.7).round(2) %>"
 EndSection
