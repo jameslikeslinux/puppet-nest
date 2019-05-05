@@ -23,21 +23,13 @@ class nest::profile::workstation::xorg {
   $primary_monitor = $::nest::primary_monitor
   $video_card      = $::nest::video_card
 
-  $intel_ensure = $video_card ? {
-    'intel' => present,
-    default => absent,
-  }
-
-  # Whatever people say about the state and quality of this driver, it just
-  # works.  SNA/DRI2 + the TearFree option enables perfectly tear-free
-  # everything, even without a compositor.  It's also very fast.  The
-  # modesetting driver with DRI3 just isn't there yet.
+  # Switch to xf86-video-modesetting DDX
   package { 'x11-drivers/xf86-video-intel':
-    ensure => $intel_ensure,
+    ensure => 'absent',
   }
 
   file { '/etc/X11/xorg.conf.d/10-intel.conf':
-    ensure => $intel_ensure,
+    ensure => 'absent',
     mode   => '0644',
     owner  => 'root',
     group  => 'root',
