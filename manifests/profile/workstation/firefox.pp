@@ -30,7 +30,7 @@ class nest::profile::workstation::firefox {
 
       $firefox_wrapper_content = @(EOT)
         #!/bin/bash
-        MOZ_USE_XINPUT2=1 exec /usr/lib64/firefox/firefox
+        MOZ_USE_XINPUT2=1 MOZ_WEBRENDER=1 exec /usr/lib64/firefox/firefox
         | EOT
 
       file { '/usr/bin/firefox':
