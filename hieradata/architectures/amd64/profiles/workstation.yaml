@@ -4,9 +4,11 @@ nest::package_keywords:
   app-misc/ddcutil: {}
   media-fonts/fontawesome: {}
   media-gfx/displaycal: {}
-  media-sound/google-play-music-desktop-player-bin: {}
   www-client/firefox: {}
 
+  # Switch to running in chromium
+  media-sound/google-play-music-desktop-player-bin:
+    ensure: 'absent'
 
   # Switch to xf86-video-modesetting
   x11-drivers/xf86-video-intel:
