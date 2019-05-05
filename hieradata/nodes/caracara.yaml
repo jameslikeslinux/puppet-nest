@@ -6,4 +6,5 @@ nest::dvorak: true
 nest::swap_alt_win: true
 nest::gui_scaling_factor: 2.0
 nest::text_scaling_factor: 2.0
+nest::touchpad_acceleration: 0.55
 nest::video_card: 'intel'
