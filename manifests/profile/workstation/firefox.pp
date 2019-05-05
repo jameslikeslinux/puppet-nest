@@ -28,6 +28,19 @@ class nest::profile::workstation::firefox {
         require => Package['www-client/firefox'],
       }
 
+      $firefox_wrapper_content = @(EOT)
+        #!/bin/bash
+        MOZ_USE_XINPUT2=1 exec /usr/lib64/firefox/firefox
+        | EOT
+
+      file { '/usr/bin/firefox':
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+        content => $firefox_wrapper_content,
+        require => Package['www-client/firefox'],
+      }
+
       exec { 'patch-flash-fullscreen-focus':
         command => '/bin/sed -i "s/_NET_ACTIVE_WINDOW/_XET_ACTIVE_WINDOW/g" /usr/lib64/nsbrowser/plugins/libflashplayer.so',
         onlyif  => '/bin/grep "_NET_ACTIVE_WINDOW" /usr/lib64/nsbrowser/plugins/libflashplayer.so',
