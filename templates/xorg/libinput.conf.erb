@@ -18,5 +18,5 @@ Section "InputClass"
     Identifier   "libinput-trackpoint-acceleration"
     MatchDriver  "libinput"
     MatchProduct "TPPS/2 IBM TrackPoint"
-    Option       "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 1) / 1.67 - 0.6).round(2) %>"
+    Option       "AccelSpeed" "<%= ((scope['::nest::text_scaling_factor'] - 1) / 1.67 - 0.8).round(2) %>"
 EndSection
