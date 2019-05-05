@@ -7,11 +7,19 @@ class nest::profile::base::libvirt {
     ensure => installed,
   }
 
+  file { '/etc/libvirt/libvirt-guests.conf':
+    ensure  => present,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    require => Package['app-emulation/libvirt'],
+  }
+
   file_line { 'libvirt-guests-on_shutdown':
     path    => '/etc/libvirt/libvirt-guests.conf',
     line    => 'ON_SHUTDOWN=shutdown',
     match   => '^#?ON_SHUTDOWN=',
-    require => Package['app-emulation/libvirt'],
+    require => File['/etc/libvirt/libvirt-guests.conf'],
     before  => Service['libvirt-guests'],
   }
 
