@@ -28,9 +28,14 @@ class nest::profile::workstation::firefox {
         require => Package['www-client/firefox'],
       }
 
-      $firefox_wrapper_content = @(EOT)
+      $webrender = $::nest::video_card ? {
+        'intel' => 1,
+        default => 0,
+      }
+
+      $firefox_wrapper_content = @("EOT")
         #!/bin/bash
-        MOZ_USE_XINPUT2=1 exec /usr/lib64/firefox/firefox "$@"
+        MOZ_USE_XINPUT2=1 MOZ_WEBRENDER=${webrender} exec /usr/lib64/firefox/firefox "$@"
         | EOT
 
       file { '/usr/bin/firefox':
