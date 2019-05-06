@@ -1,10 +1,16 @@
 class nest::profile::workstation::xmonad {
-  nest::portage::package_use { 'x11-misc/xmobar':
-    use => 'xft',
-  }
+  nest::portage::package_use {
+    'x11-misc/xmobar':
+      use => 'xft',
+    ;
 
-  nest::portage::package_use { 'x11-misc/rofi':
-    use => 'windowmode',
+    'x11-misc/rofi':
+      use => 'windowmode',
+    ;
+
+    'media-gfx/feh':
+      use => 'xinerama',
+    ;
   }
 
   package { [
