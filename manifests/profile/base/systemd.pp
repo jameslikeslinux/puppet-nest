@@ -55,9 +55,11 @@ class nest::profile::base::systemd {
     changes => flatten($nsswitch_id_changes + $nsswitch_hosts_changes),
   }
 
-  file { '/etc/resolv.conf':
-    ensure => link,
-    target => '/run/systemd/resolve/stub-resolv.conf',
+  unless str2bool($::chroot) {
+    file { '/etc/resolv.conf':
+      ensure => link,
+      target => '/run/systemd/resolve/stub-resolv.conf',
+    }
   }
 
   file {
