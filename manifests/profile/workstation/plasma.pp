@@ -37,12 +37,26 @@ class nest::profile::workstation::plasma {
     MaximumUid=1000
     | EOT
 
-  file { '/etc/sddm.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $sddm_conf,
-    require => Package['kde-plasma/plasma-meta'],
+  $sddm_theme_conf = @(EOT)
+    [General]
+    color=#000000
+    | EOT
+
+  file {
+    default:
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      require => Package['kde-plasma/plasma-meta'],
+    ;
+
+    '/etc/sddm.conf':
+      content => $sddm_conf,
+    ;
+
+    '/usr/share/sddm/themes/breeze/theme.conf':
+      content => $sddm_theme_conf,
+    ;
   }
 
   # When system-login is "included" and contains a sufficient auth
