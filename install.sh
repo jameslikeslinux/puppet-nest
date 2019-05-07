@@ -232,6 +232,7 @@ else
             print
 
         cmd udevadm trigger
+        cmd sleep 3
 
         if [ -n "$efi" ]; then
             task "Making EFI system partition ${name}-${partition_name_suffix}${mirror_number}..."
