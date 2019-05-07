@@ -91,7 +91,7 @@ class nest::profile::base::puppet {
         }
 
         package { 'dev-ruby/hiera-eyaml':
-          ensure =>  installed,
+          ensure => absent,
         }
 
         file { '/etc/eyaml':
