@@ -36,28 +36,26 @@ class nest::profile::workstation::chromium {
         ensure  => installed,
       }
 
-      file { '/etc/chromium/scaling':
+      $chromium_flags = @("EOT"/$)
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::text_scaling_factor} --enable-use-zoom-for-dsf"
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --disable-smooth-scrolling"
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
+        | EOT
+
+      file { '/etc/chromium/nest':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::text_scaling_factor} --enable-use-zoom-for-dsf\"\n",
+        content => $chromium_flags,
         require => Package['www-client/chromium'],
       }
 
-      file { '/etc/chromium/scrolling':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --disable-smooth-scrolling\"\n",
-        require => Package['www-client/chromium'],
-      }
-
-      file { '/etc/chromium/gpu':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --enable-gpu-rasterization\"\n",
-        require => Package['www-client/chromium'],
+      file { [
+        '/etc/chromium/gpu',
+        '/etc/chromium/scaling',
+        '/etc/chromium/scrolling',
+      ]:
+        ensure  => absent,
       }
     }
 
