@@ -51,6 +51,14 @@ class nest::profile::workstation::chromium {
         content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --disable-smooth-scrolling\"\n",
         require => Package['www-client/chromium'],
       }
+
+      file { '/etc/chromium/gpu':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        content => "CHROMIUM_FLAGS=\"\${CHROMIUM_FLAGS} --enable-gpu-rasterization\"\n",
+        require => Package['www-client/chromium'],
+      }
     }
 
     'windows': {
