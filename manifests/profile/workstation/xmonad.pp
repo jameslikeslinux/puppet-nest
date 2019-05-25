@@ -21,8 +21,11 @@ class nest::profile::workstation::xmonad {
     'x11-misc/taffybar',
     'dev-haskell/missingh',
     'media-gfx/feh',
-    'net-wireless/iw',  # for taffybar status
-    'x11-apps/xev',     # for taffybar status
+
+    # For taffybar status
+    'net-wireless/iw',
+    'sys-fs/inotify-tools',
+    'x11-apps/xev',
   ]:
     ensure => installed,
   }
