@@ -59,6 +59,10 @@ class nest::profile::workstation {
       # NetworkManager, systemd, libvirt pull in policykit
       Class['::nest::profile::base']
       -> Class['::nest::profile::workstation::policykit']
+
+      if $facts['dmi']['chassis']['type'] in ['Laptop', 'Notebook'] {
+        contain '::nest::profile::workstation::tlp'
+      }
     }
   }
 }
