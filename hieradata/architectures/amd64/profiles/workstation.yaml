@@ -196,6 +196,10 @@ nest::package_keywords:
   dev-db/sqlite:
     version: '=3.27.2'
 
+  # For tlp
+  sys-power/acpi_call:
+    version: '=3.17'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
