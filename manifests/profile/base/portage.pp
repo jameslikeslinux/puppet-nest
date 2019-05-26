@@ -160,6 +160,13 @@ class nest::profile::base::portage {
     content => "*/*::nest ~amd64\n",
   }
 
+  file { '/etc/portage/package.keywords/tlp':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::tlp ~amd64\n",
+  }
+
   file { [
     '/etc/portage/patches',
     '/etc/portage/patches/x11-drivers',
@@ -217,6 +224,13 @@ class nest::profile::base::portage {
     sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
     auto-sync = yes
     masters = gentoo
+
+    [tlp]
+    location = /var/cache/portage/tlp
+    sync-type = git
+    sync-uri = https://github.com/iamjamestl/tlp-portage.git
+    auto-sync = yes
+    masters = gentoo
     | EOT
 
   file { '/etc/portage/repos.conf':
@@ -245,6 +259,10 @@ class nest::profile::base::portage {
 
     '/var/cache/portage/haskell':
       source => 'https://github.com/iamjamestl/gentoo-haskell.git',
+    ;
+
+    '/var/cache/portage/tlp':
+      source => 'https://github.com/iamjamestl/tlp-portage.git',
     ;
   }
 

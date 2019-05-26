@@ -17,11 +17,6 @@ class nest::profile::workstation::bluetooth {
     require => Package['sys-kernel/linux-firmware'],
   }
 
-  $systemd_dropin_content = @(DROPIN)
-    [Unit]
-    Conflicts=bluetooth.service
-    | DROPIN
-
   file {
     default:
       mode  => '0644',
@@ -30,11 +25,9 @@ class nest::profile::workstation::bluetooth {
     ;
 
     '/etc/systemd/system/sleep.target.d':
-      ensure => directory,
-    ;
-
-    '/etc/systemd/system/sleep.target.d/bluetooth-conflict.conf':
-      content => $systemd_dropin_content,
+      ensure  => absent,
+      recurse => true,
+      force   => true,
       notify  => Exec['bluetooth-systemd-daemon-reload'],
     ;
   }
