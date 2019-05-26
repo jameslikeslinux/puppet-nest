@@ -25,16 +25,6 @@ class nest::profile::workstation::tlp {
     ;
   }
 
-  exec {
-    '/bin/systemctl mask systemd-rfkill.socket':
-      creates => '/etc/systemd/system/systemd-rfkill.socket',
-    ;
-
-    '/bin/systemctl mask systemd-rfkill.service':
-      creates => '/etc/systemd/system/systemd-rfkill.service',
-    ;
-  }
-
   service { [
     'tlp',
     'tlp-sleep',
