@@ -46,9 +46,9 @@ nest::package_keywords:
   dev-util/cargo:
     version: '=1.32.0'
   dev-util/cbindgen:
-    version: '=0.7.1'
+    version: '=0.8.7'
   dev-libs/nspr:
-    version: '=4.19'
+    version: '=4.21'
   dev-libs/nss:
     version: '=3.43'
   dev-lang/rust:
