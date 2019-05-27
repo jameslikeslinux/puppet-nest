@@ -105,7 +105,7 @@ class nest::profile::base::grub {
   }
 
   file_line { 'grub-set-device':
-    line  => 'GRUB_DEVICE=',
+    line  => 'GRUB_DEVICE=zfs:AUTO',
     match => '^#?GRUB_DEVICE=',
   }
 
