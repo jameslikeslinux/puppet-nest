@@ -4,6 +4,7 @@ class nest::profile::base::kernel {
   }
 
   package { [
+    'app-admin/eclean-kernel',
     'sys-kernel/gentoo-sources',
     'sys-kernel/linux-firmware',
   ]:
@@ -46,9 +47,16 @@ class nest::profile::base::kernel {
     refreshonly => true,
   }
 
-  exec { '/usr/bin/emerge --usepkg n @module-rebuild':
+  exec { 'module-rebuild':
+    command     => '/usr/bin/emerge --usepkg n @module-rebuild',
     timeout     => 0,
     refreshonly => true,
     subscribe   => Exec['make kernel'],
+  }
+
+  exec { '/usr/bin/eclean-kernel --destructive -n 2':
+    refreshonly => true,
+    subscribe   => Exec['module-rebuild'],
+    require     => Package['app-admin/eclean-kernel'],
   }
 }
