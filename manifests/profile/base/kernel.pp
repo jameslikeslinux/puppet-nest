@@ -1,4 +1,23 @@
 class nest::profile::base::kernel {
+  file {
+    default:
+      ensure => directory,
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+    ;
+
+    '/etc/portage/patches/sys-kernel':
+    ;
+
+    '/etc/portage/patches/sys-kernel/gentoo-sources':
+      source  => 'puppet:///modules/nest/kernel/patches/',
+      recurse => true,
+      purge   => true,
+      before  => Package['sys-kernel/gentoo-sources'],
+    ;
+  }
+
   nest::portage::package_use { 'sys-kernel/gentoo-sources':
     use => 'symlink',
   }
