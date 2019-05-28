@@ -32,7 +32,6 @@ class nest::profile::base::openvpn {
     dev ${device}
     persist-tun
     txqueuelen 1000
-    cipher AES-128-CBC
     ca ${::settings::localcacert}
     cert ${::settings::certdir}/${::trusted['certname']}.pem
     key ${::settings::privatekeydir}/${::trusted['certname']}.pem
