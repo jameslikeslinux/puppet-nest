@@ -40,6 +40,7 @@ class nest::profile::base::openvpn {
     up /etc/openvpn/up.sh
     down /etc/openvpn/down.sh
     down-pre
+    verb 3
     | EOT
 
   $dnsmasq_config = @("EOT")
