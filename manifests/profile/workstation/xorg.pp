@@ -107,6 +107,7 @@ class nest::profile::workstation::xorg {
   }
 
   package { [
+    'x11-apps/xev',
     'x11-apps/xinput',
     'x11-apps/xlogo',
     'x11-apps/xkill',

@@ -23,9 +23,9 @@ class nest::profile::workstation::xmonad {
     'media-gfx/feh',
 
     # For taffybar status
+    'dev-ruby/concurrent-ruby',
     'net-wireless/iw',
     'sys-fs/inotify-tools',
-    'x11-apps/xev',
   ]:
     ensure => installed,
   }
