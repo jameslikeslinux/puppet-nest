@@ -23,6 +23,7 @@ class nest::profile::base::dracut {
     $base_config_content = @(EOT)
       add_dracutmodules+=" crypt "
       early_microcode="yes"
+      force_drivers+=" zfs "
       hostonly="yes"
       hostonly_cmdline="no"
       | EOT
