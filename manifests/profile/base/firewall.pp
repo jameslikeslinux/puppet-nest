@@ -25,7 +25,10 @@ class nest::profile::base::firewall {
   firewallchain { 'INPUT:filter:IPv4':
     ensure => present,
     purge  => !str2bool($::chroot),
-    ignore => 'virbr\d+',
+    ignore => [
+      '-i virbr\d+',
+      '-j LIBVIRT_INP',
+    ],
   }
 
   firewall { '000 loopback':
