@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STAGE_ARCHIVE='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190503.tar.bz2'
+STAGE_ARCHIVE='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190523.tar.bz2'
 DATE="$(date '+%Y%m%d')"
 
 usage() {
@@ -327,7 +327,7 @@ chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
 
 
 task "Installing Puppet..."
-chroot_cmd emerge -v '<app-admin/puppet-agent-6' app-portage/eix
+chroot_cmd env USE=tinfo emerge -v '<app-admin/puppet-agent-6' app-portage/eix
 
 
 task "Prepping for Puppet run..."
@@ -346,8 +346,8 @@ task "Running Puppet..."
 chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest
 [ -z "$live" ] && chroot_cmd systemctl enable puppet
 
-task "Removing unnecessary packages..."
-chroot_cmd emerge --depclean
+# task "Removing unnecessary packages..."
+# chroot_cmd emerge --depclean
 
 
 if [ -n "$live" ]; then
