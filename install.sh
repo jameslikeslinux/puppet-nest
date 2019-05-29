@@ -260,12 +260,12 @@ else
 
     task "Creating swap space..."
     cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
-    cmd mkswap "/dev/zvol/${name}/swap"
+    cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
     cmd swapon --discard "/dev/zvol/${name}/swap"
 
     task "Creating fscache..."
     cmd zfs create -V 2G -b 4k -o com.sun:auto-snapshot=false "${name}/fscache"
-    cmd mkfs.ext4 "/dev/zvol/${name}/fscache"
+    cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
     cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
 
     # XXX: This needs to support mdraid
