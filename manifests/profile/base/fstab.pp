@@ -29,7 +29,7 @@ class nest::profile::base::fstab {
       'set 1/dump 0',
       'set 1/passno 2',
 
-      "set 2/spec /dev/zvol/${hostname}/swap",
+      "set 2/spec LABEL=${hostname}-swap",
       'set 2/file none',
       'set 2/vfstype swap',
       'set 2/opt discard',
@@ -47,7 +47,7 @@ class nest::profile::base::fstab {
     ]
 
     $nfs_changes = [
-      "set 4/spec /dev/zvol/${hostname}/fscache",
+      "set 4/spec LABEL=${hostname}-fscache",
       'set 4/file /var/cache/fscache',
       'set 4/vfstype ext4',
       'set 4/opt[1] defaults',
