@@ -3,6 +3,7 @@ class nest::profile::base::openvpn {
   $hosts_file = '/etc/hosts.nest'
 
   $server_config = @("EOT")
+    ncp-ciphers AES-128-GCM
     dh /etc/openvpn/dh4096.pem
     server 172.22.0.0 255.255.255.0
     topology subnet
