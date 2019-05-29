@@ -1,5 +1,5 @@
 class nest::docker (
-  $zpool = $trusted['certname'],
+  $zpool = $::nest::rpool_root,
 ) {
   zfs { 'docker':
     name       => "${zpool}/docker",
