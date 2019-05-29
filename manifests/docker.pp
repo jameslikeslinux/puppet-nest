@@ -1,5 +1,5 @@
 class nest::docker (
-  $zpool = $::nest::rpool_root,
+  $zpool = $::rpool,
 ) {
   zfs { 'docker':
     name       => "${zpool}/docker",

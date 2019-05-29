@@ -82,11 +82,6 @@ class nest (
   $cursor_size         = $cursor_size_smaller
 
   if $facts['kernel'] == 'Linux' {
-    $rpool_root = $facts['crypt'] ? {
-      true    => "${trusted['certname']}/crypt",
-      default => $trusted['certname']
-    }
-
     $luks_disks = $::partitions.reduce({}) |$memo, $value| {
       $partition  = $value[0]
       $attributes = $value[1]
