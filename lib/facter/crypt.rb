@@ -1,8 +1,8 @@
 Facter.add('crypt') do
   confine :kernel => 'Linux'
   setcode do
-    hostname = Facter.value('hostname')
-    Facter::Core::Execution.execute("zfs list #{hostname}/crypt")
+    certname = Facter::Core::Execution.execute('puppet agent --configprint certname').gsub(/\..*/, '')
+    Facter::Core::Execution.execute("zfs list #{certname}/crypt")
     $? == 0
   end
 end
