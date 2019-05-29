@@ -197,9 +197,8 @@ if [ -n "$live" ]; then
     task "Mounting image at build target..."
     cmd mount "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img" "/mnt/${name}"
 else
-    disk_number=0
     if [ "${#disks[@]}" -gt 1 ]; then
-        mirror_number=0
+        mirror_number=1
         boot_lvm_flag='on'
         vdevs+=('mirror')
     else
@@ -227,7 +226,7 @@ else
             set 1 "$partition_flag" on \
             mkpart "${name}-boot${mirror_number}" $((1 + 32))MiB $((1 + 32 + 512))MiB \
             set 2 lvm "$boot_lvm_flag" \
-            mkpart "${name}${partition_name_crypt}${disk_number}" $((1 + 32 + 512))MiB 100% \
+            mkpart "${name}${partition_name_crypt}${mirror_number}" $((1 + 32 + 512))MiB 100% \
             unit s \
             print
 
@@ -240,14 +239,13 @@ else
         fi
 
         if [ -n "$encrypt" ]; then
-            task "Encrypting ${name}-crypt${disk_number}..."
-            echo -n "$enc_passphrase" | cmd cryptsetup luksFormat -c aes-xts-plain64 -s 256 -h sha512 "/dev/disk/by-partlabel/${name}${partition_name_crypt}${disk_number}"
-            echo -n "$enc_passphrase" | cmd cryptsetup luksOpen "/dev/disk/by-partlabel/${name}${partition_name_crypt}${disk_number}" "${name}${partition_name_crypt}${disk_number}"
+            task "Encrypting ${name}-crypt${mirror_number}..."
+            echo -n "$enc_passphrase" | cmd cryptsetup luksFormat -c aes-xts-plain64 -s 256 -h sha512 "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}"
+            echo -n "$enc_passphrase" | cmd cryptsetup luksOpen "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}" "${name}${partition_name_crypt}${mirror_number}"
         fi
 
-        vdevs+=("${name}${partition_name_crypt}${disk_number}")
+        vdevs+=("${name}${partition_name_crypt}${mirror_number}")
 
-        let disk_number++
         [ "${#disks[@]}" -gt 1 ] && let mirror_number++
     done
 
