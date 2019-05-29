@@ -218,13 +218,6 @@ class nest::node::falcon {
     action  => accept,
   }
 
-  firewall { '100 crashplan':
-    proto  => tcp,
-    dport  => 4242,
-    state  => 'NEW',
-    action => accept,
-  }
-
   firewall { '100 docker to apache':
     iniface => 'docker0',
     proto   => tcp,
