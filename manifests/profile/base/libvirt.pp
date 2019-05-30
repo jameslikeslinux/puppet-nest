@@ -65,7 +65,7 @@ class nest::profile::base::libvirt {
     owner   => 'root',
     group   => 'root',
     content => $after_fs_servers_conf,
-    notify  => Exec['libvirt-systemd-daemon-reload'],
+    notify  => Nest::Systemd_reload['libvirt'],
   }
 
   $after_openvpn_ensure = $::nest::openvpn_server ? {
@@ -84,13 +84,10 @@ class nest::profile::base::libvirt {
     owner   => 'root',
     group   => 'root',
     content => $after_openvpn_conf,
-    notify  => Exec['libvirt-systemd-daemon-reload'],
+    notify  => Nest::Systemd_reload['libvirt'],
   }
 
-  exec { 'libvirt-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
+  ::nest::systemd_reload { 'libvirt': }
 
   # Do not filter bridge packets
   # See: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf

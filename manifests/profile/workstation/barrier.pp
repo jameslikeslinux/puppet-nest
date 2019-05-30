@@ -29,7 +29,7 @@ class nest::profile::workstation::barrier {
     owner  => 'root',
     group  => 'root',
     source => 'puppet:///modules/nest/barrier/barriers.service',
-    notify => Exec['barrier-systemd-daemon-reload'],
+    notify => Nest::Systemd_reload['barrier'],
   }
 
   # barrier pulls in avahi, which I don't want, and it gets started by
@@ -41,13 +41,10 @@ class nest::profile::workstation::barrier {
     ensure  => link,
     target  => '/dev/null',
     require => Package['x11-misc/barrier'],
-    notify  => Exec['barrier-systemd-daemon-reload'],
+    notify  => Nest::Systemd_reload['barrier'],
   }
 
-  exec { 'barrier-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
+  ::nest::systemd_reload { 'barrier': }
 
   exec { 'barrier-enable-systemd-user-service':
     command => '/bin/systemctl --user --global enable barriers.service',

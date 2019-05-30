@@ -145,16 +145,14 @@ class nest::profile::base::openvpn {
       content => $dnsmasq_systemd_dropin_unit,
     }
 
-    exec { 'dnsmasq-systemd-daemon-reload':
-      command     => '/bin/systemctl daemon-reload',
-      refreshonly => true,
-      subscribe   => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
+    ::nest::systemd_reload { 'dnsmasq':
+      subscribe => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
     }
 
     service { 'dnsmasq':
       enable  => true,
       require => [
-        Exec['dnsmasq-systemd-daemon-reload'],
+        Nest::Systemd_reload['dnsmasq'],
         Service["openvpn-${mode}@nest"],
       ],
     }

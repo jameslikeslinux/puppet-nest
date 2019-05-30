@@ -99,12 +99,9 @@ class nest::profile::base::fstab {
 
     '/etc/systemd/system/var.mount.d/lazyunmount.conf':
       content => $var_lazy_unmount,
-      notify  => Exec['fstab-systemd-daemon-reload'],
+      notify  => Nest::Systemd_reload['fstab'],
     ;
   }
 
-  exec { 'fstab-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
+  ::nest::systemd_reload { 'fstab': }
 }

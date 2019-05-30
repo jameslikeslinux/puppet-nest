@@ -35,13 +35,11 @@ class nest::profile::base::puppet {
           group   => 'root',
           content => "[Service]\nRuntimeDirectory=puppetlabs\n",
           require => Class['::puppet::server::install'],
-          notify  => Exec['puppetserver-systemd-daemon-reload'],
+          notify  => Nest::Systemd_reload['puppet'],
         }
 
-        exec { 'puppetserver-systemd-daemon-reload':
-          command     => '/bin/systemctl daemon-reload',
-          refreshonly => true,
-          before      => Class['::puppet::server::service'],
+        ::nest::systemd_reload { 'puppet':
+          before => Class['::puppet::server::service'],
         }
 
         # Package installs the log directory with incorrect permissions

@@ -16,24 +16,4 @@ class nest::profile::workstation::bluetooth {
     creates => '/lib/firmware/brcm/BCM20702A1-0a5c-21e8.hcd',
     require => Package['sys-kernel/linux-firmware'],
   }
-
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
-    '/etc/systemd/system/sleep.target.d':
-      ensure  => absent,
-      recurse => true,
-      force   => true,
-      notify  => Exec['bluetooth-systemd-daemon-reload'],
-    ;
-  }
-
-  exec { 'bluetooth-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
 }

@@ -11,13 +11,11 @@ class nest::profile::base::distccd {
       owner   => 'root',
       group   => 'root',
       content => $disable_verbose_content,
-      notify  => Exec['distccd-systemd-daemon-reload'],
+      notify  => Nest::Systemd_reload['distccd'],
     }
 
-    exec { 'distccd-systemd-daemon-reload':
-      command     => '/bin/systemctl daemon-reload',
-      refreshonly => true,
-      notify      => Service['distccd']
+    ::nest::systemd_reload { 'distccd':
+      notify => Service['distccd']
     }
 
     service { 'distccd':

@@ -41,12 +41,9 @@ class nest::profile::base::network {
   file { '/etc/systemd/system/NetworkManager-wait-online.service':
     ensure => $wait_online_ensure,
     target => '/dev/null',
-    notify => Exec['NetworkManager-systemd-daemon-reload'],
+    notify => Nest::Systemd_reload['NetworkManager'],
   }
 
   # probably not *strictly* necessary, but good practice none-the-less
-  exec { 'NetworkManager-systemd-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
+  ::nest::systemd_reload { 'NetworkManager': }
 }

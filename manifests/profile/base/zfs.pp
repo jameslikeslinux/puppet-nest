@@ -86,7 +86,7 @@ class nest::profile::base::zfs {
     owner   => 'root',
     group   => 'root',
     content => $zfs_auto_snapshot_service_content,
-    notify  => Exec['zfs-systemctl-daemon-reload'],
+    notify  => Nest::Systemd_reload['zfs'],
   }
 
   $zfs_auto_snapshot_timer_frequencies = {
@@ -114,17 +114,14 @@ class nest::profile::base::zfs {
       owner   => 'root',
       group   => 'root',
       content => $zfs_auto_snapshot_timer_content,
-      notify  => Exec['zfs-systemctl-daemon-reload'],
+      notify  => Nest::Systemd_reload['zfs'],
     }
 
     service { "zfs-auto-snapshot@${frequency}.timer":
       enable  => true,
-      require => Exec['zfs-systemctl-daemon-reload'],
+      require => Nest::Systemd_reload['zfs'],
     }
   }
 
-  exec { 'zfs-systemctl-daemon-reload':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
-  }
+  ::nest::systemd_reload { 'zfs': }
 }
