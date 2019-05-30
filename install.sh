@@ -139,7 +139,7 @@ cmd() {
 chroot_cmd() {
     echo ">> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
-        FACTER_chroot=true chroot "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
+        systemd-nspawn -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=CAP_NET_ADMIN --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
         if [ $? -ne 0 ]; then
             echo "FAILED"
             exit 1
@@ -281,18 +281,6 @@ fi
 task "Downloading and extracting stage archive..."
 cmd wget --progress=dot:mega "$STAGE_ARCHIVE" -O "/mnt/${name}/$(basename "$STAGE_ARCHIVE")"
 cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --xattrs
-
-
-task "Initializing chroot..."
-cmd mount -t proc proc "/mnt/${name}/proc"
-cmd mount --rbind /sys "/mnt/${name}/sys"
-cmd mount --make-rslave "/mnt/${name}/sys"
-cmd mount --rbind /dev "/mnt/${name}/dev"
-cmd mount --make-rslave "/mnt/${name}/dev"
-cmd mkdir "/mnt/${name}/nest"
-cmd mount --rbind /nest "/mnt/${name}/nest"
-cmd mount --make-rslave "/mnt/${name}/nest"
-cmd cp -L /etc/resolv.conf "/mnt/${name}/etc/resolv.conf"
 
 
 task "Prepping build target..."
