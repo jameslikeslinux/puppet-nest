@@ -1,19 +1,7 @@
 class nest::profile::workstation::mouse {
-  $mouse_hwdb = @(EOT)
-    # Logitech Anywhere MX
-    mouse:usb:v046dpc52b:name:Logitech Unifying Device. Wireless PID:1017:
-    mouse:usb:v046dp1017:name:Logitech Anywhere MX:
-    # Logitech Anywhere MX 2S
-    mouse:usb:v046dp406a:name:Logitech MX Anywhere 2S:
-    MOUSE_WHEEL_CLICK_ANGLE=20
-    | EOT
-
   file { '/etc/udev/hwdb.d/71-mouse-local.hwdb':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $mouse_hwdb,
-    notify  => Exec['udev-hwdb-update'],
+    ensure => absent,
+    notify => Exec['udev-hwdb-update'],
   }
 
   exec { 'udev-hwdb-update':
