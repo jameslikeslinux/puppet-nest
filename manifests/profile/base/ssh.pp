@@ -33,10 +33,10 @@ class nest::profile::base::ssh {
         owner  => 'root',
         group  => 'root',
         source => 'puppet:///modules/nest/ssh/ssh-agent.service',
-        notify => Nest::Systemd_reload['puppet'],
+        notify => Nest::Systemd_reload['ssh'],
       }
 
-      ::nest::systemd_reload { 'puppet': }
+      ::nest::systemd_reload { 'ssh': }
 
       exec { 'ssh-agent-enable-systemd-user-service':
         command => '/bin/systemctl --user --global enable ssh-agent.service',
