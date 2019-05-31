@@ -50,5 +50,3 @@ nest::barrier_config: |
   end
 
 nest::apache::manage_firewall: true
-
-nest::docker::zpool: 'nest'
