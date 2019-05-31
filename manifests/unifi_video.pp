@@ -20,7 +20,10 @@ class nest::unifi_video {
     image            => 'iamjamestl/unifi-video',
     net              => 'video',
     dns              => '172.22.3.1',
-    volumes          => 'unifi-video:/var/lib/unifi-video',
+    volumes          => [
+      'unifi-video:/var/lib/unifi-video',
+      '/nest/unifi-video/videos:/videos',
+    ],
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
