@@ -2,13 +2,13 @@ define nest::srv (
   Boolean $zfs = true,
 ) {
   ensure_resource('zfs', 'srv', {
-    'name'       => "${::trusted['certname']}/srv",
+    'name'       => "${facts['rpool']}/srv",
     'mountpoint' => '/srv',
   })
 
   if $zfs {
     zfs { "srv/${name}":
-      name       => "${::trusted['certname']}/srv/${name}",
+      name       => "${facts['rpool']}/srv/${name}",
       mountpoint => "/srv/${name}",
     }
   } else {

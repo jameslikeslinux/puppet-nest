@@ -1,8 +1,6 @@
-class nest::docker (
-  $zpool = $::rpool,
-) {
+class nest::docker {
   zfs { 'docker':
-    name       => "${zpool}/docker",
+    name       => "${facts['rpool']}/docker",
     mountpoint => '/var/lib/docker',
   }
 
