@@ -3,6 +3,29 @@ class nest::profile::base::zfs {
     ensure => installed,
   }
 
+  $zfs_mount_override = @(EOF)
+    [Service]
+    ExecStart=
+    ExecStart=/sbin/zfs mount -al
+    | EOF
+
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/etc/systemd/system/zfs-mount.service.d':
+      ensure => directory,
+    ;
+
+    '/etc/systemd/system/zfs-mount.service.d/load-key.conf':
+      content => $zfs_mount_override,
+      notify  => Nest::Systemd_reload['zfs'],
+    ;
+  }
+
   file { '/usr/lib/dracut/modules.d/90zfs/zfs-load-key.sh':
     mode    => '0755',
     owner   => 'root',
