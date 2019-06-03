@@ -37,7 +37,7 @@ if [ "$(zpool list -H -o feature@encryption $(echo "${root}" | awk -F\/ '{print 
     # if the root dataset has encryption enabled
     ENCRYPTIONROOT=$(zfs get -H -o value encryptionroot "${root}")
     if ! [ "${ENCRYPTIONROOT}" = "-" ]; then
-        KEYLOCATION=$(zfs get -H -o value keylocation "${root}")
+        KEYLOCATION=$(zfs get -H -o value keylocation "${ENCRYPTIONROOT}")
         if [ "${KEYLOCATION}" = "prompt" ]; then
             # decrypt them
             TRY_COUNT=5
