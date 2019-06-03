@@ -37,12 +37,12 @@ if [ "$(zpool list -H -o feature@encryption $(echo "${root}" | awk -F\/ '{print 
     # if the root dataset has encryption enabled
     ENCRYPTIONROOT=$(zfs get -H -o value encryptionroot "${root}")
     if ! [ "${ENCRYPTIONROOT}" = "-" ]; then
-        KEYFORMAT=$(zfs get -H -o value keyformat "${root}")
-        if [ "${KEYFORMAT}" = "passphrase" ]; then
+        KEYLOCATION=$(zfs get -H -o value keylocation "${root}")
+        if [ "${KEYLOCATION}" = "prompt" ]; then
             # decrypt them
             TRY_COUNT=5
             while [ $TRY_COUNT -gt 0 ]; do
-                systemd-ask-password "Encrypted ZFS password for ${root}" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
+                systemd-ask-password "Enter passphrase for ${root}:" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
                 TRY_COUNT=$((TRY_COUNT - 1))
             done
         else
