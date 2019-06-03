@@ -10,3 +10,4 @@ nest::gui_scaling_factor: 2.0
 nest::text_scaling_factor: 2.0
 nest::touchpad_acceleration: 0.6
 nest::video_card: 'intel'
+nest::kernel_cmdline: 'i915.enable_fbc=1'

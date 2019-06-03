@@ -14,3 +14,4 @@ nest::text_scaling_factor: 1.67
 nest::touchpad_acceleration: 0.4
 nest::trackpoint_acceleration: -0.4
 nest::video_card: 'intel'
+nest::kernel_cmdline: 'i915.enable_fbc=1'
