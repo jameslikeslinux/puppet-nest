@@ -42,7 +42,7 @@ if [ "$(zpool list -H -o feature@encryption $(echo "${root}" | awk -F\/ '{print 
             # decrypt them
             TRY_COUNT=5
             while [ $TRY_COUNT -gt 0 ]; do
-                systemd-ask-password "Enter passphrase for ${root}:" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
+                systemd-ask-password "Enter passphrase for '${ENCRYPTIONROOT}':" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
                 TRY_COUNT=$((TRY_COUNT - 1))
             done
         else
