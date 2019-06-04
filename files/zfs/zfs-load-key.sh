@@ -16,13 +16,8 @@
 # If root is not ZFS= or zfs: or rootfstype is not zfs then we are not supposed to handle it.
 [ "${root##zfs:}" = "${root}" ] && [ "${root##ZFS=}" = "${root}" ] && [ "$rootfstype" != "zfs" ] && exit 0
 
-# There is a race between the zpool import and the pre-mount hooks, so we wait for a pool to be imported
-while true; do
-    zpool list -H 2>/dev/null | grep -q -v '^$' && break
-    [ "$(systemctl is-failed zfs-import-cache.service)" = 'failed' ] && exit 1
-    [ "$(systemctl is-failed zfs-import-scan.service)" = 'failed' ] && exit 1
-    sleep 0.1s
-done
+# There is a race between systemd and the pre-mount hook so wait for systemd or die
+systemctl start zfs-import.target || exit 1
 
 # run this after import as zfs-import-cache/scan service is confirmed good
 if [ "${root}" = "zfs:AUTO" ] ; then
