@@ -4,6 +4,7 @@ classes:
 
 nest::isolcpus: '2,3'
 nest::libvirt: true
+nest::fileserver: true
 
 nest::dvorak: true
 nest::swap_alt_win: true
