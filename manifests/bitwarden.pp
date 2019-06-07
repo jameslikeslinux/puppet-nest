@@ -14,7 +14,7 @@ class nest::bitwarden (
   # A hack to include my manually-created ext4 volume for MSSQL in /etc/fstab
   Augeas <| title == 'fstab' |> {
     changes +> [
-      "set 99/spec /dev/zvol/${hostname}/srv/bitwarden/mssql",
+      "set 99/spec LABEL=bitwarden-mssql",
       'set 99/file /srv/bitwarden/bwdata/mssql/data',
       'set 99/vfstype ext4',
       'set 99/opt[1] defaults',
