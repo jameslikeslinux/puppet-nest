@@ -264,7 +264,7 @@ else
     cmd swapon --discard "/dev/zvol/${name}/swap"
 
     task "Creating fscache..."
-    cmd zfs create -V 2G -b 4k -o com.sun:auto-snapshot=false "${name}/fscache"
+    cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
     cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
     cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
 
