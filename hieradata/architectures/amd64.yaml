@@ -39,7 +39,7 @@ nest::package_keywords:
 
   # beets
   dev-python/jellyfish:
-    version: '=0.5.6'
+    version: '=0.7.1'
   dev-python/munkres:
     version: '=1.0.12'
   media-sound/beets: {}
