@@ -40,6 +40,7 @@ class nest::profile::workstation::plasma {
   $sddm_theme_conf = @(EOT)
     [General]
     color=#000000
+    fontSize=10
     | EOT
 
   file {
