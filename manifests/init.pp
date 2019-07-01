@@ -47,12 +47,12 @@ class nest (
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 ) {
   if $nest and $::nest['profile'] == 'workstation' {
-    $gentoo_profile = 'default/linux/amd64/17.0/desktop/plasma/systemd'
+    $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia'
     $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau']
   } else {
-    $gentoo_profile = 'default/linux/amd64/17.0/systemd'
+    $gentoo_profile = 'default/linux/amd64/17.1/systemd'
     $input_devices  = undef
     $video_cards    = undef
     $use_defaults   = ['X']
