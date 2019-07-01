@@ -20,7 +20,7 @@ class nest::profile::workstation::firefox {
         pref("layout.css.devPixelsPerPx", "${::nest::text_scaling_factor}");
         | EOT
 
-      file { '/usr/lib/firefox/defaults/pref/all-nest.js':
+      file { '/usr/lib64/firefox/defaults/pref/all-nest.js':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
