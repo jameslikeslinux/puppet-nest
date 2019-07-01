@@ -18,6 +18,7 @@ class nest::profile::base::distcc {
   }
 
   file { "/usr/lib/distcc/bin/${::toolchain}-wrapper":
+    ensure  => absent,
     mode    => '0755',
     owner   => 'root',
     group   => 'root',
@@ -25,14 +26,17 @@ class nest::profile::base::distcc {
     require => Package['sys-devel/distcc'],
   }
 
-  file { [
-    '/usr/lib/distcc/bin/c++',
-    '/usr/lib/distcc/bin/cc',
-    '/usr/lib/distcc/bin/g++',
-    '/usr/lib/distcc/bin/gcc',
-  ]:
-    ensure  => link,
-    target  => "/usr/lib/distcc/bin/${::toolchain}-wrapper",
-    require => File["/usr/lib/distcc/bin/${::toolchain}-wrapper"],
-  }
+  # Disable cross-compilation compatibility until we need this functionality.
+  # See: https://wiki.gentoo.org/wiki/Distcc/Cross-Compiling
+  #
+  # file { [
+  #   '/usr/lib/distcc/bin/c++',
+  #   '/usr/lib/distcc/bin/cc',
+  #   '/usr/lib/distcc/bin/g++',
+  #   '/usr/lib/distcc/bin/gcc',
+  # ]:
+  #   ensure  => link,
+  #   target  => "/usr/lib/distcc/bin/${::toolchain}-wrapper",
+  #   require => File["/usr/lib/distcc/bin/${::toolchain}-wrapper"],
+  # }
 }
