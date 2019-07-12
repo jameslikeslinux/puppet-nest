@@ -50,11 +50,13 @@ nest::package_keywords:
   dev-libs/nspr:
     version: '=4.21'
   dev-libs/nss:
-    version: '=3.43'
+    version: '=3.45'
   dev-lang/rust:
     version: '=1.32.0'
   media-libs/dav1d:
     version: '=0.2.1'
+  media-libs/harfbuzz:
+    version: '=2.5.3'
   media-libs/libaom:
     version: '=1.0.0-r1'
   media-libs/libvpx:
