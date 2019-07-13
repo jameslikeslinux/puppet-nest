@@ -159,6 +159,10 @@ nest::package_use:
   media-plugins/gst-plugins-meta:
     use: 'ffmpeg'
 
+  # ghc-bin sources are unreliable
+  dev-lang/ghc:
+    use: 'ghcbootstrap'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
