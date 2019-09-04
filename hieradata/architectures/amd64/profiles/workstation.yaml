@@ -44,15 +44,15 @@ nest::package_keywords:
 
   # required by www-client/firefox-65.0::gentoo
   dev-util/cargo:
-    version: '=1.32.0'
+    version: '=1.37.0'
   dev-util/cbindgen:
-    version: '=0.8.7'
+    version: '=0.9.1'
   dev-libs/nspr:
     version: '=4.21'
   dev-libs/nss:
     version: '=3.45'
   dev-lang/rust:
-    version: '=1.32.0'
+    version: '=1.37.0'
   media-libs/dav1d:
     version: '=0.2.1'
   media-libs/harfbuzz:
@@ -78,9 +78,9 @@ nest::package_keywords:
   sys-devel/llvm-common:
     version: '=5.0.0'
   virtual/cargo:
-    version: '=1.32.0'
+    version: '=1.37.0'
   virtual/rust:
-    version: '=1.32.0'
+    version: '=1.37.0'
 
   # To support llvm-5.0.0:
   media-libs/mesa:
