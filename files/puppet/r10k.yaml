@@ -1,5 +1,5 @@
 ---
-cachedir: '/opt/puppetlabs/r10k/cache'
+cachedir: '/var/cache/r10k'
 sources:
   main:
     remote: 'https://github.com/iamjamestl/puppet-manifests.git'
