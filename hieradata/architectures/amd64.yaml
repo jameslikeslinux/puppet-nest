@@ -37,7 +37,7 @@ nest::package_keywords:
   x11-drivers/nvidia-drivers:
     slot: '0/375'
   media-libs/nv-codec-headers:
-    version: '9.0.18.1'
+    version: '=9.0.18.1'
 
   # beets
   dev-python/jellyfish:
