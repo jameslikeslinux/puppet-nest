@@ -10,11 +10,23 @@ class nest::unifi_protect {
     options => "parent=bond0.1003",
   }
 
-  docker_volume { [
-    'unifi-protect',
-    'unifi-protect-postgresql',
-  ]:
-    ensure => present,
+  docker_volume {
+    default:
+      ensure => present,
+    ;
+
+    'unifi-protect':
+      driver  => 'local',
+      options => {
+        type   => 'none',
+        o      => 'bind',
+        device => '/nest/unifi-protect',
+      },
+    ;
+
+    'unifi-protect-postgresql':
+      # use defaults
+    ;
   }
 
   $cpuset = $::nest::availcpus_expanded.join(',')
