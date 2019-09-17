@@ -33,6 +33,7 @@ class nest::unifi_protect {
 
   docker::run { 'unifi-video':
     ensure => absent,
+    image  => 'iamjamestl/unifi-video',
   }
 
   docker::run { 'unifi-protect':
