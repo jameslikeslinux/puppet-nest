@@ -35,7 +35,6 @@ class nest::unifi_protect {
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
-      '--sysctl net.ipv4.ip_unprivileged_port_start=0',
     ],
     service_provider => 'systemd',
     stop_wait_time   => 30,

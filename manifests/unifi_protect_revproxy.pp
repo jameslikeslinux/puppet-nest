@@ -11,7 +11,7 @@ class nest::unifi_protect_revproxy (
 
   nest::revproxy { 'unifi-protect':
     servername    => 'video.thesatelliteoflove.net',
-    destination   => 'http://unifi.protect.home/',
+    destination   => 'http://unifi.protect.home:7080/',
     serveraliases => ['heloandnala.net', 'www.heloandnala.net'],
     ip            => $ip,
     preserve_host => true,
