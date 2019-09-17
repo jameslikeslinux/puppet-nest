@@ -38,7 +38,7 @@ class nest::unifi_protect {
       '--tmpfs /tmp',
     ],
     service_provider => 'systemd',
-    stop_wait_time   => 60,
+    stop_wait_time   => 30,
     require          => [
       Docker_network['video'],
       Docker_volume['unifi-protect', 'unifi-protect-postgresql'],
