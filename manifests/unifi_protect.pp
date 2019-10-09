@@ -1,4 +1,4 @@
-class nest::unifi_video {
+class nest::unifi_protect {
   include '::nest'
   include '::nest::docker'
 
@@ -10,7 +10,10 @@ class nest::unifi_video {
     options => "parent=bond0.1003",
   }
 
-  docker_volume { 'unifi-video':
+  docker_volume { [
+    'unifi-protect',
+    'unifi-protect-postgresql',
+  ]:
     ensure => present,
   }
 
@@ -22,25 +25,28 @@ class nest::unifi_video {
   }
 
   docker::run { 'unifi-video':
-    image            => 'iamjamestl/unifi-video',
+    ensure => absent,
+    image  => 'iamjamestl/unifi-video',
+  }
+
+  docker::run { 'unifi-protect':
+    image            => 'iamjamestl/unifi-protect',
     net              => 'video',
     dns              => '172.22.3.1',
     volumes          => [
-      'unifi-video:/var/lib/unifi-video',
-      '/nest/unifi-video/videos:/videos',
+      'unifi-protect:/srv/unifi-protect',
+      'unifi-protect-postgresql:/var/lib/postgresql',
     ],
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
-      '--cap-add DAC_READ_SEARCH',
-      '--cap-add SYS_ADMIN',
-      '--sysctl net.ipv4.ip_unprivileged_port_start=0',
+      '--tmpfs /tmp',
     ],
     service_provider => 'systemd',
-    stop_wait_time   => 30,
+    stop_wait_time   => 60,
     require          => [
       Docker_network['video'],
-      Docker_volume['unifi-video'],
+      Docker_volume['unifi-protect', 'unifi-protect-postgresql'],
     ],
   }
 }
