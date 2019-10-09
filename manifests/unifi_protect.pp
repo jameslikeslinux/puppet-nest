@@ -19,14 +19,10 @@ class nest::unifi_protect {
 
   $cpuset = $::nest::availcpus_expanded.join(',')
 
-  docker::run { 'unifi-protect':
-    ensure => absent,
-    image  => 'iamjamestl/unifi-protect',
-  }
-
   docker::run { 'unifi-video':
     ensure => absent,
     image  => 'iamjamestl/unifi-video',
+    before => Docker::Run['unifi-protect'],
   }
 
   docker::run { 'unifi-protect':
