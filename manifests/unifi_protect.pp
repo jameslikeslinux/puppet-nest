@@ -26,7 +26,7 @@ class nest::unifi_protect {
   }
 
   docker::run { 'unifi-protect':
-    image            => 'unifi-protect',
+    image            => 'iamjamestl/unifi-protect',
     net              => 'video',
     dns              => '172.22.3.1',
     volumes          => [
