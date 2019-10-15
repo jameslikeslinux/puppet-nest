@@ -26,7 +26,7 @@ class nest::unifi_protect {
   }
 
   docker::run { 'unifi-protect':
-    image            => 'iamjamestl/unifi-protect',
+    image            => 'unifi-protect',
     net              => 'video',
     dns              => '172.22.3.1',
     volumes          => [
@@ -36,7 +36,7 @@ class nest::unifi_protect {
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
-      '--tmpfs /tmp',
+      '--tmpfs /srv/unifi-protect/temp',
     ],
     service_provider => 'systemd',
     stop_wait_time   => 60,
