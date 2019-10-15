@@ -36,7 +36,7 @@ class nest::unifi_protect {
     extra_parameters => [
       "--cpuset-cpus ${cpuset}",
       '--ip 172.22.3.2',
-      '--tmpfs /srv/unifi-protect/temp',
+      '--tmpfs /tmp',
     ],
     service_provider => 'systemd',
     stop_wait_time   => 60,
