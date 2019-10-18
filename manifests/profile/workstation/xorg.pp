@@ -149,4 +149,8 @@ class nest::profile::workstation::xorg {
     group   => 'root',
     content => "i2c-dev\n",
   }
+
+  package { 'app-misc/ddcutil':
+    ensure => installed,
+  }
 }
