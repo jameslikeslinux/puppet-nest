@@ -141,4 +141,12 @@ class nest::profile::workstation::xorg {
     path   => '/usr/share/sddm/scripts/Xsetup',
     line   => 'xset dpms force off && xset dpms force on',
   }
+
+  # Load i2c-dev for controlling monitors
+  file { '/etc/modules-load.d/i2c-dev.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "i2c-dev\n",
+  }
 }
