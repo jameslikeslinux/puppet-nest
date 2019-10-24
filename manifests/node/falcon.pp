@@ -256,5 +256,4 @@ class nest::node::falcon {
 
   include '::nest::unifi'
   include '::nest::unifi_protect'
-  include '::nest::unifi_protect_revproxy'
 }

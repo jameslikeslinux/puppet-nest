@@ -3,45 +3,16 @@ class nest::unifi_protect {
   include '::nest::docker'
 
   docker_network { 'video':
-    ensure  => present,
-    driver  => 'macvlan',
-    subnet  => '172.22.3.0/24',
-    gateway => '172.22.3.1',
-    options => "parent=bond0.1003",
+    ensure => absent,
   }
-
-  docker_volume { [
-    'unifi-protect',
-    'unifi-protect-postgresql',
-  ]:
-    ensure => present,
-  }
-
-  $cpuset = $::nest::availcpus_expanded.join(',')
 
   docker::run { 'unifi-video':
     ensure => absent,
     image  => 'iamjamestl/unifi-video',
-    before => Docker::Run['unifi-protect'],
   }
 
   docker::run { 'unifi-protect':
-    image            => 'iamjamestl/unifi-protect',
-    net              => 'video',
-    dns              => '172.22.3.1',
-    volumes          => [
-      'unifi-protect:/srv/unifi-protect',
-      'unifi-protect-postgresql:/var/lib/postgresql',
-    ],
-    extra_parameters => [
-      "--cpuset-cpus ${cpuset}",
-      '--ip 172.22.3.2',
-      '--tmpfs /tmp',
-    ],
-    service_provider => 'systemd',
-    require          => [
-      Docker_network['video'],
-      Docker_volume['unifi-protect', 'unifi-protect-postgresql'],
-    ],
+    ensure => absent,
+    image  => 'iamjamestl/unifi-protect',
   }
 }
