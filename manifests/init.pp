@@ -45,6 +45,8 @@ class nest (
   $puppet_server           = false,
 
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
+
+  Hash $hosts              = {},
 ) {
   if $nest and $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'

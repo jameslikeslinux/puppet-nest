@@ -253,7 +253,4 @@ class nest::node::falcon {
   package { 'media-sound/beets':
     ensure => installed,
   }
-
-  include '::nest::unifi'
-  include '::nest::unifi_protect'
 }
