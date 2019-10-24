@@ -11,6 +11,7 @@ nest::cnames:
   plex.nest: 'falcon.nest'
   radarr.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
+  unifi.home: 'cloudkey.home'
 nest::cups_servers:
   - 'eagle.nest'
   - 'falcon.nest'
