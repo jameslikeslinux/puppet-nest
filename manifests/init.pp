@@ -116,4 +116,6 @@ class nest (
   if ($::nest and $::nest['profile'] == 'workstation') or $facts['osfamily'] == 'windows' {
     contain '::nest::profile::workstation'
   }
+
+  create_resources(host, $hosts)
 }
