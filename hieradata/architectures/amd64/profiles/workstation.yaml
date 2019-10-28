@@ -50,7 +50,7 @@ nest::package_keywords:
   dev-libs/nspr:
     version: '=4.21'
   dev-libs/nss:
-    version: '=3.45'
+    version: '=3.47'
   dev-lang/rust:
     version: '=1.37.0'
   media-libs/dav1d:
