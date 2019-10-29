@@ -89,6 +89,7 @@ class nest::profile::workstation::xorg {
     export GDK_DPI_SCALE=${::nest::text_scaling_factor_percent_of_rounded_gui}
     export QT_SCALE_FACTOR=${::nest::gui_scaling_factor_rounded}
     export QT_FONT_DPI=${qt_font_dpi}
+    export XCURSOR_SIZE=${::nest::cursor_size}
     | EOT
 
   file { '/etc/X11/xinit/xinitrc.d/10-scaling':
