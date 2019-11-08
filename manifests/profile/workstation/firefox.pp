@@ -26,9 +26,8 @@ class nest::profile::workstation::firefox {
       }
 
       $webrender = $::nest::video_card ? {
-        'intel'  => 1,
-        'nvidia' => 1,
-        default  => 0,
+        'intel' => 1,
+        default => 0,
       }
 
       $firefox_wrapper_content = @("EOT")
