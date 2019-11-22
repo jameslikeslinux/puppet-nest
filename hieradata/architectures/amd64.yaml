@@ -111,7 +111,7 @@ nest::package_use:
   # want to have these use flag set early in the run, which this
   # accomplishes.
   sys-apps/systemd:
-    use: 'cryptsetup'
+    use: ['cryptsetup', 'cgroup-hybrid']
   sys-auth/pambase:
     use: 'pam_ssh'
     ensure: 'absent'
