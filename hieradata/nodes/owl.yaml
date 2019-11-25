@@ -2,7 +2,6 @@
 classes:
   - 'nest::docker'
 
-nest::isolcpus: '2,3'
 nest::libvirt: true
 nest::fileserver: true
 
