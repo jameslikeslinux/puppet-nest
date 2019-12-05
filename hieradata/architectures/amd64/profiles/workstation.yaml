@@ -48,7 +48,7 @@ nest::package_keywords:
   dev-util/cbindgen:
     version: '=0.9.1'
   dev-libs/nspr:
-    version: '=4.21'
+    version: '=4.24'
   dev-libs/nss:
     version: '=3.47'
   dev-lang/rust:
