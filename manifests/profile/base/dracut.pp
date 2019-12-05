@@ -73,7 +73,7 @@ class nest::profile::base::dracut {
   }
 
   exec { 'dracut':
-    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && depmod -a $version && dracut --force --kver $version',
+    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
     refreshonly => true,
     timeout     => 0,
     provider    => shell,
