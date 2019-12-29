@@ -7,7 +7,6 @@ class nest::node::falcon {
     'nzbget/downloads',
     'ombi',
     'plex',
-    'plex/transcode',
     'radarr',
     'sonarr',
   ]: }
@@ -65,10 +64,7 @@ class nest::node::falcon {
       require => Nest::Srv['plex'],
     ;
 
-    [
-      '/srv/plex/config',
-      '/srv/plex/transcode',
-    ]:
+    '/srv/plex/config':
       # use defaults
     ;
   }
@@ -108,11 +104,12 @@ class nest::node::falcon {
   }
 
   $cpuset = $::nest::availcpus_expanded.join(',')
+  $cpuset_param = "--cpuset-cpus ${cpuset}"
 
   Docker::Run {
     dns              => '172.22.0.1',
     dns_search       => 'nest',
-    extra_parameters => ["--cpuset-cpus=${cpuset}"],
+    extra_parameters => $cpuset_param,
     service_provider => 'systemd',
   }
 
@@ -142,16 +139,16 @@ class nest::node::falcon {
   }
 
   docker::run { 'plex':
-    image   => 'plexinc/pms-docker',
-    net     => 'host',
-    env     => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
-    volumes => [
+    image            => 'plexinc/pms-docker',
+    net              => 'host',
+    env              => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
+    volumes          => [
       '/srv/plex/config:/config',
-      '/srv/plex/transcode:/transcode',
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
-    require => File['/srv/plex/config'],
+    extra_parameters => [$cpuset_param, '--tmpfs /transcode'],
+    require          => File['/srv/plex/config'],
   }
 
   docker::run { 'radarr':
