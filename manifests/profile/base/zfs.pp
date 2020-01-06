@@ -69,56 +69,31 @@ class nest::profile::base::zfs {
   }
 
   group { 'zfssnap':
-    gid => '5000',  # last pool version ;)
+    ensure => absent,
   }
 
   user { 'zfssnap':
-    uid     => '5000',
-    gid     => 'zfssnap',
-    home    => '/var/lib/zfssnap',
-    comment => 'ZFS Auto Snapshot',
-    shell   => '/bin/zsh',
-    require => Package['app-shells/zsh'],
+    ensure => absent,
+    before => Group['zfssnap'],
   }
 
   file { '/var/lib/zfssnap':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'zfssnap',
-    group  => 'zfssnap',
+    ensure  => absent,
+    recurse => true,
+    force   => true,
   }
 
   file { '/etc/sudoers.d/10_zfssnap':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "zfssnap ALL=NOPASSWD: /sbin/zfs, /sbin/zpool\n",
-    require => Package['app-admin/sudo'],
+    ensure => absent,
   }
 
   file { '/usr/sbin/zfs-auto-snapshot':
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/zfs/zfs-auto-snapshot.sh',
+    ensure => absent,
   }
 
-  $zfs_auto_snapshot_service_content = @(EOT)
-    [Unit]
-    Description=ZFS %I auto snapshot
-
-    [Service]
-    Environment=ZFS_SNAP_KEEP_frequent=4 ZFS_SNAP_KEEP_hourly=24 ZFS_SNAP_KEEP_daily=31 ZFS_SNAP_KEEP_weekly=8 ZFS_SNAP_KEEP_monthly=12
-    Type=oneshot
-    ExecStart=/usr/sbin/zfs-auto-snapshot --verbose --label=%i --keep=${ZFS_SNAP_KEEP_%i} //
-    | EOT
-
   file { '/etc/systemd/system/zfs-auto-snapshot@.service':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $zfs_auto_snapshot_service_content,
-    notify  => Nest::Systemd_reload['zfs'],
+    ensure => absent,
+    notify => Nest::Systemd_reload['zfs'],
   }
 
   $zfs_auto_snapshot_timer_frequencies = {
@@ -130,28 +105,14 @@ class nest::profile::base::zfs {
   }
 
   $zfs_auto_snapshot_timer_frequencies.each |$frequency, $calendar| {
-    $zfs_auto_snapshot_timer_content = @("EOT")
-      [Unit]
-      Description=ZFS %I auto snapshot timer
-
-      [Timer]
-      OnCalendar=${calendar}
-
-      [Install]
-      WantedBy=timers.target
-    | EOT
-
     file { "/etc/systemd/system/zfs-auto-snapshot@${frequency}.timer":
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => $zfs_auto_snapshot_timer_content,
-      notify  => Nest::Systemd_reload['zfs'],
+      ensure => absent,
+      notify => Nest::Systemd_reload['zfs'],
     }
 
     service { "zfs-auto-snapshot@${frequency}.timer":
-      enable  => true,
-      require => Nest::Systemd_reload['zfs'],
+      enable => false,
+      before => Nest::Systemd_reload['zfs'],
     }
   }
 
