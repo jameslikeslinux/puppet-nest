@@ -94,6 +94,33 @@ class nest::profile::base::grub {
     $gfxpayload = '#GRUB_GFXPAYLOAD_LINUX='
   }
 
+  if $::nest::kernel_cmdline =~ /console=ttyS(\d),(\d+)/ {
+    file_line {
+      'grub-set-terminal':
+        line  => 'GRUB_TERMINAL="console serial"',
+        match => '^#?GRUB_TERMINAL=',
+      ;
+
+      'grub-set-serial_command':
+        line  => "GRUB_SERIAL_COMMAND=\"serial --unit=${1} --speed=${2}\"",
+        match => '^#?GRUB_SERIAL_COMMAND=',
+      ;
+    }
+  } else {
+    file_line {
+      'grub-set-terminal':
+        line  => '#GRUB_TERMINAL=console',
+        match => '^#?GRUB_TERMINAL=',
+      ;
+
+      'grub-set-serial_command':
+        ensure            => absent,
+        match             => '^#?GRUB_SERIAL_COMMAND=',
+        match_for_absence => true,
+      ;
+    }
+  }
+
   file_line { 'grub-set-gfxmode':
     line  => $gfxmode,
     match => '^#?GRUB_GFXMODE',
