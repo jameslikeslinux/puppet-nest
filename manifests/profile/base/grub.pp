@@ -97,7 +97,7 @@ class nest::profile::base::grub {
   if $::nest::kernel_cmdline =~ /console=ttyS(\d),(\d+)/ {
     file_line {
       'grub-set-terminal':
-        line  => 'GRUB_TERMINAL="serial console"',
+        line  => 'GRUB_TERMINAL="gfxterm serial"',
         match => '^#?GRUB_TERMINAL=',
       ;
 
