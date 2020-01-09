@@ -4,9 +4,6 @@ nest::cpu_flags_x86: 'aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 s
 nest::use: ['numa']
 
 nest::package_keywords:
-  sys-boot/systemd-boot:
-    ensure: 'absent'
-
   sys-kernel/dracut:
     version: '=044'
 
@@ -114,7 +111,7 @@ nest::package_use:
   # want to have these use flag set early in the run, which this
   # accomplishes.
   sys-apps/systemd:
-    use: ['cryptsetup', 'cgroup-hybrid']
+    use: ['cryptsetup', 'cgroup-hybrid', 'gnuefi']
   sys-auth/pambase:
     use: 'pam_ssh'
     ensure: 'absent'
