@@ -5,7 +5,7 @@ nest::use: ['numa']
 
 nest::package_keywords:
   sys-boot/systemd-boot:
-    version: '=243'
+    ensure: 'absent'
 
   sys-kernel/dracut:
     version: '=044'
