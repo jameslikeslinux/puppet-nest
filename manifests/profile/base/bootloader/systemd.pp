@@ -2,7 +2,7 @@ class nest::profile::base::bootloader::systemd {
   $::partitions.each |$partition, $attributes| {
     $disk = regsubst($partition, 'p?(art)?\d+$', '')
 
-    if "${::trusted['certname']}-" in $attributes['partlabel'] and $attributes['partlabel'] =~ /-efi$/ {
+    if $attributes['partlabel'] == "${::trusted['certname']}-efi" {
       exec { "bootctl-install-${disk}":
         command => '/usr/bin/bootctl install',
         creates => '/efi/EFI/systemd/systemd-bootx64.efi',
