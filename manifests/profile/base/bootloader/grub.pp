@@ -1,4 +1,4 @@
-class nest::profile::base::grub {
+class nest::profile::base::bootloader::grub {
   $font = "ter-x${::nest::console_font_size}b"
 
   nest::portage::package_use { 'sys-boot/grub':

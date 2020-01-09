@@ -47,6 +47,8 @@ class nest (
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 
   Hash $hosts              = {},
+
+  Enum['grub', 'systemd'] $bootloader = grub,
 ) {
   if $nest and $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'

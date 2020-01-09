@@ -11,10 +11,10 @@ class nest::profile::base {
 
   case $facts['osfamily'] {
     'Gentoo': {
+      contain '::nest::profile::base::bootloader'
       contain '::nest::profile::base::distcc'
       contain '::nest::profile::base::distccd'
       contain '::nest::profile::base::dracut'
-      contain '::nest::profile::base::grub'
       contain '::nest::profile::base::firewall'
       contain '::nest::profile::base::fs'
       contain '::nest::profile::base::fstab'
@@ -49,10 +49,10 @@ class nest::profile::base {
       Class['::nest::profile::base::systemd']
       ~> Class['::nest::profile::base::dracut']
 
-      # Rebuild initramfs and reconfigure GRUB after kernel changes
+      # Rebuild initramfs and reconfigure bootloader after kernel changes
       Class['::nest::profile::base::kernel']
       ~> Class['::nest::profile::base::dracut']
-      ~> Class['::nest::profile::base::grub']
+      ~> Class['::nest::profile::base::bootloader']
 
       # Rebuild initramfs after ZFS changes
       Class['::nest::profile::base::kernel']
