@@ -11,20 +11,14 @@ class nest::profile::base::bootloader::systemd {
       exec { "bootctl-install-${disk}":
         command => '/usr/bin/bootctl install',
         creates => '/efi/EFI/systemd/systemd-bootx64.efi',
-        require => [
-          Package['sys-boot/systemd-boot'],
-          Exec["mount-${disk}"],
-        ],
+        require => Exec["mount-${disk}"],
         notify  => Exec["unmount-${disk}"],
       }
 
       exec { "bootctl-update-${disk}":
         command     => '/usr/bin/bootctl update',
         refreshonly => true,
-        require     => [
-          Package['sys-boot/systemd-boot'],
-          Exec["mount-${disk}"],
-        ],
+        require     => Exec["mount-${disk}"],
         notify      => Exec["unmount-${disk}"],
       }
 
