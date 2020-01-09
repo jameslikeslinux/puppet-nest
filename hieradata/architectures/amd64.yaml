@@ -4,6 +4,10 @@ nest::cpu_flags_x86: 'aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 s
 nest::use: ['numa']
 
 nest::package_keywords:
+  # For systemd-boot fixes
+  sys-apps/systemd:
+    version: '=244'
+
   sys-kernel/dracut:
     version: '=044'
 
