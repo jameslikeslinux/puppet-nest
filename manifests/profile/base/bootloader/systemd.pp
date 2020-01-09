@@ -1,6 +1,6 @@
 class nest::profile::base::bootloader::systemd {
   exec { 'bootctl-install':
-    command => '/usr/bin/bootctl --no-variables install',
+    command => '/usr/bin/bootctl install --graceful',
     creates => '/efi/EFI/systemd/systemd-bootx64.efi',
   }
 
@@ -8,6 +8,11 @@ class nest::profile::base::bootloader::systemd {
     command     => '/usr/bin/bootctl update',
     refreshonly => true,
     require     => Exec['bootctl-install'],
+  }
+
+  $nvidia_params = $::nest::video_card ? {
+    'nvidia' => ' nvidia-drm.modeset=1',
+    default  => '',
   }
 
   file {
@@ -22,7 +27,7 @@ class nest::profile::base::bootloader::systemd {
     ;
 
     '/etc/kernel/cmdline':
-      content => "root=zfs ${::nest::profile::base::bootloader::kernel_cmdline}",
+      content => "root=zfs:AUTO ${::nest::profile::base::bootloader::kernel_cmdline}${nvidia_params}",
       notify  => Exec['kernel-install'],
     ;
   }
