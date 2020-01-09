@@ -10,11 +10,6 @@ class nest::profile::base::bootloader::systemd {
     require     => Exec['bootctl-install'],
   }
 
-  $nvidia_params = $::nest::video_card ? {
-    'nvidia' => ' nvidia-drm.modeset=1',
-    default  => '',
-  }
-
   file {
     default:
       mode  => '0644',
@@ -27,7 +22,7 @@ class nest::profile::base::bootloader::systemd {
     ;
 
     '/etc/kernel/cmdline':
-      content => "root=zfs:AUTO ${::nest::profile::base::bootloader::kernel_cmdline}${nvidia_params}",
+      content => "root=zfs:AUTO ${::nest::profile::base::bootloader::kernel_cmdline}",
       notify  => Exec['kernel-install'],
     ;
   }
