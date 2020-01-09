@@ -65,8 +65,13 @@ class nest::profile::base::dracut {
     notify  => Exec['dracut'],
   }
 
+  $dracut_output_file = $::nest::bootloader ? {
+    systemd => '/usr/src/linux/initramfs',
+    default => '' # use default output location under /boot
+  }
+
   exec { 'dracut':
-    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
+    command     => "version=\$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver \$version ${dracut_output_file}",
     refreshonly => true,
     timeout     => 0,
     provider    => shell,

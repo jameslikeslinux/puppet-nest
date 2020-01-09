@@ -66,23 +66,8 @@ class nest::profile::base::bootloader::grub {
     notify  => $file_line_notify,
   }
 
-  $kernel_cmdline = [
-    'init=/usr/lib/systemd/systemd',
-    'quiet',
-    'fbcon=scrollback:1024k',
-    $::nest::isolcpus ? {
-      undef   => [],
-      default => [
-        "isolcpus=${::nest::isolcpus}",
-        "nohz_full=${::nest::isolcpus}",
-        "rcu_nocbs=${::nest::isolcpus}",
-      ],
-    },
-    $::nest::kernel_cmdline,
-  ].flatten.join(' ').strip
-
   file_line { 'grub-set-kernel-cmdline':
-    line  => "GRUB_CMDLINE_LINUX=\"${kernel_cmdline}\"",
+    line  => "GRUB_CMDLINE_LINUX=\"${::nest::profile::base::bootloader::kernel_cmdline}\"",
     match => '^#?GRUB_CMDLINE_LINUX=',
   }
 
