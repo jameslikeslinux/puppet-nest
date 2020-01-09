@@ -2,7 +2,7 @@ class nest::profile::base::bootloader::systemd {
   $::partitions.each |$partition, $attributes| {
     $disk = regsubst($partition, 'p?(art)?\d+$', '')
 
-    if $attributes['partlabel'] and $attributes['partlabel'] =~ /^${::trusted['certname']}-efi/ {
+    if "${::trusted['certname']}-" in $attributes['partlabel'] and $attributes['partlabel'] =~ /-efi/ {
       exec { "mount-${disk}":
         command     => "/bin/mkdir /efi && /bin/mount ${partition} /efi",
         refreshonly => true,
