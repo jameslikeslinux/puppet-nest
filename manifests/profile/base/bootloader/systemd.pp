@@ -22,13 +22,13 @@ class nest::profile::base::bootloader::systemd {
     ;
 
     '/etc/kernel/cmdline':
-      content => $::nest::profile::base::bootloader::kernel_cmdline,
+      content => "root=zfs ${::nest::profile::base::bootloader::kernel_cmdline}",
       notify  => Exec['kernel-install'],
     ;
   }
 
   exec { 'kernel-install':
-    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && kernel-install add $version /usr/src/linux/vmlinux /usr/src/linux/initramfs',
+    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && kernel-install add $version /usr/src/linux/arch/x86/boot/bzImage /usr/src/linux/initramfs',
     refreshonly => true,
     provider    => shell,
     require     => Exec['bootctl-install'],
