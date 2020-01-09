@@ -33,7 +33,7 @@ class nest::profile::base::bootloader::systemd {
   }
 
   exec { 'kernel-install':
-    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && kernel-install add $version /usr/src/linux/arch/x86/boot/bzImage /usr/src/linux/initramfs',
+    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && kernel-install add $version /usr/src/linux/arch/x86/boot/bzImage',
     refreshonly => true,
     provider    => shell,
     require     => Exec['bootctl-install'],
