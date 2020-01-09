@@ -1,6 +1,11 @@
 class nest::profile::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
+  $boot_vfstype = $::nest::bootloader ? {
+    systemd => 'vfat',
+    default => 'ext2',
+  }
+
   # XXX: Improve this
   if $::nest::live {
     $base_changes = [
@@ -24,7 +29,7 @@ class nest::profile::base::fstab {
 
       "set 1/spec LABEL=${hostname}-boot",
       'set 1/file /boot',
-      'set 1/vfstype ext2',
+      "set 1/vfstype ${boot_vfstype}",
       'set 1/opt defaults',
       'set 1/dump 0',
       'set 1/passno 2',
