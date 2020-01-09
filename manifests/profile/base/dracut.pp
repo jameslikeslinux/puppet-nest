@@ -27,7 +27,6 @@ class nest::profile::base::dracut {
     group   => 'root',
     content => $base_config_content,
     require => Package['sys-kernel/dracut'],
-    notify  => Exec['dracut'],
   }
 
   $add_devices = $::nest::luks_disks.map |$luks_disk| { "/dev/disk/by-uuid/${luks_disk[1]}" }.join(' ')
@@ -44,7 +43,6 @@ class nest::profile::base::dracut {
     group   => 'root',
     content => $dracut_crypt_config_content,
     require => Package['sys-kernel/dracut'],
-    notify  => Exec['dracut'],
   }
 
   $partlabels = $facts['partitions'].map |$disk, $attributes| { $attributes['partlabel'] }
@@ -62,22 +60,5 @@ class nest::profile::base::dracut {
     owner   => 'root',
     group   => 'root',
     content => "${crypttab_content}\n",
-    notify  => Exec['dracut'],
-  }
-
-  $dracut_output_file = $::nest::bootloader ? {
-    systemd => '/usr/src/linux/initramfs',
-    default => '' # use default output location under /boot
-  }
-
-  exec { 'dracut':
-    command     => "version=\$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver \$version ${dracut_output_file}",
-    refreshonly => true,
-    timeout     => 0,
-    provider    => shell,
-    require     => [
-      Package['sys-kernel/dracut'],
-      Package['sys-firmware/intel-microcode'],
-    ],
   }
 }
