@@ -27,7 +27,8 @@ class nest::profile::base::fstab {
     $base_changes = [
       'rm *[spec]',
 
-      "set 1/spec LABEL=${hostname}-boot",
+      # XXX: Support /boot on mdadm
+      "set 1/spec PARTLABEL=${hostname}-boot",
       'set 1/file /boot',
       "set 1/vfstype ${boot_vfstype}",
       'set 1/opt defaults',
