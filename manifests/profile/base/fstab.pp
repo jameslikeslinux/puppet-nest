@@ -27,13 +27,17 @@ class nest::profile::base::fstab {
     $base_changes = [
       'rm *[spec]',
 
-      # XXX: Support /boot on mdadm
-      "set 1/spec PARTLABEL=${hostname}-boot",
-      'set 1/file /boot',
-      "set 1/vfstype ${boot_vfstype}",
-      'set 1/opt defaults',
-      'set 1/dump 0',
-      'set 1/passno 2',
+      $::nest::bootloader ? {
+        systemd => [],
+        default => [
+          "set 1/spec LABEL=${hostname}-boot",
+          'set 1/file /boot',
+          "set 1/vfstype ${boot_vfstype}",
+          'set 1/opt defaults',
+          'set 1/dump 0',
+          'set 1/passno 2',
+        ],
+      },
 
       "set 2/spec LABEL=${hostname}-swap",
       'set 2/file none',
@@ -50,7 +54,7 @@ class nest::profile::base::fstab {
       'set 3/opt[2]/value zfs-mount.service',
       'set 3/dump 0',
       'set 3/passno 0',
-    ]
+    ].flatten
 
     $nfs_changes = [
       "set 4/spec LABEL=${hostname}-fscache",
