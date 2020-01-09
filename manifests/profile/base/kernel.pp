@@ -38,28 +38,25 @@ class nest::profile::base::kernel {
   }
 
   $::nest::kernel_config_hiera.each |$config, $value| {
-    if is_numeric($value) {
-      $line = "${config}=${value}"
-    } else {
-      $line = $value ? {
-        'n'       => "# ${config} is not set",
-        /^(y|m)$/ => "${config}=${value}",
-        default   => "${config}=\"${value}\"",
-      }
+    nest::kernel_config { $config:
+      value => $value,
+    }
+  }
+
+  if $::nest::bootloader == 'systemd' {
+    nest::kernel_config { 'CONFIG_EFI_STUB':
+      value => 'y',
     }
 
-    file_line { "kernel-config-${config}-${value}":
-      path    => '/usr/src/linux/.config',
-      line    => $line,
-      match   => "(^| )${config}[= ]",
-      require => Exec['make defconfig'],
-      notify  => Exec['make kernel'],
-    }
+    # Use kernel-install(8) instead
+    $install_target = ''
+  } else {
+    $install_target = 'install'
   }
 
   include '::nest::profile::base::portage'
   exec { 'make kernel':
-    command     => "/usr/bin/make CC=/usr/lib/distcc/bin/gcc ${::nest::profile::base::portage::makeopts} clean olddefconfig all install modules_install",
+    command     => "/usr/bin/make CC=/usr/lib/distcc/bin/gcc ${::nest::profile::base::portage::makeopts} clean olddefconfig all ${install_target} modules_install",
     cwd         => '/usr/src/linux',
     environment => 'HOME=/var/tmp/portage/.distcc',
     timeout     => 0,
