@@ -2,6 +2,7 @@
 classes:
   - 'nest::node::falcon'
 
+nest::bootloader: systemd
 nest::isolcpus: '16-31'
 nest::kernel_cmdline: >-
   console=ttyS1,115200n8 console=tty0
