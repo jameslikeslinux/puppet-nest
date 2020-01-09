@@ -18,6 +18,7 @@ class nest::profile::base::dracut {
       early_microcode="yes"
       hostonly="yes"
       hostonly_cmdline="no"
+      force="yes"
       | EOT
   }
 
