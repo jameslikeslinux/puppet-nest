@@ -2,6 +2,7 @@
 classes:
   - 'nest::docker'
 
+nest::bootloader: systemd
 nest::isolcpus: '4-7'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
