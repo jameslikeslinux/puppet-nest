@@ -22,7 +22,7 @@ class nest::profile::base::bootloader::systemd {
     ;
 
     '/etc/kernel/cmdline':
-      content => "root=zfs:AUTO ${::nest::profile::base::bootloader::kernel_cmdline}",
+      content => "root=zfs:AUTO ${::nest::profile::base::bootloader::kernel_cmdline}\n",
       notify  => Exec['kernel-install'],
     ;
   }
