@@ -1,7 +1,7 @@
 class nest::profile::base::bootloader::systemd {
   exec { 'bootctl-install':
     command => '/usr/bin/bootctl install --graceful',
-    creates => '/efi/EFI/systemd/systemd-bootx64.efi',
+    unless  => '/usr/bin/bootctl is-installed | /bin/grep yes',
   }
 
   exec { 'bootctl-update':
