@@ -5,6 +5,7 @@ classes:
 nest::libvirt: true
 nest::fileserver: true
 
+nest::bootloader: systemd
 nest::dvorak: true
 nest::swap_alt_win: true
 nest::mouse: 'trackpoint'
