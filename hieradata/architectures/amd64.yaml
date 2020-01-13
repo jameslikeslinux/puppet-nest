@@ -169,6 +169,10 @@ nest::package_use:
   dev-lang/ghc:
     use: 'ghcbootstrap'
 
+  # Enable playback from https
+  media-video/ffmpeg:
+    use: 'openssl'
+
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
