@@ -80,7 +80,8 @@ class nest::profile::workstation::plasma {
   }
 
   nest::portage::package_use { 'kde-apps/dolphin':
-    use => 'thumbnail',
+    ensure => absent,
+    use    => 'thumbnail',
   }
 
   # Don't build support for online services
@@ -91,6 +92,7 @@ class nest::profile::workstation::plasma {
   package { [
     'kde-apps/ark',
     'kde-apps/dolphin',
+    'kde-apps/ffmpegthumbs',
     'kde-apps/gwenview',
     'kde-apps/konsole',
     'kde-apps/kwrite',
