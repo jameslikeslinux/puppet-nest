@@ -1,6 +1,6 @@
 class nest::profile::base::bootloader {
   $kernel_cmdline = [
-    'init=/usr/lib/systemd/systemd',
+    'init=/lib/systemd/systemd',
     'quiet',
     'fbcon=scrollback:1024k',
     $::nest::isolcpus ? {
