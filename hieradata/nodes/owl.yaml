@@ -11,6 +11,4 @@ nest::swap_alt_win: true
 nest::mouse: 'trackpoint'
 nest::gui_scaling_factor: 1.5
 nest::text_scaling_factor: 1.67
-nest::touchpad_acceleration: 0.4
-nest::trackpoint_acceleration: -0.4
 nest::video_card: 'intel'
