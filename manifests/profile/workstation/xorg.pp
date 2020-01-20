@@ -38,17 +38,26 @@ class nest::profile::workstation::xorg {
 
   if $video_card == 'nvidia' {
     $eselect_opengl            = 'nvidia'
+    $nvidia_blacklist          = 'absent'
     $nvidia_conf_ensure        = 'present'
     $monitors_conf_ensure      = 'absent'
     $kwin_triple_buffer_ensure = 'present'
   } else {
     $eselect_opengl            = 'xorg-x11'
+    $nvidia_blacklist          = 'present'
     $nvidia_conf_ensure        = 'absent'
     $monitors_conf_ensure      = $monitor_layout ? {
       []      => 'absent',
       default => 'present',
     }
     $kwin_triple_buffer_ensure = 'absent'
+  }
+
+  file_line { 'modprobe-blacklist-nvidia':
+    ensure => $nvidia_blacklist,
+    path   => '/etc/modprobe.d/nvidia.conf'
+    line   => "blacklist nvidia\n",
+    notify => Class['nest::profile::base::bootloader'],
   }
 
   file { '/etc/X11/xorg.conf.d/10-nvidia.conf':

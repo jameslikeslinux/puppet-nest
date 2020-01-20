@@ -53,7 +53,7 @@ class nest (
   if $nest and $::nest['profile'] == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
     $input_devices  = 'libinput'
-    $video_cards    = 'i965 intel nvidia'
+    $video_cards    = 'i965 intel nouveau nvidia'
     $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau']
   } else {
     $gentoo_profile = 'default/linux/amd64/17.1/systemd'
