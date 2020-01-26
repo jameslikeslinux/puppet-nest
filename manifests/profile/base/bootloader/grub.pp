@@ -89,6 +89,11 @@ class nest::profile::base::bootloader::grub {
     match => '^#?GRUB_GFXPAYLOAD_LINUX',
   }
 
+  file_line { 'grub-disable-linux-uuid':
+    line  => 'GRUB_DISABLE_LINUX_UUID=true',
+    match => '^#?GRUB_DISABLE_LINUX_UUID=',
+  }
+
   file_line { 'grub-set-device':
     line  => 'GRUB_DEVICE=zfs:AUTO',
     match => '^#?GRUB_DEVICE=',
