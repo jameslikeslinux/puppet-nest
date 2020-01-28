@@ -188,4 +188,13 @@ class nest::profile::base::systemd {
     line   => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
     notify => Class['::nest::profile::base::dracut'],
   }
+
+  $kexec_tools_ensure = $::nest::bootloader ? {
+    systemd => installed,
+    default => absent,
+  }
+
+  package { 'sys-apps/kexec-tools':
+    ensure => $kexec_tools_ensure,
+  }
 }
