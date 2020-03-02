@@ -254,7 +254,7 @@ nest::package_use:
   app-emulation/libvirt-glib:
     use: 'python'
   app-emulation/qemu:
-    use: ['spice', 'usbredir']
+    use: ['spice', 'usbredir', 'static-user', 'qemu_user_targets_arm']
   media-libs/mesa:
     use: 'gles2'
   net-dns/dnsmasq:
@@ -324,3 +324,13 @@ nest::package_use:
   # required by x11-misc/barrier-2.1.2::nest[qt5]
   net-dns/avahi:
     use: 'mdnsresponder-compat'
+
+  # required by app-emulation/qemu-4.2.0-r1::gentoo[-static,static-user]
+  dev-libs/glib:
+    use: 'static-libs'
+  sys-libs/zlib:
+    use: 'static-libs'
+  sys-apps/attr:
+    use: 'static-libs'
+  dev-libs/libpcre:
+    use: 'static-libs'
