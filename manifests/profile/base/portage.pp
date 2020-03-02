@@ -228,11 +228,51 @@ class nest::profile::base::portage {
     masters = gentoo
     | EOT
 
+  if $::nest::distcc_server {
+    $repos_crossdev = @(EOT)
+
+      [crossdev]
+      location = /var/cache/portage/crossdev
+      auto-sync = no
+      masters = gentoo
+      | EOT
+
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      [
+        '/var/cache/portage/crossdev',
+        '/var/cache/portage/crossdev/metadata',
+        '/var/cache/portage/crossdev/profiles',
+      ]:
+        ensure => directory,
+      ;
+
+      '/var/cache/portage/crossdev/metadata/layout.conf':
+        content => "masters = gentoo\nthin-manifests = true\n",
+      ;
+
+      '/var/cache/portage/crossdev/profiles/repo_name':
+        content => "crossdev\n",
+      ;
+    }
+  } else {
+    file { '/var/cache/portage/crossdev':
+      ensure  => absent,
+      recurse => true,
+      force   => true,
+    }
+  }
+
   file { '/etc/portage/repos.conf':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $repos_conf,
+    content => "${repos_conf}${repos_crossdev}",
   }
 
   vcsrepo {
