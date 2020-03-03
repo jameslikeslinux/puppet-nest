@@ -253,8 +253,6 @@ nest::package_use:
   # For libvirt
   app-emulation/libvirt-glib:
     use: 'python'
-  app-emulation/qemu:
-    use: ['spice', 'usbredir', 'static-user', 'qemu_user_targets_arm']
   media-libs/mesa:
     use: 'gles2'
   net-dns/dnsmasq:
