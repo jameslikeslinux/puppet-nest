@@ -17,6 +17,7 @@ class nest::profile::workstation {
       contain '::nest::profile::workstation::policykit'
       contain '::nest::profile::workstation::plasma'
       contain '::nest::profile::workstation::pulseaudio'
+      contain '::nest::profile::workstation::qemu'
       contain '::nest::profile::workstation::urxvt'
       contain '::nest::profile::workstation::xmonad'
       contain '::nest::profile::workstation::xorg'
