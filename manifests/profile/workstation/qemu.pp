@@ -20,5 +20,7 @@ class nest::profile::workstation::qemu {
     require => Package['app-emulation/qemu'],
   }
 
-  service { 'systemd-binfmt': }
+  service { 'systemd-binfmt':
+    ensure => running,
+  }
 }
