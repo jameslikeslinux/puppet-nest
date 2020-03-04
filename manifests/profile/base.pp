@@ -19,7 +19,6 @@ class nest::profile::base {
       contain '::nest::profile::base::fs'
       contain '::nest::profile::base::fstab'
       contain '::nest::profile::base::kernel'
-      contain '::nest::profile::base::lvm'
       contain '::nest::profile::base::mta'
       contain '::nest::profile::base::network'
       contain '::nest::profile::base::openvpn'
@@ -28,6 +27,10 @@ class nest::profile::base {
       contain '::nest::profile::base::sudo'
       contain '::nest::profile::base::systemd'
       contain '::nest::profile::base::zfs'
+
+      unless $nest and $nest['profile'] == 'beaglebone' {
+        contain '::nest::profile::base::lvm'
+      }
 
       # Setup distcc before portage, but distccd needs systemd, which is
       # installed after portage is configured.
