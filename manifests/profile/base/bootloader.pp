@@ -1,4 +1,5 @@
 class nest::profile::base::bootloader {
+  unless $nest and $nest['profile'] == 'beaglebone' {
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'quiet',
@@ -30,5 +31,6 @@ class nest::profile::base::bootloader {
         notify      => Class['nest::profile::base::bootloader::grub'],
       }
     }
+  }
   }
 }

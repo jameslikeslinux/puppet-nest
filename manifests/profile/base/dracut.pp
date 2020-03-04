@@ -1,4 +1,5 @@
 class nest::profile::base::dracut {
+  unless $nest and $nest['profile'] == 'beaglebone' {
   package { [
     'sys-kernel/dracut',
     'sys-firmware/intel-microcode',
@@ -61,5 +62,6 @@ class nest::profile::base::dracut {
     owner   => 'root',
     group   => 'root',
     content => "${crypttab_content}\n",
+  }
   }
 }

@@ -51,6 +51,12 @@ class nest::profile::base::portage {
     }
   }
 
+  if $facts['os']['architecture'] =~ /^arm/ and $facts['virtual'] == 'lxc' {
+    $sandbox_features = ['-sandbox', '-usersandbox', '-pid-sandbox', '-network-sandbox']
+  } else {
+    $sandbox_features = []
+  }
+
   portage::makeconf {
     'accept_license':
       content => '*';
@@ -65,7 +71,7 @@ class nest::profile::base::portage {
     'emerge_default_opts':
       content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
-      content => ['buildpkg', 'distcc', 'splitdebug'];
+      content => ['buildpkg', 'distcc', 'splitdebug'] + $sandbox_features;
     'input_devices':
       ensure  => $input_devices_ensure,
       content => $::nest::input_devices;

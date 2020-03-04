@@ -55,6 +55,11 @@ class nest (
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia'
     $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau']
+  } elsif $nest and $::nest['profile'] == 'beaglebone' {
+    $gentoo_profile = 'default/linux/arm/17.0/armv7a/systemd'
+    $input_devices  = undef
+    $video_cards    = undef
+    $use_defaults   = ['X']
   } else {
     $gentoo_profile = 'default/linux/amd64/17.1/systemd'
     $input_devices  = undef

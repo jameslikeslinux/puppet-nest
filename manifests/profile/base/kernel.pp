@@ -1,4 +1,5 @@
 class nest::profile::base::kernel {
+  unless $nest and $nest['profile'] == 'beaglebone' {
   file {
     default:
       ensure => directory,
@@ -74,5 +75,6 @@ class nest::profile::base::kernel {
     refreshonly => true,
     subscribe   => Exec['module-rebuild'],
     require     => Package['app-admin/eclean-kernel'],
+  }
   }
 }
