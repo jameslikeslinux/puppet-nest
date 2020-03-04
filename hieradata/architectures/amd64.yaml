@@ -120,10 +120,6 @@ nest::package_use:
     use: 'pam_ssh'
     ensure: 'absent'
 
-  # For plymouth
-  x11-libs/libdrm:
-    use: 'libkms'
-
   # For samba
   sys-libs/ntdb:
     use: 'python'

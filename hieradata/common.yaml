@@ -189,4 +189,9 @@ nest::lastpass_username: >
   rCq7HqzttY9WaDJ3KhskHf0tMDwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
   EM1/HAq1trGEnC3jMA3TdO2AEE7Bq/qI6VmsftwMS7OXeg8=]
 
+nest::package_use:
+  # For plymouth
+  x11-libs/libdrm:
+    use: 'libkms'
+
 apache::mpm_module: 'worker'
