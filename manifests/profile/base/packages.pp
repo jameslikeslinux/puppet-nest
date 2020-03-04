@@ -20,11 +20,16 @@ class nest::profile::base::packages {
         'sys-libs/nss_wrapper',
         'sys-process/htop',
         'sys-process/lsof',
-        'sys-process/parallel',
         'www-client/elinks',
         'x11-misc/xsel',
       ]:
         ensure => installed,
+      }
+
+      unless $nest and $nest['profile'] == 'beaglebone' {
+        package { 'sys-process/parallel':
+          ensure => installed,
+        }
       }
 
       package { 'app-misc/screen':
