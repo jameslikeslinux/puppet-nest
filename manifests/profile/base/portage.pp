@@ -51,10 +51,16 @@ class nest::profile::base::portage {
     }
   }
 
-  if $facts['os']['architecture'] =~ /^arm/ and $facts['virtual'] == 'lxc' {
-    $sandbox_features = ['-sandbox', '-usersandbox', '-pid-sandbox', '-network-sandbox']
+  if $facts['os']['architecture'] =~ /^arm/ {
+    if $facts['virtual'] == 'lxc' {
+      $sandbox_features = ['-sandbox', '-usersandbox', '-pid-sandbox', '-network-sandbox']
+    } else {
+      $sandbox_features = []
+    }
+
+    $cpu_flags_x86_ensure = 'absent'
   } else {
-    $sandbox_features = []
+    $cpu_flags_x86_ensure = 'present'
   }
 
   portage::makeconf {
@@ -65,6 +71,7 @@ class nest::profile::base::portage {
     'cxxflags':
       content => $::nest::cflags;
     'cpu_flags_x86':
+      ensure  => $cpu_flags_x86_ensure,
       content => $::nest::cpu_flags_x86;
     'distdir':
       content => '/nest/portage/distfiles';
