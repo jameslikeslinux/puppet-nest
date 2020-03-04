@@ -6,7 +6,7 @@ class nest::profile::base::distcc {
   $localhost_jobs = $::nest::processorcount + 1
   $distcc_hosts_content = $::nest::distcc_hosts.map |$host, $processorcount| {
     $jobs = $processorcount + 1
-    "${host}/${jobs},cpp,lzo\n"
+    "${host}/${jobs}\n"
   }.join('')
 
   file { '/etc/distcc/hosts':
