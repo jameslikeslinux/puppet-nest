@@ -1,4 +1,31 @@
 class nest::profile::base::firewall {
+  # Doing anything related to iptables inside an ARM chroot fails
+  if $facts['os']['architecture'] == 'armv7l' {
+    if $facts['virtual'] == 'lxc' {
+      file { [
+        '/sbin/iptables-save',
+        '/sbin/ip6tables-save',
+      ]:
+        ensure  => link,
+        target  => '/bin/true',
+        require => Class['firewall'],
+      }
+      ->
+      Firewall <| |>
+    } else {
+      file { [
+        '/sbin/iptables-save',
+        '/sbin/ip6tables-save',
+      ]:
+        ensure  => link,
+        target  => 'xtables-multi',
+        require => Class['firewall'],
+      }
+      ->
+      Firewall <| |>
+    }
+  }
+
   class { '::firewall':
     # The Gentoo iptables systemd services are just oneshots
     ensure       => stopped,
