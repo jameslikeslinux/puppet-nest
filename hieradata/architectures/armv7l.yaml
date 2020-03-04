@@ -3,8 +3,6 @@ nest::package_keywords:
   # Masked packages from nest::profile::base::packages
   'net-analyzer/openbsd-netcat':
     keywords: '**'
-  'sys-process/parallel':
-    keywords: '**'
   'x11-misc/xsel': {}
 
 puppet::dir: '/etc/puppetlabs/puppet'
