@@ -90,7 +90,7 @@ class nest::profile::base::fs {
       state   => 'NEW',
       action  => accept,
     }
-  } elsif !$::nest::live {
+  } elsif !$::nest::live and !($nest and $nest['profile'] == 'beaglebone') {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
     }
