@@ -1,6 +1,6 @@
 ---
 nest::package_keywords:
-  # Masked packages from nest::profile::base::packages
+  'mail-mta/nullmailer': {}
   'net-analyzer/openbsd-netcat':
     keywords: '**'
   'x11-misc/xsel': {}

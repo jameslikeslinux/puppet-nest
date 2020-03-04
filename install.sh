@@ -1,6 +1,7 @@
 #!/bin/bash
 
-STAGE_ARCHIVE='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190523.tar.bz2'
+STAGE_ARCHIVE_AMD64='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190523.tar.bz2'
+STAGE_ARCHIVE_ARMV7A='https://bouncer.gentoo.org/fetch/root/all/releases/arm/autobuilds/20180831/stage3-armv7a_hardfp-20180831.tar.bz2'
 DATE="$(date '+%Y%m%d')"
 
 usage() {
@@ -18,7 +19,7 @@ Options:
 END
 }
 
-ARGS=$(getopt -o "ed:np:" -l "encrypt,disk:,dry-run,partition-only,profile:" -n install.sh -- "$@")
+ARGS=$(getopt -o "ed:np:" -l "encrypt,disk:,dry-run,partition-only,profile:,resume" -n install.sh -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -53,6 +54,10 @@ while true; do
             profile=$1
             shift
             ;;
+        --resume)
+            shift
+            resume='yes'
+            ;;
         --)
             shift
             break
@@ -64,7 +69,7 @@ if [ "${#disks[@]}" -eq 0 ]; then
     live='yes'
 fi
 
-if [ -d "/sys/firmware/efi/efivars" ]; then
+if [[ -d "/sys/firmware/efi/efivars" && $profile != 'beaglebone' ]]; then
     efi='yes'
 fi
 
@@ -123,7 +128,6 @@ $@
 END
 }
 
-
 cmd() {
     echo "> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
@@ -135,16 +139,31 @@ cmd() {
     fi
 }
 
+destructive_cmd() {
+    [[ $resume ]] || cmd "$@"
+}
 
 chroot_cmd() {
     echo ">> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
-        systemd-nspawn -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=CAP_NET_ADMIN --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
+        systemd-nspawn --console=pipe -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=CAP_NET_ADMIN --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
         if [ $? -ne 0 ]; then
             echo "FAILED"
             exit 1
         fi
     fi
+}
+
+destructive_chroot_cmd() {
+    [[ $resume ]] || chroot_cmd "$@"
+}
+
+make_dir() {
+    [[ -d $1 ]] || cmd mkdir -p "$1"
+}
+
+chroot_make_dir() {
+    [[ -d "/mnt/${name}${1}" ]] || chroot_cmd mkdir -p "$1"
 }
 
 if [[ ! $partition_only ]]; then
@@ -180,19 +199,19 @@ fi
 
 trap cleanup EXIT
 task "Making build target..."
-cmd mkdir "/mnt/${name}"
+make_dir "/mnt/${name}"
 
 
 if [ -n "$live" ]; then
     live_dir="${PWD}/${name}"
 
     task "Making live CD directory structure..."
-    cmd mkdir -p "${live_dir}/LiveOS/squashfs-root/LiveOS"
+    make_dir "${live_dir}/LiveOS/squashfs-root/LiveOS"
 
     task "Making live CD root image..."
-    cmd truncate -s 10G "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
-    cmd mkfs.ext4 "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
-    cmd tune2fs -o discard "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
+    destructive_cmd truncate -s 10G "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
+    destructive_cmd mkfs.ext4 "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
+    destructive_cmd tune2fs -o discard "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
 
     task "Mounting image at build target..."
     cmd mount "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img" "/mnt/${name}"
@@ -220,71 +239,122 @@ else
 
     for disk in "${disks[@]}"; do
         task "Partitioning ${disk}..."
-        cmd parted -s "$disk" \
-            mklabel gpt \
-            mkpart "${name}-${partition_name_suffix}${mirror_number}" 1MiB $((1 + 32))MiB \
-            set 1 "$partition_flag" on \
-            mkpart "${name}-boot${mirror_number}" $((1 + 32))MiB $((1 + 32 + 512))MiB \
-            set 2 lvm "$boot_lvm_flag" \
-            mkpart "${name}${partition_name_crypt}${mirror_number}" $((1 + 32 + 512))MiB 100% \
-            unit s \
-            print
 
-        cmd udevadm trigger
-        cmd sleep 3
+        if [[ $profile == 'beaglebone' ]]; then
+            destructive_cmd parted -s "$disk" \
+                mklabel msdos \
+                mkpart primary fat32 1MiB $((1 + 512))MiB \
+                set 1 boot on \
+                mkpart primary $((1 + 32 + 512))MiB 100% \
+                unit s \
+                print
+
+            vdevs+=("${disk}2")
+        else
+            destructive_cmd parted -s "$disk" \
+                mklabel gpt \
+                mkpart "${name}-${partition_name_suffix}${mirror_number}" 1MiB $((1 + 32))MiB \
+                set 1 "$partition_flag" on \
+                mkpart "${name}-boot${mirror_number}" $((1 + 32))MiB $((1 + 32 + 512))MiB \
+                set 2 lvm "$boot_lvm_flag" \
+                mkpart "${name}${partition_name_crypt}${mirror_number}" $((1 + 32 + 512))MiB 100% \
+                unit s \
+                print
+
+            vdevs+=("${name}${partition_name_crypt}${mirror_number}")
+        fi
+
+        destructive_cmd udevadm trigger
+        destructive_cmd sleep 3
 
         if [ -n "$efi" ]; then
             task "Making EFI system partition ${name}-${partition_name_suffix}${mirror_number}..."
-            cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-${partition_name_suffix}${mirror_number}"
+            destructive_cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-${partition_name_suffix}${mirror_number}"
         fi
 
         if [ -n "$encrypt" ]; then
             task "Encrypting ${name}-crypt${mirror_number}..."
-            echo -n "$enc_passphrase" | cmd cryptsetup luksFormat -c aes-xts-plain64 -s 256 -h sha512 "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}"
-            echo -n "$enc_passphrase" | cmd cryptsetup luksOpen "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}" "${name}${partition_name_crypt}${mirror_number}"
+            echo -n "$enc_passphrase" | destructive_cmd cryptsetup luksFormat -c aes-xts-plain64 -s 256 -h sha512 "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}"
+            echo -n "$enc_passphrase" | destructive_cmd cryptsetup luksOpen "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}" "${name}${partition_name_crypt}${mirror_number}"
         fi
-
-        vdevs+=("${name}${partition_name_crypt}${mirror_number}")
 
         [ "${#disks[@]}" -gt 1 ] && let mirror_number++
     done
 
-    task "Creating ZFS pool..."
-    cmd zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "${vdevs[@]}"
-    cmd zfs create "${name}/ROOT"
-    cmd zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
-    cmd zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
-    cmd zfs create -o mountpoint=/home "${name}/home"
-    cmd zfs create "${name}/home/james"
-    cmd zpool set bootfs="${name}/ROOT/gentoo" "$name"
+    if [[ $resume ]]; then
+        task "Importing ZFS pool..."
+        cmd zpool import -R "/mnt/${name}" "$name"
+    else
+        task "Creating ZFS pool..."
+        destructive_cmd zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "${vdevs[@]}"
+        destructive_cmd zfs create "${name}/ROOT"
+        destructive_cmd zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
+        destructive_cmd zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
+        destructive_cmd zfs create -o mountpoint=/home "${name}/home"
+        destructive_cmd zfs create "${name}/home/james"
+        destructive_cmd zpool set bootfs="${name}/ROOT/gentoo" "$name"
+    fi
 
     task "Creating swap space..."
-    cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
-    cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
+    destructive_cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
+    destructive_cmd udevadm trigger
+    destructive_cmd sleep 3
+    destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
     cmd swapon --discard "/dev/zvol/${name}/swap"
 
-    task "Creating fscache..."
-    cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
-    cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
-    cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
+    if [[ $profile == 'beaglebone' ]]; then
+        disk="${disks[0]}"
+        task "Creating boot filesystem..."
+        destructive_cmd mkfs.vfat "${disk}1"
+        make_dir "/mnt/${name}/boot"
+        cmd mount "${disk}1" "/mnt/${name}/boot"
+    else
+        task "Creating fscache..."
+        destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
+        destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
+        destructive_cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
 
-    # XXX: This needs to support mdraid
-    task "Creating boot filesystem..."
-    cmd mkfs.ext2 -L "${name}-boot" "/dev/disk/by-partlabel/${name}-boot"
-    cmd mkdir "/mnt/${name}/boot"
-    cmd mount LABEL="${name}-boot" "/mnt/${name}/boot"
+        # XXX: This needs to support mdraid
+        task "Creating boot filesystem..."
+        destructive_cmd mkfs.ext2 -L "${name}-boot" "/dev/disk/by-partlabel/${name}-boot"
+        make_dir "/mnt/${name}/boot"
+        cmd mount LABEL="${name}-boot" "/mnt/${name}/boot"
+    fi
 fi
 
 [[ $partition_only ]] && exit
 
 
+case "$profile" in
+    'beaglebone')
+        STAGE_ARCHIVE="$STAGE_ARCHIVE_ARMV7A"
+        ;;
+    *)
+        STAGE_ARCHIVE="$STAGE_ARCHIVE_AMD64"
+        ;;
+esac
+
 task "Downloading and extracting stage archive..."
-cmd wget --progress=dot:mega "$STAGE_ARCHIVE" -O "/mnt/${name}/$(basename "$STAGE_ARCHIVE")"
-cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --xattrs
+destructive_cmd wget --progress=dot:mega "$STAGE_ARCHIVE" -O "/mnt/${name}/$(basename "$STAGE_ARCHIVE")"
+destructive_cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --xattrs
 
 
 task "Prepping build target..."
-cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+
+if [[ $profile == 'beaglebone' ]]; then
+    destructive_cmd cp /usr/bin/qemu-arm "/mnt/${name}/usr/bin/qemu-arm"
+    makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
+    destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
+CXXFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
+DISTDIR="/nest/portage/distfiles"
+EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
+FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
+PKGDIR="/nest/portage/packages/armv7l-beaglebone"
+$makeopts
+END
+else
+    destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-march=haswell -O2 -pipe -ggdb"
 CXXFLAGS="-march=haswell -O2 -pipe -ggdb"
 CPU_FLAGS_X86="aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 ssse3"
@@ -293,43 +363,70 @@ EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"
 PKGDIR="/nest/portage/packages/amd64-base"
 END
-cmd tee "/mnt/${name}/etc/portage/repos.conf" <<END
+fi
+destructive_cmd tee "/mnt/${name}/etc/portage/repos.conf" <<END
 [DEFAULT]
 main-repo = gentoo
 
 [gentoo]
 location = /var/cache/portage/gentoo
 END
-cmd rm -rf "/mnt/${name}/etc/portage/make.conf.catalyst"
-cmd rm -rf "/mnt/${name}/etc/portage/package."*
+destructive_cmd rm -rf "/mnt/${name}/etc/portage/make.conf.catalyst"
+destructive_cmd rm -rf "/mnt/${name}/etc/portage/package."*
 
 
 task "Installing Portage tree..."
-cmd wget --progress=dot:mega https://github.com/iamjamestl/portage-gentoo/archive/master.tar.gz -O "/mnt/${name}/portage-gentoo-master.tar.gz"
-cmd mkdir -p "/mnt/${name}/var/cache/portage/gentoo"
-cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
-cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
-chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
+destructive_cmd wget --progress=dot:mega https://github.com/iamjamestl/portage-gentoo/archive/master.tar.gz -O "/mnt/${name}/portage-gentoo-master.tar.gz"
+make_dir "/mnt/${name}/var/cache/portage/gentoo"
+destructive_cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "/mnt/${name}/portage-gentoo-master.tar.gz"
+destructive_cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
 
+
+if [[ $profile == 'beaglebone' ]]; then
+    destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
+    destructive_chroot_cmd emerge -vDuN @world
+    destructive_chroot_cmd emerge --depclean
+else
+    destructive_chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
+fi
+
+extra_puppet_args=()
 
 task "Installing Puppet..."
-chroot_cmd env USE=tinfo emerge -v '<app-admin/puppet-agent-6' app-portage/eix
+if [[ $profile == 'beaglebone' ]]; then
+    extra_puppet_args+=('--logdir' '/var/log/puppet' '--rundir' '/var/run/puppet' '--vardir' '/var/lib/puppet')
+
+    chroot_make_dir /etc/portage/package.keywords
+    destructive_chroot_cmd tee /etc/portage/package.keywords/puppet <<END
+app-admin/puppet
+dev-ruby/hiera
+dev-ruby/deep_merge
+dev-ruby/hocon
+dev-ruby/facter
+dev-cpp/cpp-hocon
+dev-cpp/yaml-cpp
+dev-libs/leatherman
+END
+    destructive_chroot_cmd emerge -v '<app-admin/puppet-6' app-portage/eix
+else
+    destructive_chroot_cmd env USE=tinfo emerge -v '<app-admin/puppet-agent-6' app-portage/eix
+fi
 
 
 task "Prepping for Puppet run..."
-chroot_cmd mkdir -p /etc/puppetlabs/facter/facts.d
-chroot_cmd tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
+chroot_make_dir /etc/puppetlabs/facter/facts.d
+destructive_chroot_cmd tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
 ---
 nest:
   profile: '${profile}'
 END
-[ -n "$live" ] && chroot_cmd tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
+[ -n "$live" ] && destructive_chroot_cmd tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
   live: true
 END
 
 
 task "Running Puppet..."
-chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest
+chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest "${extra_puppet_args[@]}"
 [ -z "$live" ] && chroot_cmd systemctl enable puppet
 
 # task "Removing unnecessary packages..."
@@ -340,7 +437,7 @@ if [ -n "$live" ]; then
     iso_label=$(echo "$name" | tr 'a-z' 'A-Z')
 
     task "Configuring live CD boot..."
-    cmd mkdir "${live_dir}/boot"
+    make_dir "${live_dir}/boot"
     cmd mv "/mnt/${name}/boot/"* "${live_dir}/boot/"
     cmd sed -i -r '/insmod ext2/,/fi/d; s/root=UUID=[[:graph:]]+/root=live:LABEL='"$iso_label"'/g' "${live_dir}/boot/grub/grub.cfg"
 
