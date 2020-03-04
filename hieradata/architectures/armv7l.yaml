@@ -1,2 +1,4 @@
 ---
 puppet::dir: '/etc/puppetlabs/puppet'
+puppet::codedir: '/etc/puppetlabs/code'
+puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
