@@ -60,6 +60,7 @@ class nest::profile::base::portage {
 
     $cpu_flags_x86_ensure = 'absent'
   } else {
+    $sandbox_features = []
     $cpu_flags_x86_ensure = 'present'
   }
 
