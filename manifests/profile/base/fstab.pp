@@ -19,57 +19,42 @@ class nest::profile::base::fstab {
       'set 1/passno 0',
     ]
   } else {
-    if $nest and $nest['profile'] == 'beaglebone' {
-      $boot_and_swap = [
-        "set 1/spec /dev/sda1",
-        'set 1/file /boot',
-        "set 1/vfstype vfat",
-        'set 1/opt defaults',
-        'set 1/dump 0',
-        'set 1/passno 2',
-      ]
-    } else {
-      $boot_and_swap = [
-        $::nest::bootloader ? {
-          systemd => [
-            "set 1/spec PARTLABEL=${hostname}-boot",
-            'set 1/file /boot',
-            "set 1/vfstype vfat",
-            'set 1/opt defaults',
-            'set 1/dump 0',
-            'set 1/passno 2',
-
-            "set 2/spec PARTLABEL=${hostname}-efi",
-            'set 2/file /efi',
-            "set 2/vfstype vfat",
-            'set 2/opt defaults',
-            'set 2/dump 0',
-            'set 2/passno 2',
-          ],
-
-          default => [
-            "set 1/spec LABEL=${hostname}-boot",
-            'set 1/file /boot',
-            "set 1/vfstype ext2",
-            'set 1/opt defaults',
-            'set 1/dump 0',
-            'set 1/passno 2',
-          ],
-        },
-
-        "set 3/spec LABEL=${hostname}-swap",
-        'set 3/file none',
-        'set 3/vfstype swap',
-        'set 3/opt discard',
-        'set 3/dump 0',
-        'set 3/passno 0',
-      ].flatten
-    }
-
     $base_changes = [
       'rm *[spec]',
 
-      $boot_and_swap,
+      $::nest::bootloader ? {
+        systemd => [
+          "set 1/spec PARTLABEL=${hostname}-boot",
+          'set 1/file /boot',
+          "set 1/vfstype vfat",
+          'set 1/opt defaults',
+          'set 1/dump 0',
+          'set 1/passno 2',
+
+          "set 2/spec PARTLABEL=${hostname}-efi",
+          'set 2/file /efi',
+          "set 2/vfstype vfat",
+          'set 2/opt defaults',
+          'set 2/dump 0',
+          'set 2/passno 2',
+        ],
+
+        default => [
+          "set 1/spec LABEL=${hostname}-boot",
+          'set 1/file /boot',
+          "set 1/vfstype ext2",
+          'set 1/opt defaults',
+          'set 1/dump 0',
+          'set 1/passno 2',
+        ],
+      },
+
+      "set 3/spec LABEL=${hostname}-swap",
+      'set 3/file none',
+      'set 3/vfstype swap',
+      'set 3/opt discard',
+      'set 3/dump 0',
+      'set 3/passno 0',
 
       'set 4/spec none',
       'set 4/file /var',
