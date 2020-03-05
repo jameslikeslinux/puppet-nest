@@ -139,14 +139,17 @@ class nest::profile::base::users {
           ensure => directory,
           mode   => '0755',
           owner  => 'james',
-          group  => 'users',
-          before => Vcsrepo['/home/james'];
+          group  => 'users';
       }
 
-      $homes = {
-        'root'  => '/root',
-        'james' => '/home/james',
+      if $facts['virtual'] == 'lxc' {
+        $user_homes = {}
+      } else {
+        $user_homes = { 'james' => '/home/james' }
+        File['/home/james'] -> Vcsrepo['/home/james']
       }
+
+      $homes = { 'root'  => '/root' } + $user_homes
     }
 
     'windows': {
