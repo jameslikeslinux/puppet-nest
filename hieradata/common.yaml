@@ -194,4 +194,8 @@ nest::package_use:
   x11-libs/libdrm:
     use: 'libkms'
 
+  # For networkmanager[wifi]
+  net-wireless/wpa_supplicant:
+    use: 'dbus'
+
 apache::mpm_module: 'worker'

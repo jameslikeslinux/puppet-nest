@@ -300,7 +300,7 @@ else
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
-    cmd swapon --discard "/dev/zvol/${name}/swap"
+    # cmd swapon --discard "/dev/zvol/${name}/swap"
 
     if [[ $profile == 'beaglebone' ]]; then
         disk="${disks[0]}"
