@@ -19,6 +19,29 @@ class nest::profile::base::fstab {
       'set 1/passno 0',
     ]
   } else {
+    if $nest and $nest['profile'] == 'beaglebone' {
+      $swap = []
+      $fscache = []
+    } else {
+      $swap = [
+        "set 3/spec LABEL=${hostname}-swap",
+        'set 3/file none',
+        'set 3/vfstype swap',
+        'set 3/opt discard',
+        'set 3/dump 0',
+        'set 3/passno 0',
+      ]
+
+      $fscache = [
+        "set 10/spec LABEL=${hostname}-fscache",
+        'set 10/file /var/cache/fscache',
+        'set 10/vfstype ext4',
+        'set 10/opt[1] defaults',
+        'set 10/opt[2] discard',
+        'set 10/dump 0',
+        'set 10/passno 0',
+      ]
+    }
     $base_changes = [
       'rm *[spec]',
 
@@ -49,12 +72,7 @@ class nest::profile::base::fstab {
         ],
       },
 
-      "set 3/spec LABEL=${hostname}-swap",
-      'set 3/file none',
-      'set 3/vfstype swap',
-      'set 3/opt discard',
-      'set 3/dump 0',
-      'set 3/passno 0',
+      $swap,
 
       'set 4/spec none',
       'set 4/file /var',
@@ -67,13 +85,7 @@ class nest::profile::base::fstab {
     ].flatten
 
     $nfs_changes = [
-      "set 10/spec LABEL=${hostname}-fscache",
-      'set 10/file /var/cache/fscache',
-      'set 10/vfstype ext4',
-      'set 10/opt[1] defaults',
-      'set 10/opt[2] discard',
-      'set 10/dump 0',
-      'set 10/passno 0',
+      $fscache,
 
       "set 11/spec ${::nest::nestfs_hostname}:/nest",
       'set 11/file /nest',
@@ -85,7 +97,7 @@ class nest::profile::base::fstab {
       'set 11/opt[4]/value openvpn-client@nest.service',
       'set 11/dump 0',
       'set 11/passno 0',
-    ]
+    ].flatten
   }
 
   $changes = $::nest::nestfs_hostname ? {
