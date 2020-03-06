@@ -199,6 +199,7 @@ class nest::profile::base::portage {
   # XXX: This could be made more generic if needed
   $use_mask_content = @(EOT)
     -input_devices_libinput
+    -gnuefi
     -libzfs
     -zfs
     | EOT
