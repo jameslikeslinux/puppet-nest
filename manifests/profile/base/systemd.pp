@@ -189,12 +189,14 @@ class nest::profile::base::systemd {
     notify => Class['::nest::profile::base::dracut'],
   }
 
-  $kexec_tools_ensure = $::nest::bootloader ? {
-    systemd => installed,
-    default => absent,
-  }
+  unless $facts['os']['architecture'] == 'armv7l' {
+    $kexec_tools_ensure = $::nest::bootloader ? {
+      systemd => installed,
+      default => absent,
+    }
 
-  package { 'sys-apps/kexec-tools':
-    ensure => $kexec_tools_ensure,
+    package { 'sys-apps/kexec-tools':
+      ensure => $kexec_tools_ensure,
+    }
   }
 }
