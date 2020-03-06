@@ -1,5 +1,4 @@
 class nest::profile::base::zfs {
-  unless $nest and $nest['profile'] == 'beaglebone' {
   package { 'sys-fs/zfs':
     ensure => installed,
   }
@@ -126,5 +125,4 @@ class nest::profile::base::zfs {
   }
 
   ::nest::systemd_reload { 'zfs': }
-  }
 }

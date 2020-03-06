@@ -1,10 +1,16 @@
 class nest::profile::base::dracut {
-  unless $nest and $nest['profile'] == 'beaglebone' {
-  package { [
-    'sys-kernel/dracut',
-    'sys-firmware/intel-microcode',
-  ]:
+  package { 'sys-kernel/dracut':
     ensure => installed,
+  }
+
+  if $facts['os']['architecture'] == 'amd64' {
+    package { 'sys-firmware/intel-microcode':
+      ensure => installed,
+    }
+
+    $early_microcode = 'yes'
+  } else {
+    $early_microcode = 'no'
   }
 
   if $::nest::live {
@@ -14,9 +20,9 @@ class nest::profile::base::dracut {
       kernel_cmdline="rd.live.overlay.thin=1 rd.vconsole.font=ter-v16b"
       | EOT
   } else {
-    $base_config_content = @(EOT)
+    $base_config_content = @("EOT")
       add_dracutmodules+=" crypt "
-      early_microcode="yes"
+      early_microcode="${early_microcode}"
       hostonly="yes"
       hostonly_cmdline="no"
       force="yes"
@@ -62,6 +68,5 @@ class nest::profile::base::dracut {
     owner   => 'root',
     group   => 'root',
     content => "${crypttab_content}\n",
-  }
   }
 }
