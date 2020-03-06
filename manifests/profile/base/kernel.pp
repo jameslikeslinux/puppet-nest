@@ -1,5 +1,4 @@
 class nest::profile::base::kernel {
-  unless $nest and $nest['profile'] == 'beaglebone' {
   file {
     default:
       ensure => directory,
@@ -31,8 +30,14 @@ class nest::profile::base::kernel {
     ensure => installed,
   }
 
+  if $nest and $nest['profile'] == 'beaglebone' {
+    $defconfig = 'multi_v7_defconfig'
+  } else {
+    $defconfig = 'defconfig kvmconfig'
+  }
+
   exec { 'make defconfig':
-    command => '/usr/bin/make defconfig kvmconfig',
+    command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
     require => Package['sys-kernel/gentoo-sources'],
@@ -75,6 +80,5 @@ class nest::profile::base::kernel {
     refreshonly => true,
     subscribe   => Exec['module-rebuild'],
     require     => Package['app-admin/eclean-kernel'],
-  }
   }
 }

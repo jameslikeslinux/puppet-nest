@@ -190,6 +190,7 @@ class nest::profile::base::users {
       source   => 'https://github.com/iamjamestl/dotfiles.git',
       revision => 'master',
       user     => $vcsrepo_user,
+      force    => true,
     }
 
     if $facts['osfamily'] == 'windows' {
