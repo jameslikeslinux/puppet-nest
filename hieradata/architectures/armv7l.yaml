@@ -18,7 +18,7 @@ nest::package_keywords:
   'sys-fs/zfs':
     version: '<9999'
     keywords: '**'
-  'sys-fs/kmod-zfs':
+  'sys-fs/zfs-kmod':
     version: '<9999'
     keywords: '**'
 
