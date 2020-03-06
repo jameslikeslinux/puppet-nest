@@ -69,7 +69,7 @@ if [ "${#disks[@]}" -eq 0 ]; then
     live='yes'
 fi
 
-if [[ -d "/sys/firmware/efi/efivars" && $profile != 'beaglebone' ]]; then
+if [[ -d "/sys/firmware/efi/efivars" ]]; then
     efi='yes'
 fi
 
@@ -146,7 +146,7 @@ destructive_cmd() {
 chroot_cmd() {
     echo ">> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
-        systemd-nspawn --console=pipe -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=CAP_NET_ADMIN --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
+        systemd-nspawn --console=pipe -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=all --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
         if [ $? -ne 0 ]; then
             echo "FAILED"
             exit 1
@@ -226,11 +226,11 @@ else
     fi
 
     if [ -n "$efi" ]; then
-        partition_flag='esp'
         partition_name_suffix='efi'
+        firmware_partition_type='C12A7328-F81F-11D2-BA4B-00A0C93EC93B'
     else
-        partition_flag='bios_grub'
         partition_name_suffix='bios'
+        firmware_partition_type='21686148-6449-6E6F-744E-656564454649'
     fi
 
     if [ -n "$encrypt" ]; then
@@ -240,29 +240,14 @@ else
     for disk in "${disks[@]}"; do
         task "Partitioning ${disk}..."
 
-        if [[ $profile == 'beaglebone' ]]; then
-            destructive_cmd parted -s "$disk" \
-                mklabel msdos \
-                mkpart primary fat32 1MiB $((1 + 512))MiB \
-                set 1 boot on \
-                mkpart primary $((1 + 32 + 512))MiB 100% \
-                unit s \
-                print
+        destructive_cmd sfdisk "$disk" <<END
+label: gpt
+size=32MiB, type=${firmware_partition_type}, name="${name}-${partition_name_suffix}${mirror_number}"
+size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot${mirror_number}"
+name="${name}"
+END
 
-            vdevs+=("${disk}2")
-        else
-            destructive_cmd parted -s "$disk" \
-                mklabel gpt \
-                mkpart "${name}-${partition_name_suffix}${mirror_number}" 1MiB $((1 + 32))MiB \
-                set 1 "$partition_flag" on \
-                mkpart "${name}-boot${mirror_number}" $((1 + 32))MiB $((1 + 32 + 512))MiB \
-                set 2 lvm "$boot_lvm_flag" \
-                mkpart "${name}${partition_name_crypt}${mirror_number}" $((1 + 32 + 512))MiB 100% \
-                unit s \
-                print
-
-            vdevs+=("${name}${partition_name_crypt}${mirror_number}")
-        fi
+        vdevs+=("${name}${partition_name_crypt}${mirror_number}")
 
         destructive_cmd udevadm trigger
         destructive_cmd sleep 3
@@ -302,23 +287,22 @@ else
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
     # cmd swapon --discard "/dev/zvol/${name}/swap"
 
-    if [[ $profile == 'beaglebone' ]]; then
-        disk="${disks[0]}"
-        task "Creating boot filesystem..."
-        destructive_cmd mkfs.vfat "${disk}1"
-        make_dir "/mnt/${name}/boot"
-        cmd mount "${disk}1" "/mnt/${name}/boot"
-    else
+    if [[ $profile != 'beaglebone' ]]; then
         task "Creating fscache..."
         destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
         destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
         destructive_cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
+    fi
 
-        # XXX: This needs to support mdraid
-        task "Creating boot filesystem..."
-        destructive_cmd mkfs.ext2 -L "${name}-boot" "/dev/disk/by-partlabel/${name}-boot"
-        make_dir "/mnt/${name}/boot"
-        cmd mount LABEL="${name}-boot" "/mnt/${name}/boot"
+    # XXX: This needs to support mdraid
+    task "Creating boot filesystem..."
+    destructive_cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-boot"
+    make_dir "/mnt/${name}/boot"
+    cmd mount PARTLABEL="${name}-boot" "/mnt/${name}/boot"
+
+    if [ -n "$efi" ]; then
+        make_dir "/mnt/${name}/efi"
+        cmd mount PARTLABEL="${name}-efi" "/mnt/${name}/efi"
     fi
 fi
 
@@ -351,6 +335,7 @@ DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
 PKGDIR="/nest/portage/packages/armv7l-beaglebone"
+USE="X"
 $makeopts
 END
 else
@@ -384,7 +369,7 @@ destructive_cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
 
 if [[ $profile == 'beaglebone' ]]; then
     destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
-    destructive_chroot_cmd emerge -vDuN @world
+    destructive_chroot_cmd emerge -vDuN --with-bdeps=y @world
     destructive_chroot_cmd emerge --depclean
 else
     destructive_chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
@@ -406,11 +391,17 @@ dev-ruby/facter
 dev-cpp/cpp-hocon
 dev-cpp/yaml-cpp
 dev-libs/leatherman
+dev-ruby/ruby-augeas
+app-admin/augeas
+app-doc/NaturalDocs
 END
-    destructive_chroot_cmd emerge -v '<app-admin/puppet-6' app-portage/eix
+    destructive_chroot_cmd emerge -v '<app-admin/puppet-6' app-portage/eix dev-ruby/ruby-augeas
 else
     destructive_chroot_cmd env USE=tinfo emerge -v '<app-admin/puppet-agent-6' app-portage/eix
 fi
+
+# Allow the systemd service provider to work inside the chroot
+destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
 
 
 task "Prepping for Puppet run..."
@@ -426,7 +417,7 @@ END
 
 
 task "Running Puppet..."
-chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest "${extra_puppet_args[@]}"
+chroot_cmd puppet agent --onetime --debug --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest "${extra_puppet_args[@]}"
 [ -z "$live" ] && chroot_cmd systemctl enable puppet
 
 # task "Removing unnecessary packages..."
