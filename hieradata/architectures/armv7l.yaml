@@ -15,6 +15,13 @@ nest::package_keywords:
     version: '<9999'
     keywords: '**'
 
+  'sys-fs/zfs':
+    version: '<9999'
+    keywords: '**'
+  'sys-fs/kmod-zfs':
+    version: '<9999'
+    keywords: '**'
+
 puppet::dir: '/etc/puppetlabs/puppet'
 puppet::codedir: '/etc/puppetlabs/code'
 puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
