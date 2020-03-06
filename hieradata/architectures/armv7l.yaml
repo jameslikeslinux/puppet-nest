@@ -3,8 +3,6 @@ nest::package_keywords:
   'mail-mta/nullmailer': {}
   'net-analyzer/openbsd-netcat':
     keywords: '**'
-  'sys-apps/kexec-tools':
-    keywords: '**'
   'x11-misc/xsel': {}
 
 puppet::dir: '/etc/puppetlabs/puppet'
