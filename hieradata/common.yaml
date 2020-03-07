@@ -198,4 +198,33 @@ nest::package_use:
   net-wireless/wpa_supplicant:
     use: 'dbus'
 
+nest::kernel_config:
+  # For zfs
+  CONFIG_DEFAULT_CFQ: n
+  CONFIG_DEFAULT_NOOP: y
+  CONFIG_DEFAULT_IOSCHED: 'noop'
+
+  # For systemd
+  CONFIG_CGROUP_BPF: y
+
+  # For puppet
+  CONFIG_NETFILTER_XT_MATCH_COMMENT: m
+  CONFIG_NETFILTER_XT_MATCH_MULTIPORT: m
+  CONFIG_NETFILTER_XT_MATCH_PKTTYPE: m
+
+  # For openvpn
+  CONFIG_TUN: m
+
+  # For general use
+  CONFIG_FUSE_FS: m
+  CONFIG_FSCACHE: y
+  CONFIG_CACHEFILES: m
+  CONFIG_SQUASHFS: m
+  CONFIG_SQUASHFS_XZ: y
+  CONFIG_NFS_V4_1: y
+  CONFIG_NFS_V4_2: y
+  CONFIG_NFS_FSCACHE: y
+  CONFIG_NFSD: m
+  CONFIG_NFSD_V4: y
+
 apache::mpm_module: 'worker'

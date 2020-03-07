@@ -5,3 +5,10 @@ nest::kernel_cmdline: 'console=ttyO0'
 nest::package_use:
   sys-apps/systemd:
     use: 'gnuefi'
+
+nest::kernel_config:
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+
+  # For systemd
+  CONFIG_CHECKPOINT_RESTORE: y
+  CONFIG_FANOTIFY: y
