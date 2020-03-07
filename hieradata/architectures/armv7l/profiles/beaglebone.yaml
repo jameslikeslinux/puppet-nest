@@ -2,6 +2,8 @@
 nest::bootloader: systemd
 nest::kernel_cmdline: 'console=ttyO0'
 
+nest::cflags: '-march=armv7-a+neon -O2 -pipe -ggdb'
+
 nest::package_use:
   sys-apps/systemd:
     use: 'gnuefi'
