@@ -1,5 +1,6 @@
 ---
 nest::bootloader: systemd
+nest::kernel_cmdline: 'console=ttyO0'
 
 nest::package_use:
   sys-apps/systemd:
