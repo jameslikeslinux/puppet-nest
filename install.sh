@@ -225,14 +225,6 @@ else
         boot_lvm_flag='off'
     fi
 
-    if [ -n "$efi" ]; then
-        partition_name_suffix='efi'
-        firmware_partition_type='C12A7328-F81F-11D2-BA4B-00A0C93EC93B'
-    else
-        partition_name_suffix='bios'
-        firmware_partition_type='21686148-6449-6E6F-744E-656564454649'
-    fi
-
     if [ -n "$encrypt" ]; then
         partition_name_crypt='-crypt'
     fi
@@ -240,12 +232,20 @@ else
     for disk in "${disks[@]}"; do
         task "Partitioning ${disk}..."
 
-        destructive_cmd sfdisk "$disk" <<END
+        if [ -n "$efi" ]; then
+            destructive_cmd sfdisk "$disk" <<END
 label: gpt
-size=32MiB, type=${firmware_partition_type}, name="${name}-${partition_name_suffix}${mirror_number}"
+ize=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot${mirror_number}"
+name="${name}"
+END
+        else
+            destructive_cmd sfdisk "$disk" <<END
+label: gpt
+size=32MiB, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios${mirror_number}"
 size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot${mirror_number}"
 name="${name}"
 END
+        fi
 
         vdevs+=("${name}${partition_name_crypt}${mirror_number}")
 
@@ -299,11 +299,6 @@ END
     destructive_cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-boot"
     make_dir "/mnt/${name}/boot"
     cmd mount PARTLABEL="${name}-boot" "/mnt/${name}/boot"
-
-    if [ -n "$efi" ]; then
-        make_dir "/mnt/${name}/efi"
-        cmd mount PARTLABEL="${name}-efi" "/mnt/${name}/efi"
-    fi
 fi
 
 [[ $partition_only ]] && exit
