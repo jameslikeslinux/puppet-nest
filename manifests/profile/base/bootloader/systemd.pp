@@ -27,8 +27,13 @@ class nest::profile::base::bootloader::systemd {
     ;
   }
 
+  $image = $facts['os']['architecture'] ? {
+    'amd64'  => '/usr/src/linux/arch/x86/boot/bzImage',
+    'armv7l' => '/usr/src/linux/arch/arm/boot/zImage',
+  }
+
   exec { 'kernel-install':
-    command     => 'version=$(ls /lib/modules | sort -V | tail -1) && kernel-install add $version /usr/src/linux/arch/x86/boot/bzImage',
+    command     => "version=\$(ls /lib/modules | sort -V | tail -1) && kernel-install add \$version ${image}",
     refreshonly => true,
     provider    => shell,
     require     => Exec['bootctl-install'],
