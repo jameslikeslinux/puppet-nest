@@ -41,6 +41,7 @@ class nest::profile::base::kernel {
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
     require => Package['sys-kernel/gentoo-sources'],
+    notify  => Exec['make kernel'],
   }
 
   $::nest::kernel_config_hiera.each |$config, $value| {
