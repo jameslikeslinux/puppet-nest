@@ -1,11 +1,17 @@
 class nest::profile::base::bootloader::systemd {
+  if $facts['virtual'] == 'lxc' or $facts['os']['architecture'] == 'armv7l' {
+    $bootctl_args = '--no-variables'
+  } else {
+    $bootctl_args = ''
+  }
+
   exec { 'bootctl-install':
-    command => '/usr/bin/bootctl install --graceful',
+    command => "/usr/bin/bootctl install --graceful ${bootctl_args}",
     unless  => '/usr/bin/bootctl is-installed | /bin/grep yes',
   }
 
   exec { 'bootctl-update':
-    command     => '/usr/bin/bootctl update',
+    command     => "/usr/bin/bootctl update ${bootctl_args}",
     refreshonly => true,
     require     => Exec['bootctl-install'],
   }
