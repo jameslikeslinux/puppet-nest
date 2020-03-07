@@ -21,13 +21,17 @@ class nest::profile::base::dracut {
       | EOT
   } else {
     $base_config_content = @("EOT")
-      add_dracutmodules+=" crypt "
       early_microcode="${early_microcode}"
       hostonly="yes"
       hostonly_cmdline="no"
       force="yes"
       | EOT
   }
+
+
+
+
+  # XXX: crypt support to be removed
 
   file { '/etc/dracut.conf.d/00-base.conf':
     mode    => '0644',
@@ -46,6 +50,7 @@ class nest::profile::base::dracut {
     | EOT
 
   file { '/etc/dracut.conf.d/10-crypt.conf':
+    ensure  => absent,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -64,6 +69,7 @@ class nest::profile::base::dracut {
   }.join("\n")
 
   file { '/etc/crypttab':
+    ensure  => absent,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
