@@ -20,9 +20,19 @@ class nest::profile::base::fstab {
     ]
   } else {
     if $nest and $nest['profile'] == 'beaglebone' {
+      $efi = []
       $swap = []
       $fscache = []
     } else {
+      $efi = [
+        "set 2/spec PARTLABEL=${hostname}-efi",
+        'set 2/file /efi',
+        "set 2/vfstype vfat",
+        'set 2/opt defaults',
+        'set 2/dump 0',
+        'set 2/passno 2',
+      ]
+
       $swap = [
         "set 3/spec LABEL=${hostname}-swap",
         'set 3/file none',
@@ -54,12 +64,7 @@ class nest::profile::base::fstab {
           'set 1/dump 0',
           'set 1/passno 2',
 
-          "set 2/spec PARTLABEL=${hostname}-efi",
-          'set 2/file /efi',
-          "set 2/vfstype vfat",
-          'set 2/opt defaults',
-          'set 2/dump 0',
-          'set 2/passno 2',
+          $efi,
         ],
 
         default => [
