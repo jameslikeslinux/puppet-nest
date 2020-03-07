@@ -14,3 +14,6 @@ nest::kernel_config:
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
   CONFIG_FANOTIFY: y
+
+  # We don't need graphics support
+  CONFIG_DRM: n
