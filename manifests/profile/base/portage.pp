@@ -14,7 +14,7 @@ class nest::profile::base::portage {
     default => undef,
   }
 
-  $makejobs_by_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
+  $makejobs_by_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
 
   $makejobs_distcc_min = ($makejobs_by_memory < $makejobs_distcc) ? {
