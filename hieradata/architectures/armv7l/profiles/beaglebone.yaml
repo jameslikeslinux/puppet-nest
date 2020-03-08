@@ -15,5 +15,6 @@ nest::kernel_config:
   CONFIG_CHECKPOINT_RESTORE: y
   CONFIG_FANOTIFY: y
 
-  # We don't need graphics support
+  # We don't need graphics or sound support
   CONFIG_DRM: n
+  CONFIG_SND: n
