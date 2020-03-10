@@ -1,6 +1,5 @@
 ---
 nest::bootloader: systemd
-nest::kernel_cmdline: 'console=ttyO0'
 
 nest::cflags: '-march=armv7-a+neon -O2 -pipe -ggdb'
 
