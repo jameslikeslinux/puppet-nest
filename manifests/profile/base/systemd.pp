@@ -90,6 +90,7 @@ class nest::profile::base::systemd {
   }
 
   exec { '/usr/sbin/locale-gen':
+    timeout     => 0,
     refreshonly => true,
     subscribe   => File_line['locale.gen-en_US.UTF-8'],
   }
