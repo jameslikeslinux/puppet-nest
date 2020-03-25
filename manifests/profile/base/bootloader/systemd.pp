@@ -40,6 +40,7 @@ class nest::profile::base::bootloader::systemd {
 
   exec { 'kernel-install':
     command     => "version=\$(ls /lib/modules | sort -V | tail -1) && kernel-install add \$version ${image}",
+    timeout     => 0,
     refreshonly => true,
     provider    => shell,
     require     => Exec['bootctl-install'],
