@@ -10,10 +10,9 @@ Usage: install.sh [options] [NAME]
 
 Options:
   -d, --disk DEVICE      the disk to format and install on
-                         (can be specified multiple times)
   -e, --encrypt          encrypt the resulting pool
   -n, --dry-run          just print out what would be done
-  --partition-only       just partition/format the disks and exit
+  --partition-only       just partition/format the disk and exit
   -p, --profile PROFILE  the type of system to install
                          (default: 'base')
 END
@@ -34,7 +33,7 @@ while true; do
     case $1 in
         -d|--disk)
             shift
-            disks+=("$1")
+            disk="$1"
             shift
             ;;
         -e|--encrypt)
@@ -65,7 +64,7 @@ while true; do
     esac
 done
 
-if [ "${#disks[@]}" -eq 0 ]; then
+if [[ $disk == '' ]]; then
     live='yes'
 fi
 
@@ -100,23 +99,18 @@ cleanup() {
     task "Cleaning up..."
 
     # Unmount if necessary
-    mountpoint -q "/mnt/${name}" && cmd umount -R "/mnt/${name}"
+    mountpoint -q "/mnt/${name}" && fallable_cmd umount -R "/mnt/${name}"
 
     # Remove mountpoint if necessary
     if [ -e "/mnt/${name}" ] && [ ! "$(ls -A "/mnt/${name}")" ]; then
-        cmd rm -rf "/mnt/${name}"
+        fallable_cmd rm -rf "/mnt/${name}"
     fi
 
     # Disable swap if necessary (assume its on if the device exists)
-    [ -e "/dev/zvol/${name}/swap" ] && cmd swapoff "/dev/zvol/${name}/swap"
+    [ -e "/dev/zvol/${name}/swap" ] && fallable_cmd swapoff "/dev/zvol/${name}/swap" && sleep 1
 
     # Export pool filesystem if necessary
-    zpool list "$name" > /dev/null 2>&1 && cmd zpool export "$name"
-
-    # Close LUKS devices if necessary
-    for vdev in "${vdevs[@]}"; do
-        [ -e "/dev/mapper/${vdev}" ] && cmd cryptsetup luksClose "$vdev"
-    done
+    zpool list "$name" > /dev/null 2>&1 && fallable_cmd zpool export "$name"
 
     trap - EXIT
 }
@@ -128,14 +122,18 @@ $@
 END
 }
 
-cmd() {
+fallable_cmd() {
     echo "> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
         "$@" >> "$LOGFILE" 2>&1
-        if [ $? -ne 0 ]; then
-            echo "FAILED"
-            exit 1
-        fi
+    fi
+}
+
+cmd() {
+    fallable_cmd "$@"
+    if [ $? -ne 0 ]; then
+        echo "FAILED"
+        exit 1
     fi
 }
 
@@ -216,62 +214,37 @@ if [ -n "$live" ]; then
     task "Mounting image at build target..."
     cmd mount "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img" "/mnt/${name}"
 else
-    if [ "${#disks[@]}" -gt 1 ]; then
-        mirror_number=1
-        boot_lvm_flag='on'
-        vdevs+=('mirror')
+    task "Partitioning ${disk}..."
+
+    if [ -n "$efi" ]; then
+        destructive_cmd sfdisk "$disk" <<END
+label: gpt
+size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
+name="${name}"
+END
     else
-        mirror_number=''
-        boot_lvm_flag='off'
-    fi
-
-    if [ -n "$encrypt" ]; then
-        partition_name_crypt='-crypt'
-    fi
-
-    for disk in "${disks[@]}"; do
-        task "Partitioning ${disk}..."
-
-        if [ -n "$efi" ]; then
-            destructive_cmd sfdisk "$disk" <<END
+        destructive_cmd sfdisk "$disk" <<END
 label: gpt
-ize=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot${mirror_number}"
+size=32MiB, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios"
+size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot"
 name="${name}"
 END
-        else
-            destructive_cmd sfdisk "$disk" <<END
-label: gpt
-size=32MiB, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios${mirror_number}"
-size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot${mirror_number}"
-name="${name}"
-END
-        fi
+    fi
 
-        vdevs+=("${name}${partition_name_crypt}${mirror_number}")
+    destructive_cmd udevadm trigger
+    destructive_cmd sleep 3
 
-        destructive_cmd udevadm trigger
-        destructive_cmd sleep 3
-
-        if [ -n "$efi" ]; then
-            task "Making EFI system partition ${name}-${partition_name_suffix}${mirror_number}..."
-            destructive_cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-${partition_name_suffix}${mirror_number}"
-        fi
-
-        if [ -n "$encrypt" ]; then
-            task "Encrypting ${name}-crypt${mirror_number}..."
-            echo -n "$enc_passphrase" | destructive_cmd cryptsetup luksFormat -c aes-xts-plain64 -s 256 -h sha512 "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}"
-            echo -n "$enc_passphrase" | destructive_cmd cryptsetup luksOpen "/dev/disk/by-partlabel/${name}${partition_name_crypt}${mirror_number}" "${name}${partition_name_crypt}${mirror_number}"
-        fi
-
-        [ "${#disks[@]}" -gt 1 ] && let mirror_number++
-    done
+    if [ -n "$efi" ]; then
+        task "Making EFI system partition ${name}-boot..."
+        destructive_cmd mkfs.vfat "/dev/disk/by-partlabel/${name}-boot"
+    fi
 
     if [[ $resume ]]; then
         task "Importing ZFS pool..."
         cmd zpool import -R "/mnt/${name}" "$name"
     else
         task "Creating ZFS pool..."
-        destructive_cmd zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "${vdevs[@]}"
+        destructive_cmd zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "$name"
         destructive_cmd zfs create "${name}/ROOT"
         destructive_cmd zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
         destructive_cmd zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
@@ -285,7 +258,7 @@ END
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
-    # cmd swapon --discard "/dev/zvol/${name}/swap"
+    cmd swapon --discard "/dev/zvol/${name}/swap"
 
     if [[ $profile != 'beaglebone' ]]; then
         task "Creating fscache..."
