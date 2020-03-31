@@ -62,7 +62,7 @@ nest::package_keywords:
   media-libs/libvpx:
     version: '=1.8.2'
   media-libs/libwebp:
-    version: '=1.0.2'
+    version: '=1.1.0'
   sys-devel/clang:
     version: '=5.0.0'
   sys-devel/clang-runtime:
