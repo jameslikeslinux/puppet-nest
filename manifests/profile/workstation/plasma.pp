@@ -32,6 +32,7 @@ class nest::profile::workstation::plasma {
 
     [X11]
     ServerArguments=-dpi ${::nest::dpi}
+    EnableHiDPI=false
 
     [Users]
     MaximumUid=1000
