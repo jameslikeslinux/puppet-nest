@@ -37,12 +37,10 @@ class nest::profile::workstation::xorg {
   }
 
   if $video_card == 'nvidia' {
-    $eselect_opengl            = 'nvidia'
     $nvidia_conf_ensure        = 'present'
     $monitors_conf_ensure      = 'absent'
     $kwin_triple_buffer_ensure = 'present'
   } else {
-    $eselect_opengl            = 'xorg-x11'
     $nvidia_conf_ensure        = 'absent'
     $monitors_conf_ensure      = $monitor_layout ? {
       []      => 'absent',
@@ -102,10 +100,6 @@ class nest::profile::workstation::xorg {
     owner   => 'root',
     group   => 'root',
     content => $scaling,
-  }
-
-  eselect { 'opengl':
-    set => $eselect_opengl,
   }
 
   package { 'x11-apps/xeyes':
