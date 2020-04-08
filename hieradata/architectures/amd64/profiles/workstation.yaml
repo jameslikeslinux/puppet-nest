@@ -131,7 +131,7 @@ nest::package_keywords:
 
   x11-plugins/pidgin-skypeweb:
     version: '=9999'
-    keywords: '**'
+    accept_keywords: '**'
     ensure: 'absent'
 
   # required by kde-plasma/kwin-5.9.1::gentoo
@@ -181,7 +181,7 @@ nest::package_keywords:
   x11-misc/taffybar:
     ensure: 'absent'
     version: '=9999'
-    keywords: '**'
+    accept_keywords: '**'
 
   # required by kde-plasma/xdg-desktop-portal-kde-5.15.2::gentoo
   # required by kde-plasma/plasma-meta-5.15.2::gentoo[desktop-portal]

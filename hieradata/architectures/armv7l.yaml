@@ -3,24 +3,24 @@ nest::package_keywords:
   mail-mta/nullmailer: {}
 
   net-analyzer/openbsd-netcat:
-    keywords: '**'
+    accept_keywords: '**'
 
   x11-misc/xsel: {}
 
   sys-apps/kexec-tools:
     version: '<9999'
-    keywords: '**'
+    accept_keywords: '**'
 
   app-admin/eclean-kernel:
     version: '<9999'
-    keywords: '**'
+    accept_keywords: '**'
 
   sys-fs/zfs:
     version: '<9999'
-    keywords: '**'
+    accept_keywords: '**'
   sys-fs/zfs-kmod:
     version: '<9999'
-    keywords: '**'
+    accept_keywords: '**'
 
 nest::package_mask:
   app-admin/puppet:
