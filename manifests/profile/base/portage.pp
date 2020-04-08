@@ -115,7 +115,7 @@ class nest::profile::base::portage {
   }
 
   # Create portage package properties rebuild affected packages
-  create_resources(package_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
+  create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_mask, $::nest::package_mask_hiera, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
@@ -148,32 +148,42 @@ class nest::profile::base::portage {
     kde-*/*:5
     | EOT
 
-  file { '/etc/portage/package.keywords/kde':
+  file { '/etc/portage/package.accept_keywords/kde':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => $kde_keywords_content,
   }
 
-  file { '/etc/portage/package.keywords/haskell':
+  file { '/etc/portage/package.accept_keywords/haskell':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => "*/*::haskell ~amd64\n",
   }
 
-  file { '/etc/portage/package.keywords/nest':
+  file { '/etc/portage/package.accept_keywords/nest':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => "*/*::nest ~amd64\n",
   }
 
-  file { '/etc/portage/package.keywords/tlp':
+  file { '/etc/portage/package.accept_keywords/tlp':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => "*/*::tlp ~amd64\n",
+  }
+
+  file { [
+    '/etc/portage/package.keywords/default',
+    '/etc/portage/package.keywords/kde',
+    '/etc/portage/package.keywords/haskell',
+    '/etc/portage/package.keywords/nest',
+    '/etc/portage/package.keywords/tlp',
+  ]:
+    ensure => absent,
   }
 
   file { [
