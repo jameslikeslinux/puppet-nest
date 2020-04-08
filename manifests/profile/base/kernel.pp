@@ -77,9 +77,9 @@ class nest::profile::base::kernel {
     subscribe   => Exec['make kernel'],
   }
 
-  exec { '/usr/bin/eclean-kernel -n 2':
-    refreshonly => true,
-    subscribe   => Exec['module-rebuild'],
-    require     => Package['app-admin/eclean-kernel'],
-  }
+  # exec { '/usr/bin/eclean-kernel -n 2':
+  #   refreshonly => true,
+  #   subscribe   => Exec['module-rebuild'],
+  #   require     => Package['app-admin/eclean-kernel'],
+  # }
 }
