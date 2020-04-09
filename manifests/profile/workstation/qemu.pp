@@ -1,6 +1,6 @@
 class nest::profile::workstation::qemu {
   nest::portage::package_use { 'app-emulation/qemu':
-    use => ['spice', 'usbredir', 'static-user', 'qemu_user_targets_arm'],
+    use => ['spice', 'usbredir', 'static-user', 'qemu_softmmu_targets_arm', 'qemu_user_targets_arm'],
   }
 
   package { 'app-emulation/qemu':
