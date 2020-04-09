@@ -128,13 +128,6 @@ class nest::profile::base::portage {
     content => "NOSTATUSLINE=true\n",
   }
 
-  # Speed up metadata resolution of haskell overlay in eix-sync
-  # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
-  $eix_conf_content = @("EOT")
-    *
-    @egencache --jobs=${loadlimit} --repo=haskell --update --update-use-local-desc
-    | EOT
-
   file { '/etc/eix-sync.conf':
     mode    => '0644',
     owner   => 'root',
@@ -239,23 +232,40 @@ class nest::profile::base::portage {
     sync-depth = 1
     auto-sync = yes
     masters = gentoo
-
-    [haskell]
-    location = /var/cache/portage/haskell
-    sync-type = git
-    sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
-    sync-depth = 1
-    auto-sync = yes
-    masters = gentoo
-
-    [tlp]
-    location = /var/cache/portage/tlp
-    sync-type = git
-    sync-uri = https://github.com/iamjamestl/tlp-portage.git
-    sync-depth = 1
-    auto-sync = yes
-    masters = gentoo
     | EOT
+
+  if $nest and $nest['profile'] == 'workstation' {
+    # Speed up metadata resolution of haskell overlay in eix-sync
+    # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
+    $eix_conf_content = @("EOT")
+      *
+      @egencache --jobs=${loadlimit} --repo=haskell --update --update-use-local-desc
+      | EOT
+
+    $repos_workstation = @(EOT)
+
+      [haskell]
+      location = /var/cache/portage/haskell
+      sync-type = git
+      sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
+      sync-depth = 1
+      auto-sync = yes
+      masters = gentoo
+
+      [tlp]
+      location = /var/cache/portage/tlp
+      sync-type = git
+      sync-uri = https://github.com/iamjamestl/tlp-portage.git
+      sync-depth = 1
+      auto-sync = yes
+      masters = gentoo
+      | EOT
+
+    $repos_workstation_ensure = 'present'
+  } else {
+    $eix_conf_content = "*\n"
+    $repos_workstation_ensure = 'absent'
+  }
 
   if $::nest::distcc_server {
     $repos_crossdev = @(EOT)
@@ -301,7 +311,7 @@ class nest::profile::base::portage {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "${repos_conf}${repos_crossdev}",
+    content => "${repos_conf}${repos_workstation}${repos_crossdev}",
   }
 
   vcsrepo {
@@ -322,10 +332,12 @@ class nest::profile::base::portage {
     ;
 
     '/var/cache/portage/haskell':
+      ensure => $repos_workstation_ensure,
       source => 'https://github.com/iamjamestl/gentoo-haskell.git',
     ;
 
     '/var/cache/portage/tlp':
+      ensure => $repos_workstation_ensure,
       source => 'https://github.com/iamjamestl/tlp-portage.git',
     ;
   }
