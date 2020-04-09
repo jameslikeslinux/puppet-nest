@@ -349,8 +349,8 @@ task "Installing Puppet..."
 if [[ $profile == 'beaglebone' ]]; then
     extra_puppet_args+=('--logdir' '/var/log/puppet' '--rundir' '/var/run/puppet' '--vardir' '/var/lib/puppet')
 
-    chroot_make_dir /etc/portage/package.keywords
-    destructive_chroot_cmd tee /etc/portage/package.keywords/puppet <<END
+    chroot_make_dir /etc/portage/package.accept_keywords
+    destructive_chroot_cmd tee /etc/portage/package.accept_keywords/puppet <<END
 app-admin/puppet
 dev-ruby/hiera
 dev-ruby/deep_merge
