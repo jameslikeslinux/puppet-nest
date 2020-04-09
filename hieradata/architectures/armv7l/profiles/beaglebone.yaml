@@ -9,6 +9,7 @@ nest::package_use:
 
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+  CONFIG_HW_RANDOM_VIRTIO: m
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
