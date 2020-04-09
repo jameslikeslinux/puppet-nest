@@ -229,12 +229,14 @@ class nest::profile::base::portage {
     location = /var/cache/portage/gentoo
     sync-type = git
     sync-uri = https://github.com/iamjamestl/portage-gentoo.git
+    sync-depth = 1
     auto-sync = yes
 
     [nest]
     location = /var/cache/portage/nest
     sync-type = git
     sync-uri = https://github.com/iamjamestl/portage-nest.git
+    sync-depth = 1
     auto-sync = yes
     masters = gentoo
 
@@ -242,6 +244,7 @@ class nest::profile::base::portage {
     location = /var/cache/portage/haskell
     sync-type = git
     sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
+    sync-depth = 1
     auto-sync = yes
     masters = gentoo
 
@@ -249,6 +252,7 @@ class nest::profile::base::portage {
     location = /var/cache/portage/tlp
     sync-type = git
     sync-uri = https://github.com/iamjamestl/tlp-portage.git
+    sync-depth = 1
     auto-sync = yes
     masters = gentoo
     | EOT
