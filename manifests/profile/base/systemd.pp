@@ -154,6 +154,23 @@ class nest::profile::base::systemd {
     match => '^#?CPUAffinity=',
   }
 
+  # Virtualized ARM is slow; give it extra time
+  if $facts['os']['architecture'] =~ /^arm/ and $facts['virtual'] == 'hyperv' {
+    file_line {
+      'system.conf-DefaultTimeoutStartSec':
+        path  => '/etc/systemd/system.conf',
+        line  => 'DefaultTimeoutStartSec=180s',
+        match => '^#?DefaultTimeoutStartSec',
+      ;
+
+      'system.conf-DefaultTimeoutStopSec':
+        path  => '/etc/systemd/system.conf',
+        line  => 'DefaultTimeoutStopSec=180s',
+        match => '^#?DefaultTimeoutStopSec',
+      ;
+    }
+  }
+
   # Kill all user processes at end of session.
   # This is the default in systemd-230.
   file_line { 'logind.conf-KillUserProcesses':
