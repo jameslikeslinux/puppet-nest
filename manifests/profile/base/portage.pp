@@ -128,14 +128,6 @@ class nest::profile::base::portage {
     content => "NOSTATUSLINE=true\n",
   }
 
-  file { '/etc/eix-sync.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $eix_conf_content,
-  }
-
-
   $kde_keywords_content = @(EOT)
     dev-qt/*:5
     kde-*/*:5
@@ -265,6 +257,13 @@ class nest::profile::base::portage {
   } else {
     $eix_conf_content = "*\n"
     $repos_workstation_ensure = 'absent'
+  }
+
+  file { '/etc/eix-sync.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $eix_conf_content,
   }
 
   if $::nest::distcc_server {
