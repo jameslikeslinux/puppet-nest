@@ -64,6 +64,11 @@ class nest::profile::base::portage {
     $cpu_flags_x86_ensure = 'present'
   }
 
+  $cflags_arch = $::nest::cflags ? {
+    /-m(?:arch|cpu)=(\S+)/ => $1,
+    default                => 'unknown',
+  }
+
   portage::makeconf {
     'accept_license':
       content => '*';
@@ -86,7 +91,7 @@ class nest::profile::base::portage {
     'makeopts':
       content => $makeopts;
     'pkgdir':
-      content => "/nest/portage/packages/${::architecture}-${::nest['profile']}";
+      content => "/nest/portage/packages/${::architecture}-${::nest['profile']}.${cflags_arch}";
     'use':
       ensure  => $use_ensure,
       content => $::nest::use_combined;
