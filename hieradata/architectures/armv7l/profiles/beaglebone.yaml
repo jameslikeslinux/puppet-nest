@@ -18,7 +18,3 @@ nest::kernel_config:
   # We don't need graphics or sound support
   CONFIG_DRM: n
   CONFIG_SND: n
-
-  # For better ZFS stability
-  CONFIG_VMSPLIT_2G: y
-  CONFIG_VMSPLIT_3G: n

@@ -26,6 +26,11 @@ nest::package_mask:
   app-admin/puppet:
     version: '>=6.0.0'
 
+nest::kernel_config:
+  # Prefer giving the kernel more of the virtual address space for ZFS
+  CONFIG_VMSPLIT_2G: y
+  CONFIG_VMSPLIT_3G: n
+
 puppet::dir: '/etc/puppetlabs/puppet'
 puppet::codedir: '/etc/puppetlabs/code'
 puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
