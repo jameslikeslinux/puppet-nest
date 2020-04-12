@@ -12,7 +12,7 @@ class nest (
   $distcc_hosts            = {},
   $extra_luks_disks        = {},
   $kernel_config           = {},
-  $kernel_cmdline          = '',
+  $kernel_cmdline          = [],
 
   $dvorak                  = false,
   $swap_alt_win            = false,
@@ -68,6 +68,7 @@ class nest (
   }
 
   $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
+  $kernel_cmdline_hiera = hiera_array('nest::kernel_cmdline', $kernel_cmdline)
   $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
   $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
   $package_mask_hiera = hiera_hash('nest::package_mask', $package_mask)
