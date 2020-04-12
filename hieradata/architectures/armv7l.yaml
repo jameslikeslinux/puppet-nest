@@ -31,6 +31,14 @@ nest::kernel_config:
   CONFIG_VMSPLIT_2G: y
   CONFIG_VMSPLIT_3G: n
 
+# Let ZFS access more of the kernel virtual address space made available by the
+# VMSPLIT above.  With a 2G split, this setting basically only does anything on
+# systems with more than 2G of memory, and it guarantees around 1G of "lowmem"
+# space, which is more than any 3G/1G split can provide.  All of this extra
+# flexibility comes at the cost of not being able to allocate more than 2G for
+# a user process, a compromise I am willing to make.
+nest::kernel_cmdline: ['vmalloc=1G']
+
 puppet::dir: '/etc/puppetlabs/puppet'
 puppet::codedir: '/etc/puppetlabs/code'
 puppet::ssldir: '/etc/puppetlabs/puppet/ssl'
