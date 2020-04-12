@@ -1,0 +1,2 @@
+---
+nest::kernel_cmdline: 'vmalloc=504M'
