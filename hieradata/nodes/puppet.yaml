@@ -5,7 +5,7 @@ classes:
 
 nest::bootloader: systemd
 nest::dvorak: true
-nest::kernel_cmdline: 'console=ttyS0 console=tty0'
+nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
 nest::puppet_server: true
 
