@@ -10,8 +10,11 @@ class nest::profile::base::kernel {
     use => 'symlink',
   }
 
+  package { 'app-admin/eclean-kernel':
+    enusre => absent,
+  }
+
   package { [
-    'app-admin/eclean-kernel',
     'sys-kernel/gentoo-sources',
     'sys-kernel/linux-firmware',
   ]:
@@ -64,10 +67,4 @@ class nest::profile::base::kernel {
     refreshonly => true,
     subscribe   => Exec['make kernel'],
   }
-
-  # exec { '/usr/bin/eclean-kernel -n 2':
-  #   refreshonly => true,
-  #   subscribe   => Exec['module-rebuild'],
-  #   require     => Package['app-admin/eclean-kernel'],
-  # }
 }
