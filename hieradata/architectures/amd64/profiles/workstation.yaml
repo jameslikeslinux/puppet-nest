@@ -6,197 +6,11 @@ nest::package_keywords:
   media-gfx/displaycal: {}
   www-client/firefox: {}
 
-  # Switch to running in chromium
-  media-sound/google-play-music-desktop-player-bin:
-    ensure: 'absent'
-
-  # Switch to xf86-video-modesetting
-  x11-drivers/xf86-video-intel:
-    ensure: 'absent'
-
-  # Switched to Bitwarden
-  app-admin/lastpass-cli:
-    ensure: 'absent'
-  app-admin/lastpass-binary-component:
-    ensure: 'absent'
-
-  # Switch to Google Play Music :(
-  media-sound/cantata:
-    ensure: 'absent'
-
-  # Removed from Portage; use https://hub.docker.com/r/iamjamestl/google-musicmanager/
-  media-sound/google-musicmanager:
-    ensure: 'absent'
-
-  # Use Spark and other web clients now :(
-  net-im/skypeforlinux:
-    ensure: 'absent'
-
-  # Just use gmail now :(
-  mail-client/thunderbird:
-    ensure: 'absent'
-
-  # For plasma-meta[handbook]
-  # XXX: Removed due to package stabilization
-  dev-libs/grantlee:
-    version: '=5.1.0'
-    ensure: 'absent'
-
-  # required by www-client/firefox-65.0::gentoo
-  dev-util/cargo:
-    version: '=1.37.0'
-  dev-util/cbindgen:
-    version: '=0.12.1'
-  dev-libs/nspr:
-    version: '=4.24'
-  dev-libs/nss:
-    version: '=3.49.2'
-  dev-lang/rust:
-    version: '=1.37.0'
-  media-libs/dav1d:
-    version: '=0.2.1'
-  media-libs/harfbuzz:
-    version: '=2.5.3'
-  media-libs/libaom:
-    version: '=1.0.0-r1'
+  # For firefox
   media-libs/libvpx:
     version: '=1.8.2'
   media-libs/libwebp:
     version: '=1.1.0'
-  sys-devel/clang:
-    version: '=5.0.0'
-  sys-devel/clang-runtime:
-    version: '=5.0.0'
-  sys-libs/compiler-rt:
-    version: '=5.0.0'
-  sys-libs/compiler-rt-sanitizers:
-    version: '=5.0.0'
-  sys-libs/libomp:
-    version: '=5.0.0'
-  sys-devel/llvm:
-    version: '=5.0.0'
-  sys-devel/llvm-common:
-    version: '=5.0.0'
-  virtual/cargo:
-    version: '=1.37.0'
-  virtual/rust:
-    version: '=1.37.0'
-
-  # To support llvm-5.0.0:
-  media-libs/mesa:
-    version: '<17.3'
-  x11-libs/libdrm:
-    version: '=2.4.87'
-  dev-libs/wayland-protocols:
-    version: '=1.11'
-
-  # For the new v40 TrueType interpreter
-  media-libs/freetype:
-    version: '<2.8'
-
-  # For compatibility with Qt 5.6
-  # XXX: Removed due to package stabilization
-  media-libs/phonon:
-    version: '=4.9.0'
-    ensure: 'absent'
-  media-libs/phonon-vlc:
-    version: '=0.9.0'
-    ensure: 'absent'
-
-  # For better Skylake support
-  # XXX: Removed due to package stabilization
-  x11-base/xorg-drivers:
-    version: '=1.18-r1'
-    ensure: 'absent'
-  x11-base/xorg-server:
-    version: '=1.18.3'
-    ensure: 'absent'
-  x11-drivers/xf86-video-ati:
-    version: '=7.7.0'
-    ensure: 'absent'
-
-  # For compatibility with modern windows clients
-  # XXX: Removed in favor of barrier fork
-  x11-misc/synergy:
-    version: '<1.9'
-    ensure: 'absent'
-
-  # required by kde-frameworks/kf-env-4::gentoo
-  # required by kde-plasma/user-manager-5.6.4::gentoo
-  # required by kde-plasma/plasma-meta-5.6.4::gentoo
-  # XXX: Removed due to package stabilization
-  x11-misc/xdg-utils:
-    version: '=1.1.1-r1'
-    ensure: 'absent'
-
-  x11-plugins/pidgin-skypeweb:
-    version: '=9999'
-    accept_keywords: '**'
-    ensure: 'absent'
-
-  # required by kde-plasma/kwin-5.9.1::gentoo
-  # required by kde-plasma/plasma-meta-5.9.1::gento
-  x11-libs/libxkbcommon:
-    version: '=0.7.1'
-
-  # required by x11-drivers/xf86-input-libinput-0.19.0::gentoo
-  # required by x11-base/xorg-drivers-1.18-r1::gentoo[input_devices_libinput]
-  # required by x11-base/xorg-server-1.18.4::gentoo[xorg]
-  # required by x11-misc/sddm-0.14.0-r2::gentoo
-  # required by kde-plasma/plasma-meta-5.9.1::gentoo[sddm,display-manager]
-  dev-libs/libinput:
-    version: '=1.6.1'
-
-  # required by dev-qt/qtcore-5.7.1-r2::gentoo
-  # required by kde-frameworks/kfilemetadata-5.32.0::gentoo
-  # required by kde-apps/gwenview-16.12.3::gentoo[semantic-desktop]
-  dev-libs/double-conversion:
-    version: '=2.0.1'
-
-  # Accept unstable libreoffice-5.3 for improved hidpi support
-  app-office/libreoffice:
-    version: '<5.4'
-  app-office/libreoffice-l10n:
-    version: '<5.4'
-  media-libs/libzmf:
-    version: '=0.0.1'
-  dev-libs/libixion:
-    version: '=0.12.2'
-  app-text/libstaroffice:
-    version: '=0.0.3'
-  dev-libs/liborcus:
-    version: '=0.12.1'
-
-  # required by kde-plasma/plasma-vault-5.11.4::gentoo
-  # required by kde-plasma/plasma-meta-5.11.4::gentoo[crypt]
-  sys-fs/encfs:
-    version: '=1.9.2'
-  dev-libs/tinyxml2:
-    version: '=3.0.0'
-
-  app-misc/ddccontrol:
-    ensure: 'absent'
-
-  # Get the latest bug fixes and features for xmonad & co.
-  x11-misc/taffybar:
-    ensure: 'absent'
-    version: '=9999'
-    accept_keywords: '**'
-
-  # required by kde-plasma/xdg-desktop-portal-kde-5.15.2::gentoo
-  # required by kde-plasma/plasma-meta-5.15.2::gentoo[desktop-portal]
-  sys-apps/xdg-desktop-portal:
-    version: '=1.2.0'
-
-  # required by dev-lang/python-2.7.15::gentoo[sqlite]
-  # required by dev-python/pyparsing-2.2.0::gentoo[python_targets_python2_7]
-  # required by app-emulation/spice-0.14.0-r2::gentoo
-  # required by app-emulation/qemu-3.1.0-r1::gentoo[spice]
-  # required by app-emulation/libvirt-4.9.0::gentoo[qemu]
-  # required by dev-python/libvirt-python-4.9.0::gentoo
-  # required by app-emulation/virt-manager-2.0.0::gentoo
-  dev-db/sqlite:
-    version: '=3.27.2'
 
   # For tlp
   sys-power/acpi_call:
@@ -205,44 +19,6 @@ nest::package_keywords:
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
-
-  # Was for nvidia-drivers (no longer needed)
-  x11-libs/libXext:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  dev-libs/libpthread-stubs:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/xproto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/inputproto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/xf86bigfontproto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/xcb-proto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-libs/libxcb:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-libs/libXau:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/xextproto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-libs/libXdmcp:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-libs/libX11:
-    use: 'abi_x86_32'
-    ensure: 'absent'
-  x11-proto/kbproto:
-    use: 'abi_x86_32'
-    ensure: 'absent'
 
   # For firefox
   dev-db/sqlite:
@@ -285,21 +61,10 @@ nest::package_use:
   net-vpn/networkmanager-openconnect:
     use: '-gtk'
 
-  # For vsync
-  # (nevermind, sna/dri2 works better)
-  x11-drivers/xf86-video-intel:
-    ensure: 'absent'
-    use: 'dri3'
-
   # Not that I can read any of these languages, but it is nice to be
   # able to display Chinese, Japanese, and Korean glyphs
   media-fonts/noto:
     use: 'cjk'
-
-  # For skypeforlinux
-  app-crypt/pinentry:
-    use: 'gnome-keyring'
-    ensure: 'absent'
 
   # required by kde-plasma/plasma-workspace-5.11.2::gentoo[systemd]
   # required by kde-plasma/kdeplasma-addons-5.11.2::gentoo

@@ -4,95 +4,22 @@ nest::cpu_flags_x86: 'aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 s
 nest::use: ['numa']
 
 nest::package_keywords:
-  # For systemd-boot fixes
-  sys-apps/systemd:
-    version: '=244'
-
-  sys-kernel/dracut:
-    version: '=044'
-
-  # For better systemd units
-  net-fs/nfs-utils:
-    version: '=1.3.3'
-
-  # More reliable than 1.98
-  sys-auth/pam_ssh:
-    version: '=2.1'
-
-  # hiera-eyaml
-  dev-ruby/hiera-eyaml:
-    ensure: 'absent'
-
   # ZFS
   sys-kernel/spl: {}
   sys-fs/zfs-kmod: {}
   sys-fs/zfs: {}
 
-  # For better Skylake support
-  # XXX: Removed due to package stabilization
-  sys-kernel/gentoo-sources:
-    version: '=4.8.9'
-    ensure: 'absent'
-  sys-kernel/linux-firmware:
-    version: '=20161005'
-    ensure: 'absent'
-
-  # To support Linux 4.6
-  x11-drivers/nvidia-drivers:
-    slot: '0/375'
-  media-libs/nv-codec-headers:
-    version: '=9.0.18.1'
-
   # beets
   dev-python/jellyfish:
-    version: '=0.7.1'
+    version: '=0.7.2'
   dev-python/munkres:
-    version: '=1.0.12'
+    version: '=1.1.2'
   media-sound/beets: {}
-
-  # nc: all versions are unstable; don't care
-  net-analyzer/openbsd-netcat: {}
 
   # I always want the latest tmux features and improvements
   app-misc/tmux: {}
   app-editors/vim: {}
   app-editors/vim-core: {}
-
-  # needed to support libevent > 2.1 (pulled in by tmux-2.3)
-  net-fs/nfs-utils:
-    version: '=2.1.1'
-
-  # Let's Encrypt: all versions were unstable, but no longer
-  app-crypt/acme:
-    ensure: 'absent'
-  app-crypt/certbot:
-    ensure: 'absent'
-  dev-python/parsedatetime:
-    ensure: 'absent'
-  dev-python/pyrfc3339:
-    ensure: 'absent'
-  dev-python/zope-component:
-    ensure: 'absent'
-
-  # For Wordpress SFTP; the version that supports PHP 7 was unstable
-  dev-php/pecl-ssh2:
-    version: '=9999'
-    accept_keywords: '**'
-    ensure: 'absent'
-
-  # Required by dev-java/icedtea-bin-3.3.0[-headless-awt,-multilib]
-  media-libs/libpng:
-    version: '=1.6.34'
-
-  sys-apps/nvme-cli:
-    version: '=1.4'
-
-  # For Meltdown/Spectre
-  # See: https://wiki.gentoo.org/wiki/Project:Security/Vulnerabilities/Meltdown_and_Spectre
-  sys-kernel/gentoo-sources:
-    version: '=4.14.13'
-  sys-firmware/intel-microcode:
-    ensure: 'absent'
 
 
 nest::package_mask:
