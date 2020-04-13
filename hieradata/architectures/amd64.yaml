@@ -94,9 +94,6 @@ nest::package_keywords:
   sys-firmware/intel-microcode:
     ensure: 'absent'
 
-  # For parity with armv7l
-  app-admin/eclean-kernel: {}
-
 
 nest::package_mask:
   media-fonts/hack:

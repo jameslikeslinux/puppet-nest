@@ -11,10 +11,6 @@ nest::package_keywords:
     version: '<9999'
     accept_keywords: '**'
 
-  app-admin/eclean-kernel:
-    version: '<9999'
-    accept_keywords: '**'
-
   sys-fs/zfs:
     version: '<9999'
     accept_keywords: '**'
