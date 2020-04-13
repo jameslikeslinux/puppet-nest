@@ -124,6 +124,25 @@ class nest::profile::base::portage {
   create_resources(package_mask, $::nest::package_mask_hiera, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
+  # Purge unmanaged portage package properties
+  resources {
+    default:
+      purge => true,
+    ;
+
+    'package_accept_keywords':
+      before => Class['::portage'],
+    ;
+
+    'package_mask':
+      before => Class['::portage'],
+    ;
+
+    'package_use':
+      notify => Class['::portage'],
+    ;
+  }
+
 
   # Don't let eix-sync override my tmux window title
   file { '/etc/eixrc/10-disable-statusline':
