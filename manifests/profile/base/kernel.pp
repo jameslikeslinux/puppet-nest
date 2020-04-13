@@ -11,7 +11,7 @@ class nest::profile::base::kernel {
   }
 
   package { 'app-admin/eclean-kernel':
-    enusre => absent,
+    ensure => absent,
   }
 
   package { [
