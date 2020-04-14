@@ -57,6 +57,7 @@ class nest::profile::base::kernel {
     command     => "/usr/bin/make ${::nest::profile::base::portage::makeopts} clean olddefconfig all ${install_target} modules_install",
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
+    environment => 'HOME=/root',  # for distcc
     timeout     => 0,
     refreshonly => true,
   }
