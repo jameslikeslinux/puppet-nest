@@ -6,15 +6,15 @@ define nest::cygwin_home_perms (
   $exceptions = '-not -path "**/.mozilla/firefox/**" -o -path "**/.mozilla/firefox/default/user.js*" -o -path "**/.mozilla/firefox/default/chrome/userChrome.css"'
 
   $find_bad_ownership = "find ~${user_quoted} -not \( -user ${user_quoted} -group Administrators \) \( ${exceptions} \)"
-  $ownership_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && output=\"\$(${find_bad_ownership})\" && [[ \$output == \"\" ]]'"
+  $ownership_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_ownership} -exec kill 0 \\;"
   $fix_ownership = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_ownership} -exec chown -h ${user_quoted}:Administrators {} +'"
 
   $find_bad_group_perms = "find ~${user_quoted} -perm -g=r -not -perm -g=w"
-  $group_perms_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && output=\"\$(${find_bad_group_perms})\" && [[ \$output == \"\" ]]'"
+  $group_perms_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_group_perms} -exec kill 0 \\;"
   $fix_group_perms = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_group_perms} -exec chmod g+w {} +'"
 
   $find_bad_setgid_dirs = "find ~${user_quoted} -type d -not -perm -g=s"
-  $setgid_dirs_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && output=\"\$(${find_bad_setgid_dirs})\" && [[ \$output == \"\" ]]'"
+  $setgid_dirs_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_setgid_dirs} -exec kill 0 \\;"
   $fix_setgid_dirs = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_setgid_dirs} -exec chmod g+s {} +'"
 
   exec {

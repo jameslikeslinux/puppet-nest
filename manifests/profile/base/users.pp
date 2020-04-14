@@ -217,6 +217,7 @@ class nest::profile::base::users {
         onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
         refreshonly => true,
         subscribe   => Vcsrepo["$vcsrepo_dir"],
+        logoutput   => true,
       }
 
       ::nest::cygwin_home_perms { 'post-refresh':
