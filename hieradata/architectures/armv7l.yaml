@@ -27,9 +27,6 @@ nest::kernel_config:
   CONFIG_VMSPLIT_2G: y
   CONFIG_VMSPLIT_3G: n
 
-  # For compiling with distcc
-  CONFIG_GCC_PLUGINS: n
-
 # Let ZFS access more of the kernel virtual address space made available by the
 # VMSPLIT above.  With a 2G split, this setting basically only does anything on
 # systems with more than 2G of memory, and it guarantees around 1G of "lowmem"
