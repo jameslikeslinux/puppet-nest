@@ -11,7 +11,7 @@ class nest::profile::base::bootloader {
         "rcu_nocbs=${::nest::isolcpus}",
       ],
     },
-    $::nest::kernel_cmdline,
+    $::nest::kernel_cmdline_hiera,
   ].flatten.join(' ').strip
 
   case $::nest::bootloader {
