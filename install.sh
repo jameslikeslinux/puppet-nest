@@ -244,7 +244,7 @@ END
         cmd zpool import -R "/mnt/${name}" "$name"
     else
         task "Creating ZFS pool..."
-        destructive_cmd zpool create -f -m none -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "$name"
+        destructive_cmd zpool create -f -m none -o ashift=9 -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "$name"
         destructive_cmd zfs create "${name}/ROOT"
         destructive_cmd zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
         destructive_cmd zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
