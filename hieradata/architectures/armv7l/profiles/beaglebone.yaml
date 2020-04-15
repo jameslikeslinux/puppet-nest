@@ -7,8 +7,9 @@ nest::package_use:
   sys-apps/systemd:
     use: 'gnuefi'
 
-# Be kind to the cheap flash
-nest::kernel_cmdline: ['zfs.zfs_txg_timeout=30']
+nest::kernel_cmdline:
+  - 'console=ttyS0,115200n8'
+  - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
 
 nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
