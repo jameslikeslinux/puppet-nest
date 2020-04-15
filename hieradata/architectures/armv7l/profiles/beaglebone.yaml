@@ -8,7 +8,6 @@ nest::package_use:
     use: 'gnuefi'
 
 nest::kernel_cmdline:
-  - 'console=ttyS0,115200n8'
   - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
 
 nest::kernel_config:
