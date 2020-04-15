@@ -193,12 +193,6 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-      file { "${vcsrepo_dir}/.ssh/config.erb":
-        mode   => '0600',
-        before => Nest::Cygwin_home_perms['pre-refresh'],
-        notify => Exec["refresh-${user}-dotfiles"],
-      }
-
       ::nest::cygwin_home_perms { 'pre-refresh':
         user    => $user,
         require => Vcsrepo["$vcsrepo_dir"],
