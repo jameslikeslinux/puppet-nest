@@ -152,49 +152,6 @@ class nest::base::portage {
     content => "NOSTATUSLINE=true\n",
   }
 
-  $kde_keywords_content = @(EOT)
-    dev-qt/*:5
-    kde-*/*:5
-    | EOT
-
-  file { '/etc/portage/package.accept_keywords/kde':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $kde_keywords_content,
-  }
-
-  file { '/etc/portage/package.accept_keywords/haskell':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::haskell ~amd64\n",
-  }
-
-  file { '/etc/portage/package.accept_keywords/nest':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::nest ~amd64\n",
-  }
-
-  file { '/etc/portage/package.accept_keywords/tlp':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::tlp ~amd64\n",
-  }
-
-  file { [
-    '/etc/portage/package.keywords/default',
-    '/etc/portage/package.keywords/kde',
-    '/etc/portage/package.keywords/haskell',
-    '/etc/portage/package.keywords/nest',
-    '/etc/portage/package.keywords/tlp',
-  ]:
-    ensure => absent,
-  }
-
   file { [
     '/etc/portage/patches',
     '/etc/portage/patches/x11-drivers',
@@ -282,6 +239,43 @@ class nest::base::portage {
     $eix_conf_content = "*\n"
     $repos_workstation_ensure = 'absent'
   }
+
+  $kde_keywords_content = @(EOT)
+    dev-qt/*:5
+    kde-*/*:5
+    | EOT
+
+  file { '/etc/portage/package.accept_keywords/kde':
+    ensure  => $repos_workstation_ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $kde_keywords_content,
+  }
+
+  file { '/etc/portage/package.accept_keywords/haskell':
+    ensure  => $repos_workstation_ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::haskell ~amd64\n",
+  }
+
+  file { '/etc/portage/package.accept_keywords/nest':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::nest ~amd64\n",
+  }
+
+  file { '/etc/portage/package.accept_keywords/tlp':
+    ensure  => $repos_workstation_ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "*/*::tlp ~amd64\n",
+  }
+
 
   file { '/etc/eix-sync.conf':
     mode    => '0644',
