@@ -1,4 +1,4 @@
-define nest::revproxy (
+define nest::lib::revproxy (
   String[1] $destination,
   String[1] $servername                              = $name,
   Array[String[1]] $serveraliases                    = [],
@@ -48,7 +48,7 @@ define nest::revproxy (
     }
   ].flatten
 
-  nest::vhost { $name:
+  nest::lib::vhost { $name:
     servername    => $servername,
     serveraliases => $serveraliases,
     ip            => $ip,

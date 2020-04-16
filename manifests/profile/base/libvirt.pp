@@ -1,5 +1,5 @@
 class nest::profile::base::libvirt {
-  nest::portage::package_use { 'app-emulation/libvirt':
+  nest::lib::portage::package_use { 'app-emulation/libvirt':
     use => ['virt-network', 'zfs'],
   }
 
@@ -56,7 +56,7 @@ class nest::profile::base::libvirt {
     owner   => 'root',
     group   => 'root',
     content => $after_fs_servers_conf,
-    notify  => Nest::Systemd_reload['libvirt'],
+    notify  => Nest::Lib::Systemd_reload['libvirt'],
   }
 
   $after_openvpn_ensure = $::nest::openvpn_server ? {
@@ -75,10 +75,10 @@ class nest::profile::base::libvirt {
     owner   => 'root',
     group   => 'root',
     content => $after_openvpn_conf,
-    notify  => Nest::Systemd_reload['libvirt'],
+    notify  => Nest::Lib::Systemd_reload['libvirt'],
   }
 
-  ::nest::systemd_reload { 'libvirt': }
+  ::nest::lib::systemd_reload { 'libvirt': }
 
   # Do not filter bridge packets
   # See: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf

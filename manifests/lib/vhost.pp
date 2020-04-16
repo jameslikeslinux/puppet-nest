@@ -1,4 +1,4 @@
-define nest::vhost (
+define nest::lib::vhost (
   String[1] $servername,
   Array[String[1]] $serveraliases                    = [],
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
@@ -44,7 +44,7 @@ define nest::vhost (
 
   ensure_resource('apache::listen', $http_port, {})
 
-  ensure_resource('nest::srv', "www/${servername}", { zfs => $zfs_docroot })
+  ensure_resource('nest::lib::srv', "www/${servername}", { zfs => $zfs_docroot })
 
   if $ssl {
     ensure_resource('apache::listen', $https_port, {})
@@ -71,7 +71,7 @@ define nest::vhost (
         docroot_group   => 'users',
         redirect_status => 'permanent',
         redirect_dest   => "https://${servername}/",
-        require         => Nest::Srv["www/${servername}"],
+        require         => Nest::Lib::Srv["www/${servername}"],
       }
     }
   } else {
@@ -90,7 +90,7 @@ define nest::vhost (
     docroot       => "/srv/www/${servername}",
     docroot_owner => 'james',
     docroot_group => 'users',
-    require       => Nest::Srv["www/${servername}"],
+    require       => Nest::Lib::Srv["www/${servername}"],
     *             => $vhost_params + $extra_params,
   }
 
@@ -106,7 +106,7 @@ define nest::vhost (
       docroot_group   => 'users',
       redirect_status => 'permanent',
       redirect_dest   => "${vhost_redirect_proto}://${servername}${vhost_redirect_port}/",
-      require         => Nest::Srv["www/${servername}"],
+      require         => Nest::Lib::Srv["www/${servername}"],
       *               => $vhost_params,
     }
   }

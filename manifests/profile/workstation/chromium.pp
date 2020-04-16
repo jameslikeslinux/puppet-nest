@@ -20,7 +20,7 @@ class nest::profile::workstation::chromium {
         ;
       }
 
-      nest::portage::package_use { 'www-client/chromium':
+      nest::lib::portage::package_use { 'www-client/chromium':
         use => 'widevine',
       }
 

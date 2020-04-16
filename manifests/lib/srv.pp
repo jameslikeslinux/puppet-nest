@@ -1,4 +1,4 @@
-define nest::srv (
+define nest::lib::srv (
   Boolean $zfs = true,
 ) {
   ensure_resource('zfs', 'srv', {

@@ -1,4 +1,4 @@
-define nest::kernel_config (
+define nest::lib::kernel_config (
   $value
 ) {
   if is_numeric($value) {

@@ -23,15 +23,15 @@ class nest::profile::base::fs {
     owner   => 'root',
     group   => 'root',
     content => $nfs_server_make_v4recovery,
-    notify  => Nest::Systemd_reload['nfs-server'],
+    notify  => Nest::Lib::Systemd_reload['nfs-server'],
   }
 
-  ::nest::systemd_reload { 'nfs-server': }
+  ::nest::lib::systemd_reload { 'nfs-server': }
 
   if $::nest::fileserver {
     service { 'nfs-server':
       enable    => true,
-      subscribe => Nest::Systemd_reload['nfs-server'],
+      subscribe => Nest::Lib::Systemd_reload['nfs-server'],
     }
 
     service { 'zfs-share':
@@ -114,15 +114,15 @@ class nest::profile::base::fs {
       owner   => 'root',
       group   => 'root',
       content => $cachefilesd_fix_path,
-      notify  => Nest::Systemd_reload['cachefilesd'],
+      notify  => Nest::Lib::Systemd_reload['cachefilesd'],
       require => Package['sys-fs/cachefilesd'],
     }
 
-    ::nest::systemd_reload { 'cachefilesd': }
+    ::nest::lib::systemd_reload { 'cachefilesd': }
 
     service { 'cachefilesd':
       enable  => true,
-      require => Nest::Systemd_reload['cachefilesd'],
+      require => Nest::Lib::Systemd_reload['cachefilesd'],
     }
   }
 }

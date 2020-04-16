@@ -1,9 +1,9 @@
 class nest::service::php {
-  nest::portage::package_use { 'app-eselect/eselect-php':
+  nest::lib::portage::package_use { 'app-eselect/eselect-php':
     use => 'fpm',
   }
 
-  nest::portage::package_use { 'dev-lang/php':
+  nest::lib::portage::package_use { 'dev-lang/php':
     use => ['curl', 'fpm', 'gd', 'mysql', 'mysqli', 'soap'],
   }
 
@@ -15,9 +15,9 @@ class nest::service::php {
   package { 'dev-lang/php':
     ensure  => installed,
 
-    # The dependency on Nest::Portage::Package_use['dev-lang/php'] is implied;
+    # The dependency on Nest::Lib::Portage::Package_use['dev-lang/php'] is implied;
     # eselect-php needs to use fpm too
-    require => Nest::Portage::Package_use['app-eselect/eselect-php'],
+    require => Nest::Lib::Portage::Package_use['app-eselect/eselect-php'],
   }
 
   service { 'php-fpm@7.1':

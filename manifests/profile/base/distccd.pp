@@ -11,10 +11,10 @@ class nest::profile::base::distccd {
       owner   => 'root',
       group   => 'root',
       content => $disable_verbose_content,
-      notify  => Nest::Systemd_reload['distccd'],
+      notify  => Nest::Lib::Systemd_reload['distccd'],
     }
 
-    ::nest::systemd_reload { 'distccd':
+    ::nest::lib::systemd_reload { 'distccd':
       notify => Service['distccd']
     }
 

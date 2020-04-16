@@ -1,7 +1,7 @@
 class nest::profile::base::bootloader::grub {
   $font = "ter-x${::nest::console_font_size}b"
 
-  nest::portage::package_use { 'sys-boot/grub':
+  nest::lib::portage::package_use { 'sys-boot/grub':
     use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs', 'truetype'],
   }
 

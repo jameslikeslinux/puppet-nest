@@ -1,6 +1,6 @@
 class nest::profile::base::network {
   # resolvconf now provided by systemd
-  nest::portage::package_use { 'net-misc/networkmanager':
+  nest::lib::portage::package_use { 'net-misc/networkmanager':
     ensure => absent,
     use    => 'resolvconf',
   }
@@ -41,9 +41,9 @@ class nest::profile::base::network {
   file { '/etc/systemd/system/NetworkManager-wait-online.service':
     ensure => $wait_online_ensure,
     target => '/dev/null',
-    notify => Nest::Systemd_reload['NetworkManager'],
+    notify => Nest::Lib::Systemd_reload['NetworkManager'],
   }
 
   # probably not *strictly* necessary, but good practice none-the-less
-  ::nest::systemd_reload { 'NetworkManager': }
+  ::nest::lib::systemd_reload { 'NetworkManager': }
 }

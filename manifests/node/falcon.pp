@@ -2,7 +2,7 @@ class nest::node::falcon {
   include '::nest'
   include '::nest::service::docker'
 
-  nest::srv { [
+  nest::lib::srv { [
     'nzbget',
     'nzbget/downloads',
     'ombi',
@@ -20,7 +20,7 @@ class nest::node::falcon {
     ;
 
     '/srv/nzbget':
-      require => Nest::Srv['nzbget'],
+      require => Nest::Lib::Srv['nzbget'],
     ;
 
     [
@@ -44,7 +44,7 @@ class nest::node::falcon {
     ;
 
     '/srv/ombi':
-      require => Nest::Srv['ombi'],
+      require => Nest::Lib::Srv['ombi'],
     ;
 
     '/srv/ombi/config':
@@ -61,7 +61,7 @@ class nest::node::falcon {
     ;
 
     '/srv/plex':
-      require => Nest::Srv['plex'],
+      require => Nest::Lib::Srv['plex'],
     ;
 
     '/srv/plex/config':
@@ -78,7 +78,7 @@ class nest::node::falcon {
     ;
 
     '/srv/radarr':
-      require => Nest::Srv['radarr'],
+      require => Nest::Lib::Srv['radarr'],
     ;
 
     '/srv/radarr/config':
@@ -95,7 +95,7 @@ class nest::node::falcon {
     ;
 
     '/srv/sonarr':
-      require => Nest::Srv['sonarr'],
+      require => Nest::Lib::Srv['sonarr'],
     ;
 
     '/srv/sonarr/config':
@@ -181,7 +181,7 @@ class nest::node::falcon {
     ],
   }
 
-  nest::revproxy {
+  nest::lib::revproxy {
     default:
       ssl => false,
       ip  => '172.22.0.1',
@@ -243,7 +243,7 @@ class nest::node::falcon {
     target => '/etc/sysctl.d/nest.conf',
   }
 
-  nest::portage::package_use { 'media-sound/beets':
+  nest::lib::portage::package_use { 'media-sound/beets':
     use => ['ffmpeg', 'gstreamer', 'lastfm', 'replaygain'],
   }
 

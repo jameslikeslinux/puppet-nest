@@ -9,14 +9,14 @@ class nest::service::bitwarden (
     require => Class['::nest::service::docker'],
   }
 
-  nest::srv { 'bitwarden': }
+  nest::lib::srv { 'bitwarden': }
 
   file { '/srv/bitwarden':
     ensure  => directory,
     mode    => '0750',
     owner   => 'bitwarden',
     group   => 'bitwarden',
-    require => Nest::Srv['bitwarden'],
+    require => Nest::Lib::Srv['bitwarden'],
   }
 
   vcsrepo { '/srv/bitwarden/core':

@@ -1,5 +1,5 @@
 class nest::profile::workstation::xmonad {
-  nest::portage::package_use {
+  nest::lib::portage::package_use {
     'x11-misc/xmobar':
       use => 'xft',
     ;

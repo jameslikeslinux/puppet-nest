@@ -1,5 +1,5 @@
 class nest::profile::workstation::fonts {
-  nest::portage::package_use { 'media-fonts/corefonts':
+  nest::lib::portage::package_use { 'media-fonts/corefonts':
     use => 'tahoma',
   }
 

@@ -1,5 +1,5 @@
 class nest::profile::workstation::plasma {
-  nest::portage::package_use { 'kde-plasma/plasma-meta':
+  nest::lib::portage::package_use { 'kde-plasma/plasma-meta':
     use => 'networkmanager',
   }
 
@@ -80,13 +80,13 @@ class nest::profile::workstation::plasma {
     ],
   }
 
-  nest::portage::package_use { 'kde-apps/dolphin':
+  nest::lib::portage::package_use { 'kde-apps/dolphin':
     ensure => absent,
     use    => 'thumbnail',
   }
 
   # Don't build support for online services
-  nest::portage::package_use { 'kde-apps/spectacle':
+  nest::lib::portage::package_use { 'kde-apps/spectacle':
     use => '-kipi',
   }
 

@@ -1,7 +1,7 @@
 class nest::profile::base::ssh {
   case $facts['osfamily'] {
     'Gentoo': {
-      nest::portage::package_use { 'net-misc/openssh':
+      nest::lib::portage::package_use { 'net-misc/openssh':
         use => 'kerberos',
       }
 
@@ -33,10 +33,10 @@ class nest::profile::base::ssh {
         owner  => 'root',
         group  => 'root',
         source => 'puppet:///modules/nest/ssh/ssh-agent.service',
-        notify => Nest::Systemd_reload['ssh'],
+        notify => Nest::Lib::Systemd_reload['ssh'],
       }
 
-      ::nest::systemd_reload { 'ssh': }
+      ::nest::lib::systemd_reload { 'ssh': }
 
       exec { 'ssh-agent-enable-systemd-user-service':
         command => '/bin/systemctl --user --global enable ssh-agent.service',

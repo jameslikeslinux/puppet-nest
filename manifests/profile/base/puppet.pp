@@ -35,10 +35,10 @@ class nest::profile::base::puppet {
           group   => 'root',
           content => "[Service]\nRuntimeDirectory=puppetlabs\n",
           require => Class['::puppet::server::install'],
-          notify  => Nest::Systemd_reload['puppet'],
+          notify  => Nest::Lib::Systemd_reload['puppet'],
         }
 
-        ::nest::systemd_reload { 'puppet':
+        ::nest::lib::systemd_reload { 'puppet':
           before => Class['::puppet::server::service'],
         }
 

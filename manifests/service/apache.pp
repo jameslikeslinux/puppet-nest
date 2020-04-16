@@ -1,7 +1,7 @@
 class nest::service::apache (
   Boolean $manage_firewall = false,
 ) {
-  nest::srv { 'www': }
+  nest::lib::srv { 'www': }
 
   include '::apache'
 
@@ -17,7 +17,7 @@ class nest::service::apache (
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
 
-  nest::portage::package_use { 'httpd':
+  nest::lib::portage::package_use { 'httpd':
     package => 'www-servers/apache',
     use     => [
       'apache2_modules_access_compat',

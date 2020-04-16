@@ -6,7 +6,7 @@ class nest::profile::base::kernel {
     before  => Package['sys-kernel/gentoo-sources'],
   }
 
-  nest::portage::package_use { 'sys-kernel/gentoo-sources':
+  nest::lib::portage::package_use { 'sys-kernel/gentoo-sources':
     use => 'symlink',
   }
 
@@ -35,14 +35,14 @@ class nest::profile::base::kernel {
     notify  => Exec['make kernel'],
   }
 
-  $::nest::kernel_config_hiera.each |$config, $value| {
-    nest::kernel_config { $config:
+  $::nest::lib::kernel_config_hiera.each |$config, $value| {
+    nest::lib::kernel_config { $config:
       value => $value,
     }
   }
 
   if $::nest::bootloader == 'systemd' {
-    nest::kernel_config { 'CONFIG_EFI_STUB':
+    nest::lib::kernel_config { 'CONFIG_EFI_STUB':
       value => 'y',
     }
 

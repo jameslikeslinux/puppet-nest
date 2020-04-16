@@ -22,7 +22,7 @@ class nest::profile::base::zfs {
 
     '/etc/systemd/system/zfs-mount.service.d/load-key.conf':
       content => $zfs_mount_override,
-      notify  => Nest::Systemd_reload['zfs'],
+      notify  => Nest::Lib::Systemd_reload['zfs'],
     ;
   }
 
@@ -88,7 +88,7 @@ class nest::profile::base::zfs {
 
   file { '/etc/systemd/system/zfs-auto-snapshot@.service':
     ensure => absent,
-    notify => Nest::Systemd_reload['zfs'],
+    notify => Nest::Lib::Systemd_reload['zfs'],
   }
 
   $zfs_auto_snapshot_timer_frequencies = {
@@ -102,14 +102,14 @@ class nest::profile::base::zfs {
   $zfs_auto_snapshot_timer_frequencies.each |$frequency, $calendar| {
     file { "/etc/systemd/system/zfs-auto-snapshot@${frequency}.timer":
       ensure => absent,
-      notify => Nest::Systemd_reload['zfs'],
+      notify => Nest::Lib::Systemd_reload['zfs'],
     }
 
     service { "zfs-auto-snapshot@${frequency}.timer":
       enable => false,
-      before => Nest::Systemd_reload['zfs'],
+      before => Nest::Lib::Systemd_reload['zfs'],
     }
   }
 
-  ::nest::systemd_reload { 'zfs': }
+  ::nest::lib::systemd_reload { 'zfs': }
 }

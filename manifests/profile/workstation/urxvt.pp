@@ -16,7 +16,7 @@ class nest::profile::workstation::urxvt {
     source => 'puppet:///modules/nest/urxvt/sgr-mouse-mode.patch',
   }
 
-  nest::portage::package_use { 'x11-terms/rxvt-unicode':
+  nest::lib::portage::package_use { 'x11-terms/rxvt-unicode':
     use => ['256-color', 'alt-font-width', 'secondary-wheel', 'unicode3', '-vanilla', 'xft'],
   }
 

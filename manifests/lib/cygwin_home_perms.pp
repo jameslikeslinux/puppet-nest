@@ -1,4 +1,4 @@
-define nest::cygwin_home_perms (
+define nest::lib::cygwin_home_perms (
   $user = $name,
 ) {
   $user_quoted = shellquote($user)

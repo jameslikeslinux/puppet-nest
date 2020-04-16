@@ -1,4 +1,4 @@
-define nest::systemd_reload {
+define nest::lib::systemd_reload {
   $exec_noop = $facts['virtual'] == 'lxc'
 
   exec { "systemd-daemon-reload-${name}":

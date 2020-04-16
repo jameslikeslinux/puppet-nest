@@ -193,7 +193,7 @@ class nest::profile::base::users {
     }
 
     if $facts['osfamily'] == 'windows' {
-      ::nest::cygwin_home_perms { 'pre-refresh':
+      ::nest::lib::cygwin_home_perms { 'pre-refresh':
         user    => $user,
         require => Vcsrepo["$vcsrepo_dir"],
         before  => Exec["refresh-${user}-dotfiles"],
@@ -214,7 +214,7 @@ class nest::profile::base::users {
         logoutput   => true,
       }
 
-      ::nest::cygwin_home_perms { 'post-refresh':
+      ::nest::lib::cygwin_home_perms { 'post-refresh':
         user    => $user,
         require => [
           Exec["refresh-${user}-dotfiles"],

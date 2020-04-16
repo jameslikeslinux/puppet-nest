@@ -131,9 +131,9 @@ class nest::profile::base::fstab {
 
     '/etc/systemd/system/var.mount.d/lazyunmount.conf':
       content => $var_lazy_unmount,
-      notify  => Nest::Systemd_reload['fstab'],
+      notify  => Nest::Lib::Systemd_reload['fstab'],
     ;
   }
 
-  ::nest::systemd_reload { 'fstab': }
+  ::nest::lib::systemd_reload { 'fstab': }
 }
