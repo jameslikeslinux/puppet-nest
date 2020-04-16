@@ -118,11 +118,11 @@ class nest (
     $availcpus_expanded = range(0, $facts['processors']['count'] - 1) - $isolcpus_expanded
   }
 
-  # Include standard profile
-  contain '::nest::profile::base'
+  # Include standard base configuration
+  contain '::nest::base'
 
   if ($::nest and $::nest['profile'] == 'workstation') or $facts['osfamily'] == 'windows' {
-    contain '::nest::profile::workstation'
+    contain '::nest::role::workstation'
   }
 
   create_resources(host, $hosts)
