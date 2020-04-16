@@ -26,7 +26,3 @@ nest::kernel_config:
 # flexibility comes at the cost of not being able to allocate more than 2G for
 # a user process, a compromise I am willing to make.
 nest::kernel_cmdline: ['vmalloc=1G']
-
-puppet::dir: '/etc/puppetlabs/puppet'
-puppet::codedir: '/etc/puppetlabs/code'
-puppet::ssldir: '/etc/puppetlabs/puppet/ssl'

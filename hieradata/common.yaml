@@ -208,16 +208,6 @@ nest::package_keywords:
   app-admin/augeas: {}
   app-doc/NaturalDoc: {}
 
-nest::package_mask:
-  app-admin/puppet:
-    version: '>=6.0.0'
-  app-admin/puppet-agent:
-    version: '>=6.0.0'
-  app-admin/puppetserver:
-    version: '>=6.0.0'
-  dev-ruby/puppetdb-termini:
-    version: '>=6.0.0'
-
 nest::package_use:
   # For plymouth
   x11-libs/libdrm:

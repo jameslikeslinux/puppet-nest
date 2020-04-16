@@ -1,8 +1,6 @@
 ---
 nest::package_use:
   # Don't pull in X
-  dev-java/icedtea-bin:
-    use: '-gtk'
   sys-boot/plymouth:
     use: '-gtk'
 
