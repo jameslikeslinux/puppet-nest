@@ -1,6 +1,6 @@
 ---
 classes:
-  - 'nest::docker'
+  - 'nest::service::docker'
 
 nest::libvirt: true
 

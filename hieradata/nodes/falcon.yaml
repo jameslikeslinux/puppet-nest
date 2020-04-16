@@ -42,5 +42,3 @@ nest::barrier_config: |
   	mousebutton(6) = keystroke(WWWBack)
   	mousebutton(7) = keystroke(WWWForward)
   end
-
-nest::apache::manage_firewall: true
