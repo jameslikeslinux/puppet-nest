@@ -1,16 +1,9 @@
 ---
 classes:
   - 'nest::service::docker'
-  - 'nest::node::puppet'
 
 nest::bootloader: systemd
 nest::dvorak: true
 nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
 nest::puppet_server: true
-
-puppet::server_jvm_min_heap_size: '1G'
-puppet::server_jvm_max_heap_size: '1G'
-puppet::server_puppetdb_host: 'puppetdb'
-puppet::server_storeconfigs_backend: 'puppetdb'
-puppet::server_reports: 'puppetdb'
