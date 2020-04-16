@@ -1,8 +1,8 @@
 class nest::base::qemu {
   case $facts['osfamily'] {
     'Gentoo': {
-      $qemu_guest_agent_ensure = $::nest::vm ? {
-        true    => installed,
+      $qemu_guest_agent_ensure = $facts['virtual'] ? {
+        'kvm'   => installed,
         default => absent,
       }
 

@@ -27,8 +27,6 @@ class nest (
   $barrier_config          = undef,
   $video_card              = undef,
 
-  $vm                      = ($::virtual == 'kvm'),
-
   $cflags                  = $::portage_cflags,
   $cpu_flags_x86           = $::portage_cpu_flags_x86,
   $package_keywords        = {},
