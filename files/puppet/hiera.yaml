@@ -10,6 +10,7 @@
 
 :hierarchy:
   - "nodes/%{::trusted.certname}"
+  - "roles/%{::role}/%{::architecture}"
   - "roles/%{::role}"
   - "platforms/%{::platform}"
   - "architectures/%{::architecture}/profiles/%{::nest.profile}"  # XXX Remove
