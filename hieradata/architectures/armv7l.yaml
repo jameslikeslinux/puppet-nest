@@ -7,20 +7,12 @@ nest::package_keywords:
 
   x11-misc/xsel: {}
 
-  sys-apps/kexec-tools:
-    version: '<9999'
-    accept_keywords: '**'
-
   sys-fs/zfs:
     version: '<9999'
     accept_keywords: '**'
   sys-fs/zfs-kmod:
     version: '<9999'
     accept_keywords: '**'
-
-nest::package_mask:
-  app-admin/puppet:
-    version: '>=6.0.0'
 
 nest::kernel_config:
   # Prefer giving the kernel more of the virtual address space for ZFS

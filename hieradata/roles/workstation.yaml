@@ -16,6 +16,10 @@ nest::package_keywords:
   sys-power/acpi_call:
     version: '=3.17'
 
+nest::package_mask:
+  media-fonts/hack:
+    version: '>=3.000'
+
 nest::package_use:
   x11-drivers/nvidia-drivers:
     use: ['gtk3', '-abi_x86_32']
@@ -27,22 +31,15 @@ nest::package_use:
     use: 'sqlite'
 
   # For libvirt
-  app-emulation/libvirt-glib:
-    use: 'python'
   media-libs/mesa:
     use: 'gles2'
   net-dns/dnsmasq:
     use: 'script'
-  net-libs/gtk-vnc:
-    use: 'python'
   net-misc/spice-gtk:
-    use: ['usbredir', 'python', 'gtk3']
+    use: ['usbredir', 'gtk3']
 
   # For chromium
   dev-libs/libxml2:
-    use: 'icu'
-  dev-qt/qtwebkit:
-    slot: '4'
     use: 'icu'
   media-libs/harfbuzz:
     use: 'icu'
@@ -76,10 +73,6 @@ nest::package_use:
   net-wireless/bluez:
     use: 'user-session'
 
-  # required by app-office/libreoffice-5.4.2.2::gentoo
-  dev-libs/xmlsec:
-    use: 'nss'
-
   # required by x11-misc/taffybar-3.0.0::haskell
   dev-libs/libdbusmenu:
     use: 'gtk3'
@@ -97,3 +90,10 @@ nest::package_use:
     use: 'static-libs'
   dev-libs/libpcre:
     use: 'static-libs'
+
+  # Enable playback from https
+  media-video/ffmpeg:
+    use: 'openssl'
+
+nest::kernel_config:
+  CONFIG_SND_USB_AUDIO: m

@@ -5,100 +5,15 @@ nest::use: ['numa']
 
 nest::package_keywords:
   # ZFS
-  sys-kernel/spl: {}
-  sys-fs/zfs-kmod: {}
   sys-fs/zfs: {}
-
-  # beets
-  dev-python/jellyfish:
-    version: '=0.7.2'
-  dev-python/munkres:
-    version: '=1.1.2'
-  media-sound/beets: {}
-
-  # I always want the latest tmux features and improvements
-  app-misc/tmux: {}
-  app-editors/vim: {}
-  app-editors/vim-core: {}
-
-
-nest::package_mask:
-  media-fonts/hack:
-    version: '>=3.000'
-
-  app-admin/puppet-agent:
-    version: '>=6.0.0'
-  app-admin/puppetserver:
-    version: '>=6.0.0'
-  dev-ruby/puppetdb-termini:
-    version: '>=6.0.0'
+  sys-fs/zfs-kmod: {}
 
 nest::package_use:
   # For Dracut liveimg module
   net-misc/iputils:
     use: 'arping'
 
-  # Ordinarily I'd define this in the appropriate profile class,
-  # but since they are included as part of the profile, we
-  # want to have these use flag set early in the run, which this
-  # accomplishes.
-  sys-apps/systemd:
-    use: ['cryptsetup', 'cgroup-hybrid', 'gnuefi']
-  sys-auth/pambase:
-    use: 'pam_ssh'
-    ensure: 'absent'
-
-  # For samba
-  sys-libs/ntdb:
-    use: 'python'
-  sys-libs/tdb:
-    use: 'python'
-  sys-libs/tevent:
-    use: 'python'
-
-  # For docker
-  sys-libs/libseccomp:
-    use: 'static-libs'
-
-  # For some reason, apache w/ mod_proxy_fcgi won't compile without APR having
-  # LDAP support
-  dev-libs/apr-util:
-    use: 'ldap'
-
-  # For net-print/cups[X]
-  app-text/xmlto:
-    use: 'text'
-
-  # To prevent ruby-2.2 from being pulled in--this is the only package
-  # that seems to do this
-  dev-ruby/trollop:
-    use: '-ruby_targets_ruby22'
-    ensure: 'absent'
-
-  # Just install the drivers, not all the GUI crap
-  # XXX: We don't have any HP printers anymore
-  net-print/hplip:
-    use: 'minimal'
-    ensure: 'absent'
-
-  # For puppet-agent
-  sys-libs/ncurses:
-    use: 'tinfo'
-
-  # For beets[gstreamer,replaygain]
-  media-plugins/gst-plugins-meta:
-    use: 'ffmpeg'
-
-  # ghc-bin sources are unreliable
-  dev-lang/ghc:
-    use: 'ghcbootstrap'
-
-  # Enable playback from https
-  media-video/ffmpeg:
-    use: 'openssl'
-
 nest::kernel_config:
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
   CONFIG_USER_NS: y
   CONFIG_X86_X2APIC: y
@@ -135,16 +50,8 @@ nest::kernel_config:
   CONFIG_HW_RANDOM_VIRTIO: m
   CONFIG_I2C_CHARDEV: m
   CONFIG_MISC_RTSX_PCI: m
-  CONFIG_DRM_I915: m
   CONFIG_FB_SIMPLE: y
   CONFIG_LOGO: n
-  CONFIG_SND_DYNAMIC_MINORS: y
-  CONFIG_SND_HDA_INTEL: m
-  CONFIG_SND_HDA_CODEC_REALTEK: m
-  CONFIG_SND_HDA_CODEC_HDMI: m
-  CONFIG_SND_HDA_CODEC_CONEXANT: m
-  CONFIG_SND_HDA_PREALLOC_SIZE: 2048
-  CONFIG_SND_USB_AUDIO: m
   CONFIG_UHID: m
   CONFIG_HID_LOGITECH_DJ: m
   CONFIG_USB_XHCI_HCD: m

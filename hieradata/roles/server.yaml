@@ -1,0 +1,14 @@
+---
+nest::package_use:
+  # Don't pull in X
+  dev-java/icedtea-bin:
+    use: '-gtk'
+
+  # Don't pull in X
+  sys-boot/plymouth:
+    use: '-gtk'
+
+nest::kernel_config:
+  # We don't need graphics or sound support
+  CONFIG_DRM: n
+  CONFIG_SND: n

@@ -189,6 +189,22 @@ nest::lastpass_username: >
   rCq7HqzttY9WaDJ3KhskHf0tMDwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
   EM1/HAq1trGEnC3jMA3TdO2AEE7Bq/qI6VmsftwMS7OXeg8=]
 
+nest::package_keywords:
+  # I always want the latest tmux features and improvements
+  app-misc/tmux: {}
+  app-editors/vim: {}
+  app-editors/vim-core: {}
+
+nest::package_mask:
+  app-admin/puppet:
+    version: '>=6.0.0'
+  app-admin/puppet-agent:
+    version: '>=6.0.0'
+  app-admin/puppetserver:
+    version: '>=6.0.0'
+  dev-ruby/puppetdb-termini:
+    version: '>=6.0.0'
+
 nest::package_use:
   # For plymouth
   x11-libs/libdrm:
@@ -198,6 +214,15 @@ nest::package_use:
   net-wireless/wpa_supplicant:
     use: 'dbus'
 
+  sys-apps/systemd:
+    use:
+      - 'cgroup-hybrid' # for docker compatibility
+      - 'gnuefi'        # for systemd-boot
+
+  # ghc-bin sources are unreliable
+  dev-lang/ghc:
+    use: 'ghcbootstrap'
+
 nest::kernel_config:
   # For compiling with distcc
   CONFIG_GCC_PLUGINS: n
@@ -205,6 +230,9 @@ nest::kernel_config:
   # For systemd
   CONFIG_BPF_SYSCALL: y
   CONFIG_CGROUP_BPF: y
+  CONFIG_CHECKPOINT_RESTORE: y
+  CONFIG_FANOTIFY: y
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
   # For puppet
   CONFIG_NETFILTER: y
@@ -233,5 +261,8 @@ nest::kernel_config:
   CONFIG_NFS_FSCACHE: y
   CONFIG_NFSD: m
   CONFIG_NFSD_V4: y
+
+  # For running in a VM
+  CONFIG_HW_RANDOM_VIRTIO: m
 
 apache::mpm_module: 'worker'
