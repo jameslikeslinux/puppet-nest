@@ -44,8 +44,8 @@ class nest::base {
 
       # Portage should be configured before any packages are installed/changed
       Class['::nest::base::portage'] -> Package <| title != 'sys-devel/distcc' and
-                                                            title != 'dev-vcs/git' and
-                                                            title != 'app-admin/eselect' |>
+                                                   title != 'dev-vcs/git' and
+                                                   title != 'app-admin/eselect' |>
       Class['::nest::base::portage'] -> Nest::Lib::Portage::Package_use <| |>
 
       # Portage configuration (profile) responsible for installing systemd
