@@ -190,9 +190,9 @@ class nest::base::systemd {
     notify => Class['::nest::base::dracut'],
   }
 
-  $kexec_tools_ensure = $::nest::bootloader ? {
-    systemd => installed,
-    default => absent,
+  $kexec_tools_ensure = "${::nest::bootloader}-${facts['architecture']}" ? {
+    'systemd-amd64' => installed,
+    default         => absent,
   }
 
   package { 'sys-apps/kexec-tools':
