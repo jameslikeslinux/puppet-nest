@@ -24,7 +24,7 @@ mod 'private',
 
 
 # Required by nest
-mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
+mod 'herculesteam-augeasproviders_sysctl', '2.5.0'
 mod 'puppetlabs-apache', '3.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
 mod 'puppetlabs-mailalias_core', '1.0.6'
@@ -44,7 +44,7 @@ mod 'puppetdb',
   :git => 'https://github.com/iamjamestl/puppetlabs-puppetdb.git'
 
 # Required by augeasproviders_sysctl
-mod 'herculesteam-augeasproviders_core', '2.2.0'
+mod 'herculesteam-augeasproviders_core', '2.6.0'
 
 # Required by puppetlabs-mysql
 mod 'puppetlabs-translate', '1.2.0'
