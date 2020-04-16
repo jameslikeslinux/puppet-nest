@@ -1,14 +1,13 @@
+unless defined('$platform') {
+  $platform = 'generic'
+}
+
 unless defined('$role') {
   $role = $facts['osfamily'] ? {
     'windows' => 'workstation',
     default   => 'server',
   }
 }
-
-unless defined('$profile') {
-  $profile = 'generic'
-}
-
 
 case $facts['osfamily'] {
   'Gentoo': {
