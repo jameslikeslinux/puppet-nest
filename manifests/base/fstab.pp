@@ -2,7 +2,7 @@ class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
   # XXX: Improve this
-  if $::nest::live {
+  if $facts['live'] {
     $base_changes = [
       'rm *[spec]',
     ]

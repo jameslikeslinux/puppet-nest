@@ -27,7 +27,6 @@ class nest (
   $barrier_config          = undef,
   $video_card              = undef,
 
-  $live                    = ($::nest and $::nest['live']),
   $vm                      = ($::virtual == 'kvm'),
 
   $cflags                  = $::portage_cflags,
