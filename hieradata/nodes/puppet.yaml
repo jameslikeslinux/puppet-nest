@@ -7,3 +7,17 @@ nest::dvorak: true
 nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
 nest::puppet_server: true
+
+nest::package_keywords:
+  # R10k and dependencies
+  app-admin/r10k: {}
+  dev-ruby/colored: {}
+  dev-ruby/cri: {}
+  dev-ruby/faraday: {}
+  dev-ruby/faraday_middleware: {}
+  dev-ruby/hashie: {}
+  dev-ruby/minitar: {}
+  dev-ruby/multipart-post: {}
+  dev-ruby/puppet_forge: {}
+  dev-ruby/rash_alt: {}
+  dev-ruby/simple_oauth: {}
