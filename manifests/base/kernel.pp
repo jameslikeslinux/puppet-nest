@@ -21,10 +21,9 @@ class nest::base::kernel {
     ensure => installed,
   }
 
-  if $nest and $nest['profile'] == 'beaglebone' {
-    $defconfig = 'multi_v7_defconfig'
-  } else {
-    $defconfig = 'defconfig kvmconfig'
+  $defconfig = $::platform ? {
+    'beagleboneblack' => 'multi_v7_defconfig',
+    default           => 'defconfig kvmconfig',
   }
 
   exec { 'make defconfig':

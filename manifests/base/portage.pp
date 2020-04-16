@@ -42,7 +42,7 @@ class nest::base::portage {
 
   # Mesa has circular dependencies when USE=vaapi is set, so just build it
   # before any USE variables are set and it will eventually converge.
-  if $nest and $::nest['profile'] == 'workstation' {
+  if $::role == 'workstation' {
     exec { '/usr/bin/emerge --oneshot media-libs/mesa':
       timeout     => 0,
       refreshonly => true,
@@ -91,7 +91,7 @@ class nest::base::portage {
     'makeopts':
       content => $makeopts;
     'pkgdir':
-      content => "/nest/portage/packages/${::architecture}-${::nest['profile']}.${cflags_arch}";
+      content => "/nest/portage/packages/${::architecture}-${::role}.${cflags_arch}";
     'use':
       ensure  => $use_ensure,
       content => $::nest::use_combined;
@@ -250,7 +250,7 @@ class nest::base::portage {
     masters = gentoo
     | EOT
 
-  if $nest and $nest['profile'] == 'workstation' {
+  if $::role == 'workstation' {
     # Speed up metadata resolution of haskell overlay in eix-sync
     # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
     $eix_conf_content = @("EOT")

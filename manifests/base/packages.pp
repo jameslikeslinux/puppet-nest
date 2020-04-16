@@ -26,14 +26,10 @@ class nest::base::packages {
         ensure => installed,
       }
 
-      unless $nest and $nest['profile'] == 'beaglebone' {
+      unless $::platform == 'beagleboneblack' {
         package { 'sys-process/parallel':
           ensure => installed,
         }
-      }
-
-      package { 'app-misc/screen':
-        ensure => absent,
       }
     }
 

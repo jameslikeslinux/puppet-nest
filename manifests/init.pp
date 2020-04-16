@@ -47,21 +47,23 @@ class nest (
 
   Enum['grub', 'systemd'] $bootloader = grub,
 ) {
-  if $nest and $::nest['profile'] == 'workstation' {
+  if $facts['architecture'] == 'amd64' and $::role == 'server' {
+    $gentoo_profile = 'default/linux/amd64/17.1/systemd'
+    $input_devices  = undef
+    $video_cards    = undef
+    $use_defaults   = ['X']
+  } elsif $facts['architecture'] == 'amd64' and $::role == 'workstation' {
     $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
     $input_devices  = 'libinput'
     $video_cards    = 'i965 intel nvidia'
     $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau']
-  } elsif $nest and $::nest['profile'] == 'beaglebone' {
+  } elsif $facts['architecture'] == 'armv7l' and $::platform == 'beagleboneblack' and $::role == 'server' {
     $gentoo_profile = 'default/linux/arm/17.0/armv7a/systemd'
     $input_devices  = undef
     $video_cards    = undef
     $use_defaults   = ['X']
   } else {
-    $gentoo_profile = 'default/linux/amd64/17.1/systemd'
-    $input_devices  = undef
-    $video_cards    = undef
-    $use_defaults   = ['X']
+    fail("Unsupported configuration: ${facts['architecture']}-${::platform}-${::role}")
   }
 
   $kernel_config_hiera = hiera_hash('nest::lib::kernel_config', $kernel_config)
@@ -116,11 +118,10 @@ class nest (
   }
 
   # Include standard base configuration
-  contain '::nest::base'
+  contain 'nest::base'
 
-  if ($::nest and $::nest['profile'] == 'workstation') or $facts['osfamily'] == 'windows' {
-    contain '::nest::role::workstation'
-  }
+  # Apply role-specific configuration
+  contain "nest::role::${::role}"
 
   create_resources(host, $hosts)
 }

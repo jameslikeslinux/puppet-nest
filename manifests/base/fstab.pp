@@ -19,7 +19,7 @@ class nest::base::fstab {
       'set 1/passno 0',
     ]
   } else {
-    if $nest and $nest['profile'] == 'beaglebone' {
+    if $::platform == 'beagleboneblack' {
       $efi = []
       $fscache = []
     } else {
