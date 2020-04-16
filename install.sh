@@ -9,16 +9,18 @@ usage() {
 Usage: install.sh [options] [NAME]
 
 Options:
-  -d, --disk DEVICE      the disk to format and install on
-  -e, --encrypt          encrypt the resulting pool
-  -n, --dry-run          just print out what would be done
-  --partition-only       just partition/format the disk and exit
-  -p, --profile PROFILE  the type of system to install
-                         (default: 'base')
+  -d, --disk DEVICE        the disk to format and install on
+  -e, --encrypt            encrypt the resulting pool
+  -n, --dry-run            just print out what would be done
+  --partition-only         just partition/format the disk and exit
+  -p, --platform PLATFORM  the type of system on which to install
+                           (default: 'generic')
+  -r, --role ROLE          the type of system to install
+                           (default: 'server')
 END
 }
 
-ARGS=$(getopt -o "ed:np:" -l "encrypt,disk:,dry-run,partition-only,profile:,resume" -n install.sh -- "$@")
+ARGS=$(getopt -o "ed:np:r:" -l "encrypt,disk:,dry-run,partition-only,platform:,role:,resume" -n install.sh -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -27,7 +29,8 @@ fi
 
 eval set -- "$ARGS"
 
-profile='base'
+platform='generic'
+role='server'
 
 while true; do
     case $1 in
@@ -48,9 +51,14 @@ while true; do
             shift
             partition_only='yes'
             ;;
-        -p|--profile)
+        -p|--platform)
             shift
-            profile=$1
+            platform=$1
+            shift
+            ;;
+        -r|--role)
+            shift
+            role=$1
             shift
             ;;
         --resume)
@@ -260,7 +268,7 @@ END
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
     cmd swapon --discard "/dev/zvol/${name}/swap"
 
-    if [[ $profile != 'beaglebone' ]]; then
+    if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
         destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
         destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
@@ -277,8 +285,8 @@ fi
 [[ $partition_only ]] && exit
 
 
-case "$profile" in
-    'beaglebone')
+case "$platform" in
+    'beagleboneblack')
         STAGE_ARCHIVE="$STAGE_ARCHIVE_ARMV7A"
         ;;
     *)
@@ -293,7 +301,7 @@ destructive_cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_AR
 
 task "Prepping build target..."
 
-if [[ $profile == 'beaglebone' ]]; then
+if [[ $platform == 'beagleboneblack' ]]; then
     destructive_cmd cp /usr/bin/qemu-arm "/mnt/${name}/usr/bin/qemu-arm"
     makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
     destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
@@ -335,7 +343,7 @@ destructive_cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "
 destructive_cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
 
 
-if [[ $profile == 'beaglebone' ]]; then
+if [[ $platform == 'beagleboneblack' ]]; then
     destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
     destructive_chroot_cmd emerge -vDuN --with-bdeps=y @world
     destructive_chroot_cmd emerge --depclean
@@ -346,7 +354,7 @@ fi
 extra_puppet_args=()
 
 task "Installing Puppet..."
-if [[ $profile == 'beaglebone' ]]; then
+if [[ $platform == 'beagleboneblack' ]]; then
     extra_puppet_args+=('--logdir' '/var/log/puppet' '--rundir' '/var/run/puppet' '--vardir' '/var/lib/puppet')
 
     chroot_make_dir /etc/portage/package.accept_keywords
@@ -376,11 +384,11 @@ task "Prepping for Puppet run..."
 chroot_make_dir /etc/puppetlabs/facter/facts.d
 destructive_chroot_cmd tee /etc/puppetlabs/facter/facts.d/nest.yaml <<END
 ---
-nest:
-  profile: '${profile}'
+platform: '${platform}'
+role: '${role}'
 END
 [ -n "$live" ] && destructive_chroot_cmd tee -a /etc/puppetlabs/facter/facts.d/nest.yaml <<END
-  live: true
+live: true
 END
 
 
