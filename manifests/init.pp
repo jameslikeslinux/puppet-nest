@@ -39,7 +39,6 @@ class nest (
   $fileserver              = false,
   $libvirt                 = false,
   $openvpn_server          = false,
-  $puppet_server           = false,
 
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 
