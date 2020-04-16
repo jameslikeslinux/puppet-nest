@@ -19,22 +19,15 @@ class nest::base {
       contain '::nest::base::fs'
       contain '::nest::base::fstab'
       contain '::nest::base::kernel'
+      contain '::nest::base::lvm'
       contain '::nest::base::mta'
       contain '::nest::base::network'
       contain '::nest::base::openvpn'
+      contain '::nest::base::plymouth'
       contain '::nest::base::portage'
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
       contain '::nest::base::zfs'
-
-      unless $nest and $nest['profile'] == 'beaglebone' {
-        contain '::nest::base::lvm'
-        contain '::nest::base::plymouth'
-
-        # Rebuild initramfs after plymouth changes
-        Class['::nest::base::plymouth']
-        ~> Class['::nest::base::dracut']
-      }
 
       # Setup distcc before portage, but distccd needs systemd, which is
       # installed after portage is configured.
@@ -64,6 +57,10 @@ class nest::base {
       # Rebuild initramfs after ZFS changes
       Class['::nest::base::kernel']
       -> Class['::nest::base::zfs']
+      ~> Class['::nest::base::dracut']
+
+      # Rebuild initramfs after plymouth changes
+      Class['::nest::base::plymouth']
       ~> Class['::nest::base::dracut']
 
       # Sudo requires configured MTA
