@@ -201,6 +201,7 @@ nest::package_keywords:
   dev-ruby/deep_merge: {}
   dev-ruby/hocon: {}
   dev-ruby/facter: {}
+  dev-ruby/semantic_puppet: {}
   dev-cpp/cpp-hocon: {}
   dev-cpp/yaml-cpp: {}
   dev-libs/leatherman: {}
