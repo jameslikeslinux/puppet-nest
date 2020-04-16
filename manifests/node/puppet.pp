@@ -2,9 +2,6 @@ class nest::node::puppet {
   nest::lib::srv { 'puppetserver': }
 
   file { '/srv/puppetserver/hiera.yaml':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
     source  => 'puppet:///modules/nest/puppet/hiera.yaml',
     require => Nest::Lib::Srv['puppetserver'],
   }
@@ -41,6 +38,9 @@ class nest::node::puppet {
     | EOT
 
   file { '/etc/eyaml/config.yaml':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
     content => $eyaml_config,
   }
 }
