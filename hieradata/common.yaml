@@ -195,6 +195,31 @@ nest::package_keywords:
   app-editors/vim: {}
   app-editors/vim-core: {}
 
+  # I usually want the lastest puppet
+  app-admin/puppet: {}
+  dev-ruby/hiera: {}
+  dev-ruby/deep_merge: {}
+  dev-ruby/hocon: {}
+  dev-ruby/facter: {}
+  dev-cpp/cpp-hocon: {}
+  dev-cpp/yaml-cpp: {}
+  dev-libs/leatherman: {}
+  dev-ruby/ruby-augeas: {}
+  app-admin/augeas: {}
+  app-doc/NaturalDoc: {}
+
+  app-admin/r10k: {}
+  dev-ruby/colored: {}
+  dev-ruby/cri: {}
+  dev-ruby/faraday: {}
+  dev-ruby/faraday_middleware: {}
+  dev-ruby/hashie: {}
+  dev-ruby/minitar: {}
+  dev-ruby/multipart-post: {}
+  dev-ruby/puppet_forge: {}
+  dev-ruby/rash_alt: {}
+  dev-ruby/simple_oauth: {}
+
 nest::package_mask:
   app-admin/puppet:
     version: '>=6.0.0'

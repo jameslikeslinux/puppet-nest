@@ -351,14 +351,10 @@ else
     destructive_chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
 fi
 
-extra_puppet_args=()
 
 task "Installing Puppet..."
-if [[ $platform == 'beagleboneblack' ]]; then
-    extra_puppet_args+=('--logdir' '/var/log/puppet' '--rundir' '/var/run/puppet' '--vardir' '/var/lib/puppet')
-
-    chroot_make_dir /etc/portage/package.accept_keywords
-    destructive_chroot_cmd tee /etc/portage/package.accept_keywords/puppet <<END
+chroot_make_dir /etc/portage/package.accept_keywords
+destructive_chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
 app-admin/puppet
 dev-ruby/hiera
 dev-ruby/deep_merge
@@ -371,10 +367,7 @@ dev-ruby/ruby-augeas
 app-admin/augeas
 app-doc/NaturalDocs
 END
-    destructive_chroot_cmd emerge -v '<app-admin/puppet-6' app-portage/eix dev-ruby/ruby-augeas
-else
-    destructive_chroot_cmd env USE=tinfo emerge -v '<app-admin/puppet-agent-6' app-portage/eix
-fi
+destructive_chroot_cmd emerge -v app-admin/puppet app-portage/eix dev-ruby/ruby-augeas
 
 # Allow the systemd service provider to work inside the chroot
 destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
@@ -393,7 +386,7 @@ END
 
 
 task "Running Puppet..."
-chroot_cmd puppet agent --onetime --debug --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest "${extra_puppet_args[@]}"
+chroot_cmd puppet agent --onetime --debug --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest --logdir /var/log/puppet --rundir /var/run/puppet --vardir /var/lib/puppet
 [ -z "$live" ] && chroot_cmd systemctl enable puppet
 
 # task "Removing unnecessary packages..."
