@@ -19,7 +19,6 @@ class nest::base {
       contain '::nest::base::fs'
       contain '::nest::base::fstab'
       contain '::nest::base::kernel'
-      contain '::nest::base::lvm'
       contain '::nest::base::mta'
       contain '::nest::base::network'
       contain '::nest::base::openvpn'
