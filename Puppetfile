@@ -27,6 +27,7 @@ mod 'private',
 mod 'herculesteam-augeasproviders_sysctl', '2.2.1'
 mod 'puppetlabs-apache', '3.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
+mod 'puppetlabs-mailalias_core', '1.0.6'
 mod 'puppetlabs-mysql', '7.0.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
