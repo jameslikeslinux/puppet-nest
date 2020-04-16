@@ -11,7 +11,7 @@ nest::puppet_server: true
 nest::package_keywords:
   # R10k and dependencies
   app-admin/r10k: {}
-  dev-ruby/colored: {}
+  dev-ruby/colored2: {}
   dev-ruby/cri: {}
   dev-ruby/faraday: {}
   dev-ruby/faraday_middleware: {}
