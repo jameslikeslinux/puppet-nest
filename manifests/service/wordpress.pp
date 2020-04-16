@@ -1,4 +1,4 @@
-define nest::wordpress (
+define nest::service::wordpress (
   String[1] $db_password,
   String[1] $servername,
   Array[String[1]] $serveraliases                    = [],
@@ -7,14 +7,14 @@ define nest::wordpress (
   Hash[String[1], Any] $extra_vhost_params           = {},
   Optional[String[1]] $priority                      = undef,
 ) {
-  unless defined(Class['::nest::apache']) {
-    class { '::nest::apache':
+  unless defined(Class['::nest::service::apache']) {
+    class { '::nest::service::apache':
       manage_firewall => true,
     }
   }
 
-  include '::nest::mysql'
-  include '::nest::php'
+  include '::nest::service::mysql'
+  include '::nest::service::php'
   include '::apache::mod::proxy'
   include '::apache::mod::rewrite'
   ensure_resource('apache::mod', 'proxy_fcgi', { 'package' => 'www-servers/apache' })

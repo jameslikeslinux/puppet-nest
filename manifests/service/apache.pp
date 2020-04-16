@@ -1,4 +1,4 @@
-class nest::apache (
+class nest::service::apache (
   Boolean $manage_firewall = false,
 ) {
   nest::srv { 'www': }

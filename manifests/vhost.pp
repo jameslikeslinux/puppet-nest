@@ -8,7 +8,7 @@ define nest::vhost (
   Boolean $zfs_docroot                               = true,
   Optional[String[1]] $priority                      = undef,
 ) {
-  include '::nest::apache'
+  include '::nest::service::apache'
 
   $http_port = $port ? {
     undef   => 80,
@@ -25,7 +25,7 @@ define nest::vhost (
     default => ":${port}",
   }
 
-  if $port and $::nest::apache::manage_firewall {
+  if $port and $::nest::service::apache::manage_firewall {
     firewall { "100 ${name}":
       proto  => tcp,
       dport  => $port,

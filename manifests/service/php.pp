@@ -1,4 +1,4 @@
-class nest::php {
+class nest::service::php {
   nest::portage::package_use { 'app-eselect/eselect-php':
     use => 'fpm',
   }

@@ -1,12 +1,12 @@
-class nest::bitwarden (
+class nest::service::bitwarden (
   Hash[String[1], String[1]] $env = {},
 ) {
   include '::nest'
-  include '::nest::docker'
+  include '::nest::service::docker'
 
   package { 'app-emulation/docker-compose':
     ensure  => installed,
-    require => Class['::nest::docker'],
+    require => Class['::nest::service::docker'],
   }
 
   nest::srv { 'bitwarden': }

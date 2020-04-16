@@ -1,6 +1,6 @@
 class nest::node::falcon {
   include '::nest'
-  include '::nest::docker'
+  include '::nest::service::docker'
 
   nest::srv { [
     'nzbget',

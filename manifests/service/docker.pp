@@ -1,4 +1,4 @@
-class nest::docker {
+class nest::service::docker {
   zfs { 'docker':
     name       => "${facts['rpool']}/docker",
     mountpoint => '/var/lib/docker',

@@ -1,4 +1,4 @@
-class nest::mysql {
+class nest::service::mysql {
   class { '::mysql::client':
     package_manage => false,
   }
