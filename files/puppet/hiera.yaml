@@ -9,6 +9,13 @@
   :pkcs7_public_key: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
 
 :hierarchy:
+  - "node/%{::trusted.certname}"
+  - "role/%{::role}/%{::architecture}"
+  - "role/%{::role}"
+  - "platform/%{::platform}"
+  - "arch/%{::architecture}"
+  - "os/%{::facts.osfamily}"
+
   - "nodes/%{::trusted.certname}"
   - "roles/%{::role}/%{::architecture}"
   - "roles/%{::role}"
