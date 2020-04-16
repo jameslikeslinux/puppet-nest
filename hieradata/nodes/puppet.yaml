@@ -1,12 +1,12 @@
 ---
 classes:
+  - 'nest::node::puppet'
   - 'nest::service::docker'
 
 nest::bootloader: systemd
 nest::dvorak: true
 nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
-nest::puppet_server: true
 
 nest::package_keywords:
   # R10k and dependencies
