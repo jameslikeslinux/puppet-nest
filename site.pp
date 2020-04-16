@@ -1,3 +1,15 @@
+unless defined('$role') {
+  $role = $facts['osfamily'] ? {
+    'windows' => 'workstation',
+    default   => 'server',
+  }
+}
+
+unless defined('$profile') {
+  $profile = 'generic'
+}
+
+
 case $facts['osfamily'] {
   'Gentoo': {
     $is_container = $facts['virtual'] == 'lxc'
