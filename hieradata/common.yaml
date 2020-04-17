@@ -210,6 +210,9 @@ nest::package_keywords:
   app-doc/NaturalDoc: {}
 
 nest::package_use:
+  app-admin/puppet:
+    use: 'augeas'
+
   # For plymouth
   x11-libs/libdrm:
     use: 'libkms'

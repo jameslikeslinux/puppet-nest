@@ -367,7 +367,11 @@ dev-ruby/ruby-augeas
 app-admin/augeas
 app-doc/NaturalDocs
 END
-destructive_chroot_cmd emerge -v app-admin/puppet app-portage/eix dev-ruby/ruby-augeas
+chroot_make_dir /etc/portage/package.user
+destructive_chroot_cmd tee /etc/portage/package.use/default <<END
+app-admin/puppet augeas
+END
+destructive_chroot_cmd emerge -v app-admin/puppet app-portage/eix
 
 # Allow the systemd service provider to work inside the chroot
 destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
