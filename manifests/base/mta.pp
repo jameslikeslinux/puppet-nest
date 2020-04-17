@@ -24,7 +24,7 @@ class nest::base::mta {
     ;
 
     '/etc/nullmailer/me':
-      content => "${facts['fqdn']}\n",
+      content => "${facts['hostname']}\n",
     ;
   }
 
