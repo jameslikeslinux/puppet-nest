@@ -4,10 +4,6 @@ class nest::base::puppet {
     default => [],
   }
 
-  class { '::puppet':
-    dns_alt_names => $dns_alt_names,
-  }
-
   if $facts['osfamily'] == 'Gentoo' {
     $facter_conf = @(FACTER_CONF)
       global : {
@@ -34,6 +30,17 @@ class nest::base::puppet {
       owner   => 'root',
       group   => 'root',
       content => $scaling_facts,
+    }
+
+    class { '::puppet':
+      dns_alt_names => $dns_alt_names,
+      dir           => '/etc/puppetlabs/puppet',
+      codedir       => '/etc/puppetlabs/code',
+      ssldir        => '/etc/puppetlabs/puppet/ssl',
+    }
+  } else {
+    class { '::puppet':
+      dns_alt_names => $dns_alt_names,
     }
   }
 }
