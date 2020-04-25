@@ -15,12 +15,10 @@ mod 'puppet-windows_env', '3.2.0'
 # My modules
 #
 mod 'nest',
-  :git => 'https://github.com/iamjamestl/puppet-nest.git',
-  :branch => 'refactor'
+  :git => 'https://github.com/iamjamestl/puppet-nest.git'
 
 mod 'private',
-  :git => '/nest/home/projects/puppet-private',
-  :branch => 'refactor'
+  :git => '/nest/home/projects/puppet-private'
 
 
 # Required by nest
