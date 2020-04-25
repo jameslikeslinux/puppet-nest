@@ -7,18 +7,6 @@ class nest::role::workstation::plasma {
     ensure => installed,
   }
 
-  # XXX: This is also managed in xinitrc.d, but /usr/bin/startkde overrides it.
-  # Then it sources scripts in /etc/plasma/startup, so we can re-set it there.
-  # XXX: Remove due to change to QT_SCALE_FACTOR instead
-  file { '/etc/plasma/startup/10-scaling.sh':
-    ensure  => absent,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "export QT_AUTO_SCREEN_SCALE_FACTOR=1\n",
-    require => Package['kde-plasma/plasma-meta'],
-  }
-
   # SDDM needs access to /dev/nvidiactl to run
   user { 'sddm':
     groups  => 'video',
@@ -80,11 +68,6 @@ class nest::role::workstation::plasma {
     ],
   }
 
-  nest::lib::portage::package_use { 'kde-apps/dolphin':
-    ensure => absent,
-    use    => 'thumbnail',
-  }
-
   # Don't build support for online services
   nest::lib::portage::package_use { 'kde-apps/spectacle':
     use => '-kipi',
@@ -95,11 +78,14 @@ class nest::role::workstation::plasma {
     'kde-apps/dolphin',
     'kde-apps/ffmpegthumbs',
     'kde-apps/gwenview',
-    'kde-apps/konsole',
     'kde-apps/kwrite',
     'kde-apps/okular',
     'kde-apps/spectacle',
   ]:
     ensure => installed,
+  }
+
+  package { 'kde-apps/konsole':
+    ensure => absent,
   }
 }
