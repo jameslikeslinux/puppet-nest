@@ -4,6 +4,7 @@ classes:
 
 puppet::puppetmaster: 'puppet.nest'
 puppet::runmode: 'unmanaged'
+puppet::environment: 'production'
 
 nest::cnames:
   nzbget.nest: 'falcon.nest'
