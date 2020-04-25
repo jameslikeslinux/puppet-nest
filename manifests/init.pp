@@ -10,7 +10,6 @@ class nest (
 
   $cnames                  = {},
   $distcc_hosts            = {},
-  $extra_luks_disks        = {},
   $kernel_config           = {},
   $kernel_cmdline          = [],
 
@@ -92,16 +91,6 @@ class nest (
   $cursor_size         = $cursor_size_smaller
 
   if $facts['kernel'] == 'Linux' {
-    $luks_disks = $::partitions.reduce({}) |$memo, $value| {
-      $partition  = $value[0]
-      $attributes = $value[1]
-      if $attributes['filesystem'] == 'crypto_LUKS' and "${::trusted['certname']}-" in $attributes['partlabel'] {
-        merge($memo, { $attributes['partlabel'] => $attributes['uuid'] })
-      } else {
-        $memo
-      }
-    }.merge($extra_luks_disks)
-
     if $isolcpus {
       $isolcpus_expanded = $isolcpus.split(',').map |$cpuset| {
         if $cpuset =~ /-/ {
