@@ -95,5 +95,9 @@ nest::package_use:
   media-video/ffmpeg:
     use: 'openssl'
 
+  # For wayland support
+  media-libs/libsdl2:
+    use: 'gles2'
+
 nest::kernel_config:
   CONFIG_SND_USB_AUDIO: m
