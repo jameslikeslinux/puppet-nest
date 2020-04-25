@@ -55,7 +55,7 @@ class nest (
       $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
       $input_devices  = 'libinput'
       $video_cards    = 'i965 intel nvidia'
-      $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau']
+      $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau', 'wayland']
     } elsif $facts['architecture'] == 'armv7l' and $::platform == 'beagleboneblack' and $::role == 'server' {
       $gentoo_profile = 'default/linux/arm/17.0/armv7a/systemd'
       $input_devices  = undef
