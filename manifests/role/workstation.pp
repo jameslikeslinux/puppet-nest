@@ -18,6 +18,7 @@ class nest::role::workstation {
       contain '::nest::role::workstation::plasma'
       contain '::nest::role::workstation::pulseaudio'
       contain '::nest::role::workstation::qemu'
+      contain '::nest::role::workstation::sway'
       contain '::nest::role::workstation::urxvt'
       contain '::nest::role::workstation::xmonad'
       contain '::nest::role::workstation::xorg'
