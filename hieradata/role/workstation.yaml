@@ -2,6 +2,8 @@
 nest::package_keywords:
   # I always want the most recent of these:
   app-misc/ddcutil: {}
+  gui-apps/waybar: {}
+  gui-wm/sway: {}
   media-fonts/fontawesome: {}
   media-gfx/displaycal: {}
   www-client/firefox: {}
