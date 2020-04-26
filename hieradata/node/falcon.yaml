@@ -22,7 +22,7 @@ nest::mouse: 'mxmaster'
 nest::monitor_layout: ['DP-2', 'DP-3']
 nest::primary_monitor: 'DP-3'
 nest::processorcount: 16
-nest::text_scaling_factor: 1.1
+nest::text_scaling_factor: 1.125
 nest::video_card: 'nvidia'
 
 nest::distcc_hosts: {}
