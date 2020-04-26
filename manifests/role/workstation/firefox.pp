@@ -14,7 +14,7 @@ class nest::role::workstation::firefox {
       }
 
       $firefox_prefs = @("EOT")
-        pref("layout.css.devPixelsPerPx", "${::nest::text_scaling_factor}");
+        pref("layout.css.devPixelsPerPx", "${::nest::gui_scaling_factor}");
         | EOT
 
       file { '/usr/lib64/firefox/defaults/pref/all-nest.js':

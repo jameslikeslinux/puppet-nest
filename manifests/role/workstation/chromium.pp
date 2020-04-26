@@ -37,7 +37,7 @@ class nest::role::workstation::chromium {
       }
 
       $chromium_flags = @("EOT"/$)
-        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::text_scaling_factor} --enable-use-zoom-for-dsf"
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --disable-smooth-scrolling"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
         | EOT
