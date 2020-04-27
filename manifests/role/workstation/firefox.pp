@@ -15,6 +15,7 @@ class nest::role::workstation::firefox {
 
       $scaling_prefs = "pref(\"layout.css.devPixelsPerPx\", \"${::nest::gui_scaling_factor}\");"
       $scaling_prefs_quoted = shellquote($scaling_prefs)
+      $scaling_prefs_echo_cmd = shellquote("echo ${scaling_prefs_quoted} > /usr/lib64/firefox/defaults/pref/all-scaling.js")
 
       $webrender = $::nest::video_card ? {
         'intel'  => 1,
@@ -30,7 +31,7 @@ class nest::role::workstation::firefox {
             sudo rm /usr/lib64/firefox/defaults/pref/all-scaling.js
             export MOZ_ENABLE_WAYLAND=1
         else
-            sudo sh -c 'echo $scaling_prefs_quoted > /usr/lib64/firefox/defaults/pref/all-scaling.js'
+            sudo sh -c $scaling_prefs_echo_cmd
             export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
         fi
 
