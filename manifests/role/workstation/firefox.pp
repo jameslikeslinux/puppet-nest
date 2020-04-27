@@ -22,10 +22,11 @@ class nest::role::workstation::firefox {
         default  => 0,
       }
 
+      $wayland_display_var = '$WAYLAND_DISPLAY'
       $firefox_wrapper_content = @("EOT")
         #!/bin/bash
 
-        if [[ $WAYLAND_DISPLAY ]]; then
+        if [[ $wayland_display_var ]]; then
             sudo rm /usr/lib64/firefox/defaults/pref/all-scaling.js
             export MOZ_ENABLE_WAYLAND=1
         else
