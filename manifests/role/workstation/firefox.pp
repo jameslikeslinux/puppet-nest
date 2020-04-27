@@ -24,6 +24,7 @@ class nest::role::workstation::firefox {
       }
 
       $xdg_session_type = '$XDG_SESSION_TYPE'
+      $moz_disable_wayland = '$MOZ_DISABLE_WAYLAND'
       $firefox_wrapper_content = @("EOT")
         #!/bin/bash
 
@@ -32,7 +33,11 @@ class nest::role::workstation::firefox {
             export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
         else
             sudo rm -f /usr/lib64/firefox/defaults/pref/all-scaling.js
-            export MOZ_ENABLE_WAYLAND=1
+            if [[ $moz_disable_wayland == '1' ]]; then
+                unset GDK_DPI_SCALE
+            else
+                export MOZ_ENABLE_WAYLAND=1
+            fi
         fi
 
         MOZ_WEBRENDER=${webrender} MOZ_DBUS_REMOTE=1 exec /usr/lib64/firefox/firefox "$@"
