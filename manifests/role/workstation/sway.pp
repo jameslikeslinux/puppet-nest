@@ -58,7 +58,7 @@ class nest::role::workstation::sway {
     default => "input type:keyboard xkb_options ctrl:nocaps\n",
   }
 
-  $input_conf = "input type:keyboard xkb_layout\n${xkb_variant}${xkb_options}"
+  $input_conf = "input type:keyboard xkb_layout us\n${xkb_variant}${xkb_options}"
 
   $output_conf = @("OUTPUT_CONF")
     output * scale $::nest::gui_scaling_factor
