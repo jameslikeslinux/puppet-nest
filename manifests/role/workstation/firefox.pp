@@ -9,21 +9,12 @@ class nest::role::workstation::firefox {
         ensure => installed,
       }
 
-      package { 'www-plugins/adobe-flash':
+      file { '/usr/lib64/firefox/defaults/pref/all-nest.js':
         ensure => absent,
       }
 
-      $firefox_prefs = @("EOT")
-        pref("layout.css.devPixelsPerPx", "${::nest::gui_scaling_factor}");
-        | EOT
-
-      file { '/usr/lib64/firefox/defaults/pref/all-nest.js':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => $firefox_prefs,
-        require => Package['www-client/firefox'],
-      }
+      $scaling_prefs = "pref(\"layout.css.devPixelsPerPx\", \"${::nest::gui_scaling_factor}\");"
+      $scaling_prefs_quoted = shellquote($scaling_prefs)
 
       $webrender = $::nest::video_card ? {
         'intel'  => 1,
@@ -33,7 +24,16 @@ class nest::role::workstation::firefox {
 
       $firefox_wrapper_content = @("EOT")
         #!/bin/bash
-        GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1 MOZ_WEBRENDER=${webrender} exec /usr/lib64/firefox/firefox "$@"
+
+        if [[ $WAYLAND_DISPLAY ]]; then
+            sudo rm /usr/lib64/firefox/defaults/pref/all-scaling.js
+            export MOZ_ENABLE_WAYLAND=1
+        else
+            sudo sh -c 'echo $scaling_prefs_quoted > /usr/lib64/firefox/defaults/pref/all-scaling.js'
+            export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
+        fi
+
+        MOZ_WEBRENDER=${webrender} exec /usr/lib64/firefox/firefox "$@"
         | EOT
 
       file { '/usr/bin/firefox':
