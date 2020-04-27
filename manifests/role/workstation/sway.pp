@@ -20,8 +20,8 @@ class nest::role::workstation::sway {
   # to change the DPI to effect our text_scaling_factor
   $gui_scaling_factor  = $::nest::gui_scaling_factor
   $text_scaling_factor = $::nest::text_scaling_factor
-  $dpi   =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
-  $scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
+  $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
+  $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
   $sway_wrapper_content = @("END_WRAPPER")
     #!/bin/bash
