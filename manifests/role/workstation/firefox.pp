@@ -28,7 +28,7 @@ class nest::role::workstation::firefox {
         #!/bin/bash
 
         if [[ $wayland_display_var ]]; then
-            sudo rm /usr/lib64/firefox/defaults/pref/all-scaling.js
+            sudo rm -f /usr/lib64/firefox/defaults/pref/all-scaling.js
             export MOZ_ENABLE_WAYLAND=1
         else
             sudo sh -c $scaling_prefs_echo_cmd
