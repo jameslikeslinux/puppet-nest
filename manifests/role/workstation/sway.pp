@@ -90,7 +90,7 @@ class nest::role::workstation::sway {
     ;
 
     '/etc/sway/config.d/10-xwayland':
-      content => "exec_always xrdb -merge /etc/sway/Xresources\n",
+      content => "exec xrdb /etc/sway/Xresources\n",
     ;
   }
 }
