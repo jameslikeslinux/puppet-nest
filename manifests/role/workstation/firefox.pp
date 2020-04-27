@@ -23,16 +23,16 @@ class nest::role::workstation::firefox {
         default  => 0,
       }
 
-      $wayland_display_var = '$WAYLAND_DISPLAY'
+      $xdg_session_type = '$XDG_SESSION_TYPE'
       $firefox_wrapper_content = @("EOT")
         #!/bin/bash
 
-        if [[ $wayland_display_var ]]; then
-            sudo rm -f /usr/lib64/firefox/defaults/pref/all-scaling.js
-            export MOZ_ENABLE_WAYLAND=1
-        else
+        if [[ $xdg_session_type == 'x11' ]]; then
             sudo sh -c $scaling_prefs_echo_cmd
             export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
+        else
+            sudo rm -f /usr/lib64/firefox/defaults/pref/all-scaling.js
+            export MOZ_ENABLE_WAYLAND=1
         fi
 
         MOZ_WEBRENDER=${webrender} MOZ_DBUS_REMOTE=1 exec /usr/lib64/firefox/firefox "$@"
