@@ -35,7 +35,7 @@ class nest::role::workstation::firefox {
             export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
         fi
 
-        MOZ_WEBRENDER=${webrender} exec /usr/lib64/firefox/firefox "$@"
+        MOZ_WEBRENDER=${webrender} MOZ_DBUS_REMOTE=1 exec /usr/lib64/firefox/firefox "$@"
         | EOT
 
       file { '/usr/bin/firefox':
