@@ -28,12 +28,15 @@ class nest::role::workstation::pulseaudio {
   }
 
   $nest_pa_content = @(NEST_PA_CONTENT)
+    # Load high fidelity bluetooth modules
     # See https://github.com/EHfive/pulseaudio-modules-bt/issues/33#issuecomment-462842413
+
     .ifexists module-bluetooth-policy.so
     load-module module-bluetooth-policy
     .endif
+
     .ifexists module-bluetooth-discover.so
-    load-module module-bluetooth-discover
+    load-module module-bluetooth-discover a2dp_config="aac_bitrate_mode=5"
     .endif
     | NEST_PA_CONTENT
 
