@@ -12,4 +12,9 @@ class nest::role::workstation::pulseaudio {
     match => '^(; )?default-sample-format = ',
     line  => 'default-sample-format = s24le',
   }
+
+  # To support AAC for my Pixel Buds
+  package { 'media-sound/pulseaudio-modules-bt':
+    ensure => installed,
+  }
 }
