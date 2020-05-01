@@ -57,7 +57,7 @@ nest::package_use:
 
   # Give pulseaudio higher priority with rtkit
   media-sound/pulseaudio:
-    use: 'realtime'
+    use: ['-bluetooth', 'realtime']
 
   # For openconnect
   kde-plasma/plasma-nm:
