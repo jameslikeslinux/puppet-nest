@@ -36,7 +36,7 @@ class nest::role::workstation::pulseaudio {
     .endif
 
     .ifexists module-bluetooth-discover.so
-    load-module module-bluetooth-discover a2dp_config="aac_bitrate_mode=5"
+    load-module module-bluetooth-discover a2dp_config="aac_bitrate_mode=0"
     .endif
     | NEST_PA_CONTENT
 
