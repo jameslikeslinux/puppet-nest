@@ -6,6 +6,7 @@ nest::package_keywords:
   gui-wm/sway: {}
   media-fonts/fontawesome: {}
   media-gfx/displaycal: {}
+  media-sound/pulseaudio-modules-bt: {}
   www-client/firefox: {}
 
   # For firefox
