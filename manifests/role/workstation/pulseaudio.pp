@@ -13,8 +13,34 @@ class nest::role::workstation::pulseaudio {
     line  => 'default-sample-format = s24le',
   }
 
+  nest::lib::portage::package_use { 'media-sound/pulseaudio-modules-bt':
+    use => 'fdk',  # for AAC
+  }
+
   # To support AAC for my Pixel Buds
   package { 'media-sound/pulseaudio-modules-bt':
     ensure => installed,
+  }
+
+  file_line { 'pulse-default.pa-include-nest.pa':
+    path => '/etc/pulse/default.pa',
+    line => '.include /etc/pulse/nest.pa',
+  }
+
+  $nest_pa_content = @(NEST_PA_CONTENT)
+    # See https://github.com/EHfive/pulseaudio-modules-bt/issues/33#issuecomment-462842413
+    .ifexists module-bluetooth-policy.so
+    load-module module-bluetooth-policy
+    .endif
+    .ifexists module-bluetooth-discover.so
+    load-module module-bluetooth-discover
+    .endif
+    | NEST_PA_CONTENT
+
+  file { '/etc/pulse/nest.pa':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $nest_pa_content,
   }
 }
