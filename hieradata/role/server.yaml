@@ -1,9 +1,4 @@
 ---
-nest::package_keywords:
-  # For PHP 7.4 support
-  dev-php/pecl-ssh2:
-    version: '=1.2'
-
 nest::package_use:
   # Don't pull in X
   sys-boot/plymouth:
