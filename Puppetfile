@@ -23,7 +23,7 @@ mod 'private',
 
 # Required by nest
 mod 'herculesteam-augeasproviders_sysctl', '2.5.0'
-mod 'puppetlabs-apache', '3.4.0'
+mod 'puppetlabs-apache', '5.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
 mod 'puppetlabs-mailalias_core', '1.0.6'
 mod 'puppetlabs-mysql', '7.0.0'
