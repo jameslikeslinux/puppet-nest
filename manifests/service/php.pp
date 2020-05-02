@@ -20,6 +20,14 @@ class nest::service::php {
     require => Nest::Lib::Portage::Package_use['app-eselect/eselect-php'],
   }
 
+  file_line { 'php.ini-max_execution_time':
+    path    => '/etc/php/fpm-php7.2/php.ini',
+    line    => 'max_execution_time = 90',
+    match   => '^;?max_execution_time\s*=',
+    require => Package['dev-lang/php'],
+    notify  => Service['php-fpm@7.2'],
+  }
+
   service { 'php-fpm@7.1':
     ensure  => stopped,
     enable  => false,
