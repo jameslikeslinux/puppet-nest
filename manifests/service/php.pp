@@ -44,6 +44,7 @@ class nest::service::php {
     'dev-php/pecl-imagick',
     'dev-php/pecl-ssh2',
   ]:
-    ensure => installed,
+    ensure  => installed,
+    require => Package['dev-lang/php'],
   }
 }
