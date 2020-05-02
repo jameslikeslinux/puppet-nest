@@ -7,6 +7,12 @@ class nest::role::workstation::pulseaudio {
     creates => '/etc/systemd/user/sockets.target.wants/pulseaudio.socket',
   }
 
+  file_line { 'pulse-client.conf-disable-autospawn':
+    path  => '/etc/pulse/client.conf',
+    match => '^(; )?autospawn = ',
+    line  => 'autospawn = no',
+  }
+
   file_line { 'pulse-daemon.conf-default-sample-format':
     path  => '/etc/pulse/daemon.conf',
     match => '^(; )?default-sample-format = ',
