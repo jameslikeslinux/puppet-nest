@@ -274,3 +274,4 @@ nest::kernel_config:
   CONFIG_HW_RANDOM_VIRTIO: m
 
 apache::mpm_module: 'worker'
+apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
