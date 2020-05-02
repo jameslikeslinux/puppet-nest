@@ -4,6 +4,10 @@ nest::package_use:
   sys-boot/plymouth:
     use: '-gtk'
 
+  # For dev-php/pecl-imagick
+  media-gfx/imagemagick:
+    use: '-openmp'
+
 nest::kernel_config:
   # We don't need graphics or sound support
   CONFIG_DRM: n
