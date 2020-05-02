@@ -4,7 +4,7 @@ class nest::service::php {
   }
 
   nest::lib::portage::package_use { 'dev-lang/php':
-    use => ['curl', 'fpm', 'gd', 'mysql', 'mysqli', 'soap'],
+    use => ['curl', 'exif', 'fpm', 'gd', 'mysql', 'mysqli', 'soap', 'zip'],
   }
 
   portage::makeconf { 'php_targets':
@@ -40,7 +40,10 @@ class nest::service::php {
     require => Service['php-fpm@7.1'],
   }
 
-  package { 'dev-php/pecl-ssh2':
+  package { [
+    'dev-php/pecl-imagick',
+    'dev-php/pecl-ssh2',
+  ]:
     ensure => installed,
   }
 }
