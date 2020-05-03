@@ -8,8 +8,7 @@ class nest::service::php {
   }
 
   portage::makeconf { 'php_targets':
-    ensure  => absent,
-    content => 'php7-0',
+    content => 'php7-4',
   }
 
   package { 'dev-lang/php':
@@ -21,23 +20,23 @@ class nest::service::php {
   }
 
   file_line { 'php.ini-max_execution_time':
-    path    => '/etc/php/fpm-php7.2/php.ini',
-    line    => 'max_execution_time = 90',
+    path    => '/etc/php/fpm-php7.4/php.ini',
+    line    => 'max_execution_time = 120',
     match   => '^;?max_execution_time\s*=',
     require => Package['dev-lang/php'],
-    notify  => Service['php-fpm@7.2'],
+    notify  => Service['php-fpm@7.4'],
   }
 
-  service { 'php-fpm@7.1':
+  service { 'php-fpm@7.2':
     ensure  => stopped,
     enable  => false,
     require => Package['dev-lang/php'],
   }
 
-  service { 'php-fpm@7.2':
+  service { 'php-fpm@7.4':
     ensure  => running,
     enable  => true,
-    require => Service['php-fpm@7.1'],
+    require => Service['php-fpm@7.2'],
   }
 
   package { [
