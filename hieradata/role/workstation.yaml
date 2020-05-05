@@ -10,6 +10,8 @@ nest::package_keywords:
   www-client/firefox: {}
 
   # For firefox
+  dev-libs/nss:
+    version: '=3.52'
   media-libs/libvpx:
     version: '=1.8.2'
   media-libs/libwebp:
