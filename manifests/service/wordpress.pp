@@ -21,12 +21,7 @@ define nest::service::wordpress (
 
   mysql::db { $name:
     user     => $name,
-    password => mysql::password($db_password),
-    grant    => ['ALTER', 'ALTER ROUTINE', 'CREATE', 'CREATE ROUTINE',
-                 'CREATE TEMPORARY TABLES', 'CREATE VIEW', 'DELETE',
-                 'DROP', 'EVENT', 'EXECUTE', 'INDEX', 'INSERT',
-                 'LOCK TABLES', 'REFERENCES', 'SELECT', 'SHOW VIEW',
-                 'TRIGGER', 'UPDATE'],
+    password => $db_password,
   }
 
   # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
