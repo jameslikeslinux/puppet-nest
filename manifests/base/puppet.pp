@@ -5,25 +5,6 @@ class nest::base::puppet {
   }
 
   if $facts['osfamily'] == 'Gentoo' {
-    file {
-      default:
-        mode  => '0644',
-        owner => 'root',
-        group => 'root',
-      ;
-
-      [
-        '/etc/portage/patches/app-admin',
-        '/etc/portage/patches/app-admin/puppet',
-      ]:
-        ensure => directory,
-      ;
-
-      '/etc/portage/patches/app-admin/puppet/puppet-service-provider-systemd-gentoo-default.patch':
-        source => 'puppet:///modules/nest/puppet/puppet-service-provider-systemd-gentoo-default.patch',
-      ;
-    }
-
     $facter_conf = @(FACTER_CONF)
       global : {
           external-dir : [ "/etc/puppetlabs/facter/facts.d" ]

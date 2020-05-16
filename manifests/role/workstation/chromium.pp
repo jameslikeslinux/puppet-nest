@@ -1,25 +1,6 @@
 class nest::role::workstation::chromium {
   case $facts['osfamily'] {
     'Gentoo': {
-      file {
-        default:
-          ensure => directory,
-          mode   => '0644',
-          owner  => 'root',
-          group  => 'root',
-        ;
-
-        '/etc/portage/patches/www-client':
-        ;
-
-        '/etc/portage/patches/www-client/chromium':
-          source  => 'puppet:///modules/nest/chromium/',
-          recurse => true,
-          purge   => true,
-          before  => Package['www-client/chromium'],
-        ;
-      }
-
       nest::lib::portage::package_use { 'www-client/chromium':
         use => 'widevine',
       }

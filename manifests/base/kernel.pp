@@ -1,11 +1,4 @@
 class nest::base::kernel {
-  file { '/etc/portage/patches/sys-kernel':
-    ensure  => absent,
-    recurse => true,
-    force   => true,
-    before  => Package['sys-kernel/gentoo-sources'],
-  }
-
   nest::lib::portage::package_use { 'sys-kernel/gentoo-sources':
     use => 'symlink',
   }

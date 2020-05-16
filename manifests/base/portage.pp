@@ -152,23 +152,21 @@ class nest::base::portage {
     content => "NOSTATUSLINE=true\n",
   }
 
-  file { [
-    '/etc/portage/patches',
-    '/etc/portage/patches/x11-drivers',
-    '/etc/portage/patches/x11-drivers/xf86-input-libinput',
-    '/etc/portage/profile'
-  ]:
+  file { '/etc/portage/patches':
+    ensure  => directory,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    source  => 'puppet:///modules/nest/portage/patches',
+    recurse => true,
+    purge   => true,
+  }
+
+  file { '/etc/portage/profile':
     ensure => directory,
     mode   => '0755',
     owner  => 'root',
     group  => 'root',
-  }
-
-  file { '/etc/portage/patches/x11-drivers/xf86-input-libinput/dpiscalefactor-workaround.patch':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/xorg/libinput-dpiscalefactor-workaround.patch',
   }
 
   # Enable libzfs USE flag for GRUB

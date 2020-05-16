@@ -1,0 +1,26 @@
+this prevents LMB click on URL bar(if it wasn't already focused) from getting the equivalent of Ctrl+A aka Select All
+ie. it acts as if browser.urlbar.clickSelectsAll=false AND browser.urlbar.doubleClickSelectsAll=false so only triple click will Select All
+
+see:  https://bugzilla.mozilla.org/show_bug.cgi?id=1621570 or https://bugzilla.mozilla.org/show_bug.cgi?id=333714
+
+#$ ~/.local/bin/mozregression  --bad=75 --good=74
+#...
+#13:01.16 INFO: Narrowed integration regression window from [4c6c850d, 9d574c79] (4 builds) to [19e18bbe, 9d574c79] (2 builds) (~1 steps left)
+#13:01.16 INFO: No more integration revisions, bisection finished.
+#13:01.16 INFO: Last good revision: 19e18bbee3c321ed9f978c621986e11c9494cdf4
+#13:01.16 INFO: First bad revision: 9d574c79405dced5b1157513843ae3b68d0188b4
+#13:01.16 INFO: Pushlog:
+#https://hg.mozilla.org/integration/autoland/pushloghtml?fromchange=19e18bbee3c321ed9f978c621986e11c9494cdf4&tochange=9d574c79405dced5b1157513843ae3b68d0188b4
+
+diff -r 078326f48100 browser/components/urlbar/UrlbarInput.jsm
+--- a/browser/components/urlbar/UrlbarInput.jsm	Tue Apr 14 06:41:42 2020 +0000
++++ b/browser/components/urlbar/UrlbarInput.jsm	Tue Apr 14 16:01:40 2020 +0200
+@@ -1957,6 +1957,8 @@
+         if (event.target.id == SEARCH_BUTTON_ID) {
+           this._preventClickSelectsAll = true;
+           this.search(UrlbarTokenizer.RESTRICT.SEARCH);
++        } else if (event.target == this.inputField) {
++          this._preventClickSelectsAll = true;
+         } else {
+           this.view.autoOpen({ event });
+         }
