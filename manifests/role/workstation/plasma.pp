@@ -28,7 +28,8 @@ class nest::role::workstation::plasma {
 
   $sddm_theme_conf = @(EOT)
     [General]
-    color=#000000
+    background=/home/james/.wallpaper.png
+    type=image
     fontSize=10
     | EOT
 
@@ -47,6 +48,17 @@ class nest::role::workstation::plasma {
     '/usr/share/sddm/themes/breeze/theme.conf':
       content => $sddm_theme_conf,
     ;
+
+    '/usr/share/sddm/themes/breeze/theme.conf.user':
+      ensure => absent,
+    ;
+  }
+
+  file_line { 'sddm-background-fillmode':
+    path    => '/usr/share/sddm/themes/breeze/Background.qml',
+    line    => '        fillMode: Image.Stretch',
+    match   => 'fillMode: Image\.',
+    require => Package['kde-plasma/plasma-meta'],
   }
 
   # When system-login is "included" and contains a sufficient auth
