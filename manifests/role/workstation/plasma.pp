@@ -58,11 +58,29 @@ class nest::role::workstation::plasma {
     ;
   }
 
-  file_line { 'sddm-background-fillmode':
-    path    => '/usr/share/sddm/themes/breeze/Background.qml',
-    line    => '        fillMode: Image.Stretch',
-    match   => 'fillMode: Image\.',
-    require => Package['kde-plasma/plasma-meta'],
+  # Theme tweaks
+  file_line {
+    default:
+      require => Package['kde-plasma/plasma-meta'],
+    ;
+
+    'sddm-background-fillmode':
+      path  => '/usr/share/sddm/themes/breeze/Background.qml',
+      line  => '        fillMode: Image.Stretch',
+      match => 'fillMode: Image\.',
+    ;
+
+    'sddm-disable-wallpaperfader':
+      path  => '/usr/share/sddm/themes/breeze/Main.qml',
+      line  => '            visible: false',
+      match => 'visible: config\.type === "image"',
+    ;
+
+    'lockscreen-disable-wallpaperfader':
+      path  => '/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/lockscreen/LockScreenUi.qml',
+      line  => '            visible: false',
+      after => 'WallpaperFader {',
+    ;
   }
 
   # When system-login is "included" and contains a sufficient auth
