@@ -247,7 +247,9 @@ class nest::node::falcon {
     use => ['ffmpeg', 'gstreamer', 'lastfm', 'replaygain'],
   }
 
+  # Temporarily remove beets because it is being dropped from gentoo
+  # Will reinstall after bringing the ebuild into my repo and enable Python 3.7 support
   package { 'media-sound/beets':
-    ensure => installed,
+    ensure => absent,
   }
 }
