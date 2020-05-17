@@ -16,7 +16,7 @@ class nest::role::workstation::xmonad {
   package { [
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
-    'x11-misc/compton',
+    'x11-misc/picom',
     'x11-misc/rofi',
     'x11-misc/taffybar',
     'dev-haskell/missingh',
@@ -28,6 +28,12 @@ class nest::role::workstation::xmonad {
     'sys-fs/inotify-tools',
   ]:
     ensure => installed,
+  }
+
+  # Replaced by picom
+  package { 'x11-misc/compton':
+    ensure => absent,
+    before => Package['x11-misc/picom'],
   }
 
   # Gtk scaling for Taffybar doesn't work well
