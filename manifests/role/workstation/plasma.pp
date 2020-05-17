@@ -45,6 +45,10 @@ class nest::role::workstation::plasma {
       content => $sddm_conf,
     ;
 
+    '/etc/sddm.conf.d/kde_settings.conf':
+      ensure => absent,
+    ;
+
     '/usr/share/sddm/themes/breeze/theme.conf':
       content => $sddm_theme_conf,
     ;
