@@ -19,7 +19,7 @@ class nest::base::fstab {
       'set 1/passno 0',
     ]
   } else {
-    if $::platform == 'beagleboneblack' {
+    if $::platform in ['beagleboneblack', 'pinebookpro'] {
       $efi = []
       $fscache = []
     } else {
