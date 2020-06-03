@@ -1,6 +1,12 @@
 class nest::role::workstation::qemu {
   nest::lib::portage::package_use { 'app-emulation/qemu':
-    use => ['spice', 'usbredir', 'static-user', 'qemu_softmmu_targets_arm', 'qemu_user_targets_arm'],
+    use => [
+      'spice',
+      'usbredir',
+      'static-user',
+      'qemu_softmmu_targets_arm', 'qemu_user_targets_arm',
+      'qemu_softmmu_targets_aarch64', 'qemu_user_targets_aarch64'
+    ],
   }
 
   package { 'app-emulation/qemu':
@@ -9,6 +15,7 @@ class nest::role::workstation::qemu {
 
   $binfmt_conf = @(EOT)
     :qemu-arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm:OC
+    :qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-aarch64:OC
     | EOT
 
   file { '/etc/binfmt.d/qemu.conf':
