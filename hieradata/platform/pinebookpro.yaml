@@ -1,0 +1,5 @@
+---
+nest::bootloader: systemd
+nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
+nest::package_keywords:
+  sys-kernel/vanilla-sources: {}

@@ -15,6 +15,8 @@ nest::package_keywords:
     accept_keywords: '**'
 
 nest::kernel_config:
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+
   # Prefer giving the kernel more of the virtual address space for ZFS
   CONFIG_VMSPLIT_2G: y
   CONFIG_VMSPLIT_3G: n
