@@ -1,10 +1,5 @@
 class nest::base::kernel {
-  $kernel_package = $::platform ? {
-    'pinebookpro' => 'sys-kernel/vanilla-sources',
-    default       => 'sys-kernel/gentoo-sources',
-  }
-
-  nest::lib::portage::package_use { $kernel_package:
+  nest::lib::portage::package_use { 'sys-kernel/gentoo-sources':
     use => 'symlink',
   }
 
@@ -13,7 +8,7 @@ class nest::base::kernel {
   }
 
   package { [
-    $kernel_package,
+    'sys-kernel/gentoo-sources',
     'sys-kernel/linux-firmware',
   ]:
     ensure => installed,
@@ -28,7 +23,7 @@ class nest::base::kernel {
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
-    require => Package[$kernel_package],
+    require => Package['sys-kernel/gentoo-sources'],
     notify  => Exec['make kernel'],
   }
 
