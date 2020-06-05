@@ -2,6 +2,7 @@
 
 STAGE_ARCHIVE_AMD64='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190523.tar.bz2'
 STAGE_ARCHIVE_ARMV7A='https://bouncer.gentoo.org/fetch/root/all/releases/arm/autobuilds/20180831/stage3-armv7a_hardfp-20180831.tar.bz2'
+STAGE_ARCHIVE_ARM64='https://thestaticvoid.com/dist/stage3-arm64-systemd-20190925.tar.bz2'
 DATE="$(date '+%Y%m%d')"
 
 usage() {
@@ -172,7 +173,7 @@ chroot_make_dir() {
     [[ -d "/mnt/${name}${1}" ]] || chroot_cmd mkdir -p "$1"
 }
 
-if [[ ! $partition_only ]]; then
+if [[ ! $partition_only && ! $resume ]]; then
     echo
     echo -n "Did you make sure ${name} doesn't already have a Puppet certificate? "
     read puppet_clean
@@ -227,7 +228,7 @@ else
     if [ -n "$efi" ]; then
         destructive_cmd sfdisk "$disk" <<END
 label: gpt
-size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
+start=32768, size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
 name="${name}"
 END
     else
@@ -271,6 +272,8 @@ END
     if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
         destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
+        destructive_cmd udevadm trigger
+        destructive_cmd sleep 3
         destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
         destructive_cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
     fi
@@ -289,6 +292,9 @@ case "$platform" in
     'beagleboneblack')
         STAGE_ARCHIVE="$STAGE_ARCHIVE_ARMV7A"
         ;;
+    'pinebookpro')
+        STAGE_ARCHIVE="$STAGE_ARCHIVE_ARM64"
+        ;;
     *)
         STAGE_ARCHIVE="$STAGE_ARCHIVE_AMD64"
         ;;
@@ -301,30 +307,49 @@ destructive_cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_AR
 
 task "Prepping build target..."
 
-if [[ $platform == 'beagleboneblack' ]]; then
-    destructive_cmd cp /usr/bin/qemu-arm "/mnt/${name}/usr/bin/qemu-arm"
-    makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
-    destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+case "$platform" in
+    'beagleboneblack')
+        destructive_cmd cp /usr/bin/qemu-arm "/mnt/${name}/usr/bin/qemu-arm"
+        makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
+        destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
 CXXFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
-PKGDIR="/nest/portage/packages/armv7l-beaglebone"
+PKGDIR="/nest/portage/packages/armv7l-server.cortex-a8"
 USE="X"
 $makeopts
 END
-else
-    destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+        ;;
+
+    'pinebookpro')
+        destructive_cmd cp /usr/bin/qemu-aarch64 "/mnt/${name}/usr/bin/qemu-aarch64"
+        makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
+        destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+CFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
+CXXFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
+DISTDIR="/nest/portage/distfiles"
+EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
+FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
+PKGDIR="/nest/portage/packages/aarch64-server.cortex-a72.cortex-a53+crypto"
+USE="X"
+$makeopts
+END
+        ;;
+
+    *)
+        destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-march=haswell -O2 -pipe -ggdb"
 CXXFLAGS="-march=haswell -O2 -pipe -ggdb"
 CPU_FLAGS_X86="aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 ssse3"
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"
-PKGDIR="/nest/portage/packages/amd64-base"
+PKGDIR="/nest/portage/packages/amd64-server.haswell"
 END
-fi
+esac
+
 destructive_cmd tee "/mnt/${name}/etc/portage/repos.conf" <<END
 [DEFAULT]
 main-repo = gentoo
@@ -343,35 +368,48 @@ destructive_cmd tar -C "/mnt/${name}/var/cache/portage/gentoo" --strip 1 -xvzf "
 destructive_cmd rm -f "/mnt/${name}/portage-gentoo-master.tar.gz"
 
 
-if [[ $platform == 'beagleboneblack' ]]; then
-    destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
-    destructive_chroot_cmd emerge -vDuN --with-bdeps=y @world
-    destructive_chroot_cmd emerge --depclean
-else
-    destructive_chroot_cmd eselect profile set default/linux/amd64/17.0/systemd
-fi
+case "$platform" in
+    'beagleboneblack')
+        destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
+        ;;
 
+    'pinebookpro')
+        destructive_chroot_cmd eselect profile set default/linux/arm64/17.0/systemd
+        ;;
+
+    *)
+        destructive_chroot_cmd eselect profile set default/linux/amd64/17.1/systemd
+        ;;
+esac
+
+task "Updating Stage 3..."
+destructive_chroot_cmd emerge -vDuN --with-bdeps=y @world
+destructive_chroot_cmd emerge --depclean
 
 task "Installing Puppet..."
 chroot_make_dir /etc/portage/package.accept_keywords
-destructive_chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
-app-admin/puppet
-dev-ruby/hiera
-dev-ruby/deep_merge
-dev-ruby/hocon
-dev-ruby/facter
-dev-cpp/cpp-hocon
+chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
+<app-admin/puppet-9999 **
+<dev-ruby/hiera-9999 **
+<dev-ruby/deep_merge-9999 **
+<dev-ruby/hocon-9999 **
+<dev-ruby/facter-9999 **
+<dev-cpp/cpp-hocon-9999 **
 dev-cpp/yaml-cpp
-dev-libs/leatherman
-dev-ruby/ruby-augeas
+<dev-libs/leatherman-9999 **
+<dev-ruby/ruby-augeas-9999 **
 app-admin/augeas
 app-doc/NaturalDocs
+<dev-ruby/semantic_puppet-9999 **
+<dev-ruby/concurrent-ruby-9999 **
+<app-emulation/virt-what-9999 **
 END
-chroot_make_dir /etc/portage/package.user
+chroot_make_dir /etc/portage/package.use
 destructive_chroot_cmd tee /etc/portage/package.use/default <<END
 app-admin/puppet augeas
 END
-destructive_chroot_cmd emerge -v app-admin/puppet app-portage/eix
+chroot_cmd emerge -v1 boost cmake
+chroot_cmd emerge -v app-admin/puppet app-portage/eix
 
 # Allow the systemd service provider to work inside the chroot
 destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
