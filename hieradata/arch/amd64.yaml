@@ -14,7 +14,6 @@ nest::package_use:
     use: 'arping'
 
 nest::kernel_config:
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
   CONFIG_NUMA_BALANCING: y
   CONFIG_USER_NS: y
   CONFIG_X86_X2APIC: y

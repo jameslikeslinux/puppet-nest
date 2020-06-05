@@ -408,7 +408,6 @@ chroot_make_dir /etc/portage/package.use
 destructive_chroot_cmd tee /etc/portage/package.use/default <<END
 app-admin/puppet augeas
 END
-chroot_cmd emerge -v1 boost cmake
 chroot_cmd emerge -v app-admin/puppet app-portage/eix
 
 # Allow the systemd service provider to work inside the chroot
