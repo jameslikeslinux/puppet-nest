@@ -1,5 +1,5 @@
 class nest::base::bootloader::systemd {
-  if $facts['virtual'] == 'lxc' or $facts['os']['architecture'] == 'armv7l' {
+  if $facts['virtual'] == 'lxc' or $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
     $bootctl_args = '--no-variables'
   } else {
     $bootctl_args = ''

@@ -1,6 +1,6 @@
 class nest::base::firewall {
   # Doing anything related to iptables inside an ARM chroot fails
-  if $facts['os']['architecture'] == 'armv7l' {
+  if $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
     if $facts['virtual'] == 'lxc' {
       file { [
         '/sbin/iptables-save',
