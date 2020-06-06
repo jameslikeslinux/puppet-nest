@@ -63,3 +63,8 @@ nest::package_keywords:
 
   # For sys-process/parallel
   dev-perl/Devel-Size: {}
+
+nest::kernel_config:
+  # Unset default preempt for ZFS compatibility
+  CONFIG_PREEMPT: n
+  CONFIG_PREEMPT_VOLUNTARY: y
