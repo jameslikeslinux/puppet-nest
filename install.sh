@@ -190,18 +190,20 @@ fi
 
 zroot=$name
 
-if [ -n "$encrypt" ]; then
+if [[ $encrypt ]]; then
     echo -n "Encryption passphrase: "
     read -s enc_passphrase
     echo
 
-    echo -n "Encryption passphrase (again): "
-    read -s enc_passphrase_repeat
-    echo
+    if [[ ! $resume ]]; then
+        echo -n "Encryption passphrase (again): "
+        read -s enc_passphrase_repeat
+        echo
 
-    if [ "$enc_passphrase" != "$enc_passphrase_repeat" ]; then
-        echo "The passphrases don't match." >&2
-        exit 1
+        if [ "$enc_passphrase" != "$enc_passphrase_repeat" ]; then
+            echo "The passphrases don't match." >&2
+            exit 1
+        fi
     fi
 
     zroot="${name}/crypt"
@@ -393,7 +395,7 @@ destructive_chroot_cmd emerge --depclean
 
 task "Installing Puppet..."
 chroot_make_dir /etc/portage/package.accept_keywords
-chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
+destructive_chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
 <app-admin/puppet-9999 **
 <dev-ruby/hiera-9999 **
 <dev-ruby/deep_merge-9999 **

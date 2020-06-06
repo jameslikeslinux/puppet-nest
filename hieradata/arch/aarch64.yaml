@@ -35,14 +35,24 @@ nest::package_keywords:
     version: '<9999'
     accept_keywords: '**'
 
+  # Accept keywords for base packages
+  app-admin/sysstat: {}
+  app-portage/genlop: {}
+  dev-libs/libburn: {}
+  dev-libs/libisoburn: {}
+  dev-libs/libisofs: {}
   mail-mta/nullmailer:
     version: '<9999'
     accept_keywords: '**'
-
-  app-admin/sysstat: {}
-  app-portage/genlop: {}
-  dev-libs/libisoburn: {}
   net-analyzer/openbsd-netcat: {}
+  sys-fs/cachefilesd:
+    version: '<9999'
+    accept_keywords: '**'
+  sys-fs/mtools:
+    version: '<9999'
+    accept_keywords: '**'
+  sys-process/parallel: {}
+  www-client/elinks: {}
   x11-misc/xsel: {}
 
   sys-fs/zfs:
@@ -51,3 +61,7 @@ nest::package_keywords:
   sys-fs/zfs-kmod:
     version: '<9999'
     accept_keywords: '**'
+  virtual/linux-sources: {}
+
+  # For sys-process/parallel
+  dev-perl/Devel-Size: {}
