@@ -2,37 +2,26 @@
 nest::package_keywords:
   # Unmask puppet and dependencies
   app-admin/puppet:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/hiera:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/deep_merge:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/hocon:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/facter:
-    version: '<9999'
     accept_keywords: '**'
   dev-cpp/cpp-hocon:
-    version: '<9999'
     accept_keywords: '**'
   dev-libs/leatherman:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/ruby-augeas:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/semantic_puppet:
-    version: '<9999'
     accept_keywords: '**'
   dev-ruby/concurrent-ruby:
-    version: '<9999'
     accept_keywords: '**'
   app-emulation/virt-what:
-    version: '<9999'
     accept_keywords: '**'
 
   # Accept keywords for base packages
@@ -42,24 +31,21 @@ nest::package_keywords:
   dev-libs/libisoburn: {}
   dev-libs/libisofs: {}
   mail-mta/nullmailer:
-    version: '<9999'
     accept_keywords: '**'
   net-analyzer/openbsd-netcat: {}
   sys-fs/cachefilesd:
-    version: '<9999'
     accept_keywords: '**'
   sys-fs/mtools:
-    version: '<9999'
     accept_keywords: '**'
   sys-process/parallel: {}
   www-client/elinks: {}
   x11-misc/xsel: {}
 
   sys-fs/zfs:
-    version: '<9999'
+    version: '=9999'
     accept_keywords: '**'
   sys-fs/zfs-kmod:
-    version: '<9999'
+    version: '=9999'
     accept_keywords: '**'
   virtual/linux-sources: {}
 

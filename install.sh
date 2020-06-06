@@ -396,20 +396,20 @@ destructive_chroot_cmd emerge --depclean
 task "Installing Puppet..."
 chroot_make_dir /etc/portage/package.accept_keywords
 destructive_chroot_cmd tee /etc/portage/package.accept_keywords/default <<END
-<app-admin/puppet-9999 **
-<dev-ruby/hiera-9999 **
-<dev-ruby/deep_merge-9999 **
-<dev-ruby/hocon-9999 **
-<dev-ruby/facter-9999 **
-<dev-cpp/cpp-hocon-9999 **
+app-admin/puppet **
+dev-ruby/hiera **
+dev-ruby/deep_merge **
+dev-ruby/hocon **
+dev-ruby/facter **
+dev-cpp/cpp-hocon **
 dev-cpp/yaml-cpp
-<dev-libs/leatherman-9999 **
-<dev-ruby/ruby-augeas-9999 **
+dev-libs/leatherman **
+dev-ruby/ruby-augeas **
 app-admin/augeas
 app-doc/NaturalDocs
-<dev-ruby/semantic_puppet-9999 **
-<dev-ruby/concurrent-ruby-9999 **
-<app-emulation/virt-what-9999 **
+dev-ruby/semantic_puppet **
+dev-ruby/concurrent-ruby **
+app-emulation/virt-what **
 END
 chroot_make_dir /etc/portage/package.use
 destructive_chroot_cmd tee /etc/portage/package.use/default <<END

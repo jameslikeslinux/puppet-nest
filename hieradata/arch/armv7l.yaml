@@ -8,10 +8,8 @@ nest::package_keywords:
   x11-misc/xsel: {}
 
   sys-fs/zfs:
-    version: '<9999'
     accept_keywords: '**'
   sys-fs/zfs-kmod:
-    version: '<9999'
     accept_keywords: '**'
 
 nest::kernel_config:
