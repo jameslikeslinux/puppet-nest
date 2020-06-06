@@ -116,7 +116,7 @@ cleanup() {
     fi
 
     # Disable swap if necessary (assume its on if the device exists)
-    [ -e "/dev/zvol/${name}/swap" ] && fallable_cmd swapoff "/dev/zvol/${name}/swap" && sleep 1
+    [ -e "/dev/zvol/${zroot}/swap" ] && fallable_cmd swapoff "/dev/zvol/${zroot}/swap" && sleep 1
 
     # Export pool filesystem if necessary
     zpool list "$name" > /dev/null 2>&1 && fallable_cmd zpool export "$name"
@@ -188,6 +188,8 @@ if [[ ! $partition_only && ! $resume ]]; then
 fi
 
 
+zroot=$name
+
 if [ -n "$encrypt" ]; then
     echo -n "Encryption passphrase: "
     read -s enc_passphrase
@@ -201,6 +203,8 @@ if [ -n "$encrypt" ]; then
         echo "The passphrases don't match." >&2
         exit 1
     fi
+
+    zroot="${name}/crypt"
 fi
 
 
@@ -250,32 +254,33 @@ END
 
     if [[ $resume ]]; then
         task "Importing ZFS pool..."
-        cmd zpool import -R "/mnt/${name}" "$name"
+        cmd zpool import -l -R "/mnt/${name}" "$name" <<< "$enc_passphrase"
     else
         task "Creating ZFS pool..."
         destructive_cmd zpool create -f -m none -o ashift=9 -O compression=lz4 -O xattr=sa -O acltype=posixacl -R "/mnt/${name}" "$name" "$name"
-        destructive_cmd zfs create "${name}/ROOT"
-        destructive_cmd zfs create -o mountpoint=/ "${name}/ROOT/gentoo"
-        destructive_cmd zfs create -o mountpoint=/var "${name}/ROOT/gentoo/var"
-        destructive_cmd zfs create -o mountpoint=/home "${name}/home"
-        destructive_cmd zfs create "${name}/home/james"
-        destructive_cmd zpool set bootfs="${name}/ROOT/gentoo" "$name"
+        [[ $encrypt ]] && destructive_cmd zfs create -o encryption=aes-128-gcm -o keyformat=passphrase -o keylocation=prompt "$zroot" <<< "$enc_passphrase"
+        destructive_cmd zfs create "${zroot}/ROOT"
+        destructive_cmd zfs create -o mountpoint=/ "${zroot}/ROOT/gentoo"
+        destructive_cmd zfs create -o mountpoint=/var "${zroot}/ROOT/gentoo/var"
+        destructive_cmd zfs create -o mountpoint=/home "${zroot}/home"
+        destructive_cmd zfs create "${zroot}/home/james"
+        destructive_cmd zpool set bootfs="${zroot}/ROOT/gentoo" "$name"
     fi
 
     task "Creating swap space..."
-    destructive_cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${name}/swap"
+    destructive_cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${zroot}/swap"
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
-    destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${name}/swap"
-    cmd swapon --discard "/dev/zvol/${name}/swap"
+    destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
+    cmd swapon --discard "/dev/zvol/${zroot}/swap"
 
     if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
-        destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${name}/fscache"
+        destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${zroot}/fscache"
         destructive_cmd udevadm trigger
         destructive_cmd sleep 3
-        destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${name}/fscache"
-        destructive_cmd tune2fs -o discard "/dev/zvol/${name}/fscache"
+        destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${zroot}/fscache"
+        destructive_cmd tune2fs -o discard "/dev/zvol/${zroot}/fscache"
     fi
 
     # XXX: This needs to support mdraid
@@ -408,10 +413,10 @@ chroot_make_dir /etc/portage/package.use
 destructive_chroot_cmd tee /etc/portage/package.use/default <<END
 app-admin/puppet augeas
 END
-chroot_cmd emerge -v app-admin/puppet app-portage/eix
+destructive_chroot_cmd emerge -v app-admin/puppet app-portage/eix
 
 # Allow the systemd service provider to work inside the chroot
-destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
+destructive_cmd sed -i 's/confine/#confine/' /mnt/"$name"/usr/lib*/ruby/gems/*/gems/puppet-*/lib/puppet/provider/service/systemd.rb
 
 
 task "Prepping for Puppet run..."
@@ -427,7 +432,7 @@ END
 
 
 task "Running Puppet..."
-chroot_cmd puppet agent --onetime --debug --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest --logdir /var/log/puppet --rundir /var/run/puppet --vardir /var/lib/puppet
+chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --certname "$name" --server puppet.nest --logdir /var/log/puppet --rundir /var/run/puppet --vardir /var/lib/puppet --runtimeout 0
 [ -z "$live" ] && chroot_cmd systemctl enable puppet
 
 # task "Removing unnecessary packages..."

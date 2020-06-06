@@ -39,8 +39,10 @@ nest::package_keywords:
     version: '<9999'
     accept_keywords: '**'
 
+  app-admin/sysstat: {}
+  app-portage/genlop: {}
+  dev-libs/libisoburn: {}
   net-analyzer/openbsd-netcat: {}
-
   x11-misc/xsel: {}
 
   sys-fs/zfs:
