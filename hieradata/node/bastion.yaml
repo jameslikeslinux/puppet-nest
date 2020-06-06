@@ -1,3 +1,2 @@
 ---
-nest::kernel_cmdline:
-  - 'console=ttyS0,115200n8'
+nest::kernel_cmdline: ['console=ttyS0,115200n8']
