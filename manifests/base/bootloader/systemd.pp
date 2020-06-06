@@ -11,7 +11,7 @@ class nest::base::bootloader::systemd {
   }
 
   exec { 'bootctl-update':
-    command     => "/usr/bin/bootctl update ${bootctl_args}",
+    command     => "/usr/bin/bootctl update --no-variables",
     refreshonly => true,
     require     => Exec['bootctl-install'],
   }
