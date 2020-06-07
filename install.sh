@@ -317,31 +317,29 @@ task "Prepping build target..."
 case "$platform" in
     'beagleboneblack')
         destructive_cmd cp /usr/bin/qemu-arm "/mnt/${name}/usr/bin/qemu-arm"
-        makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
         destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
 CXXFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O2 -pipe -ggdb"
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
+MAKEOPTS="-j$(nproc)"
 PKGDIR="/nest/portage/packages/armv7l-server.cortex-a8"
 USE="X"
-$makeopts
 END
         ;;
 
     'pinebookpro')
         destructive_cmd cp /usr/bin/qemu-aarch64 "/mnt/${name}/usr/bin/qemu-aarch64"
-        makeopts="$(grep '^MAKEOPTS=' /etc/portage/make.conf)"
         destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
 CXXFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
+MAKEOPTS="-j$(nproc)"
 PKGDIR="/nest/portage/packages/aarch64-server.cortex-a72.cortex-a53+crypto"
 USE="X"
-$makeopts
 END
         ;;
 
@@ -353,6 +351,7 @@ CPU_FLAGS_X86="aes avx avx2 fma3 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 s
 DISTDIR="/nest/portage/distfiles"
 EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug"
+MAKEOPTS="-j$(nproc)"
 PKGDIR="/nest/portage/packages/amd64-server.haswell"
 END
 esac
