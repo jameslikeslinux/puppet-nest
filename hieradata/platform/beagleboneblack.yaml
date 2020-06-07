@@ -3,3 +3,7 @@ nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a8 -O2 -pipe -ggdb'
 nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
+
+nest::kernel_config:
+  # Graphics support takes too long to compile and we don't need it
+  CONFIG_DRM: n
