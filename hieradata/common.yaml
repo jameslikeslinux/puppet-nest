@@ -198,21 +198,21 @@ nest::package_keywords:
 
   # I usually want the lastest puppet
   app-admin/puppet: {}
-  dev-ruby/hiera: {}
-  dev-ruby/deep_merge: {}
-  dev-ruby/hocon: {}
-  dev-ruby/facter: {}
-  dev-ruby/semantic_puppet: {}
+  app-doc/NaturalDoc: {}
   dev-cpp/cpp-hocon: {}
   dev-cpp/yaml-cpp: {}
   dev-libs/leatherman: {}
+  dev-ruby/deep_merge: {}
+  dev-ruby/facter: {}
+  dev-ruby/hiera: {}
+  dev-ruby/hocon: {}
+  dev-ruby/semantic_puppet: {}
   dev-ruby/ruby-augeas: {}
-  app-admin/augeas: {}
-  app-doc/NaturalDoc: {}
+  dev-ruby/ruby-shadow: {}
 
 nest::package_use:
   app-admin/puppet:
-    use: 'augeas'
+    use: ['augeas', 'shadow']
 
   # For plymouth
   x11-libs/libdrm:
