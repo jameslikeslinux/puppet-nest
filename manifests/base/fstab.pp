@@ -19,29 +19,48 @@ class nest::base::fstab {
       'set 1/passno 0',
     ]
   } else {
-    if $::platform in ['beagleboneblack', 'pinebookpro'] {
-      $efi = []
-      $fscache = []
-    } else {
-      $efi = [
-        "set 2/spec PARTLABEL=${hostname}-efi",
-        'set 2/file /efi',
-        "set 2/vfstype vfat",
-        'set 2/opt defaults',
-        'set 2/dump 0',
-        'set 2/passno 2',
-      ]
+    case $::platform {
+      'beagleboneblack': {
+        $efi = []
+        $fscache = []
+      }
 
-      $fscache = [
-        "set 10/spec LABEL=${hostname}-fscache",
-        'set 10/file /var/cache/fscache',
-        'set 10/vfstype ext4',
-        'set 10/opt[1] defaults',
-        'set 10/opt[2] discard',
-        'set 10/dump 0',
-        'set 10/passno 0',
-      ]
+      'pinebookpro': {
+        $efi = []
+
+        $fscache = [
+          "set 10/spec LABEL=${hostname}-fscache",
+          'set 10/file /var/cache/fscache',
+          'set 10/vfstype ext4',
+          'set 10/opt[1] defaults',
+          'set 10/opt[2] discard',
+          'set 10/dump 0',
+          'set 10/passno 0',
+        ]
+      }
+
+      default: {
+        $efi = [
+          "set 2/spec PARTLABEL=${hostname}-efi",
+          'set 2/file /efi',
+          "set 2/vfstype vfat",
+          'set 2/opt defaults',
+          'set 2/dump 0',
+          'set 2/passno 2',
+        ]
+
+        $fscache = [
+          "set 10/spec LABEL=${hostname}-fscache",
+          'set 10/file /var/cache/fscache',
+          'set 10/vfstype ext4',
+          'set 10/opt[1] defaults',
+          'set 10/opt[2] discard',
+          'set 10/dump 0',
+          'set 10/passno 0',
+        ]
+      }
     }
+
     $base_changes = [
       'rm *[spec]',
 
