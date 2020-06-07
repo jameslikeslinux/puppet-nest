@@ -6,6 +6,7 @@ mod 'puppetlabs-concat', '5.2.0'
 # Forge modules
 #
 mod 'puppetlabs-acl', '2.1.0'
+mod 'puppetlabs-augeas_core', '1.0.5'
 mod 'puppetlabs-chocolatey', '3.1.1'
 mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-registry', '2.1.0'
