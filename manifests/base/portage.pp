@@ -159,6 +159,7 @@ class nest::base::portage {
     group   => 'root',
     source  => 'puppet:///modules/nest/portage/patches',
     recurse => true,
+    force   => true,
     purge   => true,
   }
 
