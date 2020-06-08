@@ -61,7 +61,7 @@ class nest::role::workstation {
       Class['::nest::base']
       -> Class['::nest::role::workstation::policykit']
 
-      if $facts['dmi']['chassis']['type'] in ['Laptop', 'Notebook'] {
+      if $facts['dmi']['chassis']['type'] in ['Laptop', 'Notebook'] and $facts['architecture'] == 'amd64' {
         contain '::nest::role::workstation::tlp'
       }
     }
