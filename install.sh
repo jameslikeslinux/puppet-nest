@@ -389,6 +389,7 @@ case "$platform" in
 esac
 
 task "Updating Stage 3..."
+destructive_chroot_cmd emerge --oneshot portage
 destructive_chroot_cmd emerge -vDuN --with-bdeps=y @world
 destructive_chroot_cmd emerge --depclean
 
