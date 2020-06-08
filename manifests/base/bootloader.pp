@@ -2,6 +2,7 @@ class nest::base::bootloader {
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'quiet',
+    'loglevel=3',
     'fbcon=scrollback:1024k',
     $::nest::isolcpus ? {
       undef   => [],
