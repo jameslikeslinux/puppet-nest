@@ -257,14 +257,14 @@ class nest::base::portage {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "*/*::haskell ~amd64\n",
+    content => "*/*::haskell ~*\n",
   }
 
   file { '/etc/portage/package.accept_keywords/nest':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "*/*::nest ~amd64\n",
+    content => "*/*::nest ~*\n",
   }
 
   file { '/etc/portage/package.accept_keywords/tlp':
@@ -272,7 +272,7 @@ class nest::base::portage {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "*/*::tlp ~amd64\n",
+    content => "*/*::tlp ~*\n",
   }
 
 
