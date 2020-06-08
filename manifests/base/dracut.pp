@@ -37,11 +37,16 @@ class nest::base::dracut {
   }
 
   if $::platform == 'pinebookpro' {
+    $pinebookpro_config_content = @(PBP_CONF)
+      add_drivers+=" rockchipdrm "
+      install_items+=" /lib/firmware/rockchip/dptx.bin "
+      | PBP_CONF
+
     file { '/etc/dracut.conf.d/10-pinebookpro.conf':
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => "add_drivers+=\" rockchipdrm \"\n",
+      content => $pinebookpro_config_content,
       require => Package['sys-kernel/dracut'],
     }
   }
