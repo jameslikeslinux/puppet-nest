@@ -35,4 +35,14 @@ class nest::base::dracut {
     content => $base_config_content,
     require => Package['sys-kernel/dracut'],
   }
+
+  if $::platform == 'pinebookpro' {
+    file { '/etc/dracut.conf.d/10-pinebookpro.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "add_drivers+=\" rockchipdrm \"\n",
+      require => Package['sys-kernel/dracut'],
+    }
+  }
 }
