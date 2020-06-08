@@ -16,6 +16,7 @@ class nest::base {
       contain '::nest::base::distccd'
       contain '::nest::base::dracut'
       contain '::nest::base::firewall'
+      contain '::nest::base::firmware'
       contain '::nest::base::fs'
       contain '::nest::base::fstab'
       contain '::nest::base::kernel'
@@ -52,6 +53,10 @@ class nest::base {
       Class['::nest::base::kernel']
       ~> Class['::nest::base::dracut']
       ~> Class['::nest::base::bootloader']
+
+      # Rebuild initramfs after firmware changes
+      Class['::nest::base::firmware']
+      ~> Class['::nest::base::dracut']
 
       # Rebuild initramfs after ZFS changes
       Class['::nest::base::kernel']
