@@ -100,7 +100,12 @@ class nest::base::portage {
       content => $::nest::video_cards;
   }
 
-  $cflags_no_debug = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
+  $cflags_no_debug  = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
+  $cflags_no_crypto = regsubst($::nest::cflags, '\+crypto', '')
+  $cflags_no_crypto_ensure = $cflags_no_crypto ? {
+    $::nest::cflags => 'absent',
+    default         => 'present',
+  }
 
   file {
     default:
@@ -117,6 +122,17 @@ class nest::base::portage {
     '/etc/portage/env/no-debug.conf':
       content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
+
+    '/etc/portage/env/no-crypto.conf':
+      ensure  => $cflags_no_crypto_ensure,
+      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
+    ;
+  }
+
+  # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
+  package_env { 'media-libs/xvid':
+    ensure => $cflags_no_crypto_ensure,
+    env    => 'no-crypto.conf',
   }
 
   # Create portage package properties rebuild affected packages
