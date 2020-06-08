@@ -10,11 +10,14 @@ class nest::role::workstation::chromium {
         before => Package['www-client/chromium'],
       }
 
-      package { [
-        'www-client/chromium',
-        'www-plugins/chrome-binary-plugins'
-      ]:
-        ensure  => installed,
+      package { 'www-client/chromium':
+        ensure => installed,
+      }
+
+      if $facts['architecture'] == 'amd64' {
+        package { 'www-plugins/chrome-binary-plugins':
+          ensure => installed,
+        }
       }
 
       $xdg_session_type = '$XDG_SESSION_TYPE'
