@@ -21,6 +21,8 @@ nest::package_keywords:
     accept_keywords: '~*'
   dev-ruby/ruby-augeas:
     accept_keywords: '~*'
+  dev-ruby/ruby-ldap:
+    accept_keywords: '~*'
   dev-ruby/ruby-shadow:
     accept_keywords: '~*'
   dev-ruby/semantic_puppet:
