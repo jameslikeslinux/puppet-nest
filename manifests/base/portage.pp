@@ -25,6 +25,8 @@ class nest::base::portage {
   $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
 
+  $makejobs_half = $makejobs_distcc_min / 2
+  $makeopts_heavy = "-j${makejobs_half} -l${loadlimit}"
 
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
@@ -127,12 +129,20 @@ class nest::base::portage {
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
     ;
+
+    '/etc/portage/env/heavy.conf':
+      content => "MAKEOPTS='${makeopts_heavy}'\n",
+    ;
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
   package_env { 'media-libs/xvid':
     ensure => $cflags_no_crypto_ensure,
     env    => 'no-crypto.conf',
+  }
+
+  package_env { $::nest::heavy_packages_hiera:
+    env => 'heavy.conf',
   }
 
   # Create portage package properties rebuild affected packages
@@ -147,6 +157,10 @@ class nest::base::portage {
     ;
 
     'package_accept_keywords':
+      before => Class['::portage'],
+    ;
+
+    'package_env':
       before => Class['::portage'],
     ;
 
