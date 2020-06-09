@@ -15,15 +15,15 @@ class nest::base::portage {
   }
 
   $makejobs_by_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
+  $makejobs_by_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024)) + 1
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
 
-  $makejobs_distcc_min = ($makejobs_by_memory < $makejobs_distcc) ? {
-    true    => $makejobs_by_memory,
-    default => $makejobs_distcc,
-  }
+  $makejobs_distcc_min = min($makejobs_by_memory, $makejobs_distcc)
+  $makejobs_distcc_min_heavy = min($makejobs_by_memory_heavy, $makejobs_distcc)
 
   $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
+  $makeopts_heavy = "-j${makejobs_distcc_min_heavy} -l${loadlimit}"
 
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
@@ -132,7 +132,7 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env/heavy.conf':
-      ensure => absent,
+      content => "MAKEOPTS='${makeopts_heavy}'\n",
     ;
   }
 
@@ -143,7 +143,7 @@ class nest::base::portage {
   }
 
   package_env { $::nest::heavy_packages_hiera:
-    env => 'no-local.conf',
+    env => ['heavy.conf', 'no-local.conf'],
   }
 
   # Create portage package properties rebuild affected packages
