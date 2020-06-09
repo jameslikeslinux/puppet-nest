@@ -127,8 +127,12 @@ class nest::base::portage {
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
     ;
 
+    '/etc/portage/env/no-local.conf':
+      content => "DISTCC_HOSTS='${::nest::base::distcc::distcc_hosts_config.join(' ')}'\n",
+    ;
+
     '/etc/portage/env/heavy.conf':
-      content => "MAKEOPTS=''\n",
+      ensure => absent,
     ;
   }
 
@@ -139,7 +143,7 @@ class nest::base::portage {
   }
 
   package_env { $::nest::heavy_packages_hiera:
-    env => 'heavy.conf',
+    env => 'no-local.conf',
   }
 
   # Create portage package properties rebuild affected packages
