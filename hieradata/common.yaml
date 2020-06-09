@@ -227,9 +227,6 @@ nest::package_use:
       - 'cgroup-hybrid' # for docker compatibility
       - 'gnuefi'        # for systemd-boot
 
-nest::heavy_packages:
-  - 'sys-devel/clang'
-
 nest::kernel_config:
   # For compiling with distcc
   CONFIG_GCC_PLUGINS: n
