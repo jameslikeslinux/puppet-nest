@@ -15,7 +15,7 @@ class nest::base::portage {
   }
 
   $makejobs_by_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
-  $makejobs_by_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024)) + 1
+  $makejobs_by_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024)) + 1
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
 
   $makejobs_distcc_min = min($makejobs_by_memory, $makejobs_distcc)
