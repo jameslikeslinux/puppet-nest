@@ -25,9 +25,6 @@ class nest::base::portage {
   $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
 
-  $makejobs_half = $makejobs_distcc_min / 2
-  $makeopts_heavy = "-j${makejobs_half} -l${loadlimit}"
-
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
   #  2. eselect profile/change make.conf
@@ -131,7 +128,7 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env/heavy.conf':
-      content => "MAKEOPTS='${makeopts_heavy}'\n",
+      content => "MAKEOPTS=''\n",
     ;
   }
 
