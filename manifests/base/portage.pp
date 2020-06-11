@@ -14,16 +14,17 @@ class nest::base::portage {
     default => undef,
   }
 
-  $makejobs_by_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
-  $makejobs_by_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024)) + 1
-  $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount + 1) |$memo, $host| { $memo + $host[1] + 1 }
-
-  $makejobs_distcc_min = min($makejobs_by_memory, $makejobs_distcc)
-  $makejobs_distcc_min_heavy = min($makejobs_by_memory_heavy, $makejobs_distcc)
-
   $loadlimit = $::nest::processorcount + 1
-  $makeopts = "-j${makejobs_distcc_min} -l${loadlimit}"
-  $makeopts_heavy = "-j${makejobs_distcc_min_heavy} -l${loadlimit}"
+
+  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
+  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024)) + 1
+  $makejobs_distcc = $::nest::distcc_hosts.reduce($loadlimit) |$memo, $host| { $memo + $host[1] + 1 }
+
+  $makejobs = min($makejobs_memory, $makejobs_distcc)
+  $makejobs_heavy = min($makejobs_memory_heavy, $loadlimit)
+
+  $makeopts = "-j${makejobs} -l${loadlimit}"
+  $makeopts_heavy = "-j${makejobs_heavy} -l${loadlimit}"
 
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
