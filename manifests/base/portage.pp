@@ -129,7 +129,7 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env/no-local.conf':
-      content => "DISTCC_HOSTS='${::nest::base::distcc::distcc_hosts_config.join(' ')}'\n",
+      ensure => absent,
     ;
 
     '/etc/portage/env/heavy.conf':
@@ -144,7 +144,7 @@ class nest::base::portage {
   }
 
   package_env { $::nest::heavy_packages_hiera:
-    env => ['heavy.conf', 'no-local.conf'],
+    env => 'heavy.conf',
   }
 
   # Create portage package properties rebuild affected packages
