@@ -3,9 +3,14 @@ nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
 nest::kernel_cmdline: ['console=ttyS2,1500000n8', 'console=tty0']
 
+# Sustained load drains the battery.  Reduce load from compilation by limiting
+# build jobs to the number of big cores and leaving the LITTLE cores free for
+# better interactivity.
+nest::processorcount: 2
+
+nest::heavy_packages:
+  - 'dev-lang/rust'   # doesn't use distcc or honor load limits
+
 nest::package_keywords:
   sys-kernel/gentoo-sources:
     slot: '5.7.0'
-
-nest::heavy_packages:
-  - 'sys-devel/clang'
