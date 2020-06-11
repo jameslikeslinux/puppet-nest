@@ -3,9 +3,9 @@ class nest::base::distcc {
     ensure => installed,
   }
 
-  $localhost_jobs = $::nest::processorcount + 1
+  $localhost_jobs = $::nest::processorcount
   $distcc_hosts_config = $::nest::distcc_hosts.map |$host, $processorcount| {
-    $jobs = $processorcount + 1
+    $jobs = $processorcount
     "${host}/${jobs}"
   }
   $localhost_config = "localhost/${localhost_jobs}"

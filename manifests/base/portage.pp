@@ -14,15 +14,14 @@ class nest::base::portage {
     default => undef,
   }
 
-  $loadlimit = $::nest::processorcount + 1
-
-  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024)) + 1
-  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024)) + 1
-  $makejobs_distcc = $::nest::distcc_hosts.reduce($loadlimit) |$memo, $host| { $memo + $host[1] + 1 }
+  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
+  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
+  $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
 
   $makejobs = min($makejobs_memory, $makejobs_distcc)
-  $makejobs_heavy = min($makejobs_memory_heavy, $loadlimit)
+  $makejobs_heavy = min($makejobs_memory_heavy, $::nest::processorcount)
 
+  $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs} -l${loadlimit}"
   $makeopts_heavy = "-j${makejobs_heavy} -l${loadlimit}"
 
@@ -243,7 +242,7 @@ class nest::base::portage {
     # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
     $eix_conf_content = @("EOT")
       *
-      @egencache --jobs=${loadlimit} --repo=haskell --update --update-use-local-desc
+      @egencache --jobs=${::nest::processorcount} --repo=haskell --update --update-use-local-desc
       | EOT
 
     $repos_workstation = @(EOT)
