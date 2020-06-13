@@ -3,10 +3,6 @@ class nest::base::kernel {
     use => 'symlink',
   }
 
-  package { 'app-admin/eclean-kernel':
-    ensure => absent,
-  }
-
   package { [
     'sys-kernel/gentoo-sources',
     'sys-kernel/linux-firmware',
@@ -47,7 +43,7 @@ class nest::base::kernel {
 
   include '::nest::base::portage'
   exec { 'make kernel':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} clean olddefconfig all ${install_target} modules_install",
+    command     => "/usr/bin/make ${::nest::base::portage::makeopts} olddefconfig all ${install_target} modules_install",
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
