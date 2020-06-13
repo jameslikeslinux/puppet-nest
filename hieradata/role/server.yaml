@@ -12,6 +12,3 @@ nest::package_use:
   # For dev-php/pecl-imagick
   media-gfx/imagemagick:
     use: '-openmp'
-
-nest::kernel_config:
-  CONFIG_SND: n

@@ -120,4 +120,12 @@ nest::package_use:
     use: 'gles2'
 
 nest::kernel_config:
+  # Networking
+  CONFIG_BT: m
+  CONFIG_BT_HIDP: m
+  CONFIG_BT_HCIBTUSB: m
+
+  # Device drivers
   CONFIG_SND_USB_AUDIO: m
+  CONFIG_UHID: m
+  CONFIG_HID_LOGITECH_DJ: m
