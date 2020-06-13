@@ -258,6 +258,10 @@ nest::kernel_config:
   CONFIG_NFSD: m
   CONFIG_NFSD_V4: y
 
+  # For zram
+  CONFIG_ZRAM: m
+  CONFIG_ZSMALLOC: m
+
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
   CONFIG_FANOTIFY: y
