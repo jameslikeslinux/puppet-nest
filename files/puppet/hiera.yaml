@@ -10,17 +10,8 @@
 
 :hierarchy:
   - "node/%{::trusted.certname}"
-  - "role/%{::role}/%{::architecture}"
   - "role/%{::role}"
   - "platform/%{::platform}"
   - "arch/%{::architecture}"
   - "os/%{::facts.osfamily}"
-
-  - "nodes/%{::trusted.certname}"
-  - "roles/%{::role}/%{::architecture}"
-  - "roles/%{::role}"
-  - "platforms/%{::platform}"
-  - "architectures/%{::architecture}/profiles/%{::nest.profile}"  # XXX Remove
-  - "architectures/%{::architecture}"
-  - "oses/%{::facts.osfamily}"                                    # XXX Remove
   - "common"
