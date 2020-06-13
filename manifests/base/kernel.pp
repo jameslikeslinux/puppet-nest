@@ -56,7 +56,7 @@ class nest::base::kernel {
   }
 
   exec { 'module-rebuild':
-    command     => "/usr/bin/emerge --usepkg n --jobs ${::nest::base::portage::loadlimit} --load-average ${::nest::base::portage::loadlimit} @module-rebuild",
+    command     => "/usr/bin/emerge --usepkg n --jobs ${::nest::processorcount} --load-average ${::nest::base::portage::loadlimit} @module-rebuild",
     timeout     => 0,
     refreshonly => true,
     subscribe   => Exec['make kernel'],
