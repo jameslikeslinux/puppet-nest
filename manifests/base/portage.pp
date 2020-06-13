@@ -270,17 +270,8 @@ class nest::base::portage {
     $repos_workstation_ensure = 'absent'
   }
 
-  $kde_keywords_content = @(EOT)
-    dev-qt/*:5
-    kde-*/*:5
-    | EOT
-
   file { '/etc/portage/package.accept_keywords/kde':
-    ensure  => $repos_workstation_ensure,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $kde_keywords_content,
+    ensure  => absent,
   }
 
   file { '/etc/portage/package.accept_keywords/haskell':
