@@ -1,16 +1,11 @@
 ---
 nest::package_keywords:
-  mail-mta/nullmailer: {}
-
+  mail-mta/nullmailer:
+    accept_keywords: '*'
   net-analyzer/openbsd-netcat:
-    accept_keywords: '~*'
-
-  x11-misc/xsel: {}
-
-  sys-fs/zfs:
-    accept_keywords: '~*'
-  sys-fs/zfs-kmod:
-    accept_keywords: '~*'
+    accept_keywords: '*'
+  x11-misc/xsel:
+    accept_keywords: '*'
 
 nest::kernel_config:
   # Prefer giving the kernel more of the virtual address space for ZFS

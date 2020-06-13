@@ -191,24 +191,17 @@ nest::lastpass_username: >
   EM1/HAq1trGEnC3jMA3TdO2AEE7Bq/qI6VmsftwMS7OXeg8=]
 
 nest::package_keywords:
-  # I always want the latest tmux features and improvements
-  app-misc/tmux: {}
-  app-editors/vim: {}
-  app-editors/vim-core: {}
-
-  # I usually want the lastest puppet
-  app-admin/puppet: {}
-  app-doc/NaturalDoc: {}
-  dev-cpp/cpp-hocon: {}
-  dev-cpp/yaml-cpp: {}
-  dev-libs/leatherman: {}
-  dev-ruby/deep_merge: {}
-  dev-ruby/facter: {}
-  dev-ruby/hiera: {}
-  dev-ruby/hocon: {}
-  dev-ruby/semantic_puppet: {}
-  dev-ruby/ruby-augeas: {}
-  dev-ruby/ruby-shadow: {}
+  # I always want the latest of these
+  app-misc/tmux:
+    accept_keywords: '~*'
+  app-editors/vim:
+    accept_keywords: '~*'
+  app-editors/vim-core:
+    accept_keywords: '~*'
+  sys-fs/zfs:
+    accept_keywords: '~*'
+  sys-fs/zfs-kmod:
+    accept_keywords: '~*'
 
 nest::package_use:
   app-admin/puppet:

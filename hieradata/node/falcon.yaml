@@ -42,11 +42,3 @@ nest::barrier_config: |
   	mousebutton(6) = keystroke(WWWBack)
   	mousebutton(7) = keystroke(WWWForward)
   end
-
-nest::package_keywords:
-  # beets
-  dev-python/jellyfish:
-    version: '=0.7.2'
-  dev-python/munkres:
-    version: '=1.1.2'
-  media-sound/beets: {}

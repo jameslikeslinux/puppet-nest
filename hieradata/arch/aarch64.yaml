@@ -1,62 +1,70 @@
 ---
 nest::package_keywords:
-  # Unmask puppet and dependencies
   app-admin/puppet:
-    accept_keywords: '~*'
-  app-emulation/virt-what:
-    accept_keywords: '~*'
-  dev-cpp/cpp-hocon:
-    accept_keywords: '~*'
-  dev-libs/leatherman:
-    accept_keywords: '~*'
-  dev-ruby/concurrent-ruby:
-    accept_keywords: '~*'
-  dev-ruby/deep_merge:
-    accept_keywords: '~*'
-  dev-ruby/facter:
-    accept_keywords: '~*'
-  dev-ruby/hiera:
-    accept_keywords: '~*'
-  dev-ruby/hocon:
-    accept_keywords: '~*'
-  dev-ruby/ruby-augeas:
-    accept_keywords: '~*'
-  dev-ruby/ruby-ldap:
-    accept_keywords: '~*'
-  dev-ruby/ruby-shadow:
-    accept_keywords: '~*'
-  dev-ruby/semantic_puppet:
-    accept_keywords: '~*'
+    accept_keywords: '*'
 
-  # Fore base packages
-  app-admin/sysstat: {}
-  app-portage/genlop: {}
-  dev-libs/libburn: {}
-  dev-libs/libisoburn: {}
-  dev-libs/libisofs: {}
+  # For app-admin/puppet
+  app-emulation/virt-what:
+    accept_keywords: '*'
+  dev-cpp/cpp-hocon:
+    accept_keywords: '*'
+  dev-libs/leatherman:
+    accept_keywords: '*'
+  dev-ruby/concurrent-ruby:
+    version: '~1.0.5'
+  dev-ruby/deep_merge:
+    accept_keywords: '*'
+  dev-ruby/facter:
+    accept_keywords: '*'
+  dev-ruby/hiera:
+    accept_keywords: '*'
+  dev-ruby/hocon:
+    accept_keywords: '*'
+  dev-ruby/ruby-augeas:
+    accept_keywords: '*'
+  dev-ruby/ruby-ldap:
+    accept_keywords: '*'
+  dev-ruby/ruby-shadow:
+    accept_keywords: '*'
+  dev-ruby/semantic_puppet:
+    accept_keywords: '*'
+
+  # For base packages
+  app-admin/sysstat:
+    accept_keywords: '*'
+  app-portage/genlop:
+    accept_keywords: '*'
+  dev-libs/libisoburn:
+    accept_keywords: '*'
   mail-mta/nullmailer:
-    accept_keywords: '~*'
-  net-analyzer/openbsd-netcat: {}
+    accept_keywords: '*'
+  net-analyzer/openbsd-netcat:
+    accept_keywords: '*'
   sys-fs/cachefilesd:
-    accept_keywords: '~*'
+    accept_keywords: '*'
   sys-fs/mtools:
-    accept_keywords: '~*'
-  sys-process/parallel: {}
-  www-client/elinks: {}
-  x11-misc/xsel: {}
+    accept_keywords: '*'
+  sys-process/parallel:
+    accept_keywords: '*'
+  www-client/elinks:
+    accept_keywords: '*'
+  x11-misc/xsel:
+    accept_keywords: '*'
 
   sys-fs/zfs:
     accept_keywords: '**'
   sys-fs/zfs-kmod:
     accept_keywords: '**'
-  virtual/linux-sources: {}
+  virtual/linux-sources:
+    version: '~3'
 
   # For sys-process/parallel
-  dev-perl/Devel-Size: {}
+  dev-perl/Devel-Size:
+    version: '~0.820.0'
 
   # For workstation role
   media-gfx/displaycal:
-    accept_keywords: '~*'
+    accept_keywords: '*'
 
 nest::kernel_config:
   # Unset default preempt for ZFS compatibility

@@ -13,4 +13,4 @@ nest::heavy_packages:
 
 nest::package_keywords:
   sys-kernel/gentoo-sources:
-    slot: '5.7.0'
+    version: '=5.7.0'

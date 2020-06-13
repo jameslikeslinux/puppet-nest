@@ -1,13 +1,24 @@
 ---
 nest::package_keywords:
-  # I always want the most recent of these:
-  app-misc/ddcutil: {}
-  gui-apps/waybar: {}
-  gui-wm/sway: {}
-  media-fonts/fontawesome: {}
-  media-gfx/displaycal: {}
-  media-sound/pulseaudio-modules-bt: {}
-  www-client/firefox: {}
+  # I always want the latest of these
+  app-misc/ddcutil:
+    accept_keywords: '~*'
+  gui-apps/waybar:
+    accept_keywords: '~*'
+  gui-wm/sway:
+    accept_keywords: '~*'
+  media-fonts/fontawesome:
+    accept_keywords: '~*'
+  media-gfx/displaycal:
+    accept_keywords: '~*'
+  media-sound/pulseaudio-modules-bt:
+    accept_keywords: '~*'
+  www-client/firefox:
+    accept_keywords: '~*'
+
+  # I always want the same stable version of these across archs
+  www-client/chromium:
+    accept_keywords: '*'
 
   # For firefox
   dev-libs/nss:
