@@ -248,7 +248,7 @@ nest::kernel_config:
 
   # Filesystems
   CONFIG_FUSE_FS: m
-  CONFIG_FSCACHE: y
+  CONFIG_FSCACHE: m
   CONFIG_CACHEFILES: m
   CONFIG_SQUASHFS: m
   CONFIG_SQUASHFS_XZ: y
