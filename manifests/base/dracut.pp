@@ -38,7 +38,7 @@ class nest::base::dracut {
 
   if $::platform == 'pinebookpro' {
     $pinebookpro_config_content = @(PBP_CONF)
-      add_drivers+=" rockchipdrm "
+      add_drivers+=" fusb302 rockchipdrm "
       install_items+=" /lib/firmware/rockchip/dptx.bin "
       | PBP_CONF
 
