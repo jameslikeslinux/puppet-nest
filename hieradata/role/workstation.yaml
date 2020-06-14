@@ -123,5 +123,6 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_SND_USB_AUDIO: m
+  CONFIG_HIDRAW: y
   CONFIG_UHID: m
   CONFIG_HID_LOGITECH_DJ: m
