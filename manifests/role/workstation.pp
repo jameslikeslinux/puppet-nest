@@ -60,10 +60,6 @@ class nest::role::workstation {
       # NetworkManager, systemd, libvirt pull in policykit
       Class['::nest::base']
       -> Class['::nest::role::workstation::policykit']
-
-      if $facts['dmi']['chassis']['type'] in ['Laptop', 'Notebook'] and $facts['architecture'] == 'amd64' {
-        contain '::nest::role::workstation::tlp'
-      }
     }
   }
 }

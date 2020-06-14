@@ -254,14 +254,6 @@ class nest::base::portage {
       sync-depth = 1
       auto-sync = yes
       masters = gentoo
-
-      [tlp]
-      location = /var/cache/portage/tlp
-      sync-type = git
-      sync-uri = https://github.com/iamjamestl/tlp-portage.git
-      sync-depth = 1
-      auto-sync = yes
-      masters = gentoo
       | EOT
 
     $repos_workstation_ensure = 'present'
@@ -290,11 +282,7 @@ class nest::base::portage {
   }
 
   file { '/etc/portage/package.accept_keywords/tlp':
-    ensure  => $repos_workstation_ensure,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::tlp ~*\n",
+    ensure  => absent,
   }
 
 
@@ -375,8 +363,7 @@ class nest::base::portage {
     ;
 
     '/var/cache/portage/tlp':
-      ensure => $repos_workstation_ensure,
-      source => 'https://github.com/iamjamestl/tlp-portage.git',
+      ensure => absent,
     ;
   }
 
