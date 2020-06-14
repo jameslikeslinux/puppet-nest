@@ -17,3 +17,13 @@ nest::package_keywords:
 
   # For now, I want the latest improvements to panfrost in mesa
   media-libs/mesa: {}
+
+nest::kernel_config:
+  # Enable frequency scaling based on scheduler data
+  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: n
+  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
+
+  # Device drivers
+  CONFIG_BATTERY_CW2015: m
+  CONFIG_SND_SOC_ES8316: m
+  CONFIG_PHY_ROCKCHIP_DP: m
