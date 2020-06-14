@@ -25,4 +25,6 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_BATTERY_CW2015: m
+  CONFIG_CHARGER_GPIO: m
   CONFIG_SND_SOC_ES8316: m
+  CONFIG_SND_SOC_SIMPLE_AMPLIFIER: m
