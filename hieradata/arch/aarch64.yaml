@@ -62,6 +62,10 @@ nest::package_keywords:
   dev-perl/Devel-Size:
     version: '~0.820.0'
 
+  # For www-client/chromium
+  dev-util/gn:
+    version: '~0.1726'
+
   # For workstation role
   media-gfx/displaycal:
     accept_keywords: '*'
