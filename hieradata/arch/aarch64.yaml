@@ -70,3 +70,6 @@ nest::kernel_config:
   # Unset default preempt for ZFS compatibility
   CONFIG_PREEMPT: n
   CONFIG_PREEMPT_VOLUNTARY: y
+
+  # For docker
+  CONFIG_CGROUP_HUGETLB: y

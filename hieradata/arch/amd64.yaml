@@ -40,5 +40,8 @@ nest::kernel_config:
   CONFIG_SND_HDA_CODEC_HDMI: m
   CONFIG_SND_HDA_PREALLOC_SIZE: 2048
 
+  # For docker
+  CONFIG_CGROUP_HUGETLB: y
+
 # Support new multilib layout in Gentoo 17.1 profile
 apache::lib_path: '/usr/lib64/apache2/modules'
