@@ -29,13 +29,17 @@ class nest::base::fstab {
         $efi = []
 
         $fscache = [
-          "set 10/spec LABEL=${hostname}-fscache",
-          'set 10/file /var/cache/fscache',
-          'set 10/vfstype ext4',
-          'set 10/opt[1] defaults',
-          'set 10/opt[2] discard',
-          'set 10/dump 0',
-          'set 10/passno 0',
+          'set 10/opt[4] fsc',
+          'set 10/opt[5] x-systemd.requires',
+          'set 10/opt[5]/value cachefilesd.service',
+
+          "set 11/spec LABEL=${hostname}-fscache",
+          'set 11/file /var/cache/fscache',
+          'set 11/vfstype ext4',
+          'set 11/opt[1] defaults',
+          'set 11/opt[2] discard',
+          'set 11/dump 0',
+          'set 11/passno 0',
         ]
       }
 
@@ -50,13 +54,17 @@ class nest::base::fstab {
         ]
 
         $fscache = [
-          "set 10/spec LABEL=${hostname}-fscache",
-          'set 10/file /var/cache/fscache',
-          'set 10/vfstype ext4',
-          'set 10/opt[1] defaults',
-          'set 10/opt[2] discard',
-          'set 10/dump 0',
-          'set 10/passno 0',
+          'set 10/opt[4] fsc',
+          'set 10/opt[5] x-systemd.requires',
+          'set 10/opt[5]/value cachefilesd.service',
+
+          "set 11/spec LABEL=${hostname}-fscache",
+          'set 11/file /var/cache/fscache',
+          'set 11/vfstype ext4',
+          'set 11/opt[1] defaults',
+          'set 11/opt[2] discard',
+          'set 11/dump 0',
+          'set 11/passno 0',
         ]
       }
     }
@@ -104,20 +112,17 @@ class nest::base::fstab {
     ].flatten
 
     $nfs_changes = [
-      $fscache,
+      "set 10/spec ${::nest::nestfs_hostname}:/nest",
+      'set 10/file /nest',
+      'set 10/vfstype nfs',
+      'set 10/opt[1] noauto',
+      'set 10/opt[2] x-systemd.automount',
+      'set 10/opt[3] x-systemd.requires',
+      'set 10/opt[3]/value openvpn-client@nest.service',
+      'set 10/dump 0',
+      'set 10/passno 0',
 
-      "set 11/spec ${::nest::nestfs_hostname}:/nest",
-      'set 11/file /nest',
-      'set 11/vfstype nfs',
-      'set 11/opt[1] noauto',
-      'set 11/opt[2] fsc',
-      'set 11/opt[3] x-systemd.automount',
-      'set 11/opt[4] x-systemd.requires',
-      'set 11/opt[4]/value openvpn-client@nest.service',
-      'set 11/opt[5] x-systemd.requires',
-      'set 11/opt[5]/value cachefilesd.service',
-      'set 11/dump 0',
-      'set 11/passno 0',
+      $fscache
     ].flatten
   }
 
