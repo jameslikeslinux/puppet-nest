@@ -65,6 +65,8 @@ nest::package_keywords:
   # For workstation role
   media-gfx/displaycal:
     accept_keywords: '*'
+  x11-misc/picom:
+    accept_keywords: '*'
 
   # For www-client/chromium
   dev-util/gn:
