@@ -72,6 +72,12 @@ nest::package_keywords:
   dev-util/gn:
     version: '~0.1726'
 
+  # For x11-misc/picom
+  dev-libs/libconfig:
+    version: '~1.5'
+  dev-libs/uthash:
+    accept_keywords: '*'
+
   # For x11-misc/taffybar
   app-text/gnome-doc-utils:
     accept_keywords: '~*'
