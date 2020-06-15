@@ -9,8 +9,10 @@ nest::kernel_cmdline: ['console=ttyS2,1500000n8', 'console=tty0']
 nest::processorcount: 2
 
 nest::heavy_packages:
-  - 'dev-lang/rust'     # doesn't use distcc or honor load limits
-  - 'x11-misc/taffybar' # haskell
+  - 'dev-lang/rust'   # doesn't use distcc or honor load limits
+  - 'x11-misc/taffybar'
+  - 'x11-wm/xmonad'
+  - 'x11-wm/xmonad-contrib'
 
 nest::package_keywords:
   sys-kernel/gentoo-sources:
