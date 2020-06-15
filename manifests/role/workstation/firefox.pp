@@ -5,6 +5,14 @@ class nest::role::workstation::firefox {
         use => 'hwaccel',
       }
 
+      # Something about elf-hack enabled by debug flags and not working on arm64
+      if $facts['architecture'] == 'aarch64' {
+        package_env { 'www-client/firefox':
+          env    => 'no-debug.conf',
+          before => Package['www-client/firefox'],
+        }
+      }
+
       package { 'www-client/firefox':
         ensure => installed,
       }
