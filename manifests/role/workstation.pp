@@ -17,7 +17,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::policykit'
       contain '::nest::role::workstation::plasma'
       contain '::nest::role::workstation::pulseaudio'
-      contain '::nest::role::workstation::qemu'
       contain '::nest::role::workstation::sway'
       contain '::nest::role::workstation::urxvt'
       contain '::nest::role::workstation::xmonad'
@@ -25,6 +24,12 @@ class nest::role::workstation {
 
       if $::nest::barrier_config {
         contain '::nest::role::workstation::barrier'
+      }
+
+      # XXX: Need to figure out the role for qemu in other archs.  Should it go
+      # into the base config?
+      if $facts['architecture'] == 'amd64' {
+        contain '::nest::role::workstation::qemu'
       }
 
       # Plasma pulls in xorg-drivers which builds nvidia-drivers which requires
