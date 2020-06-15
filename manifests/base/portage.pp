@@ -105,6 +105,10 @@ class nest::base::portage {
     $::nest::cflags => 'absent',
     default         => 'present',
   }
+  $haskell_env_ensure = $::platform ? {
+    'pinebookpro' => present,
+    default       => absent,
+  }
 
   file {
     default:
@@ -134,6 +138,11 @@ class nest::base::portage {
     '/etc/portage/env/heavy.conf':
       content => "MAKEOPTS='${makeopts_heavy}'\n",
     ;
+
+    '/etc/portage/env/haskell.conf':
+      ensure  => $haskell_env_ensure,
+      content => "MAKEOPTS=''\n",
+    ;
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
@@ -146,17 +155,12 @@ class nest::base::portage {
     env => 'heavy.conf',
   }
 
-  $haskell_heavy_ensure = $::platform ? {
-    'pinebookpro' => present,
-    default       => absent,
-  }
-
   file { '/etc/portage/package.env/haskell':
-    ensure  => $haskell_heavy_ensure,
+    ensure  => $haskell_env_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "dev-haskell/* heavy.conf\n",
+    content => "dev-haskell/* haskell.conf\n",
   }
 
   # Create portage package properties rebuild affected packages
