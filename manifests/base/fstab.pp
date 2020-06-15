@@ -1,9 +1,30 @@
 class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
+  if $facts['live'] {
+    $fscache = false
+    Mount <| tag == 'live' |>
+  } elsif $::platform == 'beagleboneblack' {
+    $fscache = false
+    Mount <| tag == 'beagleboneblack' |>
+  } elsif $::platform == 'pinebookpro' {
+    Mount <| tag == 'pinebookpro' |>
+  } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
+    Mount <| tag == 'nestfs-host' |>
+  } elsif $::nest::bootloader == 'systemd' {
+    Mount <| tag == 'systemd-boot' |>
+  } else {
+    Mount <| tag == 'default' |>
+  }
+
   $boot_fstype = $::nest::bootloader ? {
     'systemd' => 'vfat',
     default   => 'ext2',
+  }
+
+  $nest_options = $fscache ? {
+    false   => 'noauto,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service',
+    default => 'noauto,fsc,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service,x-systemd.requires=cachefilesd.service',
   }
 
   @mount {
@@ -46,35 +67,13 @@ class nest::base::fstab {
       tag     => ['pinebookpro', 'systemd-boot', 'default'],
     ;
 
-    'nest-fscache':
+    '/nest':
       name    => '/nest',
       device  => "${::nest::nestfs_hostname}:/nest",
       fstype  => 'nfs',
-      options => 'noauto,fsc,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service,x-systemd.requires=cachefilesd.service',
-      tag     => ['pinebookpro', 'systemd-boot', 'default'],
+      options => $nest_options,
+      tag     => ['live', 'beagleboneblack', 'pinebookpro', 'systemd-boot', 'default'],
     ;
-
-    'nest-nocache':
-      name    => '/nest',
-      device  => "${::nest::nestfs_hostname}:/nest",
-      fstype  => 'nfs',
-      options => 'noauto,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service',
-      tag     => ['live', 'beagleboneblack'],
-    ;
-  }
-
-  if $facts['live'] {
-    Mount <| tag == 'live' |>
-  } elsif $::platform == 'beagleboneblack' {
-    Mount <| tag == 'beagleboneblack' |>
-  } elsif $::platform == 'pinebookpro' {
-    Mount <| tag == 'pinebookpro' |>
-  } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
-    Mount <| tag == 'nestfs-host' |>
-  } elsif $::nest::bootloader == 'systemd' {
-    Mount <| tag == 'systemd-boot' |>
-  } else {
-    Mount <| tag == 'default' |>
   }
 
   resources { 'mount':
