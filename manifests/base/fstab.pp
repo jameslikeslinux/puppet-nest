@@ -52,7 +52,7 @@ class nest::base::fstab {
       'set 5/opt[1] defaults',
       'set 5/opt[2] discard',
       'set 5/dump 0',
-      'set 5/passno 0',
+      'set 5/passno 2',
 
       "set 6/spec ${::nest::nestfs_hostname}:/nest",
       'set 6/file /nest',
