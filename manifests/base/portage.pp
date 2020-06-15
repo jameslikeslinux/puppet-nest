@@ -146,6 +146,19 @@ class nest::base::portage {
     env => 'heavy.conf',
   }
 
+  $haskell_heavy_ensure = $::platform ? {
+    'pinebookpro' => present,
+    default       => absent,
+  }
+
+  file { '/etc/portage/package.env/haskell':
+    ensure  => $haskell_heavy_ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "dev-haskell/* heavy.conf\n",
+  }
+
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_mask, $::nest::package_mask_hiera, { 'before' => Class['::portage'] })
@@ -284,7 +297,6 @@ class nest::base::portage {
   file { '/etc/portage/package.accept_keywords/tlp':
     ensure  => absent,
   }
-
 
   file { '/etc/eix-sync.conf':
     mode    => '0644',
