@@ -95,11 +95,9 @@ class nest::base::fs {
       ensure => installed,
     }
 
-    # Work around https://bugs.gentoo.org/show_bug.cgi?id=593088
-    $cachefilesd_fix_path = @(EOT)
-      [Service]
-      ExecStart=
-      ExecStart=/sbin/cachefilesd -n -f /etc/cachefilesd.conf
+    $cachefilesd_requires_mounts_for = @(EOT)
+      [Unit]
+      RequiresMountsFor=/var/cache/fscache
       | EOT
 
     file { '/etc/systemd/system/cachefilesd.service.d':
@@ -110,10 +108,14 @@ class nest::base::fs {
     }
 
     file { '/etc/systemd/system/cachefilesd.service.d/10-fix-path.conf':
+      ensure => absent,
+    }
+
+    file { '/etc/systemd/system/cachefilesd.service.d/10-requires-mounts-for.conf':
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => $cachefilesd_fix_path,
+      content => $cachefilesd_requires_mounts_for,
       notify  => Nest::Lib::Systemd_reload['cachefilesd'],
       require => Package['sys-fs/cachefilesd'],
     }

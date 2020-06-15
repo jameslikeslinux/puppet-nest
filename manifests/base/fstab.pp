@@ -114,6 +114,8 @@ class nest::base::fstab {
       'set 11/opt[3] x-systemd.automount',
       'set 11/opt[4] x-systemd.requires',
       'set 11/opt[4]/value openvpn-client@nest.service',
+      'set 11/opt[5] x-systemd.requires',
+      'set 11/opt[5]/value cachefilesd.service',
       'set 11/dump 0',
       'set 11/passno 0',
     ].flatten
