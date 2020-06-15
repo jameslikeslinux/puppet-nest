@@ -62,13 +62,23 @@ nest::package_keywords:
   dev-perl/Devel-Size:
     version: '~0.820.0'
 
+  # For workstation role
+  media-gfx/displaycal:
+    accept_keywords: '*'
+
   # For www-client/chromium
   dev-util/gn:
     version: '~0.1726'
 
-  # For workstation role
-  media-gfx/displaycal:
-    accept_keywords: '*'
+  # For x11-misc/taffybar
+  app-text/gnome-doc-utils:
+    accept_keywords: '~*'
+    version: '~0.20.10'
+  dev-haskell/byteorder:
+    accept_keywords: '~*'
+    version: '~1.0.4'
+  dev-libs/libdbusmenu:
+    version: '~16.04.0'
 
 nest::kernel_config:
   # Unset default preempt for ZFS compatibility
