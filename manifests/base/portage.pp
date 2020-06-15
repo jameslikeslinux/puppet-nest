@@ -15,7 +15,7 @@ class nest::base::portage {
   }
 
   $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
+  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (4096.0 * 1024 * 1024))
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
 
   $makejobs = min($makejobs_memory, $makejobs_distcc)
@@ -105,10 +105,6 @@ class nest::base::portage {
     $::nest::cflags => 'absent',
     default         => 'present',
   }
-  $haskell_env_ensure = $::platform ? {
-    'pinebookpro' => present,
-    default       => absent,
-  }
 
   file {
     default:
@@ -138,11 +134,6 @@ class nest::base::portage {
     '/etc/portage/env/heavy.conf':
       content => "MAKEOPTS='${makeopts_heavy}'\n",
     ;
-
-    '/etc/portage/env/haskell.conf':
-      ensure  => $haskell_env_ensure,
-      content => "MAKEOPTS=''\n",
-    ;
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
@@ -155,12 +146,17 @@ class nest::base::portage {
     env => 'heavy.conf',
   }
 
+  $haskell_heavy_ensure = $::platform ? {
+    'pinebookpro' => present,
+    default       => absent,
+  }
+
   file { '/etc/portage/package.env/haskell':
-    ensure  => $haskell_env_ensure,
+    ensure  => $haskell_heavy_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "dev-haskell/* haskell.conf\n",
+    content => "dev-haskell/* heavy.conf\n",
   }
 
   # Create portage package properties rebuild affected packages
