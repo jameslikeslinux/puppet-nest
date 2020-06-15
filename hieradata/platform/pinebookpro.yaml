@@ -9,6 +9,7 @@ nest::kernel_cmdline: ['console=ttyS2,1500000n8', 'console=tty0']
 nest::processorcount: 2
 
 nest::heavy_packages:
+  - 'dev-haskell/*'   # gch segfaults with high parallelism and low memory
   - 'dev-lang/rust'   # doesn't use distcc or honor load limits
 
 nest::package_keywords:
