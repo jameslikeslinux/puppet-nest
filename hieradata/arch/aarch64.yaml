@@ -63,10 +63,26 @@ nest::package_keywords:
     version: '~0.820.0'
 
   # For workstation role
+  app-text/texlive:
+    version: '~2020'
   media-gfx/displaycal:
     accept_keywords: '*'
+  sys-fs/inotify-tools:
+    version: '~3.20.1'
   x11-misc/picom:
     accept_keywords: '*'
+  x11-misc/urxvt-font-size:
+    accept_keywords: '*'
+  x11-misc/urxvt-perls:
+    accept_keywords: '*'
+
+  # For gui-apps/waybar
+  dev-cpp/gtkmm:
+    version: '~3.24.2'
+
+  # For media-gfx/displaycal
+  x11-apps/xrandr:
+    version: '~1.5.1'
 
   # For www-client/chromium
   dev-util/gn:
