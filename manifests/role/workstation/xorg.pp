@@ -1,4 +1,11 @@
 class nest::role::workstation::xorg {
+  file { '/etc/X11/xorg.conf.d':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
   $keyboard_layout = 'us'
 
   if $::nest::dvorak {
@@ -102,19 +109,18 @@ class nest::role::workstation::xorg {
     content => $scaling,
   }
 
-  package { 'x11-apps/xeyes':
-    ensure => absent,
+  package { 'x11-misc/vdpauinfo':
+    ensure => $nvidia_conf_ensure,
   }
 
   package { [
     'x11-apps/xev',
     'x11-apps/xinput',
-    'x11-apps/xlogo',
     'x11-apps/xkill',
+    'x11-apps/xlogo',
     'x11-apps/xmodmap',
     'x11-apps/xrandr',
     'x11-apps/xwininfo',
-    'x11-misc/vdpauinfo',
     'x11-misc/xdotool',
   ]:
     ensure => installed,
