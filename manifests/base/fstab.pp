@@ -1,83 +1,103 @@
 class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
-  if $facts['live'] {
-    $fscache = false
-    Mount <| tag == 'live' |>
-  } elsif $::platform == 'beagleboneblack' {
-    $fscache = false
-    Mount <| tag == 'beagleboneblack' |>
-  } elsif $::platform == 'pinebookpro' {
-    Mount <| tag == 'pinebookpro' |>
-  } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
-    Mount <| tag == 'nestfs-host' |>
-  } elsif $::nest::bootloader == 'systemd' {
-    Mount <| tag == 'systemd-boot' |>
-  } else {
-    Mount <| tag == 'default' |>
-  }
-
-  $boot_fstype = $::nest::bootloader ? {
+  $boot_vfstype = $::nest::bootloader ? {
     'systemd' => 'vfat',
     default   => 'ext2',
   }
 
-  $nest_options = $fscache ? {
-    false   => 'noauto,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service',
-    default => 'noauto,fsc,x-systemd.automount,x-systemd.requires=openvpn-client@nest.service,x-systemd.requires=cachefilesd.service',
+  $specs = {
+    'boot'    => [
+      "set 1/spec PARTLABEL=${hostname}-boot",
+      'set 1/file /boot',
+      "set 1/vfstype ${boot_vfstype}",
+      'set 1/opt defaults',
+      'set 1/dump 0',
+      'set 1/passno 2',
+    ],
+
+    'efi'     => [
+      "set 2/spec PARTLABEL=${hostname}-efi",
+      'set 2/file /efi',
+      "set 2/vfstype vfat",
+      'set 2/opt defaults',
+      'set 2/dump 0',
+      'set 2/passno 2',
+    ],
+
+    'swap'    => [
+      "set 3/spec LABEL=${hostname}-swap",
+      'set 3/file none',
+      'set 3/vfstype swap',
+      'set 3/opt discard',
+      'set 3/dump 0',
+      'set 3/passno 0',
+    ],
+
+    'var'     => [
+      'set 4/spec none',
+      'set 4/file /var',
+      'set 4/vfstype none',
+      'set 4/opt[1] fake',
+      'set 4/opt[2] x-systemd.requires',
+      'set 4/opt[2]/value zfs-mount.service',
+      'set 4/dump 0',
+      'set 4/passno 0',
+    ],
+
+    'nest-fscache' => [
+      "set 5/spec LABEL=${hostname}-fscache",
+      'set 5/file /var/cache/fscache',
+      'set 5/vfstype ext4',
+      'set 5/opt[1] defaults',
+      'set 5/opt[2] discard',
+      'set 5/dump 0',
+      'set 5/passno 0',
+
+      "set 6/spec ${::nest::nestfs_hostname}:/nest",
+      'set 6/file /nest',
+      'set 6/vfstype nfs',
+      'set 6/opt[1] noauto',
+      'set 6/opt[2] fsc',
+      'set 6/opt[3] x-systemd.automount',
+      'set 6/opt[4] x-systemd.requires',
+      'set 6/opt[4]/value openvpn-client@nest.service',
+      'set 6/opt[5] x-systemd.requires',
+      'set 6/opt[5]/value cachefilesd.service',
+      'set 6/dump 0',
+      'set 6/passno 0',
+    ],
+
+    'nest-nocache' => [
+      "set 6/spec ${::nest::nestfs_hostname}:/nest",
+      'set 6/file /nest',
+      'set 6/vfstype nfs',
+      'set 6/opt[1] noauto',
+      'set 6/opt[2] x-systemd.automount',
+      'set 6/opt[3] x-systemd.requires',
+      'set 6/opt[3]/value openvpn-client@nest.service',
+      'set 6/dump 0',
+      'set 6/passno 0',
+    ],
   }
 
-  @mount {
-    '/boot':
-      device  => "PARTLABEL=${hostname}-boot",
-      fstype  => $boot_fstype,
-      options => 'defaults',
-      pass    => 2,
-      tag     => ['beagleboneblack', 'pinebookpro', 'nestfs-host', 'systemd-boot', 'default'],
-    ;
-
-    '/efi':
-      device  => "PARTLABEL=${hostname}-efi",
-      fstype  => 'vfat',
-      options => 'defaults',
-      pass    => 2,
-      tag     => ['nestfs-host', 'systemd-boot'],
-    ;
-
-    'swap':
-      name    => 'none',
-      device  => "LABEL=${hostname}-swap",
-      fstype  => 'swap',
-      options => 'discard',
-      tag     => ['beagleboneblack', 'pinebookpro', 'nestfs-host', 'systemd-boot', 'default'],
-    ;
-
-    '/var':
-      device  => 'none',
-      fstype  => 'none',
-      options => 'fake,x-systemd.requires=zfs-mount.service',
-      tag     => ['beagleboneblack', 'pinebookpro', 'nestfs-host', 'systemd-boot', 'default'],
-    ;
-
-    '/var/cache/fscache':
-      device  => "LABEL=${hostname}-fscache",
-      fstype  => 'ext4',
-      options => 'defaults,discard',
-      pass    => 2,
-      tag     => ['pinebookpro', 'systemd-boot', 'default'],
-    ;
-
-    '/nest':
-      name    => '/nest',
-      device  => "${::nest::nestfs_hostname}:/nest",
-      fstype  => 'nfs',
-      options => $nest_options,
-      tag     => ['live', 'beagleboneblack', 'pinebookpro', 'systemd-boot', 'default'],
-    ;
+  if $facts['live'] {
+    $fstab = $specs['nest-nocache']
+  } elsif $::platform == 'beagleboneblack' {
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-nocache']
+  } elsif $::platform == 'pinebookpro' {
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
+  } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
+    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var']
+  } elsif $::nest::bootloader == 'systemd' {
+    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
+  } else {
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
   }
 
-  resources { 'mount':
-    purge => true,
+  augeas { 'fstab':
+    context => '/files/etc/fstab',
+    changes => ['rm *[spec]'] + $fstab
   }
 
   # XXX: Hide harmless error at shutdown when trying to unmount /var due to
