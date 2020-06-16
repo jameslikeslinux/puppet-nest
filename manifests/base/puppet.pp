@@ -5,6 +5,17 @@ class nest::base::puppet {
   }
 
   if $facts['osfamily'] == 'Gentoo' {
+    file { [
+      '/etc/puppetlabs',
+      '/etc/puppetlabs/facter',
+      '/etc/puppetlabs/facter/facts.d',
+    ]:
+      ensure => 'directory',
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+    }
+
     $facter_conf = @(FACTER_CONF)
       global : {
           external-dir : [ "/etc/puppetlabs/facter/facts.d" ]
