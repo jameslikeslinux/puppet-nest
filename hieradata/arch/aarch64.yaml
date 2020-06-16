@@ -167,6 +167,8 @@ nest::package_keywords:
     version: '~2.62.6'
   dev-libs/libsigc++:
     version: '~2.10.1'
+  dev-util/gdbus-codegen:
+    version: '~2.62.6'
 
   # For media-gfx/displaycal
   dev-python/faulthandler:
