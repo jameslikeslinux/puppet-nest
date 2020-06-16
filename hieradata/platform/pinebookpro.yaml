@@ -32,3 +32,6 @@ nest::kernel_config:
   CONFIG_SND_SOC_ES8316: m
   CONFIG_SND_SOC_SIMPLE_AMPLIFIER: m
   CONFIG_HID_MULTITOUCH: m
+
+  # Nouveau is not needed and it takes too long to compile
+  CONFIG_DRM_NOUVEAU: n

@@ -5,6 +5,6 @@ nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
 
 nest::kernel_config:
-  # Graphics/audio support takes too long to compile and we don't need it
+  # Graphics/audio support is not needed and it takes too long to compile
   CONFIG_DRM: n
   CONFIG_SND: n
