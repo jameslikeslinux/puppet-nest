@@ -122,6 +122,7 @@ class nest::role::workstation::xorg {
     'x11-apps/xrandr',
     'x11-apps/xwininfo',
     'x11-misc/xdotool',
+    'x11-terms/xterm',
   ]:
     ensure => installed,
   }
