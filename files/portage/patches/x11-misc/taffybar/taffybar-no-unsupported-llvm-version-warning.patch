@@ -1,0 +1,12 @@
+diff -ur taffybar-3.2.1.orig/src/System/Taffybar.hs taffybar-3.2.1/src/System/Taffybar.hs
+--- taffybar-3.2.1.orig/src/System/Taffybar.hs	2001-09-08 21:46:40.000000000 -0400
++++ taffybar-3.2.1/src/System/Taffybar.hs	2020-06-16 12:15:41.732978407 -0400
+@@ -133,7 +133,7 @@
+   { Dyre.projectName = "taffybar"
+   , Dyre.realMain = dyreTaffybarMain
+   , Dyre.showError = showError
+-  , Dyre.ghcOpts = ["-threaded", "-rtsopts"]
++  , Dyre.ghcOpts = ["-threaded", "-rtsopts", "-Wno-unsupported-llvm-version"]
+   , Dyre.rtsOptsHandling = Dyre.RTSAppend ["-I0", "-V0"]
+   }
+ 
