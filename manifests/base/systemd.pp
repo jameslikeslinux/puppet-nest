@@ -129,7 +129,7 @@ class nest::base::systemd {
   }
 
   $vconsole_conf_content = @("EOT")
-    FONT=ter-v${::nest::console_font_size}n
+    FONT=ter-v${::nest::console_font_size}b
     KEYMAP=${keymap}
     | EOT
 

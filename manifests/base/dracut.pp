@@ -17,7 +17,7 @@ class nest::base::dracut {
     $base_config_content = @(EOT)
       add_dracutmodules+=" dmsquash-live livenet "
       omit_dracutmodules+=" zfs "
-      kernel_cmdline="rd.live.overlay.thin=1 rd.vconsole.font=ter-v16n"
+      kernel_cmdline="rd.live.overlay.thin=1 rd.vconsole.font=ter-v16b"
       | EOT
   } else {
     $base_config_content = @("EOT")

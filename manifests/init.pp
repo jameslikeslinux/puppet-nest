@@ -92,7 +92,7 @@ class nest (
   $text_scaling_factor_percent_of_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor * 96.0)).round(3) %>')
   $text_scaling_factor_percent_of_rounded_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor_rounded * 96.0)).round(3) %>')
 
-  $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
+  $console_font_sizes        = [16, 18, 20, 22, 24, 28, 32]
   $console_font_size_ideal   = 16 * $::nest::text_scaling_factor
   $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(16) { |size| size - @console_font_size_ideal <= 0 } %>')
   $console_font_size         = $console_font_size_smaller
