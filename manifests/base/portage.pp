@@ -83,7 +83,7 @@ class nest::base::portage {
     'emerge_default_opts':
       content => '${EMERGE_DEFAULT_OPTS} --usepkg';
     'features':
-      content => ['buildpkg', 'distcc', 'splitdebug', 'compressdebug'] + $sandbox_features;
+      content => ['buildpkg', 'distcc', 'splitdebug'] + $sandbox_features;
     'input_devices':
       ensure  => $input_devices_ensure,
       content => $::nest::input_devices;
