@@ -93,13 +93,13 @@ class nest (
   $text_scaling_factor_percent_of_rounded_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor_rounded * 96.0)).round(3) %>')
 
   $console_font_sizes        = [14, 16, 18, 20, 22, 24, 28, 32]
-  $console_font_size_ideal   = 14 * $::nest::text_scaling_factor
-  $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(14) { |size| size - @console_font_size_ideal.round <= 0 } %>')
+  $console_font_size_ideal   = 16 * $::nest::text_scaling_factor
+  $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(16) { |size| size - @console_font_size_ideal <= 0 } %>')
   $console_font_size         = $console_font_size_smaller
 
   $cursor_sizes        = [24, 32, 36, 40, 48, 64, 96]
   $cursor_size_ideal   = 24 * $::nest::gui_scaling_factor
-  $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal.round <= 0 } %>')
+  $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
 
   if $facts['kernel'] == 'Linux' {
