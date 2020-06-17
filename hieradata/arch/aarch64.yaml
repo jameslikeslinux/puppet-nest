@@ -93,8 +93,6 @@ nest::package_keywords:
     accept_keywords: '*'
   x11-misc/urxvt-perls:
     accept_keywords: '*'
-  x11-terms/alacritty:
-    accept_keywords: '*'
   x11-terms/rxvt-unicode:
     accept_keywords: '*'
 
