@@ -1,10 +1,6 @@
 ---
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
-nest::kernel_cmdline:
-  - 'console=ttyS2,1500000n8'
-  - 'console=tty0'
-  - 'mem_sleep_default=s2idle'  # ATF doesn't support deep sleep yet
 nest::text_scaling_factor: 1.1
 
 # Sustained load drains the battery.  Reduce load from compilation by limiting
@@ -24,6 +20,12 @@ nest::package_keywords:
 
   # For now, I want the latest improvements to panfrost in mesa
   media-libs/mesa: {}
+
+nest::kernel_cmdline:
+  - 'console=ttyS2,1500000n8'
+  - 'console=tty0'
+  - 'mem_sleep_default=s2idle'  # ATF doesn't support deep sleep yet
+  - 'noefi'                     # EFI services don't support power off
 
 nest::kernel_config:
   # Enable frequency scaling based on scheduler data
