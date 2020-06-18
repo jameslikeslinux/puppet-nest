@@ -105,10 +105,15 @@ class nest::base::libvirt {
 
   # Apply the parameters from above when the bridge module is loaded
   # See sysctl.d(5)
-  file { '/etc/udev/rules.d/99-bridge.rules':
+  file { '/etc/udev/rules.d/10-bridge.rules':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => $bridge_udev_rules,
+  }
+
+  # Don't like order 99
+  file { '/etc/udev/rules.d/99-bridge.rules':
+    ensure => absent,
   }
 }

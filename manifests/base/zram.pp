@@ -14,4 +14,10 @@ class nest::base::zram {
     group   => 'root',
     content => "KERNEL==\"zram0\", ATTR{disksize}=\"${zram_disksize}\"\n",
   }
+
+  # Move pages to zram more opportunistically
+  sysctl { 'vm.swappiness':
+    value  => '100',
+    target => '/etc/sysctl.d/zram.conf',
+  }
 }
