@@ -24,8 +24,7 @@ nest::package_keywords:
 nest::kernel_cmdline:
   - 'console=ttyS2,1500000n8'
   - 'console=tty0'
-  - 'mem_sleep_default=s2idle'  # ATF doesn't support deep sleep yet
-  - 'noefi'                     # EFI services don't support power off
+  - 'noefi'   # EFI services don't support power off
 
 nest::kernel_config:
   # Enable frequency scaling based on scheduler data
