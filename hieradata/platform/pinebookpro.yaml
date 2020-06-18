@@ -1,7 +1,10 @@
 ---
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
-nest::kernel_cmdline: ['console=ttyS2,1500000n8', 'console=tty0']
+nest::kernel_cmdline:
+  - 'console=ttyS2,1500000n8'
+  - 'console=tty0'
+  - 'mem_sleep_default=s2idle'  # ATF doesn't support deep sleep yet
 nest::text_scaling_factor: 1.1
 
 # Sustained load drains the battery.  Reduce load from compilation by limiting
@@ -28,13 +31,11 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
 
   # Device drivers
-  CONFIG_ROCKCHIP_SIP: y
   CONFIG_BATTERY_CW2015: m
   CONFIG_CHARGER_GPIO: m
   CONFIG_SND_SOC_ES8316: m
   CONFIG_SND_SOC_SIMPLE_AMPLIFIER: m
   CONFIG_HID_MULTITOUCH: m
-  CONFIG_ROCKCHIP_SUSPEND_MODE: y
 
   # Nouveau is not needed and it takes too long to compile
   CONFIG_DRM_NOUVEAU: n
