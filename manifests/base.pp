@@ -28,6 +28,7 @@ class nest::base {
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
       contain '::nest::base::zfs'
+      contain '::nest::base::zram'
 
       # Setup distcc before portage, but distccd needs systemd, which is
       # installed after portage is configured.

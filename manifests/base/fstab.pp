@@ -26,10 +26,10 @@ class nest::base::fstab {
     ],
 
     'swap'    => [
-      "set 3/spec LABEL=${hostname}-swap",
+      "set 3/spec /dev/zram0",
       'set 3/file none',
       'set 3/vfstype swap',
-      'set 3/opt discard',
+      'set 3/opt x-systemd.makefs',
       'set 3/dump 0',
       'set 3/passno 0',
     ],
