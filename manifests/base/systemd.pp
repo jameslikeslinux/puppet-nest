@@ -148,19 +148,34 @@ class nest::base::systemd {
     default => "CPUAffinity=${availcpus_formatted}",
   }
 
-  file_line { 'system.conf-CPUAffinity':
-    path  => '/etc/systemd/system.conf',
-    line  => $cpu_affinity,
-    match => '^#?CPUAffinity=',
+  file_line {
+    default:
+      notify => Nest::Lib::Systemd_reload['systemd'],
+    ;
+
+    'system.conf-CPUAffinity':
+      path  => '/etc/systemd/system.conf',
+      line  => $cpu_affinity,
+      match => '^#?CPUAffinity=',
+    ;
+
+    # Kill all user processes at end of session.
+    # This is the default in systemd-230.
+    'logind.conf-KillUserProcesses':
+      path  => '/etc/systemd/logind.conf',
+      line  => 'KillUserProcesses=yes',
+      match => '^#?KillUserProcesses=',
+    ;
+
+    # There's no real swap on which to hibernate
+    'sleep.conf-DisallowHibernation':
+      path  => '/etc/systemd/sleep.conf',
+      line  => 'AllowHibernation=no',
+      match => '^#?AllowHibernation=',
+    ;
   }
 
-  # Kill all user processes at end of session.
-  # This is the default in systemd-230.
-  file_line { 'logind.conf-KillUserProcesses':
-    path  => '/etc/systemd/logind.conf',
-    line  => 'KillUserProcesses=yes',
-    match => '^#?KillUserProcesses=',
-  }
+  nest::lib::systemd_reload { 'systemd': }
 
   # Keep james's systemd services (like tmux) running
   file {
