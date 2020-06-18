@@ -12,7 +12,7 @@ class nest::base::zram {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "KERNEL==\"zram0\", ATTR{disksize}=\"${zram_disksize}\"\n",
+    content => "KERNEL==\"zram0\", ATTR{disksize}=\"${zram_disksize}\", RUN+=\"/sbin/mkswap /dev/zram0\"\n",
   }
 
   # Move pages to zram more opportunistically
