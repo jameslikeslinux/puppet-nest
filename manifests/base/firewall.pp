@@ -88,6 +88,10 @@ class nest::base::firewall {
   firewallchain { 'INPUT:filter:IPv6':
     ensure => present,
     purge  => !str2bool($::chroot),
+    ignore => [
+      '-i virbr\d+',
+      '-j LIBVIRT_INP',
+    ],
   }
 
   firewall { '000 loopback (v6)':
