@@ -21,6 +21,10 @@ nest::package_keywords:
   # For now, I want the latest improvements to panfrost in mesa
   media-libs/mesa: {}
 
+  # For mesa-20.1
+  x11-base/xorg-server:
+    version: '~1.20.8'
+
 nest::kernel_cmdline:
   - 'console=ttyS2,1500000n8'
   - 'console=tty0'

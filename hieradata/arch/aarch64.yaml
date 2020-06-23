@@ -48,6 +48,8 @@ nest::package_keywords:
     accept_keywords: '*'
   www-client/elinks:
     accept_keywords: '*'
+  x11-apps/mesa-progs:
+    accept_keywords: '*'
   x11-misc/xsel:
     accept_keywords: '*'
 
