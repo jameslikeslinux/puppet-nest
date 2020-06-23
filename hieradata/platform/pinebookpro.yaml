@@ -19,9 +19,7 @@ nest::package_keywords:
     version: '=5.7.0'
 
   # For now, I want the latest improvements to panfrost in mesa
-  # XXX: Pin to 20.0.x due to xwayland problem (not displaying windows)
-  media-libs/mesa:
-    version: '<20.1'
+  media-libs/mesa: {}
 
 nest::kernel_cmdline:
   - 'console=ttyS2,1500000n8'
