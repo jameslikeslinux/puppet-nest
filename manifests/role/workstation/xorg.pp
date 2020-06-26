@@ -46,14 +46,12 @@ class nest::role::workstation::xorg {
   if $video_card == 'nvidia' {
     $nvidia_conf_ensure        = 'present'
     $monitors_conf_ensure      = 'absent'
-    $kwin_triple_buffer_ensure = 'present'
   } else {
     $nvidia_conf_ensure        = 'absent'
     $monitors_conf_ensure      = $monitor_layout ? {
       []      => 'absent',
       default => 'present',
     }
-    $kwin_triple_buffer_ensure = 'absent'
   }
 
   file { '/etc/modprobe.d/nouveau.conf':
@@ -85,11 +83,7 @@ class nest::role::workstation::xorg {
   }
 
   file { '/etc/X11/xinit/xinitrc.d/10-kwin-triple-buffer':
-    ensure  => $kwin_triple_buffer_ensure,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => "#!/bin/bash\nexport KWIN_TRIPLE_BUFFER=1\n",
+    ensure => absent,
   }
 
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
