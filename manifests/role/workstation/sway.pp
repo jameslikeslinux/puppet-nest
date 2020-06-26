@@ -12,7 +12,7 @@ class nest::role::workstation::sway {
 
   exec { 'move-sway-binary':
     command => '/bin/mv -f /usr/bin/sway /usr/bin/sway.real',
-    unless  => '/bin/grep \'^#!/bin/bash$\' /usr/bin/sway',
+    unless  => '/bin/grep \'^#!/bin/zsh$\' /usr/bin/sway',
     require => Package['gui-wm/sway'],
   }
 
@@ -24,7 +24,7 @@ class nest::role::workstation::sway {
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
   $sway_wrapper_content = @("END_WRAPPER")
-    #!/bin/bash
+    #!/bin/zsh
     GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} exec /usr/bin/sway.real "$@"
     | END_WRAPPER
 
