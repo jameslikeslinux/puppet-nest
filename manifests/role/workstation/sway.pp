@@ -1,6 +1,6 @@
 class nest::role::workstation::sway {
   nest::lib::portage::package_use { 'gui-wm/sway':
-    use => ['-swaybar', '-swaylock', '-swayidle'],
+    use => ['-swaybar'],
   }
 
   package { [
