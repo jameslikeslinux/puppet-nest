@@ -7,26 +7,9 @@ class nest::base::timesyncd {
   # See also: https://github.com/systemd/systemd/issues/5873
   $nist_time_server_ips = $nest::nist_time_servers.map |$server| { [dns_aaaa($server), dns_a($server)] }.fqdn_rotate.flatten.join(' ')
 
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
-    '/etc/systemd/timesyncd.d':
-      ensure => directory,
-    ;
-
-    '/etc/systemd/timesyncd.d/10-nist-by-ip.conf':
-      content => "[Time]\nNTP=${nist_time_server_ips}\n",
-      notify  => Service['systemd-timesyncd'],
-    ;
-  }
-
   file_line { 'timesyncd.conf-NTP':
     path   => '/etc/systemd/timesyncd.conf',
-    line   => "NTP=time.nist.gov",
+    line   => "NTP=${nist_time_server_ips}",
     match  => '^#?NTP=',
     notify => Service['systemd-timesyncd'],
   }
