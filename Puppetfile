@@ -25,6 +25,7 @@ mod 'private',
 
 
 # Required by nest
+mod 'dalen-dnsquery', '3.0.0'
 mod 'herculesteam-augeasproviders_sysctl', '2.5.0'
 mod 'puppetlabs-apache', '5.4.0'
 mod 'puppetlabs-firewall', '1.14.0'
