@@ -27,6 +27,7 @@ class nest::base {
       contain '::nest::base::portage'
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
+      contain '::nest::base::timesyncd'
       contain '::nest::base::zfs'
       contain '::nest::base::zram'
 

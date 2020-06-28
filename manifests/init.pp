@@ -39,6 +39,7 @@ class nest (
   $fileserver              = false,
   $libvirt                 = false,
   $openvpn_server          = false,
+  Array[Stdlib::Fqdn] $nist_time_servers = [],
 
   Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
 

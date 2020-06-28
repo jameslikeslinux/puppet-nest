@@ -27,11 +27,6 @@ class nest::base::systemd {
     replace => false,
   }
 
-  # Enable NTP
-  service { 'systemd-timesyncd':
-    enable => true,
-  }
-
   $nsswitch_id_changes = ['passwd', 'shadow', 'group'].map |$database| {
     [
       "rm database[. = '${database}']/service",
