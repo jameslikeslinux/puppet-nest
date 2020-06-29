@@ -13,7 +13,7 @@ class nest::role::workstation::sway {
 
   exec { 'move-sway-binary':
     command => '/bin/mv -f /usr/bin/sway /usr/bin/sway.real',
-    unless  => '/bin/grep \'^#!/bin/zsh$\' /usr/bin/sway',
+    unless  => '/bin/grep \'^#!/bin/bash$\' /usr/bin/sway',
     require => Package['gui-wm/sway'],
   }
 
@@ -24,9 +24,10 @@ class nest::role::workstation::sway {
   $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
-  $sway_wrapper_content = @("END_WRAPPER")
-    #!/bin/zsh
-    GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} exec /usr/bin/sway.real "$@"
+  $sway_wrapper_content = @("END_WRAPPER"/$)
+    #!/bin/bash
+    # Workaround https://github.com/swaywm/sway/issues/3109
+    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} /usr/bin/sway.real \${*@Q}"
     | END_WRAPPER
 
   file { '/usr/bin/sway':
