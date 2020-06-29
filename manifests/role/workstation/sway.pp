@@ -55,11 +55,15 @@ class nest::role::workstation::sway {
   }
 
   $xkb_options = $::nest::swap_alt_win ? {
-    true    => "input type:keyboard xkb_options ctrl:nocaps,altwin:swap_alt_win\n",
-    default => "input type:keyboard xkb_options ctrl:nocaps\n",
+    true    => "input type:keyboard xkb_options ctrl:nocaps,altwin:swap_alt_win",
+    default => "input type:keyboard xkb_options ctrl:nocaps",
   }
 
-  $input_conf = "input type:keyboard xkb_layout us\n${xkb_variant}${xkb_options}"
+  $input_conf = @("INPUT_CONF")
+    input type:keyboard xkb_layout us
+    ${xkb_variant}${xkb_options}
+    input type:touchpad tap enabled
+    | INPUT_CONF
 
   $output_conf = @("OUTPUT_CONF")
     output * scale $::nest::gui_scaling_factor
