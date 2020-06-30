@@ -5,7 +5,7 @@ class nest::base::timesyncd {
   # servers for timesyncd so that hosts without working DNS, such as those
   # without RTCs to support DNSSEC at boot, can still sync time.
   # See also: https://github.com/systemd/systemd/issues/5873
-  $nist_time_server_ips = $nest::nist_time_servers.map |$server| { [dns_aaaa($server), dns_a($server)] }.fqdn_rotate.flatten.join(' ')
+  $nist_time_server_ips = $nest::nist_time_servers.map |$server| { [dns_aaaa($server), dns_a($server)] }.fqdn_rotate($trusted['certname']).flatten.join(' ')
 
   file_line { 'timesyncd.conf-NTP':
     path   => '/etc/systemd/timesyncd.conf',
