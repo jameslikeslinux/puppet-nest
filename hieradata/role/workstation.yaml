@@ -1,4 +1,7 @@
 ---
+classes:
+  - 'nest::service::docker'
+
 nest::package_keywords:
   # I always want the latest of these
   app-misc/ddcutil:

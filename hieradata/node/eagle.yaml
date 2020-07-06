@@ -1,7 +1,4 @@
 ---
-classes:
-  - 'nest::service::docker'
-
 nest::bootloader: systemd
 nest::isolcpus: '4-7'
 nest::kernel_config:
