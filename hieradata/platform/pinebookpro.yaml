@@ -16,7 +16,7 @@ nest::heavy_packages:
 
 nest::package_keywords:
   sys-kernel/gentoo-sources:
-    version: '=5.7.0'
+    version: '=5.7.10'
 
   # For now, I want the latest improvements to panfrost in mesa
   media-libs/mesa: {}
