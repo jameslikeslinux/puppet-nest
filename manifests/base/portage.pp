@@ -33,6 +33,11 @@ class nest::base::portage {
     eselect_ensure => installed,
   }
 
+  Package_accept_keywords <| title == 'sys-apps/portage' |> {
+    ensure  => present,
+    version => '~3.0.0'
+  }
+
   eselect { 'profile':
     set     => $::nest::gentoo_profile,
     require => Package['app-admin/eselect'],
