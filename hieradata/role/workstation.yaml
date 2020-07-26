@@ -24,8 +24,10 @@ nest::package_keywords:
     accept_keywords: '*'
 
   # For firefox
+  dev-libs/nspr:
+    version: '~4.26'
   dev-libs/nss:
-    version: '~3.52.1'
+    version: '~3.55'
   media-libs/libvpx:
     version: '~1.8.2'
   media-libs/libwebp:
