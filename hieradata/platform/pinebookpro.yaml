@@ -10,7 +10,6 @@ nest::processorcount: 2
 
 nest::heavy_packages:
   - 'dev-lang/rust'   # doesn't use distcc or honor load limits
-  - 'sys-devel/clang' # runs out of memory with large g++ jobs
   - 'x11-misc/taffybar'
   - 'x11-wm/xmonad'
   - 'x11-wm/xmonad-contrib'
@@ -79,3 +78,6 @@ nest::kernel_config:
   CONFIG_ARCH_XGENE: n
   CONFIG_ARCH_ZX: n
   CONFIG_ARCH_ZYNQMP: n
+
+  # Temp
+  CONFIG_CRYPTO_ZSTD: m
