@@ -1,5 +1,5 @@
 class nest::base::zram {
-  $zram_disksize = $facts['memory']['system']['total_bytes'] * 2 / 1024 / 1024
+  $zram_disksize = $facts['memory']['system']['total_bytes'] * 3 / 1024 / 1024
 
   file { '/etc/modules-load.d/zram.conf':
     mode    => '0644',
@@ -12,7 +12,7 @@ class nest::base::zram {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "KERNEL==\"zram0\", ATTR{disksize}=\"${zram_disksize}M\", RUN+=\"/sbin/mkswap /dev/zram0\"\n",
+    content => "KERNEL==\"zram0\", ATTR{comp_algorithm}=\"zstd\", ATTR{disksize}=\"${zram_disksize}M\", RUN+=\"/sbin/mkswap /dev/zram0\"\n",
   }
 
   # initramfs not really the place to initialize zram
