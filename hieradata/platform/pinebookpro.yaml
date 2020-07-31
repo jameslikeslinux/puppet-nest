@@ -78,6 +78,3 @@ nest::kernel_config:
   CONFIG_ARCH_XGENE: n
   CONFIG_ARCH_ZX: n
   CONFIG_ARCH_ZYNQMP: n
-
-  # Temp
-  CONFIG_CRYPTO_ZSTD: m

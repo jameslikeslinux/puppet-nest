@@ -267,6 +267,7 @@ nest::kernel_config:
   # For zram
   CONFIG_ZRAM: m
   CONFIG_ZSMALLOC: m
+  CONFIG_CRYPTO_ZSTD: m
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
