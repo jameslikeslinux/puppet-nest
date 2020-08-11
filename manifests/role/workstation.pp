@@ -9,10 +9,10 @@ class nest::role::workstation {
       contain '::nest::role::workstation::cursor'
       contain '::nest::role::workstation::dunst'
       contain '::nest::role::workstation::fonts'
+      contain '::nest::role::workstation::input'
       contain '::nest::role::workstation::lastpass'
       contain '::nest::role::workstation::libvirt'
       contain '::nest::role::workstation::media'
-      contain '::nest::role::workstation::mouse'
       contain '::nest::role::workstation::packages'
       contain '::nest::role::workstation::policykit'
       contain '::nest::role::workstation::plasma'
@@ -54,9 +54,9 @@ class nest::role::workstation {
       Class['::nest::role::workstation::plasma']
       -> Class['::nest::role::workstation::dunst']
 
-      # Manage mouse settings after xorg
+      # Manage input settings after xorg
       Class['::nest::role::workstation::xorg']
-      -> Class['::nest::role::workstation::mouse']
+      -> Class['::nest::role::workstation::input']
 
       # NetworkManager pulls in bluez
       Class['::nest::base::network']

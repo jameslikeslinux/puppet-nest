@@ -1,4 +1,20 @@
-class nest::role::workstation::mouse {
+class nest::role::workstation::input {
+  $keyboard_hwdb = @(KEYBOARD_HWDB)
+    # Pinebook Pro
+    evdev:input:b0003v258Ap001E*
+     KEYBOARD_KEY_700a5=brightnessdown
+     KEYBOARD_KEY_700a6=brightnessup
+     KEYBOARD_KEY_70066=sleep
+    | KEYBOARD_HWDB
+
+  file { '/etc/udev/hwdb.d/61-keyboard-local.hwdb':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $keyboard_hwdb,
+    notify  => Exec['udev-hwdb-update'],
+  }
+
   file { '/etc/udev/hwdb.d/71-mouse-local.hwdb':
     ensure => absent,
     notify => Exec['udev-hwdb-update'],
