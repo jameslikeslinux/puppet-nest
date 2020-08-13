@@ -18,7 +18,7 @@ class nest::base::network {
     unmanaged-devices=interface-name:docker*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
     | EOT
 
-  $pinebookpro_conf_ensure = $::nest::platform ? {
+  $pinebookpro_conf_ensure = $::platform ? {
     'pinebookpro' => present,
     default       => absent,
   }
