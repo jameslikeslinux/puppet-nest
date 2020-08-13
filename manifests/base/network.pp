@@ -26,6 +26,7 @@ class nest::base::network {
   $pinebookpro_conf_content = @(CONF)
     # Disable unstable powersave
     [connection-wifi-wlan0]
+    match-device=interface-name:wlan0
     wifi.powersave=2
     | CONF
 
