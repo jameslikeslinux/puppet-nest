@@ -18,13 +18,33 @@ class nest::base::network {
     unmanaged-devices=interface-name:docker*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
     | EOT
 
-  file { '/etc/NetworkManager/NetworkManager.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $networkmanager_conf,
-    require => Package['net-misc/networkmanager'],
-    notify  => Service['NetworkManager'],
+  $pinebookpro_conf_ensure = $::nest::platform ? {
+    'pinebookpro' => present,
+    default       => absent,
+  }
+
+  $pinebookpro_conf_content = @(CONF)
+    [connection-wifi-wlan0]
+    wifi.powersave=off
+    | CONF
+
+  file {
+    default:
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      require => Package['net-misc/networkmanager'],
+      notify  => Service['NetworkManager'],
+    ;
+
+    '/etc/NetworkManager/NetworkManager.conf':
+      content => $networkmanager_conf,
+    ;
+
+    '/etc/NetworkManager/conf.d/10-pinebookpro.conf':
+      ensure  => $pinebookpro_conf_ensure,
+      content => $pinebookpro_conf_content,
+    ;
   }
 
   service { 'NetworkManager':
