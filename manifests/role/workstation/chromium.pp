@@ -25,6 +25,7 @@ class nest::role::workstation::chromium {
         [[ $xdg_session_type == 'x11' ]] && CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --disable-smooth-scrolling"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blacklist"
         | EOT
 
       file { '/etc/chromium/nest':
