@@ -28,6 +28,8 @@ nest::package_keywords:
     version: '~4.26'
   dev-libs/nss:
     version: '~3.55'
+  media-libs/harfbuzz:
+    version: '~2.7.1'
   media-libs/libvpx:
     version: '~1.8.2'
   media-libs/libwebp:
