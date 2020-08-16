@@ -35,7 +35,7 @@ class nest::base::portage {
 
   Package_accept_keywords <| title == 'sys-apps/portage' |> {
     ensure  => present,
-    version => '~3.0.0'
+    version => '~3.0.2'
   }
 
   eselect { 'profile':
