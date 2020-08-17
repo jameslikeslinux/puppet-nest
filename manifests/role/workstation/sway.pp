@@ -6,7 +6,8 @@ class nest::role::workstation::sway {
   package { [
     'gui-wm/sway',
     'gui-apps/waybar',
-    'app-misc/jq',  # for interacting with swaymsg
+    'app-misc/jq',            # for interacting with swaymsg
+    'gui-apps/wl-clipboard',  # for tmux-yank
   ]:
     ensure => installed,
   }
