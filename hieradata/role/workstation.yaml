@@ -8,6 +8,8 @@ nest::package_keywords:
     accept_keywords: '~*'
   gui-apps/waybar:
     accept_keywords: '~*'
+  gui-apps/wl-clipboard:
+    accept_keywords: '~*'
   gui-wm/sway:
     accept_keywords: '~*'
   media-fonts/fontawesome:
