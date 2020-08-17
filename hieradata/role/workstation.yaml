@@ -18,6 +18,8 @@ nest::package_keywords:
     accept_keywords: '~*'
   www-client/firefox:
     accept_keywords: '~*'
+  x11-terms/alacritty:
+    accept_keywords: '~*'
 
   # I always want the same stable version of these across archs
   www-client/chromium:
