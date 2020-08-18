@@ -26,6 +26,9 @@ class nest::role::workstation::chromium {
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --disable-smooth-scrolling"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
         CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blacklist"
+
+        # Wayland support is unstable
+        CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ozone-platform=x11"
         | EOT
 
       file { '/etc/chromium/nest':
