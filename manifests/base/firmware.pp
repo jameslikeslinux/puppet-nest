@@ -12,9 +12,9 @@ class nest::base::firmware {
 
   $dirs = $files.reduce(['/lib/firmware']) |$acc, $file| {
     $subdir = dirname($file)
-    $dir = "/lib/firmware/${dir}"
+    $dir = "/lib/firmware/${subdir}"
 
-    if $subdir != '.' and !$dir in $acc {
+    if $subdir != '.' and !($dir in $acc) {
       $acc + $dir
     } else {
       $acc
