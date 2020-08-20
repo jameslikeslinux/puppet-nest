@@ -19,7 +19,7 @@ class nest::base::network {
     | EOT
 
   $pinebookpro_conf_ensure = $::platform ? {
-    'pinebookpro' => present,
+    'pinebookpro' => absent,
     default       => absent,
   }
 
