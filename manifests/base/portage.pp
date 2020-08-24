@@ -310,7 +310,7 @@ class nest::base::portage {
     content => $eix_conf_content,
   }
 
-  if $::nest::distcc_server {
+  if $::nest::distcc_server or $::platform == 'pinebookpro' {
     $repos_crossdev = @(EOT)
 
       [crossdev]
