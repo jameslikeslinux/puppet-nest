@@ -141,6 +141,7 @@ nest::kernel_config:
   CONFIG_BT_HCIBTUSB: m
 
   # Device drivers
+  CONFIG_INPUT_UINPUT: m
   CONFIG_SND_USB_AUDIO: m
   CONFIG_HIDRAW: y
   CONFIG_UHID: m
