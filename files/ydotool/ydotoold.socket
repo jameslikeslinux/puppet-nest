@@ -1,0 +1,4 @@
+[Socket]
+ListenStream=/tmp/.ydotool_socket
+SocketGroup=users
+SocketMode=0660

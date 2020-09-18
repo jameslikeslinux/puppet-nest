@@ -21,6 +21,7 @@ class nest::role::workstation {
       contain '::nest::role::workstation::terms'
       contain '::nest::role::workstation::xmonad'
       contain '::nest::role::workstation::xorg'
+      contain '::nest::role::workstation::ydotool'
 
       if $::nest::barrier_config {
         contain '::nest::role::workstation::barrier'
