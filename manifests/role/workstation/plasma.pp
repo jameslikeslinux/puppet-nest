@@ -112,14 +112,11 @@ class nest::role::workstation::plasma {
     'kde-apps/dolphin',
     'kde-apps/ffmpegthumbs',
     'kde-apps/gwenview',
+    'kde-apps/kdialog',
     'kde-apps/kwrite',
     'kde-apps/okular',
     'kde-apps/spectacle',
   ]:
     ensure => installed,
-  }
-
-  package { 'kde-apps/konsole':
-    ensure => absent,
   }
 }
