@@ -31,15 +31,19 @@ nest::package_keywords:
 
   # For firefox
   dev-libs/nspr:
-    version: '~4.26'
+    version: '~4.29'
   dev-libs/nss:
-    version: '~3.55'
+    version: '~3.57'
   media-libs/harfbuzz:
     version: '~2.7.1'
   media-libs/libvpx:
     version: '~1.8.2'
   media-libs/libwebp:
     version: '~1.1.0'
+
+  # For waybar
+  dev-libs/date:
+    version: '~3.0.0'
 
   # For ydotool
   dev-libs/libevdevplus:
