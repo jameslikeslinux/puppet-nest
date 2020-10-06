@@ -83,8 +83,6 @@ nest::package_keywords:
     accept_keywords: '*'
   app-text/texlive:
     accept_keywords: '*'
-  media-gfx/displaycal:
-    accept_keywords: '*'
   media-gfx/feh:
     accept_keywords: '*'
   sys-fs/inotify-tools:
@@ -187,10 +185,6 @@ nest::package_keywords:
     version: '~2.10.1'
   dev-util/gdbus-codegen:
     version: '~2.62.6'
-
-  # For media-gfx/displaycal
-  dev-python/faulthandler:
-    accept_keywords: '*'
 
   # For media-sound/pulseaudio-modules-bt
   media-libs/libldac:

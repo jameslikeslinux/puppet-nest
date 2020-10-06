@@ -16,8 +16,6 @@ nest::package_keywords:
     accept_keywords: '~*'
   media-fonts/fontawesome:
     accept_keywords: '~*'
-  media-gfx/displaycal:
-    accept_keywords: '~*'
   media-sound/pulseaudio-modules-bt:
     accept_keywords: '~*'
   www-client/firefox:
