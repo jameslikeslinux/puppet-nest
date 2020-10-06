@@ -72,7 +72,7 @@ class nest::base::fs {
       require => File['/var/lib/samba/usershares'],
     }
 
-    service { 'smbd':
+    service { 'smb':
       enable    => true,
       subscribe => File['/etc/samba/smb.conf'],
     }
