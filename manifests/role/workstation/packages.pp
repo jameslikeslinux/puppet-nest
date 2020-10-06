@@ -11,8 +11,4 @@ class nest::role::workstation::packages {
     ensure  => installed,
     require => Nest::Lib::Portage::Package_use['app-text/texlive-core'],
   }
-
-  package { 'media-gfx/displaycal':
-    ensure => installed,
-  }
 }
