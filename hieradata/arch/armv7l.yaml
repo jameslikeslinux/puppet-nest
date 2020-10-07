@@ -1,10 +1,28 @@
 ---
 nest::package_keywords:
+  app-admin/puppet:
+    accept_keywords: '*'
   mail-mta/nullmailer:
     accept_keywords: '*'
   net-analyzer/openbsd-netcat:
     accept_keywords: '*'
   x11-misc/xsel:
+    accept_keywords: '*'
+
+  # For app-admin/puppet
+  dev-ruby/deep_merge:
+    accept_keywords: '*'
+  dev-ruby/facter:
+    accept_keywords: '*'
+  dev-ruby/hiera:
+    accept_keywords: '*'
+  dev-ruby/hocon:
+    accept_keywords: '*'
+  dev-ruby/ruby-augeas:
+    accept_keywords: '*'
+  dev-ruby/ruby-shadow:
+    accept_keywords: '*'
+  dev-ruby/semantic_puppet:
     accept_keywords: '*'
 
 nest::kernel_config:
