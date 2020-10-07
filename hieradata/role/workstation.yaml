@@ -41,6 +41,7 @@ nest::package_keywords:
 
   # For waybar
   dev-libs/date:
+    accept_keywords: '~*'
     version: '~3.0.0'
 
   # For ydotool
