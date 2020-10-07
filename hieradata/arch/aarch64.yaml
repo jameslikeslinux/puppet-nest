@@ -67,10 +67,6 @@ nest::package_keywords:
   x11-misc/xsel:
     accept_keywords: '*'
 
-  sys-fs/zfs:
-    accept_keywords: '**'
-  sys-fs/zfs-kmod:
-    accept_keywords: '**'
   virtual/linux-sources:
     version: '~3'
 
