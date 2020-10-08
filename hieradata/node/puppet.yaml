@@ -11,6 +11,7 @@ nest::nestfs_hostname: 'falcon.home'
 nest::package_keywords:
   # R10k and dependencies
   app-admin/r10k: {}
+  dev-ruby/colored: {}
   dev-ruby/colored2: {}
   dev-ruby/cri: {}
   dev-ruby/faraday: {}
