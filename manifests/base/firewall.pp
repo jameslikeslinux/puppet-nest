@@ -18,7 +18,7 @@ class nest::base::firewall {
         '/sbin/ip6tables-save',
       ]:
         ensure  => link,
-        target  => 'xtables-multi',
+        target  => 'xtables-legacy-multi',
         require => Class['firewall'],
       }
       ->
