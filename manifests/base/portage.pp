@@ -222,6 +222,7 @@ class nest::base::portage {
   # Enable libzfs USE flag for GRUB
   # XXX: This could be made more generic if needed
   $use_mask_content = @(EOT)
+    -bundled-libjpeg-turbo
     -input_devices_libinput
     -gnuefi
     -libzfs
