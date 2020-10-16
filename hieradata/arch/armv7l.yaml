@@ -10,6 +10,8 @@ nest::package_keywords:
     accept_keywords: '*'
 
   # For app-admin/puppet
+  dev-cpp/cpp-hocon:
+    accept_keywords: '*'
   dev-ruby/deep_merge:
     accept_keywords: '*'
   dev-ruby/facter:
