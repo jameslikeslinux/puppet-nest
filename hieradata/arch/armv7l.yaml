@@ -18,6 +18,8 @@ nest::package_keywords:
     accept_keywords: '*'
   dev-ruby/hocon:
     accept_keywords: '*'
+  dev-libs/leatherman:
+    accept_keywords: '*'
   dev-ruby/ruby-augeas:
     accept_keywords: '*'
   dev-ruby/ruby-shadow:
