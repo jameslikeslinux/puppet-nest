@@ -3,6 +3,8 @@
 Nest is the informal name I give to my Linux distribution based on Gentoo.  You
 can learn more about it at [james.tl](https://james.tl/projects/nest/).
 
+![Nest Screenshot](.screenshot.png)
+
 This Puppet module defines most of the behavior for the distribution, with
 supporting code and Hiera data found in [a separate
 project](https://github.com/iamjamestl/puppet-manifests).  As a
