@@ -22,6 +22,7 @@ class nest::role::workstation::firefox {
       }
 
       $webrender = $::nest::video_card ? {
+        'amdgpu' => 1,
         'intel'  => 1,
         'nvidia' => 1,
         default  => 0,
