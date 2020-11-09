@@ -19,8 +19,8 @@ nest::libvirt: true
 
 nest::dvorak: true
 nest::mouse: 'mxmaster'
-nest::monitor_layout: ['DP-2', 'DP-3']
-nest::primary_monitor: 'DP-3'
+nest::monitor_layout: ['DisplayPort-1', 'DisplayPort-0']
+nest::primary_monitor: 'DisplayPort-0'
 nest::processorcount: 16
 nest::text_scaling_factor: 1.1
 
