@@ -13,6 +13,7 @@ class nest::base::kernel {
   $defconfig = $::platform ? {
     'beagleboneblack' => 'multi_v7_defconfig',
     'pinebookpro'     => 'defconfig',
+    'raspberrypi'     => 'defconfig',
     default           => 'defconfig kvmconfig',
   }
 
