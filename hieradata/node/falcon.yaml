@@ -15,6 +15,7 @@ nest::kernel_cmdline:
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
+  CONFIG_DRM_AMDGPU: m
 nest::libvirt: true
 
 nest::dvorak: true
@@ -23,7 +24,6 @@ nest::monitor_layout: ['DP-2', 'DP-3']
 nest::primary_monitor: 'DP-3'
 nest::processorcount: 16
 nest::text_scaling_factor: 1.1
-nest::video_card: 'nvidia'
 
 nest::distcc_hosts: {}
 nest::distcc_server: true
