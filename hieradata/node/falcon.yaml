@@ -10,7 +10,6 @@ nest::kernel_cmdline:
   - 'hugepages=10240'
   - 'intel_iommu=on'
   - 'pci-stub.ids=10de:0fbc,1912:0014'
-  - 'nvidia.NVreg_AssignGpus=0:03:00.0'
   - 'intel_idle.max_cstate=2'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
