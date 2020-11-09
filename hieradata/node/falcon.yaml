@@ -23,6 +23,7 @@ nest::monitor_layout: ['DisplayPort-1', 'DisplayPort-0']
 nest::primary_monitor: 'DisplayPort-0'
 nest::processorcount: 16
 nest::text_scaling_factor: 1.1
+nest::video_card: 'amdgpu'
 
 nest::distcc_hosts: {}
 nest::distcc_server: true
