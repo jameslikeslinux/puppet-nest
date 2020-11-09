@@ -56,7 +56,11 @@ class nest (
     } elsif $facts['architecture'] == 'amd64' and $::role == 'workstation' {
       $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
       $input_devices  = 'libinput'
-      $video_cards    = 'amdgpu i965 intel nvidia radeonsi'
+      $video_cards = $::nest::video_card ? {
+        'amdgpu' => 'amdgpu radeonsi',
+        'intel'  => 'i965 intel',
+        'nvidia' => 'nvidia',
+      }
       $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau', 'wayland']
     } elsif $facts['architecture'] == 'aarch64' and $::role == 'server' {
       $gentoo_profile = 'default/linux/arm64/17.0/systemd'
