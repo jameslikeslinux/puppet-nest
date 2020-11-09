@@ -1,6 +1,6 @@
 ---
 nest::bootloader: systemd
-nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
+nest::cflags: '-mcpu=cortex-a72 -O2 -pipe -ggdb'
 
 nest::heavy_packages:
   - 'dev-lang/rust'   # doesn't use distcc or honor load limits

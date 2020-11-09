@@ -299,7 +299,7 @@ case "$platform" in
     'beagleboneblack')
         STAGE_ARCHIVE="$STAGE_ARCHIVE_ARMV7A"
         ;;
-    'pinebookpro')
+    'pinebookpro'|'raspberrypi')
         STAGE_ARCHIVE="$STAGE_ARCHIVE_ARM64"
         ;;
     *)
@@ -329,7 +329,7 @@ USE="X"
 END
         ;;
 
-    'pinebookpro')
+    'pinebookpro'|'raspberrypi')
         destructive_cmd cp /usr/bin/qemu-aarch64 "/mnt/${name}/usr/bin/qemu-aarch64"
         destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
@@ -379,7 +379,7 @@ case "$platform" in
         destructive_chroot_cmd eselect profile set default/linux/arm/17.0/armv7a/systemd
         ;;
 
-    'pinebookpro')
+    'pinebookpro'|'raspberrypi')
         destructive_chroot_cmd eselect profile set default/linux/arm64/17.0/systemd
         ;;
 
