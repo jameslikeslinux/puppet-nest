@@ -329,7 +329,7 @@ USE="X"
 END
         ;;
 
-    'pinebookpro'|'raspberrypi')
+    'pinebookpro')
         destructive_cmd cp /usr/bin/qemu-aarch64 "/mnt/${name}/usr/bin/qemu-aarch64"
         destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
 CFLAGS="-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb"
@@ -339,6 +339,20 @@ EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
 FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
 MAKEOPTS="-j$(nproc)"
 PKGDIR="/nest/portage/packages/aarch64-server.cortex-a72.cortex-a53+crypto"
+USE="X"
+END
+        ;;
+
+    'raspberrypi')
+        destructive_cmd cp /usr/bin/qemu-aarch64 "/mnt/${name}/usr/bin/qemu-aarch64"
+        destructive_cmd tee "/mnt/${name}/etc/portage/make.conf" <<END
+CFLAGS="-mcpu=cortex-a72 -O2 -pipe -ggdb"
+CXXFLAGS="-mcpu=cortex-a72 -O2 -pipe -ggdb"
+DISTDIR="/nest/portage/distfiles"
+EMERGE_DEFAULT_OPTS="\${EMERGE_DEFAULT_OPTS} --usepkg"
+FEATURES="buildpkg splitdebug -sandbox -usersandbox -pid-sandbox -network-sandbox"
+MAKEOPTS="-j$(nproc)"
+PKGDIR="/nest/portage/packages/aarch64-server.cortex-a72"
 USE="X"
 END
         ;;
