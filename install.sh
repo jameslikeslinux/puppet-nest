@@ -2,7 +2,7 @@
 
 STAGE_ARCHIVE_AMD64='https://thestaticvoid.com/dist/stage3-amd64-systemd-20190523.tar.bz2'
 STAGE_ARCHIVE_ARMV7A='https://bouncer.gentoo.org/fetch/root/all/releases/arm/autobuilds/20180831/stage3-armv7a_hardfp-20180831.tar.bz2'
-STAGE_ARCHIVE_ARM64='https://bouncer.gentoo.org/fetch/root/all/releases/arm64/autobuilds/20201004T190540Z/stage3-arm64-systemd-20201004T190540Z.tar.xz'
+STAGE_ARCHIVE_ARM64='https://thestaticvoid.com/dist/stage3-arm64-systemd-20201004T190540Z.tar.xz'
 DATE="$(date '+%Y%m%d')"
 
 usage() {
@@ -309,7 +309,7 @@ esac
 
 task "Downloading and extracting stage archive..."
 destructive_cmd wget --progress=dot:mega "$STAGE_ARCHIVE" -O "/mnt/${name}/$(basename "$STAGE_ARCHIVE")"
-destructive_cmd tar -C "/mnt/${name}" -xvjpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --xattrs
+destructive_cmd tar -C "/mnt/${name}" -xvpf "/mnt/${name}/$(basename "$STAGE_ARCHIVE")" --xattrs
 
 
 task "Prepping build target..."
