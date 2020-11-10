@@ -1,2 +1,3 @@
 ---
 nest::kernel_cmdline: ['console=ttyS0,115200n8']
+nest::public_ssh: true
