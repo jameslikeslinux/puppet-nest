@@ -6,6 +6,8 @@ nest::package_keywords:
     accept_keywords: '*'
   net-analyzer/openbsd-netcat:
     accept_keywords: '*'
+  sys-apps/ipmitool:
+    accept_keywords: '*'
   x11-misc/xsel:
     accept_keywords: '*'
 
