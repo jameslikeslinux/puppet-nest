@@ -55,6 +55,7 @@ class nest::base::firewall {
     ignore => [
       '-i virbr\d+',
       '-j LIBVIRT_INP',
+      '-j f2b-sshd',
     ],
   }
 
@@ -91,6 +92,7 @@ class nest::base::firewall {
     ignore => [
       '-i virbr\d+',
       '-j LIBVIRT_INP',
+      '-j f2b-sshd',
     ],
   }
 
