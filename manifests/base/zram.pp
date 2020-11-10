@@ -21,7 +21,8 @@ class nest::base::zram {
     owner   => 'root',
     group   => 'root',
     content => "omit_drivers+=\" zram \"\n",
-    notify  =>  Class['nest::base::dracut'],
+    require =>  Class['nest::base::dracut'],
+    notify  =>  Class['nest::base::bootloader'],
   }
 
   # Move pages to zram more opportunistically
