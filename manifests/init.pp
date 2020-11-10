@@ -46,6 +46,7 @@ class nest (
   Hash $hosts              = {},
 
   Enum['grub', 'systemd'] $bootloader = grub,
+  Boolean                 $public_ssh = false,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
     if $facts['architecture'] == 'amd64' and $::role == 'server' {

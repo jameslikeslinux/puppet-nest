@@ -16,6 +16,7 @@ class nest::base {
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'
       contain '::nest::base::dracut'
+      contain '::nest::base::fail2ban'
       contain '::nest::base::firewall'
       contain '::nest::base::firmware'
       contain '::nest::base::fs'

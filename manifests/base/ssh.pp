@@ -44,11 +44,13 @@ class nest::base::ssh {
         require => File['/etc/systemd/user/ssh-agent.service'],
       }
 
-      # XXX: Remove this after 20170719
-      file_line { 'pam_env.conf-SSH_AUTH_SOCK':
-        ensure => absent,
-        path   => '/etc/security/pam_env.conf',
-        line   => 'SSH_AUTH_SOCK	DEFAULT="${XDG_RUNTIME_DIR}/ssh-agent.socket"',
+      if $::nest::public_ssh {
+        firewall { '100 ssh':
+          proto  => tcp,
+          dport  => 22,
+          state  => 'NEW',
+          action => accept,
+        }
       }
     }
 
