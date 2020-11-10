@@ -23,6 +23,7 @@ understands the following roles and platforms:
 | generic         | server      |
 | beagleboneblack | workstation |
 | pinebookpro     |             |
+| raspberrypi     |             |
 
 So you can build a "generic workstation" or a "beagleboneblack server" or any
 other combination.  Other types of platforms could include Raspberry Pi or EC2.

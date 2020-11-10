@@ -1,10 +1,15 @@
 class nest::base::kernel {
-  nest::lib::portage::package_use { 'sys-kernel/gentoo-sources':
+  $sources_package = $::platform ? {
+    'raspberrypi' => 'sys-kernel/raspberrypi-sources',
+    default       => 'sys-kernel/gentoo-sources',
+  }
+
+  nest::lib::portage::package_use { $sources_package:
     use => 'symlink',
   }
 
   package { [
-    'sys-kernel/gentoo-sources',
+     $sources_package,
     'sys-kernel/linux-firmware',
   ]:
     ensure => installed,
@@ -21,7 +26,7 @@ class nest::base::kernel {
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
-    require => Package['sys-kernel/gentoo-sources'],
+    require => Package[$sources_package],
     notify  => Exec['make kernel'],
   }
 
