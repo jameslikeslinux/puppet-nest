@@ -63,3 +63,6 @@ nest::kernel_config:
   CONFIG_ARCH_XGENE: n
   CONFIG_ARCH_ZX: n
   CONFIG_ARCH_ZYNQMP: n
+
+  # Not available in raspberrypi-sources
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: n
