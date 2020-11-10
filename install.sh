@@ -18,10 +18,12 @@ Options:
                            (default: 'generic')
   -r, --role ROLE          the type of system to install
                            (default: 'server')
+  --resume                 mount and resume install at puppet stage
+  --shell                  mount and launch a shell inside the chroot
 END
 }
 
-ARGS=$(getopt -o "ed:np:r:" -l "encrypt,disk:,dry-run,partition-only,platform:,role:,resume" -n install.sh -- "$@")
+ARGS=$(getopt -o "ed:np:r:" -l "encrypt,disk:,dry-run,partition-only,platform:,role:,resume,shell" -n install.sh -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -65,6 +67,11 @@ while true; do
         --resume)
             shift
             resume='yes'
+            ;;
+        --shell)
+            shift
+            resume='yes'
+            shell='yes'
             ;;
         --)
             shift
@@ -153,7 +160,7 @@ destructive_cmd() {
 chroot_cmd() {
     echo ">> $@" | tee -a "$LOGFILE"
     if [ -z "$dryrun" ]; then
-        systemd-nspawn --console=pipe -q -E FACTER_chroot=true --bind=/dev --bind=/nest --capability=all --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
+        systemd-nspawn --console=pipe -q -E FACTER_chroot=true -E LANG=en_US.UTF-8 --bind=/dev --bind=/nest --capability=all --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" "$@" >> "$LOGFILE" 2>&1
         if [ $? -ne 0 ]; then
             echo "FAILED"
             exit 1
@@ -293,6 +300,12 @@ END
 fi
 
 [[ $partition_only ]] && exit
+
+if [[ $shell ]]; then
+    task "Launching shell..."
+    systemd-nspawn --console=pipe -q -E FACTER_chroot=true -E LANG=en_US.UTF-8 --bind=/dev --bind=/nest --capability=all --property='DeviceAllow=block-* rwm' -D "/mnt/${name}" bash
+    exit
+fi
 
 
 case "$platform" in

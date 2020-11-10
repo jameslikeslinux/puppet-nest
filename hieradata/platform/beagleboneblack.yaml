@@ -8,6 +8,12 @@ nest::heavy_packages:
   - 'dev-util/cmake'
 
 nest::kernel_config:
+  # Support distcc
+  CONFIG_GCC_PLUGINS: n
+
+  # For systemd
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+
   # Graphics/audio support is not needed and it takes too long to compile
   CONFIG_DRM: n
   CONFIG_SND: n

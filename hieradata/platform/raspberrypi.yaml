@@ -50,7 +50,6 @@ nest::kernel_config:
   CONFIG_ARCH_QCOM: n
   CONFIG_ARCH_RENESAS: n
   CONFIG_ARCH_ROCKCHIP: n
-  CONFIG_ARCH_S32: n
   CONFIG_ARCH_SEATTLE: n
   CONFIG_ARCH_STRATIX10: n
   CONFIG_ARCH_SYNQUACER: n
@@ -64,5 +63,5 @@ nest::kernel_config:
   CONFIG_ARCH_ZX: n
   CONFIG_ARCH_ZYNQMP: n
 
-  # Not available in raspberrypi-sources
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: n
+  # Fails to compile
+  CONFIG_PCIE_ALTERA: n
