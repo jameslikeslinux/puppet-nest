@@ -4,7 +4,13 @@ class nest::base::firmware {
       'brcm/BCM4345C5.hcd',
       'brcm/brcmfmac43456-sdio.bin',
       'brcm/brcmfmac43456-sdio.clm_blob',
-      'brcm/brcmfmac43456-sdio.pine64,pinebook-pro.txt',
+      'brcm/brcmfmac43456-sdio.txt',
+    ],
+
+    'raspberrypi' => [
+      'brcm/brcmfmac43456-sdio.bin',
+      'brcm/brcmfmac43456-sdio.clm_blob',
+      'brcm/brcmfmac43456-sdio.txt',
     ],
 
     default       => [],
