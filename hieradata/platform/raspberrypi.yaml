@@ -1,6 +1,13 @@
 ---
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72 -O2 -pipe -ggdb'
+nest::dvorak: true
+
+nest::heavy_packages:
+  - 'dev-lang/rust'   # doesn't use distcc or honor load limits
+  - 'x11-misc/taffybar'
+  - 'x11-wm/xmonad'
+  - 'x11-wm/xmonad-contrib'
 
 nest::package_keywords:
   # For now, I want the latest improvements to panfrost in mesa
@@ -17,6 +24,11 @@ nest::package_keywords:
     accept_keywords: '**'
 
 nest::kernel_cmdline:
-  - 'console=ttyS0,115200n8'
+  - 'console=ttyAMA0,115200n8'
   - 'console=tty0'
   - 'noefi'   # EFI services don't support power off
+
+nest::kernel_config:
+  # Enable frequency scaling based on scheduler data
+  CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE: n
+  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
