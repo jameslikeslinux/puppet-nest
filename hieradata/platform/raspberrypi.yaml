@@ -11,57 +11,12 @@ nest::package_keywords:
     version: '~1.20.8'
 
   # Still not fully open-source or mainlined...
-  sys-boot/raspberrypi-firmware: {}
+  sys-boot/raspberrypi-firmware:
+    accept_keywords: '**'
   sys-kernel/raspberrypi-sources:
     accept_keywords: '**'
 
 nest::kernel_cmdline:
-  # - 'console=ttyS2,1500000n8'
+  - 'console=ttyS0,115200n8'
   - 'console=tty0'
   - 'noefi'   # EFI services don't support power off
-
-nest::kernel_config:
-  # Enable frequency scaling based on scheduler data
-  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: n
-  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
-
-  # Device drivers
-
-  # Nouveau is not needed and it takes too long to compile
-  CONFIG_DRM_NOUVEAU: n
-
-  # Disable unused platforms
-  CONFIG_ARCH_ACTIONS: n
-  CONFIG_ARCH_AGILEX: n
-  CONFIG_ARCH_SUNXI: n
-  CONFIG_ARCH_ALPINE: n
-  CONFIG_ARCH_BCM_IPROC: n
-  CONFIG_ARCH_BERLIN: n
-  CONFIG_ARCH_BRCMSTB: n
-  CONFIG_ARCH_EXYNOS: n
-  CONFIG_ARCH_K3: n
-  CONFIG_ARCH_LAYERSCAPE: n
-  CONFIG_ARCH_LG1K: n
-  CONFIG_ARCH_HISI: n
-  CONFIG_ARCH_MEDIATEK: n
-  CONFIG_ARCH_MESON: n
-  CONFIG_ARCH_MVEBU: n
-  CONFIG_ARCH_MXC: n
-  CONFIG_ARCH_QCOM: n
-  CONFIG_ARCH_RENESAS: n
-  CONFIG_ARCH_ROCKCHIP: n
-  CONFIG_ARCH_SEATTLE: n
-  CONFIG_ARCH_STRATIX10: n
-  CONFIG_ARCH_SYNQUACER: n
-  CONFIG_ARCH_TEGRA: n
-  CONFIG_ARCH_SPRD: n
-  CONFIG_ARCH_THUNDER: n
-  CONFIG_ARCH_THUNDER2: n
-  CONFIG_ARCH_UNIPHIER: n
-  CONFIG_ARCH_VEXPRESS: n
-  CONFIG_ARCH_XGENE: n
-  CONFIG_ARCH_ZX: n
-  CONFIG_ARCH_ZYNQMP: n
-
-  # Fails to compile
-  CONFIG_PCIE_ALTERA: n
