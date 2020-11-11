@@ -24,6 +24,7 @@ nest::package_keywords:
     accept_keywords: '**'
 
 nest::kernel_cmdline:
+  - '8250.nr_uarts=1'
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
   - 'noefi'   # EFI services don't support power off
