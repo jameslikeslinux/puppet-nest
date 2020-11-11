@@ -67,7 +67,7 @@ class nest (
     } elsif $facts['architecture'] == 'aarch64' and $::role == 'workstation' {
       $gentoo_profile = 'default/linux/arm64/17.0/desktop/plasma/systemd'
       $input_devices  = 'libinput'
-      $video_cards    = 'panfrost'
+      $video_cards    = ['panfrost', 'v3d', 'vc4']
       $use_defaults   = ['pulseaudio', 'vaapi', 'wayland']
     } elsif $facts['architecture'] == 'armv7l' and $::platform == 'beagleboneblack' and $::role == 'server' {
       $gentoo_profile = 'default/linux/arm/17.0/armv7a/systemd'
