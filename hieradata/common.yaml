@@ -265,10 +265,10 @@ nest::kernel_config:
   CONFIG_NFSD: m
   CONFIG_NFSD_V4: y
 
-  # For zram
-  CONFIG_ZRAM: m
-  CONFIG_ZSMALLOC: m
-  CONFIG_CRYPTO_ZSTD: m
+  # For zswap
+  CONFIG_FRONTSWAP: y
+  CONFIG_ZSWAP: y
+  CONFIG_Z3FOLD: m
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y

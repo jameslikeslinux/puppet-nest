@@ -277,7 +277,7 @@ END
     fi
 
     task "Creating swap space..."
-    destructive_cmd zfs create -V 2G -b $(getconf PAGESIZE) -o com.sun:auto-snapshot=false "${zroot}/swap"
+    destructive_cmd zfs create -V 4G -b $(getconf PAGESIZE) "${zroot}/swap"
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
@@ -285,7 +285,7 @@ END
 
     if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
-        destructive_cmd zfs create -V 2G -o com.sun:auto-snapshot=false "${zroot}/fscache"
+        destructive_cmd zfs create -V 2G "${zroot}/fscache"
         destructive_cmd udevadm trigger
         destructive_cmd sleep 3
         destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${zroot}/fscache"
