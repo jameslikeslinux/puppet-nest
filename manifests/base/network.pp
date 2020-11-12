@@ -44,7 +44,7 @@ class nest::base::network {
     ;
 
     '/etc/NetworkManager/conf.d/10-pinebookpro.conf':
-      ensure  => absent,
+      ensure  => $pinebookpro_conf_ensure,
       content => $pinebookpro_conf_content,
     ;
   }
