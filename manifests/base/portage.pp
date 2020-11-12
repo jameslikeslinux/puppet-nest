@@ -33,6 +33,11 @@ class nest::base::portage {
     eselect_ensure => installed,
   }
 
+  # Don't timeout rebuilding packages
+  Exec <| title == 'changed_makeconf' |> {
+    timeout => 0,
+  }
+
   Package_accept_keywords <| title == 'sys-apps/portage' |> {
     ensure  => present,
     version => '~3.0.2'
