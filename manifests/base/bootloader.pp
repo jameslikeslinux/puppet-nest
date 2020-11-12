@@ -4,6 +4,10 @@ class nest::base::bootloader {
     'quiet',
     'loglevel=3',
     'fbcon=scrollback:1024k',
+    'zswap.enabled=1',
+    'zswap.compressor=lzo-rle',
+    'zswap.zpool=z3fold',
+    'zswap.max_pool_percent=90',
     $::nest::isolcpus ? {
       undef   => [],
       default => [
