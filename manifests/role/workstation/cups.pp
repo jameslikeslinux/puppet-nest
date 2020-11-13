@@ -3,6 +3,7 @@ class nest::role::workstation::cups {
 
   package { [
     'net-print/cups',
+    'net-print/cups-filters',
     'kde-apps/print-manager',
   ]:
     ensure => installed,
@@ -34,7 +35,7 @@ class nest::role::workstation::cups {
     owner   => 'root',
     group   => 'root',
     content => template('nest/cups/cups-browsed.conf.erb'),
-    require => Package['net-print/cups'],
+    require => Package['net-print/cups-filters'],
     notify  => [
       Service['cups'],
       Service['cups-browsed'],
