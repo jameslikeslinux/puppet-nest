@@ -18,13 +18,8 @@ class nest::base::network {
     unmanaged-devices=interface-name:docker*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
     | EOT
 
-  $pinebookpro_conf_ensure = $::platform ? {
-    'pinebookpro' => absent,
-    default       => absent,
-  }
-
-  $pinebookpro_conf_content = @(CONF)
-    # Disable unstable powersave
+  $powersave_conf_content = @(CONF)
+    # Disable powersave (it adds latency to incoming packets)
     [connection-wifi-wlan0]
     match-device=interface-name:wlan0
     wifi.powersave=2
@@ -44,8 +39,11 @@ class nest::base::network {
     ;
 
     '/etc/NetworkManager/conf.d/10-pinebookpro.conf':
-      ensure  => $pinebookpro_conf_ensure,
-      content => $pinebookpro_conf_content,
+      ensure => absent,
+    ;
+
+    '/etc/NetworkManager/conf.d/10-powersave.conf':
+      content => $powersave_conf_content,
     ;
   }
 
