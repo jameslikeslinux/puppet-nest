@@ -4,10 +4,18 @@ class nest::base::bootloader {
     'quiet',
     'loglevel=3',
     'fbcon=scrollback:1024k',
+
+    # Allow up to 3/4 of memory to be compressed with a fast algorithm
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     'zswap.zpool=z3fold',
-    'zswap.max_pool_percent=90',
+    'zswap.max_pool_percent=75',
+
+    # Tune virtual memory for zswap: initiate swapping more opportunistically
+    # and swap more per kswapd event (1% of memory vs 0.1% default)
+    'vm.swappiness=100',
+    'vm.watermark_scale_factor=100',
+
     $::nest::isolcpus ? {
       undef   => [],
       default => [
