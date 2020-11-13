@@ -277,7 +277,8 @@ END
     fi
 
     task "Creating swap space..."
-    destructive_cmd zfs create -V 4G -b $(getconf PAGESIZE) "${zroot}/swap"
+    # See: https://github.com/openzfs/zfs/issues/7734
+    destructive_cmd zfs create -V 4G -b $(getconf PAGESIZE) -o sync=always -o primarycache=metadata -o secondarycache=none -o logbias=throughput "${zroot}/swap"
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
