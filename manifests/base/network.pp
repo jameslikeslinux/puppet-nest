@@ -13,17 +13,11 @@ class nest::base::network {
   $networkmanager_conf = @(EOT)
     [connection]
     ipv6.ip6-privacy=2
+    wifi.powersave=2
 
     [keyfile]
     unmanaged-devices=interface-name:docker*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
     | EOT
-
-  $powersave_conf_content = @(CONF)
-    # Disable powersave (it adds latency to incoming packets)
-    [connection-wifi-wlan0]
-    match-device=interface-name:wlan0
-    wifi.powersave=2
-    | CONF
 
   file {
     default:
@@ -39,7 +33,7 @@ class nest::base::network {
     ;
 
     '/etc/NetworkManager/conf.d/10-powersave.conf':
-      content => $powersave_conf_content,
+      ensure => absent,
     ;
   }
 
