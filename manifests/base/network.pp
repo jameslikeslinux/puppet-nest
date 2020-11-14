@@ -38,10 +38,6 @@ class nest::base::network {
       content => $networkmanager_conf,
     ;
 
-    '/etc/NetworkManager/conf.d/10-pinebookpro.conf':
-      ensure => absent,
-    ;
-
     '/etc/NetworkManager/conf.d/10-powersave.conf':
       content => $powersave_conf_content,
     ;
