@@ -10,7 +10,7 @@ nest::heavy_packages:
   - 'x11-wm/xmonad-contrib'
 
 nest::package_keywords:
-  # For now, I want the latest improvements to panfrost in mesa
+  # For now, I want the latest improvements to v3d in mesa
   media-libs/mesa: {}
 
   # For mesa-20.1
@@ -25,7 +25,7 @@ nest::package_keywords:
 
 nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
-  - '8250.nr_uarts=1'
+  - '8250.nr_uarts=1'         # set in DT but not passed by u-boot/systemd-boot
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
   - 'noefi'                   # EFI services don't support power off
