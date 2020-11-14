@@ -270,6 +270,7 @@ END
         [[ $encrypt ]] && destructive_cmd zfs create -o encryption=aes-128-gcm -o keyformat=passphrase -o keylocation=prompt "$zroot" <<< "$enc_passphrase"
         destructive_cmd zfs create "${zroot}/ROOT"
         destructive_cmd zfs create -o mountpoint=/ "${zroot}/ROOT/gentoo"
+        destructive_cmd zfs create -o mountpoint=/usr/lib/debug -o compression=gzip "${zroot}/ROOT/gentoo/debug"
         destructive_cmd zfs create -o mountpoint=/var "${zroot}/ROOT/gentoo/var"
         destructive_cmd zfs create -o mountpoint=/home "${zroot}/home"
         destructive_cmd zfs create "${zroot}/home/james"
