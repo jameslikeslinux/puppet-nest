@@ -15,15 +15,21 @@ class nest::base::portage {
   }
 
   $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (4096.0 * 1024 * 1024))
+  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024))
+  $makejobs_memory_heavier = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
+  $makejobs_memory_heaviest = ceiling($facts['memory']['system']['total_bytes'] / (4096.0 * 1024 * 1024))
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
 
   $makejobs = min($makejobs_memory, $makejobs_distcc)
   $makejobs_heavy = min($makejobs_memory_heavy, $::nest::processorcount)
+  $makejobs_heavier = min($makejobs_memory_heavier, $::nest::processorcount)
+  $makejobs_heaviest = min($makejobs_memory_heaviest, $::nest::processorcount)
 
   $loadlimit = $::nest::processorcount + 1
   $makeopts = "-j${makejobs} -l${loadlimit}"
   $makeopts_heavy = "-j${makejobs_heavy} -l${loadlimit}"
+  $makeopts_heavier = "-j${makejobs_heavier} -l${loadlimit}"
+  $makeopts_heaviest = "-j${makejobs_heaviest} -l${loadlimit}"
 
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
@@ -144,6 +150,14 @@ class nest::base::portage {
     '/etc/portage/env/heavy.conf':
       content => "MAKEOPTS='${makeopts_heavy}'\n",
     ;
+
+    '/etc/portage/env/heavier.conf':
+      content => "MAKEOPTS='${makeopts_heavier}'\n",
+    ;
+
+    '/etc/portage/env/heaviest.conf':
+      content => "MAKEOPTS='${makeopts_heaviest}'\n",
+    ;
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
@@ -152,21 +166,24 @@ class nest::base::portage {
     env    => 'no-crypto.conf',
   }
 
-  package_env { $::nest::heavy_packages_hiera:
-    env => 'heavy.conf',
+  $::nest::package_weights_hiera.each |$package, $weight| {
+    package_env { $package:
+      env => "${weight}.conf",
+    }
   }
 
-  $haskell_heavy_ensure = $::platform ? {
+  $haskell_heaviest_ensure = $::platform ? {
     'pinebookpro' => present,
+    'raspberrypi' => present,
     default       => absent,
   }
 
   file { '/etc/portage/package.env/haskell':
-    ensure  => $haskell_heavy_ensure,
+    ensure  => $haskell_heaviest_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "dev-haskell/* heavy.conf\n",
+    content => "dev-haskell/* heaviest.conf\n",
   }
 
   # Create portage package properties rebuild affected packages
