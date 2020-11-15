@@ -283,7 +283,7 @@ END
     destructive_cmd udevadm trigger
     destructive_cmd sleep 3
     destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
-    cmd swapon --discard "/dev/zvol/${zroot}/swap"
+    cmd swapon --discard --priority -10 "/dev/zvol/${zroot}/swap"
 
     if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
