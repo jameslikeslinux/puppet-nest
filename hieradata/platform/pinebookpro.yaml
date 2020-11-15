@@ -26,9 +26,10 @@ nest::package_keywords:
     version: '~1.20.8'
 
 nest::kernel_cmdline:
+  - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
   - 'console=ttyS2,1500000n8'
   - 'console=tty0'
-  - 'noefi'   # EFI services don't support power off
+  - 'noefi'                   # EFI services don't support power off
 
 nest::kernel_config:
   # Support distcc
