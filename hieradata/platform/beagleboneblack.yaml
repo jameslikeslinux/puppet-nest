@@ -4,8 +4,8 @@ nest::cflags: '-mcpu=cortex-a8 -O2 -pipe -ggdb'
 nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
 
-nest::heavy_packages:
-  - 'dev-util/cmake'
+nest::packages_weights:
+  dev-util/cmake: 'heavy'
 
 nest::kernel_config:
   # Support distcc

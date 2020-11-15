@@ -3,11 +3,13 @@ nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72 -O2 -pipe -ggdb'
 nest::dvorak: true
 
-nest::heavy_packages:
-  - 'dev-lang/rust'   # doesn't use distcc or honor load limits
-  - 'x11-misc/taffybar'
-  - 'x11-wm/xmonad'
-  - 'x11-wm/xmonad-contrib'
+nest::package_weights:
+  dev-lang/ghc: 'heavy'
+  sys-devel/clang: 'heavy'
+  dev-lang/rust: 'heaviest'
+  x11-misc/taffybar: 'heaviest'
+  x11-wm/xmonad: 'heaviest'
+  x11-wm/xmonad-contrib: 'heaviest'
 
 nest::package_keywords:
   # For now, I want the latest improvements to v3d in mesa

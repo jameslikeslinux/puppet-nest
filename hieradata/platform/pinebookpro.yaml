@@ -8,11 +8,11 @@ nest::text_scaling_factor: 1.1
 # better interactivity.
 nest::processorcount: 2
 
-nest::heavy_packages:
-  - 'dev-lang/rust'   # doesn't use distcc or honor load limits
-  - 'x11-misc/taffybar'
-  - 'x11-wm/xmonad'
-  - 'x11-wm/xmonad-contrib'
+nest::package_weights:
+  dev-lang/rust: 'heaviest'
+  x11-misc/taffybar: 'heaviest'
+  x11-wm/xmonad: 'heaviest'
+  x11-wm/xmonad-contrib: 'heaviest'
 
 nest::package_keywords:
   sys-kernel/gentoo-sources:
