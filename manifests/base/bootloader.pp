@@ -1,4 +1,11 @@
 class nest::base::bootloader {
+  # z3fold sometimes hangs on large frees on Pinebook Pro, or its kernel
+  # version, or the RK3399; haven't figured it out completely
+  $zswap_zpool = $::platform ? {
+    'pinebookpro' => 'zbud',
+    default       => 'z3fold',
+  }
+
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'quiet',
@@ -8,7 +15,7 @@ class nest::base::bootloader {
     # Allow up to 3/4 of memory to be compressed with a fast algorithm
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
-    'zswap.zpool=z3fold',
+    "zswap.zpool=${zswap_zpool}",
     'zswap.max_pool_percent=75',
 
     # Tune virtual memory for zswap: initiate swapping more opportunistically
