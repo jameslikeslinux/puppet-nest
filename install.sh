@@ -18,12 +18,15 @@ Options:
                            (default: 'generic')
   -r, --role ROLE          the type of system to install
                            (default: 'server')
+  --swap                   if specified, create a swap partition
+  --hibernate GB           if specified, the amount of system memory to
+                           support hybernation
   --resume                 mount and resume install at puppet stage
   --shell                  mount and launch a shell inside the chroot
 END
 }
 
-ARGS=$(getopt -o "ed:np:r:" -l "encrypt,disk:,dry-run,partition-only,platform:,role:,resume,shell" -n install.sh -- "$@")
+ARGS=$(getopt -o "ed:np:r:" -l "encrypt,disk:,dry-run,partition-only,platform:,role:,swap,hibernate:,resume,shell" -n install.sh -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -36,7 +39,7 @@ platform='generic'
 role='server'
 
 while true; do
-    case $1 in
+    case "$1" in
         -d|--disk)
             shift
             disk="$1"
@@ -56,12 +59,22 @@ while true; do
             ;;
         -p|--platform)
             shift
-            platform=$1
+            platform="$1"
             shift
             ;;
         -r|--role)
             shift
-            role=$1
+            role="$1"
+            shift
+            ;;
+        --swap)
+            shift
+            swap='yes'
+            ;;
+        --hibernate)
+            shift
+            hibernate='yes'
+            memory="$1"
             shift
             ;;
         --resume)
@@ -90,6 +103,14 @@ fi
 
 if [ -n "$encrypt" -a -n "$live" ]; then
     echo "Live images cannot be encrypted" >&2
+    usage
+    exit 1
+elif [[ $hibernate && ! $swap ]]; then
+    echo "Hibernate not supported without swap" >&2
+    usage
+    exit 1
+elif [[ $hibernate && ! $memory =~ [0-9]*\.?[0-9]+ ]]; then
+    echo "Memory must be a numeric value" >&2
     usage
     exit 1
 elif [ $# -ne 1 ]; then
@@ -121,9 +142,6 @@ cleanup() {
     if [ -e "/mnt/${name}" ] && [ ! "$(ls -A "/mnt/${name}")" ]; then
         fallable_cmd rm -rf "/mnt/${name}"
     fi
-
-    # Disable swap if necessary (assume its on if the device exists)
-    [ -e "/dev/zvol/${zroot}/swap" ] && fallable_cmd swapoff "/dev/zvol/${zroot}/swap" && sleep 1
 
     # Export pool filesystem if necessary
     zpool list "$name" > /dev/null 2>&1 && fallable_cmd zpool export "$name"
@@ -238,10 +256,18 @@ if [ -n "$live" ]; then
 else
     task "Partitioning ${disk}..."
 
+    if [[ $swap ]]; then
+        swapsize=4096
+        [[ $hibernate ]] && swapsize="$(echo "$swapsize + $memory * 1024" | bc -l)"
+        [[ $encrypt ]] && swaptype='0FC63DAF-8483-4772-8E79-3D69D8477DE4' || swaptype='0657FD6D-A4AB-43C4-84E5-0933C84B4F4F'
+        swapcmd="size=${swapsize}MiB, type=${swaptype}, name=\"${name}-swap\""
+    fi
+
     if [ -n "$efi" ]; then
         destructive_cmd sfdisk "$disk" <<END
 label: gpt
 start=32768, size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
+$swapcmd
 name="${name}"
 END
     else
@@ -249,6 +275,7 @@ END
 label: gpt
 size=32MiB, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios"
 size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot"
+$swapcmd
 name="${name}"
 END
     fi
@@ -277,13 +304,6 @@ END
         destructive_cmd zfs create "${zroot}/home/james"
         destructive_cmd zpool set bootfs="${zroot}/ROOT/gentoo" "$name"
     fi
-
-    task "Creating swap space..."
-    destructive_cmd zfs create -V 4G -b $(getconf PAGESIZE) "${zroot}/swap"
-    destructive_cmd udevadm trigger
-    destructive_cmd sleep 3
-    destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
-    cmd swapon --discard "/dev/zvol/${zroot}/swap"
 
     if [[ $platform != 'beagleboneblack' ]]; then
         task "Creating fscache..."
