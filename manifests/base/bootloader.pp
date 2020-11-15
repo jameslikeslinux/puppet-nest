@@ -1,8 +1,10 @@
 class nest::base::bootloader {
-  # z3fold sometimes hangs on large frees on Pinebook Pro, or its kernel
-  # version, or the RK3399; haven't figured it out completely
+  # Either due to kernel version or hardware implementation, z3fold hangs on
+  # Pinebook Pro and zbud hangs on Raspberry Pi.  z3fold is still preferred due
+  # to supporting up to 3:1 compression.
   $zswap_zpool = $::platform ? {
     'pinebookpro' => 'zbud',
+    'raspberrypi' => 'z3fold',
     default       => 'z3fold',
   }
 
@@ -12,16 +14,13 @@ class nest::base::bootloader {
     'loglevel=3',
     'fbcon=scrollback:1024k',
 
-    # Allow up to 3/4 of memory to be compressed with a fast algorithm
+    # Compress memory and take pressure off of swap-on-zvol,
+    # which is otherwise prone to hanging under load
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     "zswap.zpool=${zswap_zpool}",
-    'zswap.max_pool_percent=75',
-
-    # Tune virtual memory for zswap: initiate swapping more opportunistically
-    # and swap more per kswapd event (1% of memory vs 0.1% default)
+    'zswap.max_pool_percent=90',
     'vm.swappiness=100',
-    'vm.watermark_scale_factor=100',
 
     $::nest::isolcpus ? {
       undef   => [],
