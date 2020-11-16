@@ -2,7 +2,9 @@
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a8 -O2 -pipe -ggdb'
 nest::kernel_cmdline:
-  - 'zfs.zfs_txg_timeout=30'  # be kind to the cheap flash
+  - 'zswap.max_pool_percent=100'  # disable physical swap
+  - 'vm.swappiness=100'           # use zswap opportunistically
+  - 'zfs.zfs_txg_timeout=30'      # be nicer to the cheap flash
 
 nest::packages_weights:
   dev-util/cmake: 'heavy'
