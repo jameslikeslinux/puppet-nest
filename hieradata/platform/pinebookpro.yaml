@@ -14,7 +14,7 @@ nest::package_env:
   dev-lang/rust:
     env: 'light-debug.conf'
   sys-devel/clang:
-    env: 'light-debug.conf'
+    env: 'no-debug.conf'
   x11-misc/taffybar:
     env: 'light-debug.conf'
   x11-wm/xmonad:
