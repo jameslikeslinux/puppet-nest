@@ -115,8 +115,9 @@ class nest::base::portage {
       content => $::nest::video_cards;
   }
 
-  $cflags_no_debug    = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
-  $cflags_no_crypto   = regsubst($::nest::cflags, '\+crypto', '')
+  $cflags_no_debug    = regsubst($::nest::cflags, '\s?-g(gdb)?(\s|$)', '')
+  $cflags_light_debug = regsubst($::nest::cflags, '(\s?)(-g(gdb\d?)?)(\s|$)', '\1\21\4')
+  $cflags_no_crypto   = regsubst($::nest::cflags, '\+crypto(\s|$)', '')
   $cflags_no_crypto_ensure = $cflags_no_crypto ? {
     $::nest::cflags => 'absent',
     default         => 'present',
@@ -139,7 +140,7 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env/light-debug.conf':
-      content => "CFLAGS='${cflags_no_debug} -g'\nCXXFLAGS='${cflags_no_debug} -g'\n",
+      content => "CFLAGS='${cflags_light_debug}'\nCXXFLAGS='${cflags_light_debug}'\n",
     ;
 
     '/etc/portage/env/no-crypto.conf':
