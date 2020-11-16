@@ -1,11 +1,4 @@
 class nest::base::bootloader {
-  # Either due to kernel version or hardware implementation,
-  # z3fold hangs on Pinebook Pro
-  $zswap_zpool = $::platform ? {
-    'pinebookpro' => 'zbud',
-    default       => 'z3fold',
-  }
-
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'quiet',
@@ -29,7 +22,7 @@ class nest::base::bootloader {
     # See: https://github.com/openzfs/zfs/issues/7734
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
-    "zswap.zpool=${zswap_zpool}",
+    'zswap.zpool=z3fold',
     'zswap.max_pool_percent=100',
     'vm.swappiness=100',
 
