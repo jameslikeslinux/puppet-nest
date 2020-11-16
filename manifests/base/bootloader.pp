@@ -1,10 +1,8 @@
 class nest::base::bootloader {
-  # Either due to kernel version or hardware implementation, z3fold hangs on
-  # Pinebook Pro and zbud hangs on Raspberry Pi.  z3fold is still preferred due
-  # to supporting up to 3:1 compression.
+  # Either due to kernel version or hardware implementation,
+  # z3fold hangs on Pinebook Pro
   $zswap_zpool = $::platform ? {
     'pinebookpro' => 'zbud',
-    'raspberrypi' => 'z3fold',
     default       => 'z3fold',
   }
 
