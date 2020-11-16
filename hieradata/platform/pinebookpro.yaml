@@ -60,6 +60,10 @@ nest::kernel_config:
   # Nouveau is not needed and it takes too long to compile
   CONFIG_DRM_NOUVEAU: n
 
+  # Workaround bug in 5.9
+  # See: https://lists.infradead.org/pipermail/linux-rockchip/2020-September/022352.html
+  CONFIG_ROCKCHIP_CDN_DP: n
+
   # Disable unused platforms
   CONFIG_ARCH_ACTIONS: n
   CONFIG_ARCH_AGILEX: n
