@@ -5,7 +5,7 @@ nest::dvorak: true
 
 nest::package_weights:
   dev-lang/ghc: 'heavy'
-  sys-devel/clang: 'heavy'
+  sys-devel/clang: 'heavier'
   dev-lang/rust: 'heaviest'
   x11-misc/taffybar: 'heaviest'
   x11-wm/xmonad: 'heaviest'
