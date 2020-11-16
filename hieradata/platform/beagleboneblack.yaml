@@ -6,8 +6,9 @@ nest::kernel_cmdline:
   - 'vm.swappiness=100'           # use zswap opportunistically
   - 'zfs.zfs_txg_timeout=30'      # be nicer to the cheap flash
 
-nest::packages_weights:
-  dev-util/cmake: 'heavy'
+nest::packages_env:
+  dev-util/cmake:
+    env: 'light-debug.conf'
 
 nest::kernel_config:
   # Support distcc
