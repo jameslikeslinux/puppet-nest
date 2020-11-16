@@ -21,11 +21,17 @@ class nest::base::bootloader {
       ],
     },
 
-    # Compress memory and take pressure off of swap-on-zvol,
-    # which is otherwise prone to hanging under load
+    # Let kernel swap to compressed memory instead of a physical volume, which
+    # is slow and, currently, prone to hanging.  max_pool_percent=100 ensures
+    # the OOM killer is invoked before zswap sends pages to physical swap.
+    # Physical swap is still useful for hibernation.
+    #
+    # See: https://github.com/openzfs/zfs/issues/7734
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     "zswap.zpool=${zswap_zpool}",
+    'zswap.max_pool_percent=100',
+    'vm.swappiness=100',
 
     $::nest::kernel_cmdline_hiera,
   ].flatten.join(' ').strip
