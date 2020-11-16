@@ -17,8 +17,6 @@ class nest::base::bootloader {
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     "zswap.zpool=${zswap_zpool}",
-    'zswap.max_pool_percent=90',
-    'vm.swappiness=100',
 
     $::nest::isolcpus ? {
       undef   => [],
@@ -28,6 +26,7 @@ class nest::base::bootloader {
         "rcu_nocbs=${::nest::isolcpus}",
       ],
     },
+
     $::nest::kernel_cmdline_hiera,
   ].flatten.join(' ').strip
 
