@@ -1,0 +1,34 @@
+From 2aaad78d2b415a27874911937393e68338041b28 Mon Sep 17 00:00:00 2001
+From: Tobias Schramm <t.schramm@manjaro.org>
+Date: Thu, 28 May 2020 14:43:27 +0200
+Subject: [PATCH 21/25] arm64: dts: rockchip: add oficially unsupported 2GHz
+ opp
+
+No mainlining here.
+
+Signed-off-by: Tobias Schramm <t.schramm@manjaro.org>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts b/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
+index 56e767a03f85..3afd92ed3dde 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
+@@ -392,6 +392,13 @@ mains_charger: dc-charger {
+ 	};
+ };
+ 
++&cluster1_opp {
++	opp08 {
++		opp-hz = /bits/ 64 <2000000000>;
++		opp-microvolt = <1300000>;
++	};
++};
++
+ &cdn_dp {
+ 	status = "okay";
+ };
+-- 
+2.26.2
+
