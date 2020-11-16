@@ -2,9 +2,7 @@
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a8 -O2 -pipe -ggdb'
 nest::kernel_cmdline:
-  - 'zswap.max_pool_percent=100'  # disable physical swap
-  - 'vm.swappiness=100'           # use zswap opportunistically
-  - 'zfs.zfs_txg_timeout=30'      # be nicer to the cheap flash
+  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
   - 'console=ttyS0,115200n8'
 
 nest::packages_env:

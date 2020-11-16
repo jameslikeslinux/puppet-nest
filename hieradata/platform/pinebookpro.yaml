@@ -34,12 +34,10 @@ nest::package_keywords:
     version: '~1.20.8'
 
 nest::kernel_cmdline:
-  - 'zswap.max_pool_percent=100'  # disable physical swap
-  - 'vm.swappiness=100'           # use zswap opportunistically
-  - 'zfs.zfs_txg_timeout=30'      # be nicer to the cheap flash
+  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
   - 'console=ttyS2,1500000n8'
   - 'console=tty0'
-  - 'noefi'                       # u-boot doesn't provide EFI services
+  - 'noefi'                   # u-boot doesn't provide EFI services
 
 nest::kernel_config:
   # Support distcc
