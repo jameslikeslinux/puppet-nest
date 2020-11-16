@@ -12,12 +12,6 @@ class nest::base::bootloader {
     'loglevel=3',
     'fbcon=scrollback:1024k',
 
-    # Compress memory and take pressure off of swap-on-zvol,
-    # which is otherwise prone to hanging under load
-    'zswap.enabled=1',
-    'zswap.compressor=lzo-rle',
-    "zswap.zpool=${zswap_zpool}",
-
     $::nest::isolcpus ? {
       undef   => [],
       default => [
@@ -26,6 +20,12 @@ class nest::base::bootloader {
         "rcu_nocbs=${::nest::isolcpus}",
       ],
     },
+
+    # Compress memory and take pressure off of swap-on-zvol,
+    # which is otherwise prone to hanging under load
+    'zswap.enabled=1',
+    'zswap.compressor=lzo-rle',
+    "zswap.zpool=${zswap_zpool}",
 
     $::nest::kernel_cmdline_hiera,
   ].flatten.join(' ').strip
