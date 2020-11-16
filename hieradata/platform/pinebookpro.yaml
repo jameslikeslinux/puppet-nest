@@ -23,8 +23,8 @@ nest::package_env:
     env: 'light-debug.conf'
 
 nest::package_keywords:
-  sys-kernel/gentoo-sources:
-    version: '=5.7.10'
+  # Until 5.9 or later is stabilized, accept unstable
+  sys-kernel/gentoo-sources: {}
 
   # For now, I want the latest improvements to panfrost in mesa
   media-libs/mesa: {}
