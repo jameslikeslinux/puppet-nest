@@ -115,8 +115,8 @@ class nest::base::portage {
       content => $::nest::video_cards;
   }
 
-  $cflags_no_debug  = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
-  $cflags_no_crypto = regsubst($::nest::cflags, '\+crypto', '')
+  $cflags_no_debug    = regsubst($::nest::cflags, '\s?-g(gdb)?', '')
+  $cflags_no_crypto   = regsubst($::nest::cflags, '\+crypto', '')
   $cflags_no_crypto_ensure = $cflags_no_crypto ? {
     $::nest::cflags => 'absent',
     default         => 'present',
@@ -138,13 +138,13 @@ class nest::base::portage {
       content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
 
+    '/etc/portage/env/light-debug.conf':
+      content => "CFLAGS='${cflags_no_debug} -g'\nCXXFLAGS='${cflags_no_debug} -g'\n",
+    ;
+
     '/etc/portage/env/no-crypto.conf':
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
-    ;
-
-    '/etc/portage/env/no-local.conf':
-      ensure => absent,
     ;
 
     '/etc/portage/env/heavy.conf':
@@ -166,12 +166,6 @@ class nest::base::portage {
     env    => 'no-crypto.conf',
   }
 
-  $::nest::package_weights_hiera.each |$package, $weight| {
-    package_env { $package:
-      env => "${weight}.conf",
-    }
-  }
-
   $haskell_heaviest_ensure = $::platform ? {
     'pinebookpro' => present,
     'raspberrypi' => present,
@@ -183,11 +177,12 @@ class nest::base::portage {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "dev-haskell/* heaviest.conf\n",
+    content => "dev-haskell/* light-debug.conf\n",
   }
 
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
+  create_resources(package_env, $::nest::package_env_hiera, { 'before' => Class['::portage'] })
   create_resources(package_mask, $::nest::package_mask_hiera, { 'before' => Class['::portage'] })
   create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
