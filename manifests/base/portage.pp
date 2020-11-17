@@ -167,26 +167,28 @@ class nest::base::portage {
     env    => 'no-crypto.conf',
   }
 
-  $haskell_no_debug_ensure = $::platform ? {
+  # GHC segfaults on some platforms.
+  # Lightening up the load seems to help.
+  $haskell_env_ensure = $::platform ? {
     'pinebookpro' => present,
     'raspberrypi' => present,
     default       => absent,
   }
 
-  $haskell_no_debug_content = @(NO_DEBUG)
-    dev-haskell/* no-debug.conf heavy.conf
-    dev-lang/ghc no-debug.conf heavy.conf
-    x11-misc/taffybar no-debug.conf heavy.conf
-    x11-wm/xmonad no-debug.conf heavy.conf
-    x11-wm/xmonad-contrib no-debug.conf heavy.conf
+  $haskell_env_content = @(NO_DEBUG)
+    dev-haskell/* no-debug.conf heavier.conf
+    dev-lang/ghc no-debug.conf heavier.conf
+    x11-misc/taffybar no-debug.conf heavier.conf
+    x11-wm/xmonad no-debug.conf heavier.conf
+    x11-wm/xmonad-contrib no-debug.conf heavier.conf
     | NO_DEBUG
 
   file { '/etc/portage/package.env/haskell':
-    ensure  => $haskell_no_debug_ensure,
+    ensure  => $haskell_env_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $haskell_no_debug_content,
+    content => $haskell_env_content,
   }
 
   # Create portage package properties rebuild affected packages
