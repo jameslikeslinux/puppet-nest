@@ -268,7 +268,6 @@ nest::kernel_config:
   # For zswap
   CONFIG_FRONTSWAP: y
   CONFIG_ZSWAP: y
-  CONFIG_ZBUD: y
   CONFIG_Z3FOLD: y
 
   # For systemd
