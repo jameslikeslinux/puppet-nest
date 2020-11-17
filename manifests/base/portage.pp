@@ -167,18 +167,26 @@ class nest::base::portage {
     env    => 'no-crypto.conf',
   }
 
-  $haskell_heaviest_ensure = $::platform ? {
+  $haskell_no_debug_ensure = $::platform ? {
     'pinebookpro' => present,
     'raspberrypi' => present,
     default       => absent,
   }
 
+  $haskell_no_debug_content = @(NO_DEBUG)
+    dev-haskell/* no-debug.conf
+    dev-lang/ghc no-debug.conf
+    x11-misc/taffybar no-debug.conf
+    x11-wm/xmonad no-debug.conf
+    x11-wm/xmonad-contrib no-debug.conf
+    | NO_DEBUG
+
   file { '/etc/portage/package.env/haskell':
-    ensure  => $haskell_heaviest_ensure,
+    ensure  => $haskell_no_debug_ensure,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "dev-haskell/* light-debug.conf\n",
+    content => $haskell_no_debug_content,
   }
 
   # Create portage package properties rebuild affected packages
