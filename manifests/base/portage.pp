@@ -174,11 +174,11 @@ class nest::base::portage {
   }
 
   $haskell_no_debug_content = @(NO_DEBUG)
-    dev-haskell/* no-debug.conf
-    dev-lang/ghc no-debug.conf
-    x11-misc/taffybar no-debug.conf
-    x11-wm/xmonad no-debug.conf
-    x11-wm/xmonad-contrib no-debug.conf
+    dev-haskell/* no-debug.conf heavy.conf
+    dev-lang/ghc no-debug.conf heavy.conf
+    x11-misc/taffybar no-debug.conf heavy.conf
+    x11-wm/xmonad no-debug.conf heavy.conf
+    x11-wm/xmonad-contrib no-debug.conf heavy.conf
     | NO_DEBUG
 
   file { '/etc/portage/package.env/haskell':
