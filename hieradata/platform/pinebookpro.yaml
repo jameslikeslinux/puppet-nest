@@ -9,17 +9,9 @@ nest::text_scaling_factor: 1.1
 nest::processorcount: 2
 
 nest::package_env:
-  dev-lang/ghc:
-    env: 'light-debug.conf'
   dev-lang/rust:
     env: 'light-debug.conf'
   sys-devel/clang:
-    env: 'light-debug.conf'
-  x11-misc/taffybar:
-    env: 'light-debug.conf'
-  x11-wm/xmonad:
-    env: 'light-debug.conf'
-  x11-wm/xmonad-contrib:
     env: 'light-debug.conf'
 
 nest::package_keywords:
