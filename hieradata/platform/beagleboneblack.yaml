@@ -17,6 +17,7 @@ nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
   # Device drivers
+  CONFIG_DRM_I2C_NXP_TDA998X: m
   CONFIG_DRM_TILCDC: m
 
   # Disable unused graphics drivers
