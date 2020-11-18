@@ -2,7 +2,7 @@ class nest::role::workstation::chromium {
   case $facts['osfamily'] {
     'Gentoo': {
       nest::lib::portage::package_use { 'www-client/chromium':
-        use => ['ozone', 'widevine'],
+        use => ['ozone', 'ozone-wayland', 'widevine'],
       }
 
       package_env { 'www-client/chromium':
