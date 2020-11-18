@@ -16,9 +16,22 @@ nest::kernel_config:
   # For systemd
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
-  # Graphics/audio support is not needed and it takes too long to compile
-  CONFIG_DRM: n
-  CONFIG_SND: n
+  # Device drivers
+  CONFIG_DRM_TILCDC: m
+
+  # Disable unused graphics drivers
+  CONFIG_DRM_NOUVEAU: n
+  CONFIG_DRM_EXYNOS: n
+  CONFIG_DRM_ATMEL_HLCDC: n
+  CONFIG_DRM_RCAR_LVDS: n
+  CONFIG_DRM_FSL_DCU: n
+  CONFIG_DRM_STM: n
+  CONFIG_DRM_STI: n
+  CONFIG_DRM_ETNAVIV: n
+  CONFIG_DRM_MXSFB: n
+  CONFIG_DRM_PL111: n
+  CONFIG_DRM_LIMA: n
+  CONFIG_DRM_PANFROST: n
 
   # Disable unused platforms
   CONFIG_ARCH_ALPINE: n
