@@ -36,17 +36,27 @@ class nest::base::dracut {
     require => Package['sys-kernel/dracut'],
   }
 
-  if $::platform == 'pinebookpro' {
-    $pinebookpro_config_content = @(PBP_CONF)
-      add_drivers+=" rockchipdrm "
-      | PBP_CONF
+  $add_drivers = $::platform ? {
+    'beagleboneblack' => 'tda998x tilcdc',
+    'pinebookpro'     => 'rockchipdrm',
+    default           => undef,
+  }
 
-    file { '/etc/dracut.conf.d/10-pinebookpro.conf':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => $pinebookpro_config_content,
-      require => Package['sys-kernel/dracut'],
-    }
+  $drivers_ensure = $add_drivers ? {
+    undef   => absent,
+    default => present,
+  }
+
+  $drivers_config_content = @("DRIVERS_CONF")
+    add_drivers+=\" ${add_drivers} \"
+    | DRIVERS_CONF
+
+  file { '/etc/dracut.conf.d/10-drivers.conf':
+    ensure  => $drivers_ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $drivers_config_content,
+    require => Package['sys-kernel/dracut'],
   }
 }
