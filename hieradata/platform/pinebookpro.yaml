@@ -11,6 +11,8 @@ nest::processorcount: 2
 nest::package_env:
   dev-lang/rust:
     env: 'light-debug.conf'
+  net-libs/nodejs:
+    env: 'light-debug.conf'
   sys-devel/clang:
     env: 'light-debug.conf'
 
