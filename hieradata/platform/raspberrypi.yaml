@@ -10,6 +10,8 @@ nest::package_env:
     env: 'light-debug.conf'
   sys-devel/clang:
     env: 'light-debug.conf'
+  www-client/chromium:
+    env: ['light-debug.conf', 'heavy.conf']
 
 nest::package_keywords:
   # For now, I want the latest improvements to v3d in mesa

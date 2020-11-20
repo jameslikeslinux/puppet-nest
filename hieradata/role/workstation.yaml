@@ -2,6 +2,10 @@
 classes:
   - 'nest::service::docker'
 
+nest::package_env:
+  www-client/chromium:
+    env: 'light-debug.conf'
+
 nest::package_keywords:
   # I always want the latest of these
   app-misc/ddcutil:

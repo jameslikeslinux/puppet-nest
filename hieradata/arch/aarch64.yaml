@@ -1,4 +1,9 @@
 ---
+nest::package_env:
+  # Something about elf-hack enabled by debug flags and not working on arm64
+  www-client/firefox:
+    env: 'no-debug.conf'
+
 nest::package_keywords:
   app-admin/puppet:
     accept_keywords: '*'
