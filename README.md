@@ -5,10 +5,8 @@ can learn more about it at [james.tl](https://james.tl/projects/nest/).
 
 ![Nest Screenshot](.screenshot.png)
 
-This Puppet module defines most of the behavior for the distribution, with
-supporting code and Hiera data found in [a separate
-project](https://github.com/iamjamestl/puppet-manifests).  As a
-personal operating system, this module is subject to change frequently and it
+This Puppet module defines almost all of the behavior for the distribution.  As
+a personal operating system, this module is subject to change frequently and it
 is not worth documenting in detail; but if you are interested in browsing the
 code, it may help you to know about the structure.
 
