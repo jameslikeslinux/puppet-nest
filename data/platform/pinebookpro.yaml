@@ -17,6 +17,8 @@ nest::package_env:
     env: 'light-debug.conf'
   sys-devel/clang:
     env: 'light-debug.conf'
+  www-client/chromium:
+    env: 'no-debug.conf'
 
 nest::package_keywords:
   # Until 5.9 or later is stabilized, accept unstable
