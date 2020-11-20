@@ -1,6 +1,8 @@
 ---
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
+nest::dvorak: true
+nest::swap_alt_win: true
 nest::text_scaling_factor: 1.1
 
 # Sustained load drains the battery.  Reduce load from compilation by limiting

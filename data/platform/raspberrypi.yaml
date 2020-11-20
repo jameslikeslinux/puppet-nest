@@ -2,6 +2,7 @@
 nest::bootloader: systemd
 nest::cflags: '-mcpu=cortex-a72 -O2 -pipe -ggdb'
 nest::dvorak: true
+nest::swap_alt_win: true
 
 nest::package_env:
   dev-lang/rust:
