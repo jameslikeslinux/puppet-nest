@@ -20,6 +20,7 @@ class nest::base::bootloader {
     # Physical swap is still useful for hibernation.
     #
     # See: https://github.com/openzfs/zfs/issues/7734
+    # See also: nest::base::zfs for workarounds
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     'zswap.zpool=z3fold',
