@@ -11,7 +11,6 @@ mod 'puppetlabs-chocolatey', '3.1.1'
 mod 'puppetlabs-host_core', '1.0.3'
 mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-registry', '2.1.0'
-mod 'puppetlabs-zfs_core', '1.0.5'
 mod 'puppet-windows_env', '3.2.0'
 
 #
@@ -36,6 +35,9 @@ mod 'docker',
   :branch => 'fixes'
 mod 'portage',
   :git => 'https://github.com/iamjamestl/puppet-portage.git'
+mod 'zfs_core',
+  :git    => 'https://github.com/iamjamestl/puppetlabs-zfs_core.git',
+  :branch => 'feature-sync-property'
 
 # Required by theforeman-puppet
 mod 'puppet-extlib', '3.1.0'
