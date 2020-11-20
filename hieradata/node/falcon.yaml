@@ -1,0 +1,45 @@
+---
+classes:
+  - 'nest::node::falcon'
+
+nest::bootloader: systemd
+nest::isolcpus: '16-31'
+nest::kernel_cmdline:
+  - 'console=ttyS1,115200n8'
+  - 'console=tty0'
+  - 'hugepages=10240'
+  - 'intel_iommu=on'
+  - 'pci-stub.ids=10de:0fbc,1912:0014'
+  - 'intel_idle.max_cstate=2'
+  - 'module_blacklist=nvidia'
+nest::kernel_config:
+  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
+  CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
+  CONFIG_DRM_AMDGPU: m
+nest::libvirt: true
+
+nest::dvorak: true
+nest::mouse: 'mxmaster'
+nest::monitor_layout: ['DisplayPort-1', 'DisplayPort-0']
+nest::primary_monitor: 'DisplayPort-0'
+nest::processorcount: 16
+nest::text_scaling_factor: 1.1
+nest::video_card: 'amdgpu'
+
+nest::distcc_hosts: {}
+nest::distcc_server: true
+nest::fileserver: true
+nest::openvpn_server: true
+
+nest::barrier_config: |
+  section: screens
+  	falcon:
+  	hawk:
+  end
+  
+  section: options
+  	keystroke(super+alt+left) = switchToScreen(falcon)
+  	keystroke(super+alt+right) = switchToScreen(hawk)
+  	mousebutton(6) = keystroke(WWWBack)
+  	mousebutton(7) = keystroke(WWWForward)
+  end

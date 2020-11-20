@@ -1,0 +1,40 @@
+---
+nest::bootloader: systemd
+nest::cflags: '-mcpu=cortex-a72 -O2 -pipe -ggdb'
+nest::dvorak: true
+
+nest::package_env:
+  dev-lang/rust:
+    env: 'light-debug.conf'
+  net-libs/nodejs:
+    env: 'light-debug.conf'
+  sys-devel/clang:
+    env: 'light-debug.conf'
+  www-client/chromium:
+    env: ['light-debug.conf', 'heavy.conf']
+
+nest::package_keywords:
+  # For now, I want the latest improvements to v3d in mesa
+  media-libs/mesa: {}
+
+  # For mesa-20.1
+  x11-base/xorg-server:
+    version: '~1.20.8'
+
+  # Still not fully open-source or mainlined...
+  sys-boot/raspberrypi-firmware:
+    accept_keywords: '**'
+  sys-kernel/raspberrypi-sources:
+    accept_keywords: '**'
+
+nest::kernel_cmdline:
+  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
+  - '8250.nr_uarts=1'         # set in DT but not passed by u-boot/systemd-boot
+  - 'console=ttyS0,115200n8'
+  - 'console=tty0'
+  - 'noefi'                   # u-boot doesn't provide EFI services
+
+nest::kernel_config:
+  # Enable frequency scaling based on scheduler data
+  CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE: n
+  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y

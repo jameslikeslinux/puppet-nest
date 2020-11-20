@@ -1,0 +1,177 @@
+---
+classes:
+  - 'nest::service::docker'
+
+nest::package_env:
+  www-client/chromium:
+    env: 'light-debug.conf'
+
+nest::package_keywords:
+  # I always want the latest of these
+  app-misc/ddcutil:
+    accept_keywords: '~*'
+  app-misc/flirc:
+    accept_keywords: '~*'
+  gui-apps/waybar:
+    accept_keywords: '~*'
+  gui-apps/wl-clipboard:
+    accept_keywords: '~*'
+  gui-apps/ydotool:
+    accept_keywords: '**'
+  gui-libs/wlroots:
+    accept_keywords: '~*'
+  gui-wm/sway:
+    accept_keywords: '~*'
+  media-fonts/fontawesome:
+    accept_keywords: '~*'
+  media-sound/pulseaudio-modules-bt:
+    accept_keywords: '~*'
+  net-im/zoom:
+    accept_keywords: '~*'
+  www-client/firefox:
+    accept_keywords: '~*'
+  x11-misc/barrier:
+    accept_keywords: '~*'
+  x11-terms/alacritty:
+    accept_keywords: '~*'
+
+  # I always want the same stable version of these across archs
+  www-client/chromium:
+    accept_keywords: '*'
+
+  # For firefox
+  dev-libs/nspr:
+    version: '~4.29'
+  dev-libs/nss:
+    version: '~3.57'
+  media-libs/harfbuzz:
+    version: '~2.7.1'
+  media-libs/libvpx:
+    version: '~1.8.2'
+  media-libs/libwebp:
+    version: '~1.1.0'
+
+  # For waybar
+  dev-libs/date:
+    accept_keywords: '~*'
+    version: '~3.0.0'
+
+  # For ydotool
+  dev-libs/libevdevplus:
+    version: '~0.1.1'
+  dev-libs/libuinputplus:
+    version: '~0.1.4'
+
+  # Current stable version doesn't work on wayland
+  x11-libs/libva-intel-driver:
+    version: '~2.4.0_pre1'
+
+  # For xmonad, taffybar
+  dev-lang/ghc:
+    accept_keywords: '~*'
+  dev-haskell/either:
+    accept_keywords: '~*'
+    version: '~5.0.1.1'
+
+nest::package_mask:
+  media-fonts/hack:
+    version: '>=3.000'
+
+nest::package_use:
+  x11-drivers/nvidia-drivers:
+    use: ['gtk3', '-abi_x86_32']
+
+  x11-libs/libdrm:
+    use: ['libkms', 'video_cards_radeon']
+
+  # For firefox
+  dev-db/sqlite:
+    use: 'secure-delete'
+  dev-lang/python:
+    use: 'sqlite'
+
+  # For libvirt
+  media-libs/mesa:
+    use: 'gles2'
+  net-dns/dnsmasq:
+    use: 'script'
+  net-misc/spice-gtk:
+    use: ['usbredir', 'gtk3']
+
+  # For chromium
+  dev-libs/libxml2:
+    use: 'icu'
+  media-libs/harfbuzz:
+    use: 'icu'
+  media-libs/libvpx:
+    use: ['postproc', 'svc']
+  net-libs/nodejs:
+    use: ['inspector', 'icu']
+
+  # Give pulseaudio higher priority with rtkit
+  media-sound/pulseaudio:
+    use: ['-bluetooth', 'realtime']
+
+  # For openconnect
+  kde-plasma/plasma-nm:
+    use: 'openconnect'
+  net-vpn/networkmanager-openconnect:
+    use: '-gtk'
+
+  # Not that I can read any of these languages, but it is nice to be
+  # able to display Chinese, Japanese, and Korean glyphs
+  media-fonts/noto:
+    use: 'cjk'
+
+  # required by kde-plasma/plasma-workspace-5.11.2::gentoo[systemd]
+  # required by kde-plasma/kdeplasma-addons-5.11.2::gentoo
+  # required by kde-plasma/plasma-meta-5.11.2::gentoo
+  sys-apps/dbus:
+    use: 'user-session'
+
+  # required for sys-apps/dbus[user-session]
+  net-wireless/bluez:
+    use: 'user-session'
+
+  # required by x11-misc/taffybar-3.0.0::haskell
+  dev-libs/libdbusmenu:
+    use: 'gtk3'
+
+  # required by x11-misc/barrier-2.1.2::nest[qt5]
+  net-dns/avahi:
+    use: 'mdnsresponder-compat'
+
+  # required by app-emulation/qemu-4.2.0-r1::gentoo[-static,static-user]
+  dev-libs/glib:
+    use: 'static-libs'
+  sys-libs/zlib:
+    use: 'static-libs'
+  sys-apps/attr:
+    use: 'static-libs'
+  dev-libs/libpcre:
+    use: 'static-libs'
+
+  # Enable playback from https
+  media-video/ffmpeg:
+    use: 'openssl'
+
+  # For wayland support
+  media-libs/libsdl2:
+    use: 'gles2'
+
+nest::kernel_config:
+  # Networking
+  CONFIG_BT: m
+  CONFIG_BT_HIDP: m
+  CONFIG_BT_HCIBTUSB: m
+
+  # Device drivers
+  CONFIG_INPUT_UINPUT: m
+  CONFIG_MEDIA_SUPPORT: m
+  CONFIG_MEDIA_CAMERA_SUPPORT: y
+  CONFIG_MEDIA_USB_SUPPORT: y
+  CONFIG_USB_VIDEO_CLASS: m
+  CONFIG_SND_USB_AUDIO: m
+  CONFIG_HIDRAW: y
+  CONFIG_UHID: m
+  CONFIG_HID_LOGITECH_DJ: m

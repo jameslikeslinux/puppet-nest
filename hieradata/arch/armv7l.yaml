@@ -1,0 +1,48 @@
+---
+nest::package_keywords:
+  app-admin/puppet:
+    accept_keywords: '*'
+  mail-mta/nullmailer:
+    accept_keywords: '*'
+  net-analyzer/openbsd-netcat:
+    accept_keywords: '*'
+  sys-apps/ipmitool:
+    accept_keywords: '*'
+  x11-misc/xsel:
+    accept_keywords: '*'
+
+  # For app-admin/puppet
+  dev-cpp/cpp-hocon:
+    accept_keywords: '*'
+  dev-ruby/deep_merge:
+    accept_keywords: '*'
+  dev-ruby/facter:
+    accept_keywords: '*'
+  dev-ruby/hiera:
+    accept_keywords: '*'
+  dev-ruby/hocon:
+    accept_keywords: '*'
+  dev-libs/leatherman:
+    accept_keywords: '*'
+  dev-ruby/ruby-augeas:
+    accept_keywords: '*'
+  dev-ruby/ruby-shadow:
+    accept_keywords: '*'
+  dev-ruby/semantic_puppet:
+    accept_keywords: '*'
+
+nest::kernel_config:
+  # Prefer giving the kernel more of the virtual address space for ZFS
+  CONFIG_VMSPLIT_2G: y
+  CONFIG_VMSPLIT_3G: n
+
+  # Override common.yaml: multi_v7_defconfig wants zstd compiled in
+  CONFIG_CRYPTO_ZSTD: y
+
+# Let ZFS access more of the kernel virtual address space made available by the
+# VMSPLIT above.  With a 2G split, this setting basically only does anything on
+# systems with more than 2G of memory, and it guarantees around 1G of "lowmem"
+# space, which is more than any 3G/1G split can provide.  All of this extra
+# flexibility comes at the cost of not being able to allocate more than 2G for
+# a user process, a compromise I am willing to make.
+nest::kernel_cmdline: ['vmalloc=1G']

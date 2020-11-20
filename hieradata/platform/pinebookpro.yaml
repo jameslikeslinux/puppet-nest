@@ -1,0 +1,95 @@
+---
+nest::bootloader: systemd
+nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
+nest::text_scaling_factor: 1.1
+
+# Sustained load drains the battery.  Reduce load from compilation by limiting
+# build jobs to the number of big cores and leaving the LITTLE cores free for
+# better interactivity.
+nest::processorcount: 2
+
+nest::package_env:
+  dev-lang/rust:
+    env: 'light-debug.conf'
+  net-libs/nodejs:
+    env: 'light-debug.conf'
+  sys-devel/clang:
+    env: 'light-debug.conf'
+
+nest::package_keywords:
+  # Until 5.9 or later is stabilized, accept unstable
+  sys-kernel/gentoo-sources: {}
+
+  # For now, I want the latest improvements to panfrost in mesa
+  media-libs/mesa: {}
+
+  # For mesa-20.1
+  x11-base/xorg-server:
+    version: '~1.20.8'
+
+nest::kernel_cmdline:
+  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
+  - 'console=ttyS2,1500000n8'
+  - 'console=tty0'
+  - 'noefi'                   # u-boot doesn't provide EFI services
+
+nest::kernel_config:
+  # Support distcc
+  CONFIG_GCC_PLUGINS: n
+
+  # For systemd
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+
+  # Enable frequency scaling based on scheduler data
+  CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: n
+  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
+
+  # Device drivers
+  CONFIG_BATTERY_CW2015: m
+  CONFIG_CHARGER_GPIO: m
+  CONFIG_DRM: y
+  CONFIG_DRM_ROCKCHIP: y
+  CONFIG_SND_SOC_ES8316: m
+  CONFIG_SND_SOC_SIMPLE_AMPLIFIER: m
+  CONFIG_HID_MULTITOUCH: m
+
+  # Nouveau is not needed and it takes too long to compile
+  CONFIG_DRM_NOUVEAU: n
+
+  # Workaround bug in 5.9
+  # See: https://lists.infradead.org/pipermail/linux-rockchip/2020-September/022352.html
+  CONFIG_ROCKCHIP_CDN_DP: n
+
+  # Disable unused platforms
+  CONFIG_ARCH_ACTIONS: n
+  CONFIG_ARCH_AGILEX: n
+  CONFIG_ARCH_SUNXI: n
+  CONFIG_ARCH_ALPINE: n
+  CONFIG_ARCH_BCM2835: n
+  CONFIG_ARCH_BCM_IPROC: n
+  CONFIG_ARCH_BERLIN: n
+  CONFIG_ARCH_BRCMSTB: n
+  CONFIG_ARCH_EXYNOS: n
+  CONFIG_ARCH_K3: n
+  CONFIG_ARCH_LAYERSCAPE: n
+  CONFIG_ARCH_LG1K: n
+  CONFIG_ARCH_HISI: n
+  CONFIG_ARCH_MEDIATEK: n
+  CONFIG_ARCH_MESON: n
+  CONFIG_ARCH_MVEBU: n
+  CONFIG_ARCH_MXC: n
+  CONFIG_ARCH_QCOM: n
+  CONFIG_ARCH_RENESAS: n
+  CONFIG_ARCH_S32: n
+  CONFIG_ARCH_SEATTLE: n
+  CONFIG_ARCH_STRATIX10: n
+  CONFIG_ARCH_SYNQUACER: n
+  CONFIG_ARCH_TEGRA: n
+  CONFIG_ARCH_SPRD: n
+  CONFIG_ARCH_THUNDER: n
+  CONFIG_ARCH_THUNDER2: n
+  CONFIG_ARCH_UNIPHIER: n
+  CONFIG_ARCH_VEXPRESS: n
+  CONFIG_ARCH_XGENE: n
+  CONFIG_ARCH_ZX: n
+  CONFIG_ARCH_ZYNQMP: n

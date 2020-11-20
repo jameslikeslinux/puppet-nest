@@ -1,0 +1,76 @@
+---
+nest::bootloader: systemd
+nest::cflags: '-mcpu=cortex-a8 -O2 -pipe -ggdb'
+nest::kernel_cmdline:
+  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
+  - 'console=ttyS0,115200n8'
+  - 'console=tty0'
+
+nest::packages_env:
+  dev-util/cmake:
+    env: 'light-debug.conf'
+
+nest::kernel_config:
+  # Support distcc
+  CONFIG_GCC_PLUGINS: n
+
+  # For systemd
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
+
+  # Device drivers
+  CONFIG_DRM: y
+  CONFIG_DRM_I2C_NXP_TDA998X: y
+  CONFIG_DRM_TILCDC: y
+  CONFIG_SND_SOC_DAVINCI_MCASP: m
+
+  # Disable unused graphics drivers
+  CONFIG_DRM_NOUVEAU: n
+  CONFIG_DRM_EXYNOS: n
+  CONFIG_DRM_ATMEL_HLCDC: n
+  CONFIG_DRM_RCAR_LVDS: n
+  CONFIG_DRM_FSL_DCU: n
+  CONFIG_DRM_STM: n
+  CONFIG_DRM_STI: n
+  CONFIG_DRM_ETNAVIV: n
+  CONFIG_DRM_MXSFB: n
+  CONFIG_DRM_PL111: n
+  CONFIG_DRM_LIMA: n
+  CONFIG_DRM_PANFROST: n
+
+  # Disable unused platforms
+  CONFIG_ARCH_ALPINE: n
+  CONFIG_ARCH_ARTPEC: n
+  CONFIG_ARCH_ASPEED: n
+  CONFIG_ARCH_AT91: n
+  CONFIG_ARCH_BCM: n
+  CONFIG_ARCH_BERLIN: n
+  CONFIG_ARCH_DIGICOLOR: n
+  CONFIG_ARCH_EXYNOS: n
+  CONFIG_ARCH_HIGHBANK: n
+  CONFIG_ARCH_HISI: n
+  CONFIG_ARCH_MXC: n
+  CONFIG_ARCH_KEYSTONE: n
+  CONFIG_ARCH_MEDIATEK: n
+  CONFIG_ARCH_MESON: n
+  CONFIG_ARCH_MILBEAUT: n
+  CONFIG_ARCH_MVEBU: n
+  CONFIG_ARCH_OMAP3: n
+  CONFIG_ARCH_OMAP4: n
+  CONFIG_SOC_OMAP5: n
+  CONFIG_SOC_AM43XX: n
+  CONFIG_SOC_DRA7XX: n
+  CONFIG_ARCH_SIRF: n
+  CONFIG_ARCH_QCOM: n
+  CONFIG_ARCH_ROCKCHIP: n
+  CONFIG_ARCH_RENESAS: n
+  CONFIG_ARCH_SOCFPGA: n
+  CONFIG_PLAT_SPEAR: n
+  CONFIG_ARCH_STI: n
+  CONFIG_ARCH_STM32: n
+  CONFIG_ARCH_SUNXI: n
+  CONFIG_ARCH_TEGRA: n
+  CONFIG_ARCH_UNIPHIER: n
+  CONFIG_ARCH_U8500: n
+  CONFIG_ARCH_VEXPRESS: n
+  CONFIG_ARCH_WM8850: n
+  CONFIG_ARCH_ZYNQ: n

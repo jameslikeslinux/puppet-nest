@@ -1,0 +1,347 @@
+---
+classes:
+  - 'nest'
+
+puppet::puppetmaster: 'puppet.nest'
+puppet::runmode: 'unmanaged'
+puppet::environment: 'production'
+
+nest::cnames:
+  nzbget.nest: 'falcon.nest'
+  ombi.nest: 'falcon.nest'
+  plex.nest: 'falcon.nest'
+  radarr.nest: 'falcon.nest'
+  sonarr.nest: 'falcon.nest'
+nest::cups_servers:
+  - 'eagle.nest'
+  - 'falcon.nest'
+nest::distcc_hosts:
+  falcon.nest: 16
+nest::hosts:
+  unifi.home:
+    ip: '172.22.1.12'
+nest::nestfs_hostname: 'falcon.nest'
+nest::openvpn_hostname: 'nest.james.tl'
+nest::root_mail_alias: 'james@james.tl'
+
+nest::nullmailer_config: >
+  ENC[PKCS7,MIIC9gYJKoZIhvcNAQcDoIIC5zCCAuMCAQAxggI9MIICOQIBADAhMBwxGjAY
+  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
+  AC7HvAXGrMs/MuMeZz6JToPMlxntkxl+E1382JREgOmb3KNCbMB3WgozKmOx
+  mp0Ggm/lcBK0rRXUgMQTW6LjSWEI4HJVIkyjP//VjoHGmak9pCm9/iwoIVIi
+  pwiwIjOOn7CJMhkBW9tbQbl0JEmeWeWZpEj0qBvbrIFQSaq4NLtZrkO9XAxY
+  /iEkY2R7U+oGCowIFsqUB2BhTR+WeovR6LEac5cHofY25ZKtafZFBUa8V4np
+  4BEJhqTgclrotwk8ucmWk2UuX9nBmdj42xUOdges1AJJHHoWh39b76qmN52P
+  +hRsTLWtVCDz72L7ip8aXU0+hcqwnNDKoZBOdqRwlYn7m3puN4/dM3Gf7tPn
+  9keAp4bo2+15kxou7HPD8VPsRaaqGVuSjMDSui9R8Mz26euNDTUCGI+MIEcm
+  8OfRtQ+ZFMscrkAvR2u0hdoH1dOIyCMh+OS360eit/leH+MxRm27lfCBhWsv
+  bb14v0peCh8BU+PuR1keMma72v2Fae4PMApwL99vZG+JmN1VwTPLi4jxmLbs
+  24oUlFkNMrRhiUbuD5KPAUl0gZCEQpGWp+tDzogd+c3eFAsOBy0+oERBfPQD
+  yLdxj3AfsKa4zfRA77cs+sw0lw/EfpS6ssuwrcBMBpAlKcCwZakSkGTPk7yL
+  3lSHxx2SyQ0vtkOGJtJ96WQtMIGcBgkqhkiG9w0BBwEwHQYJYIZIAWUDBAEq
+  BBClWWeYbpBpGL/PLfI/fi4zgHBLiYL7fZvQDaKwSXDriROw4BsJFcextb7h
+  FNiFb4LJdPOSuufmbijsj89nZ84M4NMv1fLcdSVeK9SaVWQ/Cgxa/tloSvjn
+  hX+Cz+gV0jtUK2uaNmhhkqJiimGAxsCcO/MxxksTl5h37LrhI6n0/vKT]
+
+# This is doubly-encrypted.  Don't waste your time.
+nest::ssh_private_key: >
+  ENC[PKCS7,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
+  wRkB5Qx04O2Jsr/tgYEnNx+wZ+e5]
+
+# Seriously, don't waste your time.  It's not worth it.
+nest::pw_hash: >
+  ENC[PKCS7,MIIC9gYJKoZIhvcNAQcDoIIC5zCCAuMCAQAxggI9MIICOQIBADAhMBwxGjAY
+  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
+  ABemGwoVx0Zr7kE4veJkRO380jGXgdfKcJqD8jB+pbvwfPtrD0rJpfr+bWqF
+  DOUrxwz1H/KbO6IM6stHlZoMTDZReO+iwlOsx5OnxofMiV1svaCYXi6IglQp
+  oBtf9um12cgCBiXkZnTxg1dn36a+GqhYx1wba6EXl3imaqdtekH9KQXiOUgg
+  oToCbwLJpS3GtJJVgu7BwrQp5bqoTUSwjW52DmcFqshMjUuCSiMIOVsIntoU
+  UKlmwObZf8TgIrlXdddNlPNWB+xZpYEXjH1UUND6LX047t+ze7lKFe8lxIN9
+  WWKOQre2mHfC8nrsVUTLlyDZHEKXOlU/6s5RvbF+ON+gDvYbqHH9Bg2R7AsZ
+  4qIRzenaqnKOApfq2eNSJReJN+mubiz1Yln8tPEe4kro3L82fDPbtVVCsIAA
+  /CXml0wxTK7upFkGrYzhszU+XHbDi30kiQEA5UEhPjNLl5KTorp6sAAm64rn
+  7TvNIclNXhXkzgpmWf6oXXa+DZkEOAhyZqmtgc011JtcZc3SucMpvdehk7LL
+  KRN+UYuNHlH3UBqEZZBbHONgFzn/Vr1hnrXOTl3pG9Ef+96PPUzIn8oLrL28
+  eDFxIWOclNA3nmmw5xrHWjVklwP4KPCe7zJS6qmun1ByRl6P/h2VtMBPFQMF
+  Cz9+tFfomsp/ibPMQVn+2MGPMIGcBgkqhkiG9w0BBwEwHQYJYIZIAWUDBAEq
+  BBBXreZbQjp46/419a5TCEc4gHC7W8Um+7UrWwDLz0U/f8CuWnPOoYfZp/+F
+  /ZHMYKaD7bluo8wanl1RIYLPnWjnbSK54A/Tg2gAUm9NZvUfQ0KSEeI9VIWP
+  dimYb+oNfVUxN8s5xnGKo5WOVJccyWCzMcJ5d0uP4UPWTFN8rcxjRIUY]
+
+nest::lastfm_pw_hash: >
+  ENC[PKCS7,MIICtQYJKoZIhvcNAQcDoIICpjCCAqICAQAxggI9MIICOQIBADAhMBwxGjAY
+  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
+  ABzvu8J9my5/JUfqYalam8BJ71H1EayzK/JWwACq8xpRDABUGzIhhkUDKoni
+  Coq9QUc5xta/oi0jseCh9ABeNWUIpti+rUqDB0aubI6KYtLp9cnShJd9CQXk
+  Lw5HnnnbveDoY/abXlIm0irqT/zqbYkHQB7Fv/Nd624oFu+0qdkwsRkV39yl
+  EOvF8Gmex6h35TQdffKo8K3qvGgn4eCJoXEVPlrwbEqQ923RqdAX3Pjvv+Db
+  aq5r9+aXuPn+2lxnFWllVv8lr9RJuikyIQs3BqWJ4tRf0LnJBEMqOr19G8f1
+  IoPs9rfJZtzUj+FvG/JI9nxpK4DfkfhO3RnGkHtFmoeawkPFgOn7XChzjOjI
+  OPgprGDhRjvf+vmsMH0rA+oEowrrckXJYHMUqGVXciFPqIgnmtygdnH3TfWk
+  djpxphqChJ+xdXU6vhr08dng2DHUZpuu6EPzfp4ZszblhfIgn4BhrVwa3ge0
+  qUYnAWy7Qp/LQGJGV1q26Z4HsDfOq7UoDe9LxZpLFgC47Ml5J+zEVj0QjtnZ
+  EBMcnkftCHKA0zZGfy9Jz6LpiLz236qxkR9PTJtN5JYnPo+hDBmYyQCeXs3r
+  zYvTBb9xdPx9TeYdgSF48Z1mOqPBrm8B140S9CuwpUvbu9mxGWVxV1ShGyOU
+  vhXBu6w/JPGRqVnvgwGUBeiHMFwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
+  EALSTMwb0ZBk25ZFDFGpLw2AMGx30s2DfebZjLMthqSOFPnmxWR1jwYX65Gu
+  R8/w1Vc1hqkHO4h3uyPy9vND7FUanA==]
+
+nest::lastpass_username: >
+  ENC[PKCS7,MIIClQYJKoZIhvcNAQcDoIIChjCCAoICAQAxggI9MIICOQIBADAhMBwxGjAY
+  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
+  AGKp/P+5g876DvLHkRGrOYQpo52VwXCY3c/0aoXJGWLAvaFYzOWSTZXMG5bG
+  hSPhMqTI3dBZVC/ofSnFevKLV2dyEuG5x8lH9OmPyHXuhBjkF7dqDvpV0tCv
+  SqBCBP3KO1yjrF/6XDNxe2SeWGwhECjQacGQB9NlRx/xkFr5PvPVw7D1aTL4
+  7OoFq0fQ6w58LecRWtlbivTI1/gmeaTVxZaiNcQUK2G5bQvsDG0zPMOwW98W
+  bNbgJBQIUSPrpuOLo4rfvUn1rGMNar/gtQP7qOfYJuNdBPar94cEGWgxKpYF
+  8603g4xDFx0oe083maqNtQqYp9xUlK3yVopSV0u+wxtUAhP0MxxlV2VGdzG/
+  SaPhxg2A6BTwG5MoG6N9D5S1eahrRRUIeM5QQ9V2ktQkzQLrJF5tfNINEAvb
+  uDKYLfs4Gs10Sa1E7ByXK2TWbU77Cd0mIb7TLWZA6hzBQoac7WZ3BNxNSqAm
+  g0ds2YuMzuGUiBx5FdN3mH/ONaEFPPdEyOFM1bo7yokP+5cUnWP6lgv5RIUF
+  /PbvnfJJMGxCqhPaA/pJg3j9slTpvGzZNsuHUFPfNMZZmDdxD50z6uOgNhRM
+  lAsqLlfnZbISF2u9L/b30b7oatnzqwDh2UwytwVasDmSF/b1udvO2ozDh/C+
+  rCq7HqzttY9WaDJ3KhskHf0tMDwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
+  EM1/HAq1trGEnC3jMA3TdO2AEE7Bq/qI6VmsftwMS7OXeg8=]
+
+nest::package_keywords:
+  # I always want the latest of these
+  app-misc/tmux:
+    accept_keywords: '~*'
+  app-editors/vim:
+    accept_keywords: '~*'
+  app-editors/vim-core:
+    accept_keywords: '~*'
+  sys-fs/zfs:
+    accept_keywords: '~*'
+  sys-fs/zfs-kmod:
+    accept_keywords: '~*'
+
+nest::package_use:
+  app-admin/puppet:
+    use: ['augeas', 'shadow']
+
+  # For plymouth
+  x11-libs/libdrm:
+    use: 'libkms'
+
+  # For networkmanager[wifi]
+  net-wireless/wpa_supplicant:
+    use: 'dbus'
+
+  sys-apps/systemd:
+    use:
+      - 'cgroup-hybrid' # for docker compatibility
+      - 'gnuefi'        # for systemd-boot
+
+nest::kernel_config:
+  # Preferences
+  CONFIG_LOGO: n
+
+  # Networking
+  CONFIG_NETFILTER: y
+  CONFIG_NETFILTER_ADVANCED: y
+  CONFIG_NETFILTER_XTABLES: m
+  CONFIG_NETFILTER_XT_MATCH_COMMENT: m
+  CONFIG_NETFILTER_XT_MATCH_MULTIPORT: m
+  CONFIG_NETFILTER_XT_MATCH_PKTTYPE: m
+  CONFIG_NETFILTER_XT_MATCH_STATE: m
+  CONFIG_IP_NF_IPTABLES: m
+  CONFIG_IP_NF_FILTER: m
+  CONFIG_IP_NF_TARGET_REJECT: m
+  CONFIG_IP6_NF_IPTABLES: m
+  CONFIG_IP6_NF_FILTER: m
+  CONFIG_IP6_NF_TARGET_REJECT: m
+  CONFIG_BRIDGE: m
+  CONFIG_VLAN_8021Q: m
+  CONFIG_BONDING: m
+  CONFIG_TUN: m
+
+  # Device drivers
+  CONFIG_BLK_DEV_NVME: m
+  CONFIG_HW_RANDOM_VIRTIO: m
+  CONFIG_USB_SERIAL: m
+  CONFIG_USB_SERIAL_CH341: m      # for Pinebook Pro adapter
+  CONFIG_USB_SERIAL_CP210X: m     # for Raspberry Pi adapter
+  CONFIG_USB_SERIAL_FTDI_SIO: m   # for BeagleBone Black adapter
+  CONFIG_VIRTIO_PCI: y
+  CONFIG_VIRTIO_BALLOON: m
+
+  # Filesystems
+  CONFIG_FUSE_FS: m
+  CONFIG_FSCACHE: y
+  CONFIG_CACHEFILES: m
+  CONFIG_SQUASHFS: m
+  CONFIG_SQUASHFS_XZ: y
+  CONFIG_NFS_V4_1: y
+  CONFIG_NFS_V4_2: y
+  CONFIG_NFS_FSCACHE: y
+  CONFIG_NFSD: m
+  CONFIG_NFSD_V4: y
+
+  # For zswap
+  CONFIG_FRONTSWAP: y
+  CONFIG_ZSWAP: y
+  CONFIG_Z3FOLD: y
+
+  # For systemd
+  CONFIG_CHECKPOINT_RESTORE: y
+  CONFIG_FANOTIFY: y
+
+  # For docker
+  CONFIG_MEMCG: y
+  CONFIG_MEMCG_SWAP: y
+  CONFIG_BLK_CGROUP: y
+  CONFIG_CGROUP_SCHED: y
+  CONFIG_CFS_BANDWIDTH: y
+  CONFIG_CGROUP_FREEZER: y
+  CONFIG_CGROUP_PIDS: y
+  CONFIG_CGROUP_DEVICE: y
+  CONFIG_CGROUP_PERF: y
+  CONFIG_USER_NS: y
+  CONFIG_BLK_DEV_THROTTLING: y
+  CONFIG_BRIDGE_NETFILTER: m
+  CONFIG_NF_CONNTRACK: m
+  CONFIG_NETFILTER_XT_MATCH_IPVS: m
+  CONFIG_IP_VS: m
+  CONFIG_IP_VS_PROTO_TCP: y
+  CONFIG_IP_VS_PROTO_UDP: y
+  CONFIG_IP_VS_RR: m
+  CONFIG_IP_VS_NFCT: y
+  CONFIG_NET_CLS_CGROUP: m
+  CONFIG_NET_SCHED: y
+  CONFIG_CGROUP_NET_PRIO: y
+  CONFIG_DUMMY: m
+  CONFIG_MACVLAN: m
+  CONFIG_IPVLAN: m
+  CONFIG_VXLAN: m
+  CONFIG_VETH: m
+
+  # For libvirt
+  CONFIG_VIRTUALIZATION: y
+  CONFIG_VHOST_NET: m
+  CONFIG_NETFILTER_XT_CONNMARK: m
+  CONFIG_NETFILTER_XT_TARGET_CHECKSUM: m
+  CONFIG_IP_NF_MANGLE: m
+  CONFIG_IP_NF_NAT: m
+  CONFIG_IP6_NF_MANGLE: m
+  CONFIG_IP6_NF_NAT: m
+  CONFIG_BRIDGE_NF_EBTABLES: m
+  CONFIG_BRIDGE_EBT_T_NAT: m
+  CONFIG_BRIDGE_EBT_MARK_T: m
+  CONFIG_NET_SCH_HTB: m
+  CONFIG_NET_SCH_SFQ: m
+  CONFIG_NET_SCH_INGRESS: m
+  CONFIG_NET_CLS_FW: m
+  CONFIG_NET_CLS_U32: m
+  CONFIG_NET_CLS_ACT: y
+  CONFIG_NET_ACT_POLICE: m
+  CONFIG_MACVTAP: m
+
+nest::nist_time_servers:
+  - 'time-a-g.nist.gov'
+  - 'time-b-g.nist.gov'
+  - 'time-c-g.nist.gov'
+  - 'time-d-g.nist.gov'
+  - 'time-e-g.nist.gov'
+  - 'time-a-wwv.nist.gov'
+  - 'time-b-wwv.nist.gov'
+  - 'time-c-wwv.nist.gov'
+  - 'time-d-wwv.nist.gov'
+  - 'time-e-wwv.nist.gov'
+  - 'time-a-b.nist.gov'
+  - 'time-b-b.nist.gov'
+  - 'time-c-b.nist.gov'
+  - 'time-d-b.nist.gov'
+  - 'time-e-b.nist.gov'
+  - 'utcnist.colorado.edu'
+  - 'utcnist2.colorado.edu'
+
+apache::mpm_module: 'worker'
+apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
