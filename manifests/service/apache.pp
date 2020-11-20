@@ -17,7 +17,7 @@ class nest::service::apache (
   ::apache::mod { 'log_config': }
   ::apache::mod { 'unixd': }
 
-  nest::lib::portage::package_use { 'httpd':
+  nest::lib::package_use { 'httpd':
     package => 'www-servers/apache',
     use     => [
       'apache2_modules_access_compat',

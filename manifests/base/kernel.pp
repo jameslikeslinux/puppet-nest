@@ -4,7 +4,7 @@ class nest::base::kernel {
     default       => 'sys-kernel/gentoo-sources',
   }
 
-  nest::lib::portage::package_use { $sources_package:
+  nest::lib::package_use { $sources_package:
     use => 'symlink',
   }
 

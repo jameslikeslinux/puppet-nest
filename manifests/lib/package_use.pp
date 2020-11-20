@@ -1,4 +1,4 @@
-define nest::lib::portage::package_use (
+define nest::lib::package_use (
   $use,
   $package = $name,
   $ensure  = 'present',

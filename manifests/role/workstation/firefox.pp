@@ -1,7 +1,7 @@
 class nest::role::workstation::firefox {
   case $facts['osfamily'] {
     'Gentoo': {
-      nest::lib::portage::package_use { 'www-client/firefox':
+      nest::lib::package_use { 'www-client/firefox':
         use => 'hwaccel',
       }
 

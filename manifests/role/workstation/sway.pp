@@ -1,5 +1,5 @@
 class nest::role::workstation::sway {
-  nest::lib::portage::package_use { 'gui-wm/sway':
+  nest::lib::package_use { 'gui-wm/sway':
     use => ['-swaybar'],
   }
 

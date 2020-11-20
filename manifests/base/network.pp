@@ -1,6 +1,6 @@
 class nest::base::network {
   # resolvconf now provided by systemd
-  nest::lib::portage::package_use { 'net-misc/networkmanager':
+  nest::lib::package_use { 'net-misc/networkmanager':
     ensure => absent,
     use    => 'resolvconf',
   }

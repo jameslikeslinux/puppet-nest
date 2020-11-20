@@ -1,5 +1,5 @@
 class nest::role::workstation::plasma {
-  nest::lib::portage::package_use { 'kde-plasma/plasma-meta':
+  nest::lib::package_use { 'kde-plasma/plasma-meta':
     use => 'networkmanager',
   }
 
@@ -103,7 +103,7 @@ class nest::role::workstation::plasma {
   }
 
   # Don't build support for online services
-  nest::lib::portage::package_use { 'kde-apps/spectacle':
+  nest::lib::package_use { 'kde-apps/spectacle':
     use => '-kipi',
   }
 

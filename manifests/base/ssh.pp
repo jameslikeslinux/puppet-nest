@@ -1,7 +1,7 @@
 class nest::base::ssh {
   case $facts['osfamily'] {
     'Gentoo': {
-      nest::lib::portage::package_use { 'net-misc/openssh':
+      nest::lib::package_use { 'net-misc/openssh':
         use => 'kerberos',
       }
 

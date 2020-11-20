@@ -243,7 +243,7 @@ class nest::node::falcon {
     target => '/etc/sysctl.d/nest.conf',
   }
 
-  nest::lib::portage::package_use { 'media-sound/beets':
+  nest::lib::package_use { 'media-sound/beets':
     use => ['ffmpeg', 'gstreamer', 'lastfm', 'replaygain'],
   }
 

@@ -1,5 +1,5 @@
 class nest::role::workstation::qemu {
-  nest::lib::portage::package_use { 'app-emulation/qemu':
+  nest::lib::package_use { 'app-emulation/qemu':
     use => [
       'spice',
       'usbredir',

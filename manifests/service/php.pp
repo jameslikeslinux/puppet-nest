@@ -1,9 +1,9 @@
 class nest::service::php {
-  nest::lib::portage::package_use { 'app-eselect/eselect-php':
+  nest::lib::package_use { 'app-eselect/eselect-php':
     use => 'fpm',
   }
 
-  nest::lib::portage::package_use { 'dev-lang/php':
+  nest::lib::package_use { 'dev-lang/php':
     use => ['curl', 'exif', 'fpm', 'gd', 'mysql', 'mysqli', 'soap', 'zip'],
   }
 
@@ -14,9 +14,9 @@ class nest::service::php {
   package { 'dev-lang/php':
     ensure  => installed,
 
-    # The dependency on Nest::Lib::Portage::Package_use['dev-lang/php'] is implied;
+    # The dependency on Nest::Lib::Package_use['dev-lang/php'] is implied;
     # eselect-php needs to use fpm too
-    require => Nest::Lib::Portage::Package_use['app-eselect/eselect-php'],
+    require => Nest::Lib::Package_use['app-eselect/eselect-php'],
   }
 
   file_line { 'php.ini-max_execution_time':

@@ -1,5 +1,5 @@
 class nest::base::libvirt {
-  nest::lib::portage::package_use { 'app-emulation/libvirt':
+  nest::lib::package_use { 'app-emulation/libvirt':
     use => ['virt-network', 'zfs'],
   }
 

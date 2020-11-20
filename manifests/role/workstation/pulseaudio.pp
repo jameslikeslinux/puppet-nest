@@ -19,7 +19,7 @@ class nest::role::workstation::pulseaudio {
     line  => 'default-sample-format = s24le',
   }
 
-  nest::lib::portage::package_use { 'media-sound/pulseaudio-modules-bt':
+  nest::lib::package_use { 'media-sound/pulseaudio-modules-bt':
     use => 'fdk',  # for AAC
   }
 

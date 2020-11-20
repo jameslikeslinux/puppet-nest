@@ -42,7 +42,7 @@ class nest::base {
       Class['::nest::base::portage'] -> Package <| title != 'sys-devel/distcc' and
                                                    title != 'dev-vcs/git' and
                                                    title != 'app-admin/eselect' |>
-      Class['::nest::base::portage'] -> Nest::Lib::Portage::Package_use <| |>
+      Class['::nest::base::portage'] -> Nest::Lib::Package_use <| |>
 
       # Portage configuration (profile) responsible for installing systemd
       Class['::nest::base::portage']
