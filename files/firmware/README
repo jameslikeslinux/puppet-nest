@@ -1,8 +1,0 @@
-Pinebook Pro firmware is from Manjaro:
-https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware
-
-Raspberry Pi firmware is from Raspberry Pi OS:
-https://github.com/RPi-Distro/bluez-firmware/tree/master/broadcom
-https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm
-
-Neither seems to work or work well on the other.
