@@ -8,10 +8,7 @@ class nest::base::kernel {
     use => 'symlink',
   }
 
-  package { [
-     $sources_package,
-    'sys-kernel/linux-firmware',
-  ]:
+  package { $sources_package:
     ensure => installed,
   }
 
