@@ -1,17 +1,23 @@
 ---
-:backends:
-  - eyaml
+version: 5
 
-:eyaml:
-  :datadir: "/etc/puppetlabs/code/environments/%{::environment}/data"
-  :extension: 'yaml'
-  :pkcs7_private_key: '/etc/puppetlabs/puppet/ssl/ca/ca_key.pem'
-  :pkcs7_public_key: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
+defaults:
+  datadir: "/etc/puppetlabs/code/environments/%{::environment}/data"
+  lookup_key: eyaml_lookup_key
+  options:
+    pkcs7_private_key: '/etc/puppetlabs/puppet/ssl/ca/ca_key.pem'
+    pkcs7_public_key: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
 
-:hierarchy:
-  - "node/%{::trusted.certname}"
-  - "role/%{::role}"
-  - "platform/%{::platform}"
-  - "arch/%{::architecture}"
-  - "os/%{::facts.osfamily}"
-  - "common"
+hierarchy:
+  - name: 'Nodes'
+    path: "node/%{::trusted.certname}.yaml"
+  - name: 'Roles'
+    path: "role/%{::role}.yaml"
+  - name: 'Platforms'
+    path: "platform/%{::platform}.yaml"
+  - name: 'Architectures'
+    path: "arch/%{::architecture}.yaml"
+  - name: 'Operating Systems'
+    path: "os/%{::facts.osfamily}.yaml"
+  - name: 'Common'
+    path: 'common.yaml'
