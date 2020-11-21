@@ -38,8 +38,8 @@ nest::barrier_config: |
   end
   
   section: options
-  	keystroke(super+alt+left) = switchToScreen(falcon)
-  	keystroke(super+alt+right) = switchToScreen(hawk)
+  	keystroke(super+alt+up) = switchToScreen(hawk)
+  	keystroke(super+alt+down) = switchToScreen(falcon)
   	mousebutton(6) = keystroke(WWWBack)
   	mousebutton(7) = keystroke(WWWForward)
   end
