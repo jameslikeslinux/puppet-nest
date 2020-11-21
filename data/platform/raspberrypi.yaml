@@ -5,6 +5,8 @@ nest::dvorak: true
 nest::swap_alt_win: true
 
 nest::package_env:
+  app-text/texlive-core:
+    env: 'heavy.conf'
   dev-lang/rust:
     env: 'light-debug.conf'
   net-libs/nodejs:
