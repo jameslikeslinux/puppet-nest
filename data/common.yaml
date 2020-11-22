@@ -51,6 +51,9 @@ nest::package_keywords:
   sys-fs/zfs-kmod:
     accept_keywords: '~*'
 
+  # Until 5.9 or later is stabilized, accept unstable
+  sys-kernel/gentoo-sources: {}
+
 nest::package_use:
   app-admin/puppet:
     use: ['augeas', 'shadow']
