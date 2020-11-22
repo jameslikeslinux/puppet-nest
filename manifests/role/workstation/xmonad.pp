@@ -1,9 +1,5 @@
 class nest::role::workstation::xmonad {
   nest::lib::package_use {
-    'x11-misc/xmobar':
-      use => 'xft',
-    ;
-
     'x11-misc/rofi':
       use => 'windowmode',
     ;
