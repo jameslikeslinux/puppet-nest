@@ -69,6 +69,8 @@ nest::package_keywords:
     accept_keywords: '*'
   x11-apps/mesa-progs:
     accept_keywords: '*'
+  x11-misc/dunst:
+    accept_keywords: '*'
   x11-misc/xsel:
     accept_keywords: '*'
 
