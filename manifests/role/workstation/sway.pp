@@ -75,10 +75,20 @@ class nest::role::workstation::sway {
     input 9011:26214:ydotoold_virtual_device xkb_variant basic
     | INPUT_CONF
 
+  # XXX: According to sway-output(5), this needs to account for scaling
+  $monitors_conf = $::nest::monitor_layout.reduce("") |$memo, $monitor| {
+    if $monitor =~ /([^@]+)@(\d+)$/ {
+      "${memo}output ${1} position ${2} 0\n"
+    } else {
+      $memo
+    }
+  }
+
   $output_conf = @("OUTPUT_CONF")
     output * scale $::nest::gui_scaling_factor
     output * subpixel rgb
-    | OUTPUT_CONF
+    ${monitors_conf}
+    | - OUTPUT_CONF
 
   file {
     default:
