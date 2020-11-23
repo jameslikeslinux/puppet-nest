@@ -118,7 +118,7 @@ class nest::base::zfs {
     # https://github.com/openzfs/zfs/issues/7734
     zfs { "${facts['rpool']}/swap":
       compression    => 'off',
-      sync           => 'always',
+      sync           => 'standard',
       primarycache   => 'metadata',
       secondarycache => 'none',
       logbias        => 'throughput',
