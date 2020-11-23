@@ -13,11 +13,9 @@ class nest::role::workstation::firefox {
         ensure => absent,
       }
 
-      $webrender = $::nest::video_card ? {
-        'amdgpu' => 1,
-        'intel'  => 1,
-        'nvidia' => 0,
-        default  => 0,
+      $webrender = $::platform ? {
+        'raspberrypi' => 0,
+        default       => 1,
       }
 
       file { '/usr/bin/firefox':

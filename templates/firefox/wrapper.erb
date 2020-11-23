@@ -3,7 +3,7 @@
 if [[ $XDG_SESSION_TYPE == 'x11' ]]; then
     sudo sh -c "echo 'pref(\"layout.css.devPixelsPerPx\", \"<%= scope['nest::gui_scaling_factor'] %>\");' > /usr/lib64/firefox/defaults/pref/all-nest.js"
     [[ $KDEWM == *'xmonad' ]] && sudo sh -c "echo 'pref(\"nest.contextMenuOffsetTweak\", true);' >> /usr/lib64/firefox/defaults/pref/all-nest.js"
-    export GTK_USE_PORTAL=1 MOZ_USE_XINPUT2=1
+    export GTK_USE_PORTAL=1 MOZ_X11_EGL=1
 else
     sudo rm -f /usr/lib64/firefox/defaults/pref/all-nest.js
     if [[ $MOZ_DISABLE_WAYLAND == '1' ]]; then
@@ -13,4 +13,6 @@ else
     fi
 fi
 
-MOZ_WEBRENDER=<%= @webrender %> exec /usr/lib64/firefox/firefox "$@"
+MOZ_USE_XINPUT2=1 MOZ_WEBRENDER=<%= @webrender %> exec /usr/lib64/firefox/firefox "$@"
+
+# vim: filetype=bash
