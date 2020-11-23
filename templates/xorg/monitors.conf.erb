@@ -1,6 +1,9 @@
 <%
+# Transforms ['a@0', 'b@1920', 'c@3840'] -> ['a', 'b', 'c']
+monitor_layout = @monitor_layout.map { |monitor| monitor.sub(/@\d+$/, '') }
+
 # Transforms ['a', 'b', 'c'] -> [['a', 'b'], ['b', 'c'], ['c', nil]]
-monitor_pairs = @monitor_layout.zip(@monitor_layout.drop(1))
+monitor_pairs = monitor_layout.zip(monitor_layout.drop(1))
 
 after_primary = false
 monitor_pairs.each do |monitor, relative_monitor|
