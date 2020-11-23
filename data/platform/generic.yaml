@@ -1,3 +1,4 @@
+---
 nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
