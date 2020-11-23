@@ -29,19 +29,24 @@ class nest::base::puppet {
       content => $facter_conf,
     }
 
-    $scaling_facts = @("SCALING_FACTS")
+    $outputs_facts = @("OUTPUTS_FACTS")
       ---
+      primary_output: '${::nest::primary_monitor}'
       scaling:
         gui: ${::nest::gui_scaling_factor}
         text: ${::nest::text_scaling_factor}
-      | SCALING_FACTS
+      | OUTPUTS_FACTS
 
-    file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':
+    file { '/etc/puppetlabs/facter/facts.d/outputs.yaml':
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => $scaling_facts,
+      content => $outputs_facts,
     }
+
+    file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':
+      ensure => absent,
+    };
 
     # My hosts take on the domain name of the network to which they're attached.
     # Provide a stable, canonical value for Puppet.
