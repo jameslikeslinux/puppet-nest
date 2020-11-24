@@ -7,9 +7,10 @@ class nest::role::workstation::plasma {
     ensure => installed,
   }
 
-  # SDDM needs access to /dev/nvidiactl to run
+  # XXX: Remove after sddm is taken out of video group
+  # (was for nvidia support)
   user { 'sddm':
-    groups  => 'video',
+    groups  => [],
     require => Package['kde-plasma/plasma-meta'],
   }
 

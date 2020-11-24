@@ -23,7 +23,6 @@ class nest (
   $touchpad_acceleration   = 0.0,
   $trackpoint_acceleration = 0.0,
   $barrier_config          = undef,
-  $video_card              = undef,
 
   $cflags                  = $::portage_cflags,
   $cpu_flags_x86           = $::portage_cpu_flags_x86,
@@ -56,8 +55,8 @@ class nest (
     } elsif $facts['architecture'] == 'amd64' and $::role == 'workstation' {
       $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
       $input_devices  = 'libinput'
-      $video_cards    = 'amdgpu i965 intel nvidia radeonsi'
-      $use_defaults   = ['pulseaudio', 'vaapi', 'vdpau', 'wayland']
+      $video_cards    = 'amdgpu i965 intel radeonsi'
+      $use_defaults   = ['pulseaudio', 'vaapi', 'wayland']
     } elsif $facts['architecture'] == 'aarch64' and $::role == 'server' {
       $gentoo_profile = 'default/linux/arm64/17.0/systemd'
       $input_devices  = undef

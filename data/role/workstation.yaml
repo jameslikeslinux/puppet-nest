@@ -74,9 +74,6 @@ nest::package_mask:
     version: '>=3.000'
 
 nest::package_use:
-  x11-drivers/nvidia-drivers:
-    use: ['gtk3', '-abi_x86_32']
-
   x11-libs/libdrm:
     use: ['libkms', 'video_cards_radeon']
 

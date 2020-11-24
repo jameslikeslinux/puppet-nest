@@ -43,28 +43,9 @@ class nest::role::workstation::xorg {
     source => 'puppet:///modules/nest/xorg/intel.conf',
   }
 
-  if $video_card == 'nvidia' {
-    $nvidia_conf_ensure        = 'present'
-    $monitors_conf_ensure      = 'absent'
-  } else {
-    $nvidia_conf_ensure        = 'absent'
-    $monitors_conf_ensure      = $monitor_layout ? {
-      []      => 'absent',
-      default => 'present',
-    }
-  }
-
-  file { '/etc/modprobe.d/nouveau.conf':
-    ensure => absent,
-    notify => Class['nest::base::bootloader'],
-  }
-
-  file { '/etc/X11/xorg.conf.d/10-nvidia.conf':
-    ensure  => $nvidia_conf_ensure,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => template('nest/xorg/nvidia.conf.erb'),
+  $monitors_conf_ensure = $monitor_layout ? {
+    []      => 'absent',
+    default => 'present',
   }
 
   file { '/etc/X11/xorg.conf.d/10-monitors.conf':
@@ -80,10 +61,6 @@ class nest::role::workstation::xorg {
     owner   => 'root',
     group   => 'root',
     content => template('nest/xorg/libinput.conf.erb'),
-  }
-
-  file { '/etc/X11/xinit/xinitrc.d/10-kwin-triple-buffer':
-    ensure => absent,
   }
 
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
@@ -104,7 +81,7 @@ class nest::role::workstation::xorg {
   }
 
   package { 'x11-misc/vdpauinfo':
-    ensure => $nvidia_conf_ensure,
+    ensure => absent,
   }
 
   package { [
@@ -128,19 +105,6 @@ class nest::role::workstation::xorg {
     owner   => 'root',
     group   => 'root',
     content => "#!/bin/sh\nsetxkbmap -synch\n",
-  }
-
-  if $video_card == 'nvidia' and $primary_monitor =~ /\./ {
-    $mst_workaround = present
-  } else {
-    $mst_workaround = absent
-  }
-
-  # Workaround DP 1.2 MST sleep issue
-  file_line { 'sddm-workaround-mst-sleep-issue':
-    ensure => $mst_workaround,
-    path   => '/usr/share/sddm/scripts/Xsetup',
-    line   => 'xset dpms force off && xset dpms force on',
   }
 
   # Load i2c-dev for controlling monitors

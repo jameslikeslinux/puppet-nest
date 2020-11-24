@@ -34,12 +34,6 @@ class nest::role::workstation {
         contain '::nest::role::workstation::qemu'
       }
 
-      # Plasma pulls in xorg-drivers which builds nvidia-drivers which requires
-      # a built kernel and needs to come before building the initramfs.
-      Class['::nest::base::kernel']
-      -> Class['::nest::role::workstation::plasma']
-      -> Class['::nest::base::dracut']
-
       # Plasma installs pulseaudio, so we don't need to manage it separately
       Class['::nest::role::workstation::plasma']
       -> Class['::nest::role::workstation::pulseaudio']
