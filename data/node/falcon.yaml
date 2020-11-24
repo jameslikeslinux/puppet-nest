@@ -15,7 +15,6 @@ nest::kernel_cmdline:
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
-  CONFIG_DRM_AMDGPU: m
 nest::libvirt: true
 
 nest::dvorak: true
