@@ -1,0 +1,13 @@
+[Unit]
+Description=Attach serial Bluetooth controller
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target shutdown.target
+BindsTo=dev-ttyAMA0.device
+Conflicts=shutdown.target
+
+[Service]
+ExecStart=/usr/bin/btattach --bredr /dev/ttyAMA0 --protocol bcm
+
+[Install]
+WantedBy=sysinit.target
