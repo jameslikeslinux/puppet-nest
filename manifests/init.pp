@@ -15,7 +15,6 @@ class nest (
   $dvorak                  = false,
   $swap_alt_win            = false,
   $monitor_layout          = [],
-  $mouse                   = undef,
   $primary_monitor         = undef,
   $processorcount          = $::processorcount,
   $gui_scaling_factor      = 1.0,
