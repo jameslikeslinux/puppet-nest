@@ -45,11 +45,21 @@ class nest::base::ssh {
       }
 
       if $::nest::public_ssh {
-        firewall { '100 ssh':
-          proto  => tcp,
-          dport  => 22,
-          state  => 'NEW',
-          action => accept,
+        firewall {
+          default:
+            proto  => tcp,
+            dport  => 22,
+            state  => 'NEW',
+            action => accept,
+          ;
+
+          '100 ssh (v4)':
+            provider => iptables,
+          ;
+
+          '100 ssh (v6)':
+            provider => ip4tables,
+          ;
         }
       }
     }

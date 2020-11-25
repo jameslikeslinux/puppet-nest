@@ -157,49 +157,54 @@ class nest::base::openvpn {
       ],
     }
 
-    firewall { '100 openvpn':
-      proto  => udp,
-      dport  => 1194,
-      state  => 'NEW',
-      action => accept,
+    firewall {
+      default:
+        proto  => udp,
+        dport  => 1194,
+        state  => 'NEW',
+        action => accept,
+      ;
+
+      '100 openvpn (v4)':
+        provider => iptables,
+      ;
+
+      '100 openvpn (v6)':
+        provider => ip6tables,
+      ;
     }
 
-    firewall { '100 openvpn (v6)':
-      proto    => udp,
-      dport    => 1194,
-      state    => 'NEW',
-      action   => accept,
-      provider => ip6tables,
-    }
+    # Forwarding rules to control access to VPN
+    firewall {
+      default:
+        chain => 'FORWARD',
+      ;
 
-    firewall { '100 allow kvm guests into nest VPN':
-      chain    => 'FORWARD',
-      proto    => all,
-      iniface  => 'virbr0',
-      outiface => $device,
-      action   => accept,
-    }
+      '100 allow kvm guests into nest VPN':
+        proto    => all,
+        iniface  => 'virbr0',
+        outiface => $device,
+        action   => accept,
+      ;
 
-    firewall { '100 allow connections out from nest VPN':
-      chain   => 'FORWARD',
-      proto   => all,
-      iniface => $device,
-      action  => accept,
-    }
+      '100 allow connections out from nest VPN':
+        proto   => all,
+        iniface => $device,
+        action  => accept,
+      ;
 
-    firewall { '100 allow return packets into nest VPN':
-      chain    => 'FORWARD',
-      proto    => all,
-      outiface => $device,
-      state    => ['RELATED', 'ESTABLISHED'],
-      action   => accept,
-    }
+      '100 allow return packets into nest VPN':
+        proto    => all,
+        outiface => $device,
+        state    => ['RELATED', 'ESTABLISHED'],
+        action   => accept,
+      ;
 
-    firewall { '101 block connections into nest VPN':
-      chain    => 'FORWARD',
-      proto    => all,
-      outiface => $device,
-      action   => drop,
+      '101 block connections into nest VPN':
+        proto    => all,
+        outiface => $device,
+        action   => drop,
+      ;
     }
   } else {
     $mode        = 'client'
@@ -226,6 +231,7 @@ class nest::base::openvpn {
     subscribe => File["/etc/openvpn/${mode}/nest.conf"],
   }
 
+  # Allow all VPN traffic
   firewall { '001 vpn':
     proto   => all,
     iniface => $device,
