@@ -35,12 +35,6 @@ nest::kernel_cmdline:
   - 'noefi'                   # u-boot doesn't provide EFI services
 
 nest::kernel_config:
-  # Support distcc
-  CONFIG_GCC_PLUGINS: n
-
-  # For systemd
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
-
   # Enable frequency scaling based on scheduler data
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: n
   CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y

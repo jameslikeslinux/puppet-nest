@@ -72,6 +72,9 @@ nest::package_use:
       - 'gnuefi'        # for systemd-boot
 
 nest::kernel_config:
+  # Support distcc
+  CONFIG_GCC_PLUGINS: n
+
   # Preferences
   CONFIG_LOGO: n
 
@@ -124,6 +127,7 @@ nest::kernel_config:
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
   CONFIG_FANOTIFY: y
+  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
   # For docker
   CONFIG_MEMCG: y

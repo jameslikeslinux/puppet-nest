@@ -1,7 +1,0 @@
----
-nest::kernel_config:
-  # Support distcc
-  CONFIG_GCC_PLUGINS: n
-
-  # For systemd
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y

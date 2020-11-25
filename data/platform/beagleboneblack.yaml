@@ -11,12 +11,6 @@ nest::packages_env:
     env: 'light-debug.conf'
 
 nest::kernel_config:
-  # Support distcc
-  CONFIG_GCC_PLUGINS: n
-
-  # For systemd
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
-
   # Device drivers
   CONFIG_DRM: y
   CONFIG_DRM_I2C_NXP_TDA998X: y
