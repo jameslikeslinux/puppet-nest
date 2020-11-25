@@ -8,6 +8,7 @@ mod 'puppetlabs-concat', '5.2.0'
 mod 'puppetlabs-acl', '2.1.0'
 mod 'puppetlabs-augeas_core', '1.0.5'
 mod 'puppetlabs-chocolatey', '3.1.1'
+mod 'puppetlabs-docker', '3.12.1'
 mod 'puppetlabs-host_core', '1.0.3'
 mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-registry', '2.1.0'
@@ -30,9 +31,6 @@ mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
 mod 'theforeman-puppet', '11.0.0'
-mod 'docker',
-  :git    => 'https://github.com/iamjamestl/puppetlabs-docker.git',
-  :branch => 'fixes'
 mod 'portage',
   :git => 'https://github.com/iamjamestl/puppet-portage.git'
 mod 'zfs_core',
