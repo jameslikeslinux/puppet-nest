@@ -1,4 +1,8 @@
 class nest::base::firewall {
+  package { 'net-firewall/iptables':
+    ensure => installed,
+  }
+
   # Doing anything related to iptables inside an ARM chroot fails
   if $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
     if $facts['virtual'] == 'lxc' {
@@ -8,7 +12,7 @@ class nest::base::firewall {
       ]:
         ensure  => link,
         target  => '/bin/true',
-        require => Class['firewall'],
+        require => Package['net-firewall/iptables'],
       }
       ->
       Firewall <| |>
@@ -19,31 +23,39 @@ class nest::base::firewall {
       ]:
         ensure  => link,
         target  => 'xtables-legacy-multi',
-        require => Class['firewall'],
+        require => Package['net-firewall/iptables'],
       }
       ->
       Firewall <| |>
     }
   }
 
-  class { '::firewall':
-    # The Gentoo iptables systemd services are just oneshots
-    ensure       => stopped,
-    service_name => 'iptables-restore',
-  }
-
-  # Gentoo systemd services use a different save file
-  File <| title == '/var/lib/iptables/rules-save6' |> {
-    path => '/var/lib/ip6tables/rules-save',
-  }
-
   service { [
+    'iptables-restore',
     'iptables-store',
     'ip6tables-restore',
     'ip6tables-store',
   ]:
-    enable => false,
+    enable => true,
   }
+
+
+
+  # The firewall and firewallchain types define autorequires for package and
+  # service resources with Red Hat and Debian names, so it has to be done
+  # explicitly for Gentoo here.
+  Package['net-firewall/iptables']
+  -> Firewallchain <| |>
+  ~> [Service['iptables-store'], Service['ip6tables-store']]
+
+  Package['net-firewall/iptables']
+  -> Firewall <| provider == iptables |>
+  ~> Service['iptables-store']
+
+  Package['net-firewall/iptables']
+  -> Firewall <| provider == ip6tables |>
+  ~> Service['ip6tables-store']
+
 
 
   #
