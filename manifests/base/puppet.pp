@@ -58,10 +58,12 @@ class nest::base::puppet {
     }
 
     class { '::puppet':
-      dns_alt_names => $dns_alt_names,
-      dir           => '/etc/puppetlabs/puppet',
-      codedir       => '/etc/puppetlabs/code',
-      ssldir        => '/etc/puppetlabs/puppet/ssl',
+      dns_alt_names        => $dns_alt_names,
+      dir                  => '/etc/puppetlabs/puppet',
+      codedir              => '/etc/puppetlabs/code',
+      ssldir               => '/etc/puppetlabs/puppet/ssl',
+      runmode              => 'systemd.timer',
+      unavailable_runmodes => ['cron'],
     }
   } else {
     class { '::puppet':
