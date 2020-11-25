@@ -47,68 +47,79 @@ class nest::base::firewall {
 
 
   #
-  # Default IPv4 ruleset
+  # Default ruleset
   #
-  firewallchain { 'INPUT:filter:IPv4':
-    ensure => present,
-    policy => drop,
-    purge  => !str2bool($::chroot),
-    ignore => [
-      '-i virbr\d+',
-      '-j LIBVIRT_INP',
-      '-j f2b-sshd',
-    ],
+  firewallchain {
+    [
+      'INPUT:filter:IPv4',
+      'INPUT:filter:IPv6',
+    ]:
+      policy => drop,
+      purge  => !str2bool($::chroot),
+      ignore => [
+        '-i virbr\d+',
+        '-j LIBVIRT_INP',
+        '-j f2b-sshd',
+      ],
+    ;
+
+    # Disable forwarding by default
+    [
+      'FORWARD:filter:IPv4',
+      'FORWARD:filter:IPv6',
+    ]:
+      policy => drop,
+    ;
   }
 
-  firewall { '000 loopback':
-    proto   => all,
-    iniface => 'lo',
-    action  => accept,
+  # Allow all local traffic
+  firewall {
+    default:
+      proto   => all,
+      iniface => 'lo',
+      action  => accept,
+    ;
+
+    '000 loopback (v4)':
+      provider => iptables,
+    ;
+
+    '000 loopback (v6)':
+      provider => ip6tables,
+    ;
   }
 
-  firewall { '010 related established':
-    proto  => all,
-    state  => ['RELATED', 'ESTABLISHED'],
-    action => accept,
+  # Track and allow existing connections
+  firewall {
+    default:
+      proto  => all,
+      state  => ['RELATED', 'ESTABLISHED'],
+      action => accept,
+    ;
+
+    '010 related established (v4)':
+      provider => iptables,
+    ;
+
+    '010 related established (v6)':
+      provider => ip6tables,
+    ;
   }
 
-  firewall { '011 ping':
-    proto  => icmp,
-    action => accept,
-  }
+  # Allow ping and other control messages
+  firewall {
+    default:
+      action => accept,
+    ;
 
+    '011 icmp (v4)':
+      proto    => icmp,
+      provider => iptables,
+    ;
 
-  #
-  # Default IPv6 ruleset
-  #
-  firewallchain { 'INPUT:filter:IPv6':
-    ensure => present,
-    policy => drop,
-    purge  => !str2bool($::chroot),
-    ignore => [
-      '-i virbr\d+',
-      '-j LIBVIRT_INP',
-      '-j f2b-sshd',
-    ],
-  }
-
-  firewall { '000 loopback (v6)':
-    proto    => all,
-    iniface  => 'lo',
-    action   => accept,
-    provider => ip6tables,
-  }
-
-  firewall { '010 related established (v6)':
-    proto    => all,
-    state    => ['RELATED', 'ESTABLISHED'],
-    action   => accept,
-    provider => ip6tables,
-  }
-
-  firewall { '011 icmp (v6)':
-    proto    => ipv6-icmp,
-    action   => accept,
-    provider => ip6tables,
+    '011 icmp (v6)':
+      proto    => ipv6-icmp,
+      provider => ip6tables,
+    ;
   }
 }
