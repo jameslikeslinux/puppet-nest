@@ -58,7 +58,7 @@ class nest::base::ssh {
           ;
 
           '100 ssh (v6)':
-            provider => ip4tables,
+            provider => ip6tables,
           ;
         }
       }
