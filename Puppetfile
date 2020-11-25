@@ -31,22 +31,16 @@ mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
 mod 'theforeman-puppet', '11.0.0'
-mod 'portage',
-  :git => 'https://github.com/iamjamestl/puppet-portage.git'
+mod 'portage', :git => 'https://github.com/iamjamestl/puppet-portage.git'
 mod 'zfs_core',
   :git    => 'https://github.com/iamjamestl/puppetlabs-zfs_core.git',
   :branch => 'feature-sync-property'
 
 # Required by theforeman-puppet
 mod 'puppet-extlib', '3.1.0'
-mod 'puppetdb',
-  :git => 'https://github.com/iamjamestl/puppetlabs-puppetdb.git'
 
 # Required by augeasproviders_sysctl
 mod 'herculesteam-augeasproviders_core', '2.6.0'
 
 # Required by puppetlabs-mysql
 mod 'puppetlabs-translate', '1.2.0'
-
-# Required by puppetlabs-puppetdb
-mod 'puppetlabs-inifile', '2.5.0'
