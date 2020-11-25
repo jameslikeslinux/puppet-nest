@@ -51,6 +51,7 @@ class nest::base::firewall {
   #
   firewallchain { 'INPUT:filter:IPv4':
     ensure => present,
+    policy => drop,
     purge  => !str2bool($::chroot),
     ignore => [
       '-i virbr\d+',
@@ -76,18 +77,13 @@ class nest::base::firewall {
     action => accept,
   }
 
-  firewall { '999 drop all':
-    proto  => all,
-    action => drop,
-    before => undef,
-  }
-
 
   #
   # Default IPv6 ruleset
   #
   firewallchain { 'INPUT:filter:IPv6':
     ensure => present,
+    policy => drop,
     purge  => !str2bool($::chroot),
     ignore => [
       '-i virbr\d+',
@@ -113,13 +109,6 @@ class nest::base::firewall {
   firewall { '011 icmp (v6)':
     proto    => ipv6-icmp,
     action   => accept,
-    provider => ip6tables,
-  }
-
-  firewall { '999 drop all (v6)':
-    proto    => all,
-    action   => drop,
-    before   => undef,
     provider => ip6tables,
   }
 }
