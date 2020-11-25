@@ -30,11 +30,54 @@ class nest::base::firewall {
     }
   }
 
+
+  # Keep the 'store' services alive after exit and don't run them at shutdown so
+  # that Puppet and only Puppet triggers them.  The idea is that ephemeral rules
+  # should not be saved just because the system is shutting down; Puppet has the
+  # final say in what gets saved.
+  $service_dropin = @(SVC_DROPIN)
+    [Service]
+    RemainAfterExit=yes
+    | SVC_DROPIN
+
+  file {
+    default:
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      require => Package['net-firewall/iptables'],
+      notify  => Nest::Lib::Systemd_reload['firewall'],
+    ;
+
+    [
+      '/etc/systemd/system/iptables-store.service.d',
+      '/etc/systemd/system/ip6tables-store.service.d',
+    ]:
+      ensure => directory,
+    ;
+
+    [
+      '/etc/systemd/system/iptables-store.service.d/10-remain-after-exit.conf',
+      '/etc/systemd/system/ip6tables-store.service.d/10-remain-after-exit.conf',
+    ]:
+      content => $service_dropin,
+    ;
+  }
+
+  nest::lib::systemd_reload { 'firewall': }
+
+  service { [
+    'iptables-store',
+    'ip6tables-store',
+  ]:
+    ensure  => running,
+    enable  => false,
+    require => Nest::Lib::Systemd_reload['firewall'],
+  }
+
   service { [
     'iptables-restore',
-    'iptables-store',
     'ip6tables-restore',
-    'ip6tables-store',
   ]:
     enable => true,
   }
