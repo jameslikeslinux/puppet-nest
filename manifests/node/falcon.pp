@@ -223,7 +223,7 @@ class nest::node::falcon {
     action  => accept,
   }
 
-  firewall { '100 docker to dns':
+  firewall { '100 docker to dnsmasq':
     iniface => 'docker0',
     proto   => udp,
     dport   => 53,
