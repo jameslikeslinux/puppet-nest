@@ -180,30 +180,24 @@ class nest::base::openvpn {
         chain => 'FORWARD',
       ;
 
-      '100 allow kvm guests into nest VPN':
+      '100 nest vpn: allow kvm guests':
         proto    => all,
         iniface  => 'virbr0',
         outiface => $device,
         action   => accept,
       ;
 
-      '100 allow connections out from nest VPN':
+      '100 nest vpn: allow outbound packets':
         proto   => all,
         iniface => $device,
         action  => accept,
       ;
 
-      '100 allow return packets into nest VPN':
+      '100 nest vpn: allow return packets':
         proto    => all,
         outiface => $device,
         state    => ['RELATED', 'ESTABLISHED'],
         action   => accept,
-      ;
-
-      '101 block connections into nest VPN':
-        proto    => all,
-        outiface => $device,
-        action   => drop,
       ;
     }
   } else {
