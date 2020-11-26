@@ -92,7 +92,7 @@ class nest::base::firewall {
   ~> [Service['iptables-store'], Service['ip6tables-store']]
 
   Package['net-firewall/iptables']
-  -> Firewall <| provider == iptables |>
+  -> Firewall <| provider == iptables or provider == undef |>
   ~> Service['iptables-store']
 
   Package['net-firewall/iptables']
