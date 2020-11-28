@@ -45,6 +45,8 @@ class nest::service::gitlab {
     require          => Docker_network['gitlab'],
   }
 
+  # Docker's IPv6 support expects public addresses
+  # so it doesn't set up a NAT automatically
   firewall { '100 gitlab nat':
     table    => nat,
     chain    => 'POSTROUTING',
@@ -53,6 +55,8 @@ class nest::service::gitlab {
     provider => ip6tables,
   }
 
+  # Use iptables to forward the SSH service to avoid listener conflicts
+  # with Docker's own port exposure method, and to support IPv6
   nest::lib::port_forward { 'gitlab ssh':
     port            => 22,
     proto           => tcp,
