@@ -188,24 +188,24 @@ class nest::node::falcon {
     ;
 
     'nzbget.nest':
-      destination => 'http://localhost:6789/',
+      destination => 'localhost:6789',
     ;
 
     'ombi.nest':
-      destination => 'http://localhost:3579/',
+      destination => 'localhost:3579',
     ;
 
     'plex.nest':
-      destination => 'http://localhost:32400/',
-      websockets  => '/:/websockets/',
+      destination => 'localhost:32400',
+      websockets  => ':/websockets/.*',
     ;
 
     'radarr.nest':
-      destination => 'http://localhost:7878/',
+      destination => 'localhost:7878',
     ;
 
     'sonarr.nest':
-      destination => 'http://localhost:8989/',
+      destination => 'localhost:8989',
     ;
   }
 

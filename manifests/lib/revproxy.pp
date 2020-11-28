@@ -6,10 +6,19 @@ define nest::lib::revproxy (
   Optional[Integer] $port                            = undef,
   Boolean $ssl                                       = true,
   Optional[String[1]] $websockets                    = undef,
-  Array[String[1]] $websockets_exceptions            = [],
   Boolean $preserve_host                             = false,
   Hash[String[1], Any] $extra_params                 = {},
 ) {
+  if $websockets {
+    include '::apache::mod::proxy_wstunnel'
+
+    $websockets_proxy_pass = [{
+      'path'         => "^/(${websockets})$",
+      'url'          => "ws://${destination}/\$1",
+      'reverse_urls' => []
+    }]
+  }
+
   $certbot_exception = @(EOT)
     <Location "/.well-known">
         AllowOverride None
@@ -17,36 +26,6 @@ define nest::lib::revproxy (
         ProxyPass !
       </Location>
     | EOT
-
-  if $websockets {
-    include '::apache::mod::proxy_wstunnel'
-  }
-
-  $wsdestination = $destination.regsubst('^http', 'ws').regsubst('/$', '')
-  $wsexceptiondest = $destination.regsubst('/$', '')
-
-  $proxy_params = $destination ? {
-    /(localhost|127\.0\.0\.1)/ => {},
-    default                    => { 'keepalive' => 'On' },
-  }
-
-  $websockets_exceptions_proxy_pass = $websockets_exceptions.map |$ex| {
-    { 'path' => $ex, 'url' => "${wsexceptiondest}${ex}", 'params' => $proxy_params }
-  }
-
-  $proxy_pass = [
-    $websockets_exceptions_proxy_pass,
-
-    $websockets ? {
-      undef   => [],
-      default => { 'path' => $websockets, 'url' => "${wsdestination}${websockets}", 'params' => $proxy_params },
-    },
-
-    $websockets ? {
-      '/'     => [],
-      default => { 'path' => '/', 'url' => $destination, 'params' => $proxy_params },
-    }
-  ].flatten
 
   nest::lib::vhost { $name:
     servername    => $servername,
@@ -56,9 +35,10 @@ define nest::lib::revproxy (
     ssl           => $ssl,
     zfs_docroot   => false,
     extra_params  => {
-      'custom_fragment'     => $certbot_exception,
-      'proxy_pass'          => $proxy_pass,
       'proxy_preserve_host' => $preserve_host,
+      'proxy_pass_match'    => $websockets_proxy_pass,
+      'proxy_dest'          => "http://${destination}",
+      'custom_fragment'     => $certbot_exception,
     } + $extra_params,
   }
 }
