@@ -1,3 +1,4 @@
 ---
 classes:
+  - 'nest::service::gitlab'
   - 'private::web'
