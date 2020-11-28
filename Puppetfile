@@ -25,7 +25,7 @@ mod 'private',
 mod 'dalen-dnsquery', '3.0.0'
 mod 'herculesteam-augeasproviders_sysctl', '2.5.0'
 mod 'puppetlabs-apache', '5.4.0'
-mod 'puppetlabs-firewall', '1.14.0'
+mod 'puppetlabs-firewall', '2.7.0'
 mod 'puppetlabs-mailalias_core', '1.0.6'
 mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'

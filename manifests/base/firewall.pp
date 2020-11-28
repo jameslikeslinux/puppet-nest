@@ -103,27 +103,50 @@ class nest::base::firewall {
 
   #
   # Default ruleset
+  # Manage standard chains
   #
   firewallchain {
+    default:
+      purge          => !str2bool($::chroot),
+      ignore_foreign => true,
+    ;
+
+    # Block inbound connections
     [
       'INPUT:filter:IPv4',
       'INPUT:filter:IPv6',
     ]:
       policy => drop,
-      purge  => !str2bool($::chroot),
-      ignore => [
-        '-i virbr\d+',
-        '-j LIBVIRT_INP',
-        '-j f2b-sshd',
-      ],
     ;
 
-    # Disable forwarding by default
+    # Disable forwarding
     [
       'FORWARD:filter:IPv4',
       'FORWARD:filter:IPv6',
     ]:
       policy => drop,
+    ;
+
+    # Allow outbound connections
+    [
+      'OUTPUT:filter:IPv4',
+      'OUTPUT:filter:IPv6',
+    ]:
+      policy => accept,
+    ;
+
+    # Allow NAT
+    [
+      'PREROUTING:nat:IPv4',
+      'PREROUTING:nat:IPv6',
+      'INPUT:nat:IPv4',
+      'INPUT:nat:IPv6',
+      'OUTPUT:nat:IPv4',
+      'OUTPUT:nat:IPv6',
+      'POSTROUTING:nat:IPv4',
+      'POSTROUTING:nat:IPv6',
+    ]:
+      policy => accept,
     ;
   }
 
