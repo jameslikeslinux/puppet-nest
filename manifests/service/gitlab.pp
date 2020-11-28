@@ -53,6 +53,15 @@ class nest::service::gitlab {
     provider => ip6tables,
   }
 
+  nest::lib::port_forward { 'gitlab ssh':
+    port            => 22,
+    proto           => tcp,
+    source_ip4      => '104.156.227.40',
+    destination_ip4 => '172.18.0.2',
+    source_ip6      => '2001:19f0:300:2005::40',
+    destination_ip6 => 'fc00:18::2',
+  }
+
   nest::lib::revproxy { 'gitlab.james.tl':
     destination => '172.18.0.2',
     ip          => ['104.156.227.40', '2001:19f0:300:2005::40'],
