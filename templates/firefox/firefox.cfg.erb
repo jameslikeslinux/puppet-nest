@@ -1,9 +1,22 @@
+// Firefox AutoConfig
+/*
+ * This is the only preference system that supports JavaScript.
+ * This file is required to start with a single-line comment.
+ *
+ * See: https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
+ * See: https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/A_brief_guide_to_Mozilla_preferences
+ */
+
 if (getenv("XDG_SESSION_TYPE") == "x11") {
-  pref("layout.css.devPixelsPerPx", "<%= scope['nest::gui_scaling_factor'] %>");
+  pref("layout.css.devPixelsPerPx", getenv("QT_SCALE_FACTOR"));
+} else {
+  clearPref("layout.css.devPixelsPerPx");
 }
 
-if (getenv("KDEWM").match(/xmonad$/)) {
+if (getenv("KDEWM") == "/usr/bin/xmonad") {
   pref("nest.contextMenuOffsetTweak", true);
+} else {
+  clearPref("nest.contextMenuOffsetTweak");
 }
 
 /* Enable DNS over TLS

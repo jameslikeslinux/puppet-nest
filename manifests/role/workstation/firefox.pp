@@ -14,6 +14,11 @@ class nest::role::workstation::firefox {
         default       => 1,
       }
 
+      $autoconfig_content = @(AUTOCONFIG)
+        pref("general.config.filename", "firefox.cfg");
+        pref("general.config.obscure_value", 0);
+        | AUTOCONFIG
+
       file {
         default:
           owner   => 'root',
@@ -26,9 +31,18 @@ class nest::role::workstation::firefox {
           content => template('nest/firefox/wrapper.erb'),
         ;
 
-        '/usr/lib64/firefox/defaults/pref/all-nest.js':
+        '/usr/lib64/firefox/firefox.cfg':
           mode    => '0644',
-          content => template('nest/firefox/all-nest.js.erb'),
+          content => template('nest/firefox/firefox.cfg.erb'),
+        ;
+
+        '/usr/lib64/firefox/defaults/pref/autoconfig.js':
+          mode    => '0644',
+          content => $autoconfig_content,
+        ;
+
+        '/usr/lib64/firefox/defaults/pref/all-nest.js':
+          ensure => absent,
         ;
       }
     }
