@@ -1,0 +1,24 @@
+if (getenv("XDG_SESSION_TYPE") == "x11") {
+  pref("layout.css.devPixelsPerPx", "<%= scope['nest::gui_scaling_factor'] %>");
+}
+
+if (getenv("KDEWM").match(/xmonad$/)) {
+  pref("nest.contextMenuOffsetTweak", true);
+}
+
+/* Enable DNS over TLS
+ *
+ * systemd-resolved seems to return the first result received from a combined A
+ * and AAAA lookup.  After both results have been cached, both records are
+ * returned.  In the first case, if the AAAA record is received first, Firefox
+ * will try to connect to the IPv6 site and fail on systems without IPv6
+ * connectivity.  A refresh will pull the A record from the resolved cache and
+ * succeed.  Enabling the Firefox trusted resolver (DNS-over-TLS) is a
+ * workaround that only helps Firefox, but it *greatly* eases the effects of
+ * the problem, and improves privacy in the process.
+ *
+ * See: https://github.com/systemd/systemd/issues/16913
+ */
+pref("network.trr.mode", 2);
+
+// vim: filetype=javascript

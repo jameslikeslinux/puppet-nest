@@ -9,21 +9,27 @@ class nest::role::workstation::firefox {
         ensure => installed,
       }
 
-      file { '/usr/lib64/firefox/defaults/pref/all-scaling.js':
-        ensure => absent,
-      }
-
       $webrender = $::platform ? {
         'raspberrypi' => 0,
         default       => 1,
       }
 
-      file { '/usr/bin/firefox':
-        mode    => '0755',
-        owner   => 'root',
-        group   => 'root',
-        content => template('nest/firefox/wrapper.erb'),
-        require => Package['www-client/firefox'],
+      file {
+        default:
+          owner   => 'root',
+          group   => 'root',
+          require => Package['www-client/firefox'],
+        ;
+
+        '/usr/bin/firefox':
+          mode    => '0755',
+          content => template('nest/firefox/wrapper.erb'),
+        ;
+
+        '/usr/lib64/firefox/defaults/pref/all-nest.js':
+          mode    => '0644',
+          content => template('nest/firefox/all-nest.js.erb'),
+        ;
       }
     }
 
