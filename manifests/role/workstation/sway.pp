@@ -25,17 +25,10 @@ class nest::role::workstation::sway {
   $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
-  # Hardware cursor becomes corrupted when floating between monitors on
-  # raspberrypi.  Watch dri/drm/sway updates for improvements.
-  $no_hardware_cursors = $::platform ? {
-    'raspberrypi' => 1,
-    default       => 0,
-  }
-
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     # Workaround https://github.com/swaywm/sway/issues/3109
-    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} WLR_NO_HARDWARE_CURSORS=${no_hardware_cursors} /usr/bin/sway.real \${*@Q}"
+    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} /usr/bin/sway.real \${*@Q}"
     | END_WRAPPER
 
   file { '/usr/bin/sway':
