@@ -14,7 +14,7 @@ class nest::service::gitlab (
     nginx['listen_https'] = false
 
     # Use dark theme by default
-    gitlab_rails['gitlab_default_theme'] = 11
+    gitlab_rails['gitlab_default_theme'] = 2
 
     # Gmail outbound
     # See: https://docs.gitlab.com/omnibus/settings/smtp.html#gmail
