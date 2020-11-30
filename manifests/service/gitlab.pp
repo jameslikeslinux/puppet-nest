@@ -42,6 +42,14 @@ class nest::service::gitlab (
     gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
     gitlab_rails['incoming_email_idle_timeout'] = 60
     gitlab_rails['incoming_email_expunge_deleted'] = true
+
+    # Let projects opt-in to DevOps features
+    gitlab_rails['gitlab_default_projects_features_issues'] = false
+    gitlab_rails['gitlab_default_projects_features_merge_requests'] = false
+    gitlab_rails['gitlab_default_projects_features_wiki'] = false
+    gitlab_rails['gitlab_default_projects_features_snippets'] = false
+    gitlab_rails['gitlab_default_projects_features_builds'] = false
+    gitlab_rails['gitlab_default_projects_features_container_registry'] = false
     | GITLAB_OMNIBUS_CONFIG
 
   file { '/srv/gitlab/gitlab.rb':
