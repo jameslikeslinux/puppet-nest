@@ -10,6 +10,9 @@ class nest::service::gitlab {
     # See: https://docs.gitlab.com/omnibus/settings/nginx.html#supporting-proxied-ssl
     nginx['listen_port'] = 80
     nginx['listen_https'] = false
+
+    # Use dark theme by default
+    gitlab_rails['gitlab_default_theme'] = 11
     | GITLAB_OMNIBUS_CONFIG
 
   file { '/srv/gitlab/gitlab.rb':
