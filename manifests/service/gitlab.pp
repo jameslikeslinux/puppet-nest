@@ -28,7 +28,7 @@ class nest::service::gitlab {
   }
 
   docker::run { 'gitlab':
-    image            => 'gitlab/gitlab-ee',
+    image            => 'gitlab/gitlab-ce',
     net              => 'gitlab',
     extra_parameters => [
       '--ip 172.18.0.2',
