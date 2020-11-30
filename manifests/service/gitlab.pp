@@ -45,12 +45,13 @@ class nest::service::gitlab (
     | GITLAB_OMNIBUS_CONFIG
 
   file { '/srv/gitlab/gitlab.rb':
-    mode    => '0600',
-    owner   => 'root',
-    group   => 'root',
-    content => $gitlab_omnibus_config,
-    require => Nest::Lib::Srv['gitlab'],
-    notify  => Docker::Run['gitlab'],
+    mode      => '0600',
+    owner     => 'root',
+    group     => 'root',
+    content   => $gitlab_omnibus_config,
+    show_diff => false,
+    require   => Nest::Lib::Srv['gitlab'],
+    notify    => Docker::Run['gitlab'],
   }
 
   docker_network { 'gitlab':
