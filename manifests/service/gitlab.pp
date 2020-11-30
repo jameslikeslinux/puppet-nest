@@ -108,8 +108,9 @@ class nest::service::gitlab (
   }
 
   nest::lib::revproxy { 'gitlab.james.tl':
-    destination => '172.18.0.2',
-    ip          => ['104.156.227.40', '2001:19f0:300:2005::40'],
-    websockets  => '.*\.ws',
+    destination           => '172.18.0.2',
+    ip                    => ['104.156.227.40', '2001:19f0:300:2005::40'],
+    websockets            => '.*\.ws',
+    allow_encoded_slashes => true,
   }
 }
