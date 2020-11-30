@@ -1,4 +1,5 @@
 // Firefox AutoConfig
+
 /*
  * This is the only preference system that supports JavaScript.
  * This file is required to start with a single-line comment.
@@ -7,19 +8,18 @@
  * See: https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/A_brief_guide_to_Mozilla_preferences
  */
 
+// Scale based on environment
 if (getenv("XDG_SESSION_TYPE") == "x11") {
   pref("layout.css.devPixelsPerPx", getenv("QT_SCALE_FACTOR"));
 } else {
   clearPref("layout.css.devPixelsPerPx");
 }
 
-if (getenv("KDEWM") == "/usr/bin/xmonad") {
-  pref("nest.contextMenuOffsetTweak", true);
-} else {
-  clearPref("nest.contextMenuOffsetTweak");
-}
+// For userChrome.css
+pref("nest.contextMenuOffsetTweak", getenv("KDEWM") == "/usr/bin/xmonad");
 
-/* Enable DNS over TLS
+/*
+ * Enable DNS over TLS
  *
  * systemd-resolved seems to return the first result received from a combined A
  * and AAAA lookup.  After both results have been cached, both records are
