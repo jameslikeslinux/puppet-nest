@@ -17,20 +17,20 @@ define nest::lib::revproxy (
   $proxy_pass_match = [
     $websockets ? {
       undef   => [],
-      default => [{
+      default => {
         'path'         => "^/(${websockets})$",
         'url'          => "ws://${destination}/\$1",
-        'reverse_urls' => []
-      }],
+        'reverse_urls' => [],
+      },
     },
 
     $allow_encoded_slashes ? {
-      true    => [{
+      true    => {
         'path'         => '^/(.*)$',
         'url'          => "http://${destination}/\$1",
         'keywords'     => ['nocanon'],
         'reverse_urls' => [],
-      }],
+      },
       default => [],
     },
   ].flatten
