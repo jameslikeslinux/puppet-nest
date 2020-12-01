@@ -1,4 +1,4 @@
-define nest::lib::vhost (
+define nest::lib::virtual_host (
   String[1] $servername,
   Array[String[1]] $serveraliases                    = [],
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,

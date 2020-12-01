@@ -181,7 +181,7 @@ class nest::node::falcon {
     ],
   }
 
-  nest::lib::revproxy {
+  nest::lib::reverse_proxy {
     default:
       ssl => false,
       ip  => '172.22.0.1',

@@ -60,7 +60,7 @@ class nest::service::gitlab (
     destination_ip6 => 'fc00:18::2',
   }
 
-  nest::lib::revproxy {
+  nest::lib::reverse_proxy {
     default:
       ip => ['104.156.227.40', '2001:19f0:300:2005::40'],
     ;

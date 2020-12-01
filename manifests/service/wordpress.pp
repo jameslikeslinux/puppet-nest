@@ -64,7 +64,7 @@ define nest::service::wordpress (
     ],
   }
 
-  nest::lib::vhost { $name:
+  nest::lib::virtual_host { $name:
     priority      => $priority,
     servername    => $servername,
     serveraliases => $serveraliases,

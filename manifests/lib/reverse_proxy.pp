@@ -1,4 +1,4 @@
-define nest::lib::revproxy (
+define nest::lib::reverse_proxy (
   String[1] $destination,
   String[1] $servername                              = $name,
   Array[String[1]] $serveraliases                    = [],
@@ -35,7 +35,7 @@ define nest::lib::revproxy (
     },
   ].flatten
 
-  $allow_encoded_slashes_vhost = $allow_encoded_slashes ? {
+  $vhost_allow_encoded_slashes = $allow_encoded_slashes ? {
     true    => on,
     default => undef,
   }
@@ -48,7 +48,7 @@ define nest::lib::revproxy (
       </Location>
     | EOT
 
-  nest::lib::vhost { $name:
+  nest::lib::virtual_host { $name:
     servername    => $servername,
     serveraliases => $serveraliases,
     ip            => $ip,
@@ -56,7 +56,7 @@ define nest::lib::revproxy (
     ssl           => $ssl,
     zfs_docroot   => false,
     extra_params  => {
-      'allow_encoded_slashes' => $allow_encoded_slashes_vhost,
+      'allow_encoded_slashes' => $vhost_allow_encoded_slashes,
       'proxy_preserve_host'   => $preserve_host,
       'proxy_pass_match'      => $proxy_pass_match,
       'proxy_dest'            => "http://${destination}",
