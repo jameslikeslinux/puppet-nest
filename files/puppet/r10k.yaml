@@ -2,5 +2,5 @@
 cachedir: '/var/cache/r10k'
 sources:
   main:
-    remote: 'https://github.com/iamjamestl/puppet-nest.git'
+    remote: 'https://gitlab.james.tl/nest/puppet-nest.git'
     basedir: '/etc/puppetlabs/code/environments'
