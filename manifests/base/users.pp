@@ -187,7 +187,7 @@ class nest::base::users {
     vcsrepo { "$vcsrepo_dir":
       ensure   => latest,
       provider => git,
-      source   => 'https://github.com/iamjamestl/dotfiles.git',
+      source   => 'https://gitlab.james.tl/james/dotfiles.git',
       revision => 'master',
       user     => $vcsrepo_user,
     }
