@@ -5,58 +5,11 @@ class nest::service::gitlab (
 
   nest::lib::srv { 'gitlab': }
 
-  $gitlab_omnibus_config = @("GITLAB_OMNIBUS_CONFIG")
-    external_url 'https://gitlab.james.tl'
-
-    # For proxied SSL
-    # See: https://docs.gitlab.com/omnibus/settings/nginx.html#supporting-proxied-ssl
-    nginx['listen_port'] = 80
-    nginx['listen_https'] = false
-
-    # Use dark theme by default
-    gitlab_rails['gitlab_default_theme'] = 2
-
-    # Gmail outbound
-    # See: https://docs.gitlab.com/omnibus/settings/smtp.html#gmail
-    gitlab_rails['smtp_enable'] = true
-    gitlab_rails['smtp_address'] = 'smtp.gmail.com'
-    gitlab_rails['smtp_port'] = 587
-    gitlab_rails['smtp_user_name'] = 'gitlab@james.tl'
-    gitlab_rails['smtp_password'] = '${gmail_password}'
-    gitlab_rails['smtp_domain'] = 'smtp.gmail.com'
-    gitlab_rails['smtp_authentication'] = 'login'
-    gitlab_rails['smtp_enable_starttls_auto'] = true
-    gitlab_rails['smtp_tls'] = false
-    gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
-
-    # Gmail inbound
-    # See: https://docs.gitlab.com/ee/administration/incoming_email.html#gmail
-    gitlab_rails['incoming_email_enabled'] = true
-    gitlab_rails['incoming_email_address'] = 'gitlab+%{key}@james.tl'
-    gitlab_rails['incoming_email_email'] = 'gitlab@james.tl'
-    gitlab_rails['incoming_email_password'] = '${gmail_password}'
-    gitlab_rails['incoming_email_host'] = 'imap.gmail.com'
-    gitlab_rails['incoming_email_port'] = 993
-    gitlab_rails['incoming_email_ssl'] = true
-    gitlab_rails['incoming_email_start_tls'] = false
-    gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
-    gitlab_rails['incoming_email_idle_timeout'] = 60
-    gitlab_rails['incoming_email_expunge_deleted'] = true
-
-    # Let projects opt-in to DevOps features
-    gitlab_rails['gitlab_default_projects_features_issues'] = false
-    gitlab_rails['gitlab_default_projects_features_merge_requests'] = false
-    gitlab_rails['gitlab_default_projects_features_wiki'] = false
-    gitlab_rails['gitlab_default_projects_features_snippets'] = false
-    gitlab_rails['gitlab_default_projects_features_builds'] = false
-    gitlab_rails['gitlab_default_projects_features_container_registry'] = false
-    | GITLAB_OMNIBUS_CONFIG
-
   file { '/srv/gitlab/gitlab.rb':
     mode      => '0600',
     owner     => 'root',
     group     => 'root',
-    content   => $gitlab_omnibus_config,
+    content   => template('nest/gitlab/gitlab.rb.erb'),
     show_diff => false,
     require   => Nest::Lib::Srv['gitlab'],
     notify    => Docker::Run['gitlab'],
@@ -107,10 +60,19 @@ class nest::service::gitlab (
     destination_ip6 => 'fc00:18::2',
   }
 
-  nest::lib::revproxy { 'gitlab.james.tl':
-    destination           => '172.18.0.2',
-    ip                    => ['104.156.227.40', '2001:19f0:300:2005::40'],
-    websockets            => '.*\.ws',
-    allow_encoded_slashes => true,
+  nest::lib::revproxy {
+    default:
+      ip => ['104.156.227.40', '2001:19f0:300:2005::40'],
+    ;
+
+    'gitlab.james.tl':
+      destination           => '172.18.0.2',
+      websockets            => '.*\.ws',
+      allow_encoded_slashes => true,
+    ;
+
+    'registry.gitlab.james.tl':
+      destination => '172.18.0.2:5000',
+    ;
   }
 }
