@@ -1,7 +1,6 @@
 ---
 classes:
   - 'nest::service::gitlab'
-  - 'private::web'
 
 # XXX: Change this after moving it to a more private area
 nest::service::gitlab::gmail_password: >
