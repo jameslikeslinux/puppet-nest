@@ -52,3 +52,6 @@ gitlab_rails['incoming_email_start_tls'] = false
 gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
 gitlab_rails['incoming_email_idle_timeout'] = 60
 gitlab_rails['incoming_email_expunge_deleted'] = true
+
+# Prometheus is overkill for this tiny deployment
+prometheus_monitoring['enable'] = false
