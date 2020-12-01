@@ -1,6 +1,11 @@
 ---
 cachedir: '/var/cache/r10k'
+
+git:
+  provider: 'rugged'
+  private_key: '/etc/puppetlabs/r10k/id_rsa'
+
 sources:
-  main:
+  nest:
     remote: 'https://gitlab.james.tl/nest/puppet-nest.git'
     basedir: '/etc/puppetlabs/code/environments'

@@ -10,14 +10,26 @@ defaults:
 
 hierarchy:
   - name: 'Nodes'
-    path: "node/%{::trusted.certname}.yaml"
+    paths:
+      - "private/node/%{::trusted.certname}.yaml"
+      - "node/%{::trusted.certname}.yaml"
   - name: 'Roles'
-    path: "role/%{::role}.yaml"
+    paths:
+      - "private/role/%{::role}.yaml"
+      - "role/%{::role}.yaml"
   - name: 'Platforms'
-    path: "platform/%{::platform}.yaml"
+    paths:
+      - "private/platform/%{::platform}.yaml"
+      - "platform/%{::platform}.yaml"
   - name: 'Architectures'
-    path: "arch/%{::architecture}.yaml"
+    paths:
+      - "private/arch/%{::architecture}.yaml"
+      - "arch/%{::architecture}.yaml"
   - name: 'Operating Systems'
-    path: "os/%{::facts.osfamily}.yaml"
+    paths:
+      - "private/os/%{::facts.osfamily}.yaml"
+      - "os/%{::facts.osfamily}.yaml"
   - name: 'Common'
-    path: 'common.yaml'
+    paths:
+      - 'private/common.yaml'
+      - 'common.yaml'

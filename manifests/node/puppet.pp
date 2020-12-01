@@ -1,4 +1,6 @@
-class nest::node::puppet {
+class nest::node::puppet (
+  String[1] $r10k_deploy_key,
+) {
   nest::lib::srv { 'puppetserver': }
 
   file { '/srv/puppetserver/hiera.yaml':
@@ -6,22 +8,41 @@ class nest::node::puppet {
     require => Nest::Lib::Srv['puppetserver'],
   }
 
+  package { 'libgit2':
+    ensure => installed,
+  }
+
+  package { 'rugged':
+    ensure          => installed,
+    install_options => ['--use-system-libraries'],
+    provider        => gem,
+    require         => Package['libgit2'],
+  }
+
   package { 'r10k':
     ensure => installed,
   }
 
-  file { '/etc/puppetlabs/r10k':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
+  file {
+    default:
+      owner  => 'root',
+      group  => 'root',
+    ;
 
-  file { '/etc/puppetlabs/r10k/r10k.yaml':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/puppet/r10k.yaml',
+    '/etc/puppetlabs/r10k':
+      mode   => '0755',
+      ensure => directory,
+    ;
+
+    '/etc/puppetlabs/r10k/r10k.yaml':
+      mode   => '0644',
+      source => 'puppet:///modules/nest/puppet/r10k.yaml',
+    ;
+
+    '/etc/puppetlabs/r10k/id_rsa':
+      mode    => '0600',
+      content => $r10k_deploy_key,
+    ;
   }
 
   file { '/etc/eyaml':

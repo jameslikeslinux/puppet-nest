@@ -22,3 +22,7 @@ nest::package_keywords:
   dev-ruby/puppet_forge: {}
   dev-ruby/rash_alt: {}
   dev-ruby/simple_oauth: {}
+
+  # For rugged
+  dev-libs/libgit2:
+    version: '~1.1.0'
