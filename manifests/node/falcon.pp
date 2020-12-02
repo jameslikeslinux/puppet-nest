@@ -243,13 +243,19 @@ class nest::node::falcon {
     target => '/etc/sysctl.d/nest.conf',
   }
 
-  nest::lib::package_use { 'media-sound/beets':
-    use => ['ffmpeg', 'gstreamer', 'lastfm', 'replaygain'],
-  }
+  nest::service::gitlab_runner {
+    default:
+      host               => 'gitlab.james.tl',
+      registration_token => $::nest::gitlab_runner_token,
+    ;
 
-  # Temporarily remove beets because it is being dropped from gentoo
-  # Will reinstall after bringing the ebuild into my repo and enable Python 3.7 support
-  package { 'media-sound/beets':
-    ensure => absent,
+    'gitlab.james.tl':
+      # use defaults
+    ;
+
+    'gitlab.james.tl-docker':
+      docker_volumes => ['/var/run/docker.sock:/var/run/docker.sock'],
+      tag_list       => ['docker'],
+    ;
   }
 }

@@ -6,6 +6,7 @@ class nest (
   $root_mail_alias,
   $ssh_private_key,
   $pw_hash,
+  String $gitlab_runner_token,
 
   $cnames                  = {},
   $distcc_hosts            = {},
