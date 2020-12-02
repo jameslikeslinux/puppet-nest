@@ -17,7 +17,7 @@ mod 'puppet-windows_env', '3.2.0'
 #
 # My modules
 #
-mod 'nest_private', :git => 'git@gitlab.james.tl:nest/puppet-nest_private.git'
+mod 'nest_private', :git => 'git@gitlab.james.tl:nest/puppet-private.git'
 
 
 # Required by nest
