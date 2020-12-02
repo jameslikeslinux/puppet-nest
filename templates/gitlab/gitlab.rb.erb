@@ -10,10 +10,10 @@ external_url 'https://gitlab.james.tl'
 nginx['listen_port'] = 80
 nginx['listen_https'] = false
 
-# Enable and expose internal registry service for
-# httpd to reverse proxy and add TLS
-registry_external_url 'http://registry.gitlab.james.tl'
-registry['registry_http_addr'] = '0.0.0.0:5000'
+# Enable and expose internal registry service for proxying
+registry_external_url 'https://registry.gitlab.james.tl'
+registry_nginx['listen_port'] = 5050
+registry_nginx['listen_https'] = false
 
 # Use dark theme by default
 gitlab_rails['gitlab_default_theme'] = 2

@@ -72,7 +72,7 @@ class nest::service::gitlab (
     ;
 
     'registry.gitlab.james.tl':
-      destination => '172.18.0.2:5000',
+      destination => '172.18.0.2:5050',
     ;
   }
 }
