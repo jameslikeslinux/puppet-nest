@@ -257,5 +257,10 @@ class nest::node::falcon {
       docker_volumes => ['/var/run/docker.sock:/var/run/docker.sock'],
       tag_list       => ['docker'],
     ;
+
+    'gitlab.james.tl-nest':
+      docker_volumes => ['/nest:/nest'],
+      tag_list       => ['nest'],
+    ;
   }
 }
