@@ -68,9 +68,9 @@ class nest::service::gitlab (
     ;
 
     'gitlab.james.tl':
-      destination           => '172.18.0.2',
-      websockets            => '.*\.ws',
-      allow_encoded_slashes => true,
+      destination     => '172.18.0.2',
+      encoded_slashes => true,
+      websockets      => true,
     ;
 
     'registry.gitlab.james.tl':

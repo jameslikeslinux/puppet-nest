@@ -5,39 +5,34 @@ define nest::lib::reverse_proxy (
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
   Optional[Integer] $port                            = undef,
   Boolean $ssl                                       = true,
-  Optional[String[1]] $websockets                    = undef,
-  Boolean $allow_encoded_slashes                     = false,
+  Boolean $encoded_slashes                           = false,
   Boolean $preserve_host                             = false,
+  Variant[Boolean, String] $websockets               = false,
   Hash[String[1], Any] $extra_params                 = {},
 ) {
-  if $websockets {
-    include '::apache::mod::proxy_wstunnel'
+  if $encoded_slashes {
+    $proxy_pass_keywords = ['nocanon']
+    $allow_encoded_slashes = on
   }
 
-  $proxy_pass_match = [
-    $websockets ? {
-      undef   => [],
-      default => {
-        'path'         => "^/(${websockets})$",
-        'url'          => "ws://${destination}/\$1",
-        'reverse_urls' => [],
-      },
-    },
+  $proxy_pass = [{
+    'path'     => '/',
+    'url'      => "http://${destination}/",
+    'keywords' => $proxy_pass_keywords,
+  }]
 
-    $allow_encoded_slashes ? {
-      true    => {
-        'path'         => '^/(.*)$',
-        'url'          => "http://${destination}/\$1",
-        'keywords'     => ['nocanon'],
-        'reverse_urls' => [],
-      },
-      default => [],
-    },
-  ].flatten
+  if $websockets {
+    include '::apache::mod::proxy_wstunnel'
 
-  $vhost_allow_encoded_slashes = $allow_encoded_slashes ? {
-    true    => on,
-    default => undef,
+    $wsdestination = $websockets ? {
+      String  => $websockets,
+      default => $destination,
+    }
+
+    $websocket_rewrites = [{
+      'rewrite_cond' => ['%{HTTP:Upgrade} =websocket [NC]'],
+      'rewrite_rule' => ["^/(.*)$ ws://${wsdestination}/\$1 [P,L]"],
+    }]
   }
 
   $certbot_exception = @(EOT)
@@ -56,10 +51,10 @@ define nest::lib::reverse_proxy (
     ssl           => $ssl,
     zfs_docroot   => false,
     extra_params  => {
-      'allow_encoded_slashes' => $vhost_allow_encoded_slashes,
+      'allow_encoded_slashes' => $allow_encoded_slashes,
+      'proxy_pass'            => $proxy_pass,
       'proxy_preserve_host'   => $preserve_host,
-      'proxy_pass_match'      => $proxy_pass_match,
-      'proxy_dest'            => "http://${destination}",
+      'rewrites'              => $websocket_rewrites,
       'custom_fragment'       => $certbot_exception,
     } + $extra_params,
   }

@@ -106,10 +106,14 @@ class nest::node::falcon {
   $cpuset_param = "--cpuset-cpus ${cpuset}"
 
   Docker::Run {
-    dns              => '172.22.0.1',
-    dns_search       => 'nest',
-    extra_parameters => $cpuset_param,
-    service_provider => 'systemd',
+    dns                               => '172.22.0.1',
+    dns_search                        => 'nest',
+    extra_parameters                  => $cpuset_param,
+
+    # XXX: These should be added to site.pp after docker -> podman switch
+    docker_service                    => false,
+    restart_service_on_docker_refresh => false,
+    service_provider                  => 'systemd',
   }
 
   docker::run { 'nzbget':
@@ -196,7 +200,7 @@ class nest::node::falcon {
 
     'plex.nest':
       destination => 'localhost:32400',
-      websockets  => ':/websockets/.*',
+      websockets  => true,
     ;
 
     'radarr.nest':

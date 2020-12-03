@@ -53,8 +53,8 @@ define nest::service::gitlab_runner (
       '/run/podman/podman.sock:/var/run/docker.sock',
       "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
     ],
-    service_provider => 'systemd',
     depend_services  => ['podman.socket'],
+    docker_service   => 'podman.socket',
     require          => Exec["gitlab-runner-${name}-register"],
   }
 }
