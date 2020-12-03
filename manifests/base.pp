@@ -12,6 +12,7 @@ class nest::base {
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::base::bootloader'
+      contain '::nest::base::containers'
       contain '::nest::base::crossdev'
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'

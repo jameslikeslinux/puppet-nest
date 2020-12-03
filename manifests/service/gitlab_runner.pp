@@ -6,8 +6,6 @@ define nest::service::gitlab_runner (
   Array[String] $docker_volumes = [],
   Array[String] $tag_list       = [],
 ) {
-  include 'nest::service::docker'
-
   unless defined(Nest::Lib::Srv['gitlab-runner']) {
     nest::lib::srv { 'gitlab-runner': }
   }
@@ -52,10 +50,11 @@ define nest::service::gitlab_runner (
   docker::run { "gitlab-runner-${name}":
     image            => 'gitlab/gitlab-runner',
     volumes          => [
-      '/var/run/docker.sock:/var/run/docker.sock',
+      '/run/podman/podman.sock:/var/run/docker.sock',
       "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
     ],
     service_provider => 'systemd',
+    depend_services  => ['podman.socket'],
     require          => Exec["gitlab-runner-${name}-register"],
   }
 }

@@ -1,6 +1,5 @@
 class nest::node::falcon {
   include '::nest'
-  include '::nest::service::docker'
 
   nest::lib::srv { [
     'nzbget',
@@ -215,16 +214,16 @@ class nest::node::falcon {
     action  => accept,
   }
 
-  firewall { '100 docker to apache':
-    iniface => 'docker0',
+  firewall { '100 podman to apache':
+    iniface => 'cni-podman0',
     proto   => tcp,
     dport   => 80,
     state   => 'NEW',
     action  => accept,
   }
 
-  firewall { '100 docker to dnsmasq':
-    iniface => 'docker0',
+  firewall { '100 podman to dnsmasq':
+    iniface => 'cni-podman0',
     proto   => udp,
     dport   => 53,
     state   => 'NEW',
@@ -253,9 +252,9 @@ class nest::node::falcon {
       # use defaults
     ;
 
-    'gitlab.james.tl-docker':
-      docker_volumes => ['/var/run/docker.sock:/var/run/docker.sock'],
-      tag_list       => ['docker'],
+    'gitlab.james.tl-podman':
+      docker_volumes => ['/var/run/docker.sock:/run/podman/podman.sock'],
+      tag_list       => ['podman'],
     ;
   }
 }

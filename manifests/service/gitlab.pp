@@ -1,7 +1,9 @@
 class nest::service::gitlab (
   String[1] $gmail_password,
 ) {
-  include 'nest::service::docker'
+  include 'nest'
+
+  if $::nest::containers == 'docker' {
 
   nest::lib::srv { 'gitlab': }
 
@@ -74,5 +76,7 @@ class nest::service::gitlab (
     'registry.gitlab.james.tl':
       destination => '172.18.0.2:5050',
     ;
+  }
+
   }
 }
