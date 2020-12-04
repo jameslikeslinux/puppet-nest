@@ -145,11 +145,6 @@ class nest::node::falcon {
     require     => File['/srv/ombi'],
   }
 
-  docker::run { 'plex':
-    ensure => absent,
-    image  => 'linuxserver/ombi',
-  }
-  ->
   nest::lib::podman_container { 'plex':
     image            => 'plexinc/pms-docker',
     cpuset_cpus      => $cpuset,
@@ -167,30 +162,46 @@ class nest::node::falcon {
   }
 
   docker::run { 'radarr':
-    image   => 'linuxserver/radarr',
-    ports   => '7878:7878',
-    env     => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
-    volumes => [
+    ensure => absent,
+    image  => 'linuxserver/ombi',
+  }
+  ->
+  nest::lib::podman_container { 'radarr':
+    image       => 'linuxserver/radarr',
+    cpuset_cpus => $cpuset,
+    dns         => '172.22.0.1',
+    dns_search  => 'nest',
+    env         => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
+    publish     => ['7878:7878'],
+    volumes     => [
       '/srv/radarr/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/movies:/movies',
     ],
-    require => [
+    require     => [
       File['/srv/radarr/config'],
       File['/srv/nzbget/downloads/completed'],
     ],
   }
 
   docker::run { 'sonarr':
-    image   => 'linuxserver/sonarr',
-    ports   => '8989:8989',
-    env     => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
-    volumes => [
+    ensure => absent,
+    image  => 'linuxserver/ombi',
+  }
+  ->
+  nest::lib::podman_container { 'sonarr':
+    image       => 'linuxserver/sonarr',
+    cpuset_cpus => $cpuset,
+    dns         => '172.22.0.1',
+    dns_search  => 'nest',
+    env         => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
+    publish     => ['8989:8989'],
+    volumes     => [
       '/srv/sonarr/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/tv:/tv',
     ],
-    require => [
+    require     => [
       File['/srv/sonarr/config'],
       File['/srv/nzbget/downloads/completed'],
     ],
