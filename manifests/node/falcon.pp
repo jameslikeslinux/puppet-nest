@@ -137,11 +137,13 @@ class nest::node::falcon {
   }
   ->
   nest::lib::podman_container { 'ombi':
-    image   => 'linuxserver/ombi',
-    env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
-    publish => ['3579:3579'],
-    volumes => ['/srv/ombi/config:/config'],
-    require => File['/srv/ombi'],
+    image      => 'linuxserver/ombi',
+    dns        => '172.22.0.1',
+    dns_search => 'nest',
+    env        => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
+    publish    => ['3579:3579'],
+    volumes    => ['/srv/ombi/config:/config'],
+    require    => File['/srv/ombi'],
   }
 
   docker::run { 'plex':
