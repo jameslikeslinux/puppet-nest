@@ -117,14 +117,20 @@ define nest::lib::podman_container (
       $name,
     ]
 
-    exec { "podman-create-${name}":
-      command => shellquote($podman_create_cmd),
+    exec { "stop-container-${name}":
+      command => "/bin/systemctl stop container-${name}",
+      returns => [0, 5],
       unless  => "/usr/bin/test ${podman_create_str.shellquote} = \"`${podman_inspect_create_command.shellquote}`\"",
       require => Class['nest::base::containers'],
     }
     ~>
+    exec { "podman-create-${name}":
+      command     => shellquote($podman_create_cmd),
+      refreshonly => true,
+    }
+    ~>
     exec { "podman-generate-systemd-${name}":
-      command     => "/usr/bin/podman generate systemd --files --name ${name.shellquote}",
+      command     => "/usr/bin/podman generate systemd --files --name ${name}",
       cwd         => '/etc/systemd/system',
       refreshonly => true,
     }

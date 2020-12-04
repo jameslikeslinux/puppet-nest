@@ -129,7 +129,7 @@ class nest::node::falcon {
 
     'ombi':
       image   => 'linuxserver/ombi',
-      env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York', 'FOO=bar'],
+      env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
       publish => ['3579:3579'],
       volumes => ['/srv/ombi/config:/config'],
       require => File['/srv/ombi'],
