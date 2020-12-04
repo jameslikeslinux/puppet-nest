@@ -116,11 +116,6 @@ class nest::node::falcon {
     service_provider                  => 'systemd',
   }
 
-  docker::run { 'nzbget':
-    ensure => absent,
-    image  => 'linuxserver/ombi',
-  }
-  ->
   nest::lib::podman_container { 'nzbget':
     image       => 'linuxserver/nzbget',
     cpuset_cpus => $cpuset,
@@ -151,15 +146,23 @@ class nest::node::falcon {
   }
 
   docker::run { 'plex':
+    ensure => absent,
+    image  => 'linuxserver/ombi',
+  }
+  ->
+  nest::lib::podman_container { 'plex':
     image            => 'plexinc/pms-docker',
-    net              => 'host',
+    cpuset_cpus      => $cpuset,
+    dns              => '172.22.0.1',
+    dns_search       => 'nest',
     env              => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
+    network          => 'host',
+    tmpfs            => ['/transcode'],
     volumes          => [
       '/srv/plex/config:/config',
       '/nest/movies:/movies',
       '/nest/tv:/tv',
     ],
-    extra_parameters => [$cpuset_param, '--tmpfs /transcode'],
     require          => File['/srv/plex/config'],
   }
 

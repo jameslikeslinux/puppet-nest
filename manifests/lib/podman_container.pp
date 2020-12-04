@@ -7,6 +7,7 @@ define nest::lib::podman_container (
   Array[String]    $env         = [],
   Array[String]    $publish     = [],
   Optional[String] $network     = undef,
+  Array[String]    $tmpfs       = [],
   Array[String]    $volumes     = [],
 ) {
   if $ensure == absent {
@@ -85,6 +86,10 @@ define nest::lib::podman_container (
       "--publish=${e}"
     }
 
+    $tmpfs_args = $tmpfs.map |$t| {
+      "--tmpfs=${t}"
+    }
+
     $volumes_args = $volumes.map |$volume| {
       "--volume=${volume}"
     }
@@ -98,6 +103,7 @@ define nest::lib::podman_container (
       $env_args,
       $network_args,
       $publish_args,
+      $tmpfs_args,
       $volumes_args,
       "--label=PodmanVersion=${facts['podman_version']}",
       "--name=${name}",
