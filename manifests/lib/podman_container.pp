@@ -130,7 +130,7 @@ define nest::lib::podman_container (
     }
     ~>
     nest::lib::systemd_reload { "podman-container-${name}": }
-    ~>
+    ->
     service { "container-${name}":
       ensure => $service_ensure,
       enable => $service_enable,
