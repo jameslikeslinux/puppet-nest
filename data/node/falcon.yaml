@@ -2,6 +2,8 @@
 classes:
   - 'nest::node::falcon'
 
+puppet::environment: 'podman'
+
 nest::bootloader: systemd
 nest::isolcpus: '16-31'
 nest::kernel_cmdline:
