@@ -1,7 +1,0 @@
-[Unit]
-Before=puppet.service
-
-[Service]
-EnvironmentFile=-/etc/conf.d/docker
-ExecStart=
-ExecStart=/usr/bin/dockerd $OPTIONS

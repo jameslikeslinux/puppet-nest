@@ -1,9 +1,7 @@
 class nest::service::gitlab (
   String[1] $gmail_password,
 ) {
-  include 'nest'
-
-  if $::nest::containers == 'docker' {
+  if false {
 
   nest::lib::srv { 'gitlab': }
 

@@ -1,7 +1,7 @@
 class nest::service::bitwarden (
   Hash[String[1], String[1]] $env = {},
 ) {
-  if $::nest::containers == 'docker' {
+  if false {
 
   package { 'app-emulation/docker-compose':
     ensure  => installed,

@@ -1,10 +1,10 @@
 define nest::service::gitlab_runner (
   String $registration_token,
-  String $host                  = $name,
-  String $default_image         = 'ubuntu:latest',
-  String $description           = $facts['fqdn'],
-  Array[String] $docker_volumes = [],
-  Array[String] $tag_list       = [],
+  String $host            = $name,
+  String $default_image   = 'ubuntu:latest',
+  String $description     = $facts['fqdn'],
+  Array[String] $volumes  = [],
+  Array[String] $tag_list = [],
 ) {
   unless defined(Nest::Lib::Srv['gitlab-runner']) {
     nest::lib::srv { 'gitlab-runner': }
@@ -23,7 +23,7 @@ define nest::service::gitlab_runner (
     default => "${facts['fqdn']}-${description}",
   }
 
-  $docker_volume_args = $docker_volumes.map |$volume| {
+  $volume_args = $volumes.map |$volume| {
     ['--docker-volumes', $volume]
   }.flatten
 
@@ -39,7 +39,7 @@ define nest::service::gitlab_runner (
     '--registration-token', $registration_token,
     '--description', $description,
     '--tag-list', $tag_list.join(','),
-  ] + $docker_volume_args
+  ] + $volume_args
 
   exec { "gitlab-runner-${name}-register":
     command => shellquote($register_command),

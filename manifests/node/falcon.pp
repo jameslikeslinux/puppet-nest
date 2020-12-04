@@ -252,8 +252,8 @@ class nest::node::falcon {
     ;
 
     'gitlab.james.tl-podman':
-      docker_volumes => ['/var/run/docker.sock:/run/podman/podman.sock'],
-      tag_list       => ['podman'],
+      volumes  => ['/var/run/docker.sock:/run/podman/podman.sock'],
+      tag_list => ['podman'],
     ;
   }
 }
