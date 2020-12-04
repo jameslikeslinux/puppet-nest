@@ -132,12 +132,15 @@ class nest::node::falcon {
   }
 
   docker::run { 'ombi':
+    ensure => absent,
+    image  => 'linuxserver/ombi',
+  }
+  ->
+  nest::lib::podman_container { 'ombi':
     image   => 'linuxserver/ombi',
-    ports   => '3579:3579',
     env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
-    volumes => [
-      '/srv/ombi/config:/config',
-    ],
+    publish => ['3579:3579'],
+    volumes => ['/srv/ombi/config:/config'],
     require => File['/srv/ombi'],
   }
 
