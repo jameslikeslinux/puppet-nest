@@ -102,109 +102,81 @@ class nest::node::falcon {
     ;
   }
 
-  $cpuset = $::nest::availcpus_expanded.join(',')
-  $cpuset_param = "--cpuset-cpus ${cpuset}"
-
-  Docker::Run {
-    dns                               => '172.22.0.1',
-    dns_search                        => 'nest',
-    extra_parameters                  => $cpuset_param,
-
-    # XXX: These should be added to site.pp after docker -> podman switch
-    docker_service                    => false,
-    restart_service_on_docker_refresh => false,
-    service_provider                  => 'systemd',
+  Nest::Lib::Podman_container {
+    cpuset_cpus => $::nest::availcpus_expanded.join(','),
   }
 
-  nest::lib::podman_container { 'nzbget':
-    image       => 'linuxserver/nzbget',
-    cpuset_cpus => $cpuset,
-    dns         => '172.22.0.1',
-    dns_search  => 'nest',
-    env         => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
-    publish     => ['6789:6789'],
-    volumes     => [
-      '/srv/nzbget/config:/config',
-      '/srv/nzbget/downloads:/downloads',
-      '/nest/downloads/nzbget/watch:/downloads/nzb',
-    ],
-    require     => [
-      File['/srv/nzbget/config'],
-      File['/srv/nzbget/downloads'],
-    ],
-  }
+  nest::lib::podman_container {
+    default:
+      dns        => '172.22.0.1',
+      dns_search => 'nest',
+    ;
 
-  nest::lib::podman_container { 'ombi':
-    image       => 'linuxserver/ombi',
-    cpuset_cpus => $cpuset,
-    dns         => '172.22.0.1',
-    dns_search  => 'nest',
-    env         => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
-    publish     => ['3579:3579'],
-    volumes     => ['/srv/ombi/config:/config'],
-    require     => File['/srv/ombi'],
-  }
+    'nzbget':
+      image   => 'linuxserver/nzbget',
+      env     => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
+      publish => ['6789:6789'],
+      volumes => [
+        '/srv/nzbget/config:/config',
+        '/srv/nzbget/downloads:/downloads',
+        '/nest/downloads/nzbget/watch:/downloads/nzb',
+      ],
+      require => [
+        File['/srv/nzbget/config'],
+        File['/srv/nzbget/downloads'],
+      ],
+    ;
 
-  nest::lib::podman_container { 'plex':
-    image            => 'plexinc/pms-docker',
-    cpuset_cpus      => $cpuset,
-    dns              => '172.22.0.1',
-    dns_search       => 'nest',
-    env              => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
-    network          => 'host',
-    tmpfs            => ['/transcode'],
-    volumes          => [
-      '/srv/plex/config:/config',
-      '/nest/movies:/movies',
-      '/nest/tv:/tv',
-    ],
-    require          => File['/srv/plex/config'],
-  }
+    'ombi':
+      image   => 'linuxserver/ombi',
+      env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
+      publish => ['3579:3579'],
+      volumes => ['/srv/ombi/config:/config'],
+      require => File['/srv/ombi'],
+    ;
 
-  docker::run { 'radarr':
-    ensure => absent,
-    image  => 'linuxserver/ombi',
-  }
-  ->
-  nest::lib::podman_container { 'radarr':
-    image       => 'linuxserver/radarr',
-    cpuset_cpus => $cpuset,
-    dns         => '172.22.0.1',
-    dns_search  => 'nest',
-    env         => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
-    publish     => ['7878:7878'],
-    volumes     => [
-      '/srv/radarr/config:/config',
-      '/srv/nzbget/downloads:/downloads',
-      '/nest/movies:/movies',
-    ],
-    require     => [
-      File['/srv/radarr/config'],
-      File['/srv/nzbget/downloads/completed'],
-    ],
-  }
+    'plex':
+      image   => 'plexinc/pms-docker',
+      env     => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
+      network => 'host',
+      tmpfs   => ['/transcode'],
+      volumes => [
+        '/srv/plex/config:/config',
+        '/nest/movies:/movies',
+        '/nest/tv:/tv',
+      ],
+      require => File['/srv/plex/config'],
+    ;
 
-  docker::run { 'sonarr':
-    ensure => absent,
-    image  => 'linuxserver/ombi',
-  }
-  ->
-  nest::lib::podman_container { 'sonarr':
-    image       => 'linuxserver/sonarr',
-    cpuset_cpus => $cpuset,
-    dns         => '172.22.0.1',
-    dns_search  => 'nest',
-    env         => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
-    publish     => ['8989:8989'],
-    volumes     => [
-      '/srv/sonarr/config:/config',
-      '/srv/nzbget/downloads:/downloads',
-      '/nest/tv:/tv',
-    ],
-    require     => [
-      File['/srv/sonarr/config'],
-      File['/srv/nzbget/downloads/completed'],
-    ],
+    'radarr':
+      image   => 'linuxserver/radarr',
+      env     => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
+      publish => ['7878:7878'],
+      volumes => [
+        '/srv/radarr/config:/config',
+        '/srv/nzbget/downloads:/downloads',
+        '/nest/movies:/movies',
+      ],
+      require => [
+        File['/srv/radarr/config'],
+        File['/srv/nzbget/downloads/completed'],
+      ],
+    ;
+
+    'sonarr':
+      image   => 'linuxserver/sonarr',
+      env     => ['PUID=8989', 'PGID=1001', 'TZ=America/New_York'],
+      publish => ['8989:8989'],
+      volumes => [
+        '/srv/sonarr/config:/config',
+        '/srv/nzbget/downloads:/downloads',
+        '/nest/tv:/tv',
+      ],
+      require => [
+        File['/srv/sonarr/config'],
+        File['/srv/nzbget/downloads/completed'],
+      ],
+    ;
   }
 
   nest::lib::reverse_proxy {
