@@ -117,25 +117,28 @@ class nest::node::falcon {
   }
 
   docker::run { 'nzbget':
-    image   => 'linuxserver/nzbget',
-    ports   => '6789:6789',
-    env     => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
-    volumes => [
+    ensure => absent,
+    image  => 'linuxserver/ombi',
+  }
+  ->
+  nest::lib::podman_container { 'nzbget':
+    image       => 'linuxserver/nzbget',
+    cpuset_cpus => $cpuset,
+    dns         => '172.22.0.1',
+    dns_search  => 'nest',
+    env         => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
+    publish     => ['6789:6789'],
+    volumes     => [
       '/srv/nzbget/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/downloads/nzbget/watch:/downloads/nzb',
     ],
-    require => [
+    require     => [
       File['/srv/nzbget/config'],
       File['/srv/nzbget/downloads'],
     ],
   }
 
-  docker::run { 'ombi':
-    ensure => absent,
-    image  => 'linuxserver/ombi',
-  }
-  ->
   nest::lib::podman_container { 'ombi':
     image       => 'linuxserver/ombi',
     cpuset_cpus => $cpuset,
