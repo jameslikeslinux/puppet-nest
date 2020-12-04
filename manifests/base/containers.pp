@@ -42,4 +42,21 @@ class nest::base::containers {
   service { 'podman.socket':
     enable => true,
   }
+
+  $rootless_users = ['james']
+  $subuidgid_content = $rootless_users.map |$user| {
+    $index = $rootless_users.index($user)
+    $subuidgid = 65536 * $index + 100000
+    "${user}:${subuidgid}:65536\n"
+  }.join
+
+  file { [
+    '/etc/subuid',
+    '/etc/subgid',
+  ]:
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $subuidgid_content,
+  }
 }
