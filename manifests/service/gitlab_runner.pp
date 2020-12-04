@@ -47,14 +47,12 @@ define nest::service::gitlab_runner (
     require => File["/srv/gitlab-runner/${name}"],
   }
 
-  docker::run { "gitlab-runner-${name}":
-    image            => 'gitlab/gitlab-runner',
-    volumes          => [
+  nest::lib::podman_container { "gitlab-runner-${name}":
+    image   => 'gitlab/gitlab-runner',
+    volumes => [
       '/run/podman/podman.sock:/var/run/docker.sock',
       "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
     ],
-    depend_services  => ['podman.socket'],
-    docker_service   => 'podman.socket',
-    require          => Exec["gitlab-runner-${name}-register"],
+    require => Exec["gitlab-runner-${name}-register"],
   }
 }
