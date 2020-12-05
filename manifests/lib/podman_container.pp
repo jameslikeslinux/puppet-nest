@@ -1,14 +1,15 @@
 define nest::lib::podman_container (
   String $image,
   Enum['running', 'enabled', 'present', 'stopped', 'absent'] $ensure = running,
-  Optional[String] $cpuset_cpus = undef,
-  Optional[String] $dns         = undef,
-  Optional[String] $dns_search  = undef,
-  Array[String]    $env         = [],
-  Array[String]    $publish     = [],
-  Optional[String] $network     = undef,
-  Array[String]    $tmpfs       = [],
-  Array[String]    $volumes     = [],
+  Optional[String]                  $cpuset_cpus = undef,
+  Optional[String]                  $dns         = undef,
+  Optional[String]                  $dns_search  = undef,
+  Array[String]                     $env         = [],
+  Optional[Stdlib::IP::Address::V4] $ip          = undef,
+  Optional[String]                  $network     = undef,
+  Array[String]                     $publish     = [],
+  Array[String]                     $tmpfs       = [],
+  Array[String]                     $volumes     = [],
 ) {
   if $ensure == absent {
     service { "container-${name}":
@@ -77,6 +78,11 @@ define nest::lib::podman_container (
       "--env=${e}"
     }
 
+    $ip_args = $ip ? {
+      undef   => [],
+      default => ["--ip=${ip}"],
+    }
+
     $network_args = $network ? {
       undef   => [],
       default => ["--network=${network}"],
@@ -101,6 +107,7 @@ define nest::lib::podman_container (
       $dns_args,
       $dns_search_args,
       $env_args,
+      $ip_args,
       $network_args,
       $publish_args,
       $tmpfs_args,

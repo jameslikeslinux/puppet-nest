@@ -1,8 +1,6 @@
 class nest::service::gitlab (
   String[1] $gmail_password,
 ) {
-  if false {
-
   nest::lib::srv { 'gitlab': }
 
   file { '/srv/gitlab/gitlab.rb':
@@ -12,29 +10,28 @@ class nest::service::gitlab (
     content   => template('nest/gitlab/gitlab.rb.erb'),
     show_diff => false,
     require   => Nest::Lib::Srv['gitlab'],
-    notify    => Docker::Run['gitlab'],
+    before    => Nest::Lib::Podman_container['gitlab'],
+    notify    => Service['container-gitlab'],
   }
 
-  docker_network { 'gitlab':
-    ensure           => present,
-    subnet           => ['10.89.0.0/24'],
+  exec { 'podman-network-create-gitlab':
+    command => '/usr/bin/podman network create --subnet=10.89.0.0/24 gitlab',
+    unless  => '/usr/bin/podman network inspect gitlab',
+    require => Class['nest::base::containers'],
   }
 
-  docker::run { 'gitlab':
-    image            => 'gitlab/gitlab-ce',
-    net              => 'gitlab',
-    env              => ["GITLAB_OMNIBUS_CONFIG=from_file('/omnibus_config.rb')"],
-    extra_parameters => [
-      '--ip=10.89.0.2',
-    ],
-    volumes          => [
+  nest::lib::podman_container { 'gitlab':
+    image   => 'gitlab/gitlab-ce',
+    env     => ["GITLAB_OMNIBUS_CONFIG=from_file('/omnibus_config.rb')"],
+    ip      => '10.89.0.2',
+    network => 'gitlab',
+    volumes => [
       '/srv/gitlab/gitlab.rb:/omnibus_config.rb:ro',
       '/srv/gitlab/config:/etc/gitlab',
       '/srv/gitlab/logs:/var/log/gitlab',
       '/srv/gitlab/data:/var/opt/gitlab',
     ],
-    service_provider => 'systemd',
-    require          => Docker_network['gitlab'],
+    require => Exec['podman-network-create-gitlab'],
   }
 
   # Use iptables to forward the SSH service to avoid listener
@@ -60,7 +57,5 @@ class nest::service::gitlab (
     'registry.gitlab.james.tl':
       destination => '10.89.0.2:5050',
     ;
-  }
-
   }
 }

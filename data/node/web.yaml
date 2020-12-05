@@ -2,6 +2,8 @@
 classes:
   - 'nest::service::gitlab'
 
+puppet::environment: 'podman'
+
 # XXX: Change this after moving it to a more private area
 nest::service::gitlab::gmail_password: >
   ENC[PKCS7,MIICpQYJKoZIhvcNAQcDoIICljCCApICAQAxggI9MIICOQIBADAhMBwxGjAY
