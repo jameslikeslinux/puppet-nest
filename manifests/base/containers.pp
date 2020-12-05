@@ -28,6 +28,7 @@ class nest::base::containers {
       owner   => 'root',
       group   => 'root',
       require => Package['app-emulation/libpod'],
+      before  => Service['podman.socket'],
     ;
 
     '/etc/containers/policy.json':
