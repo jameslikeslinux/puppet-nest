@@ -80,8 +80,7 @@ nest::package_use:
 
   sys-apps/systemd:
     use:
-      - 'cgroup-hybrid' # for docker compatibility
-      - 'gnuefi'        # for systemd-boot
+      - 'gnuefi'  # for systemd-boot
 
 nest::kernel_config:
   # Support distcc
