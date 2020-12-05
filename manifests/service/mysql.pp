@@ -6,7 +6,7 @@ class nest::service::mysql {
   class { '::mysql::server':
     override_options => {
       'mysqld' => {
-        'bind-address' => '0.0.0.0',
+        'bind-address' => ['0.0.0.0', '::'],
       }
     },
     service_name     => 'mysqld',
