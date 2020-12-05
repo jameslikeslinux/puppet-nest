@@ -1,10 +1,10 @@
 define nest::lib::port_forward (
   Stdlib::Port                      $port,
   Enum['tcp', 'udp']                $proto,
-  Optional[Stdlib::IP::Address::V4] $source_ip4,
-  Optional[Stdlib::IP::Address::V4] $destination_ip4,
-  Optional[Stdlib::IP::Address::V6] $source_ip6,
-  Optional[Stdlib::IP::Address::V6] $destination_ip6,
+  Optional[Stdlib::IP::Address::V4] $source_ip4      = undef,
+  Optional[Stdlib::IP::Address::V4] $destination_ip4 = undef,
+  Optional[Stdlib::IP::Address::V6] $source_ip6      = undef,
+  Optional[Stdlib::IP::Address::V6] $destination_ip6 = undef,
 ) {
   $combined_spec = {
     'v4' => {
