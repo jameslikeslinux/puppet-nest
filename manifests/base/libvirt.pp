@@ -88,17 +88,6 @@ class nest::base::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
-  # Do not filter bridge packets
-  # See: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf
-  sysctl { [
-    'net.bridge.bridge-nf-call-arptables',
-    'net.bridge.bridge-nf-call-ip6tables',
-    'net.bridge.bridge-nf-call-iptables',
-  ]:
-    value  => '0',
-    target => '/etc/sysctl.d/bridge.conf',
-  }
-
   $bridge_udev_rules = @(EOT)
     ACTION=="add", SUBSYSTEM=="module", KERNEL=="bridge", RUN+="/lib/systemd/systemd-sysctl --prefix=/proc/sys/net/bridge"
     | EOT

@@ -18,17 +18,22 @@ class nest::base::containers {
     mountpoint => '/var/lib/containers',
   }
 
-  package { 'app-emulation/libpod':
+  package { [
+    'app-emulation/crun',
+    'app-emulation/libpod',
+  ]:
     ensure => installed,
   }
-
+  ->
   file {
     default:
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      require => Package['app-emulation/libpod'],
-      before  => Service['podman.socket'],
+    ;
+
+    '/etc/containers/containers.conf':
+      content => "runtime = \"crun\"\n",
     ;
 
     '/etc/containers/policy.json':
@@ -39,7 +44,7 @@ class nest::base::containers {
       source => 'puppet:///modules/nest/containers/registries.conf',
     ;
   }
-
+  ->
   service { 'podman.socket':
     enable => true,
   }
