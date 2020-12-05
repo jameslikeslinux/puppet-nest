@@ -186,24 +186,24 @@ class nest::node::falcon {
     ;
 
     'nzbget.nest':
-      destination => 'localhost:6789',
+      destination => '127.0.0.1:6789',
     ;
 
     'ombi.nest':
-      destination => 'localhost:3579',
+      destination => '127.0.0.1:3579',
     ;
 
     'plex.nest':
-      destination => 'localhost:32400',
+      destination => '127.0.0.1:32400',
       websockets  => true,
     ;
 
     'radarr.nest':
-      destination => 'localhost:7878',
+      destination => '127.0.0.1:7878',
     ;
 
     'sonarr.nest':
-      destination => 'localhost:8989',
+      destination => '127.0.0.1:8989',
     ;
   }
 
