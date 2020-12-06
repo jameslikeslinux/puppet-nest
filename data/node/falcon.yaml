@@ -2,6 +2,11 @@
 classes:
   - 'nest::node::falcon'
   - 'nest::service::gitlab'
+  - 'nest::service::nzbget'
+  - 'nest::service::ombi'
+  - 'nest::service::plex'
+  - 'nest::service::radarr'
+  - 'nest::service::sonarr'
 
 puppet::environment: 'podman'
 
