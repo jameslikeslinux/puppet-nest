@@ -1,24 +1,5 @@
 ---
 classes:
-  - 'nest::service::gitlab'
+  - 'nest::node::web'
 
 puppet::environment: 'podman'
-
-# XXX: Change this after moving it to a more private area
-nest::service::gitlab::gmail_password: >
-  ENC[PKCS7,MIICpQYJKoZIhvcNAQcDoIICljCCApICAQAxggI9MIICOQIBADAhMBwxGjAY
-  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
-  ALwxgjpzUDuuRJp0hHp1sTkCYSo73c5p9YG8cygFkSrigAeGn5qGu03uXsLs
-  +SY4MI8g2iPTAeEJdMaWabv7FKU72B2BHMAIqPVI7avaCLJOFcB65Xv3U8Sl
-  RJq6aK0wZdZUlXM/79vZJIy2jH8RwNMlj0mlWILsgjQFHU9ZwQwaQoLYoJm9
-  E0ksQDwFrM+PXugXqCm+mtp8/bJB1tByBiipTLmiEgTZTh5qR2xdAJErxQSN
-  y3f0THlFoe2oRWg7IRkkKJgbdhZ6WKyls2vbcOE5Nu0EspjrotSXo2vrc9qd
-  xy3wq78n2BHgKnqNouhSjoMtx900JFjpmXBBlOAiF75P2aI/SsVekl0JmY+w
-  ZAzGlzqtQbuU1fP6PYTaDlk/2XfIX/xa6kkoop/mWfPT8O2BrzKdwIwJ8wDn
-  ao9RZPfta6hzcqQS0QMvJ7BNEp73AZSVoz5Q6cHLoAj5zHTm+Gw4i5VG78bV
-  +7+a0QI1VV5EpR0pOgqNA5UWuSH6MIZdQbGFNe2n2mnryB3YMYHN1+hXxZYc
-  iMpb+yrO/wcNAuVD2Q/XcoMRJSWOjpQcG0PiYtumNDO6yva6I/cmAyc3yqIz
-  oOfZfl80gGoymvXMTsQsaearIj91FMdNlT+t9dWquUwx4PYkeaUl8bKjj4MM
-  /1D+mlR8RK9//Yqz2NY+orCqMEwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
-  EOlEDKD7T4YbsR6OpszDBlmAIIrvgKKfOqkbMmuaWkIAksyUj8T4g94OZGU8
-  xneqfVZI]

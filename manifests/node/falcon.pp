@@ -102,10 +102,6 @@ class nest::node::falcon {
     ;
   }
 
-  Nest::Lib::Container {
-    cpuset_cpus => $::nest::availcpus_expanded.join(','),
-  }
-
   nest::lib::container {
     default:
       dns        => '172.22.0.1',
