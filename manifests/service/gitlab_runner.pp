@@ -29,7 +29,7 @@ define nest::service::gitlab_runner (
 
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
   $register_command = [
-    '/usr/bin/docker', 'run', '--rm',
+    '/usr/bin/podman', 'run', '--rm',
     '-v', "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
     'gitlab/gitlab-runner', 'register',
     '--non-interactive',
