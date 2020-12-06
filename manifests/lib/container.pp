@@ -130,7 +130,7 @@ define nest::lib::container (
     }
     ~>
     exec { "podman-generate-systemd-${name}":
-      command     => "/usr/bin/podman generate systemd --files --name ${name}",
+      command     => "/usr/bin/podman generate systemd --files --name ${name.shellquote}",
       cwd         => '/etc/systemd/system',
       refreshonly => true,
     }
