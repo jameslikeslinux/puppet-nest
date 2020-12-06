@@ -10,7 +10,7 @@ class nest::service::gitlab (
     content   => template('nest/gitlab/gitlab.rb.erb'),
     show_diff => false,
     require   => Nest::Lib::Srv['gitlab'],
-    before    => Nest::Lib::Podman_container['gitlab'],
+    before    => Nest::Lib::Container['gitlab'],
     notify    => Service['container-gitlab'],
   }
 
@@ -20,7 +20,7 @@ class nest::service::gitlab (
     require => Class['nest::base::containers'],
   }
 
-  nest::lib::podman_container { 'gitlab':
+  nest::lib::container { 'gitlab':
     image   => 'gitlab/gitlab-ce',
     env     => ["GITLAB_OMNIBUS_CONFIG=from_file('/omnibus_config.rb')"],
     ip      => '10.89.0.2',

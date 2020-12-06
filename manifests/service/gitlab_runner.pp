@@ -47,7 +47,7 @@ define nest::service::gitlab_runner (
     require => File["/srv/gitlab-runner/${name}"],
   }
 
-  nest::lib::podman_container { "gitlab-runner-${name}":
+  nest::lib::container { "gitlab-runner-${name}":
     image   => 'gitlab/gitlab-runner',
     volumes => [
       '/run/podman/podman.sock:/var/run/docker.sock',

@@ -1,4 +1,4 @@
-define nest::lib::podman_container (
+define nest::lib::container (
   String $image,
   Enum['running', 'enabled', 'present', 'stopped', 'absent'] $ensure = running,
   Optional[String]                  $cpuset_cpus = undef,

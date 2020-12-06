@@ -102,11 +102,11 @@ class nest::node::falcon {
     ;
   }
 
-  Nest::Lib::Podman_container {
+  Nest::Lib::Container {
     cpuset_cpus => $::nest::availcpus_expanded.join(','),
   }
 
-  nest::lib::podman_container {
+  nest::lib::container {
     default:
       dns        => '172.22.0.1',
       dns_search => 'nest',
