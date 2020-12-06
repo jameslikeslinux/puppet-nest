@@ -1,5 +1,6 @@
 ---
 classes:
   - 'nest::node::web'
+  - 'nest::service::bitwarden'
 
 puppet::environment: 'podman'

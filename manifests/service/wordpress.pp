@@ -1,11 +1,11 @@
 define nest::service::wordpress (
-  String[1] $db_password,
-  String[1] $servername,
-  Array[String[1]] $serveraliases                    = [],
+  String[1]            $database_password,
+  String[1]            $servername,
+  Array[String[1]]     $serveraliases                = [],
   Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
-  Boolean $ssl                                       = true,
+  Boolean              $ssl                          = true,
   Hash[String[1], Any] $extra_vhost_params           = {},
-  Optional[String[1]] $priority                      = undef,
+  Optional[String[1]]  $priority                     = undef,
 ) {
   unless defined(Class['::nest::service::apache']) {
     class { '::nest::service::apache':
@@ -21,7 +21,7 @@ define nest::service::wordpress (
 
   mysql::db { $name:
     user     => $name,
-    password => $db_password,
+    password => $database_password,
   }
 
   # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
