@@ -28,7 +28,7 @@ define nest::lib::port_forward (
           provider => $spec['provider'],
         ;
 
-        "100 ${name}: modify dest on incoming packets (${comment})":
+        "100 ${name} (${comment}): modify destination on incoming packets":
           table       => nat,
           chain       => 'PREROUTING',
           destination => $spec['source'],
@@ -38,7 +38,7 @@ define nest::lib::port_forward (
           todest      => "${spec['destination']}:${to_port}",
         ;
 
-        "100 ${name}: modify dest on generated packets (${comment})":
+        "100 ${name} (${comment}): modify destination on generated packets":
           table       => nat,
           chain       => 'OUTPUT',
           destination => $spec['source'],
@@ -48,7 +48,7 @@ define nest::lib::port_forward (
           todest      => "${spec['destination']}:${to_port}",
         ;
 
-        "100 ${name}: allow forwarding (${comment})":
+        "100 ${name} (${comment}): allow forwarding":
           chain       => 'FORWARD',
           destination => $spec['destination'],
           proto       => $proto,
@@ -56,14 +56,14 @@ define nest::lib::port_forward (
           action      => accept,
         ;
 
-        "100 ${name}: allow return packets (${comment})":
+        "100 ${name} (${comment}): allow return packets":
           chain   => 'FORWARD',
           source  => $spec['destination'],
           ctstate => ['RELATED', 'ESTABLISHED'],
           action  => accept,
         ;
 
-        "100 ${name}: modify source for return routing (${comment})":
+        "100 ${name} (${comment}): modify source for return routing":
           table       => nat,
           chain       => 'POSTROUTING',
           destination => $spec['destination'],
