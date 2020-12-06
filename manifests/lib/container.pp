@@ -10,6 +10,9 @@ define nest::lib::container (
   Array[String]    $tmpfs       = [],
   Array[String]    $volumes     = [],
 ) {
+  # Required for /usr/bin/podman
+  include 'nest'
+
   if $ensure == absent {
     service { "container-${name}":
       ensure => stopped,

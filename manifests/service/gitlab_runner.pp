@@ -6,6 +6,9 @@ define nest::service::gitlab_runner (
   Array[String] $volumes  = [],
   Array[String] $tag_list = [],
 ) {
+  # Required for `/usr/bin/podman`
+  include 'nest'
+
   unless defined(Nest::Lib::Srv['gitlab-runner']) {
     nest::lib::srv { 'gitlab-runner': }
   }

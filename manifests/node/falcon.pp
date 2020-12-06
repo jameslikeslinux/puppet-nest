@@ -1,5 +1,6 @@
 class nest::node::falcon {
-  include '::nest'
+  # Required for $::nest::gitlab_runner_token
+  include 'nest'
 
   nest::lib::srv { [
     'nzbget',
