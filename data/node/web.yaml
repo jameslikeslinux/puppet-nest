@@ -2,12 +2,21 @@
 classes:
   - 'nest::node::web'
   - 'nest::service::bitwarden'
+  - 'nest::service::gateway'
   - 'nest::service::reverse_proxy'
   - 'nest::service::wordpress'
 
 puppet::environment: 'podman'
 
 nest::service::apache::manage_firewall: true
+
+nest::service::gateway::port_forwards:
+  'gitlab ssh':
+    proto: tcp
+    from_port: 22
+    to_port: 2222
+    source_ip4: '104.156.227.40'
+    destination_ip4: '172.22.0.1'
 
 nest::service::reverse_proxy::hosts:
   gitlab.james.tl:

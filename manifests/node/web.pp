@@ -17,12 +17,4 @@ class nest::node::web {
     action  => accept,
     before  => Class['nest::service::bitwarden'],
   }
-
-  nest::lib::port_forward { 'gitlab ssh':
-    proto           => tcp,
-    from_port       => 22,
-    to_port         => 2222,
-    source_ip4      => '104.156.227.40',
-    destination_ip4 => '172.22.0.1',
-  }
 }
