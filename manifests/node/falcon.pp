@@ -1,7 +1,4 @@
 class nest::node::falcon {
-  # Required for $::nest::gitlab_runner_token
-  include 'nest'
-
   firewall {
     '012 multicast':
       proto   => udp,
@@ -58,22 +55,6 @@ class nest::node::falcon {
 
     'sonarr.nest':
       destination => '127.0.0.1:8989',
-    ;
-  }
-
-  nest::service::gitlab_runner {
-    default:
-      host               => 'gitlab.james.tl',
-      registration_token => $::nest::gitlab_runner_token,
-    ;
-
-    'gitlab.james.tl':
-      # use defaults
-    ;
-
-    'gitlab.james.tl-podman':
-      volumes  => ['/var/run/docker.sock:/run/podman/podman.sock'],
-      tag_list => ['podman'],
     ;
   }
 }

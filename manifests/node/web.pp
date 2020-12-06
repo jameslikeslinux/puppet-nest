@@ -1,6 +1,4 @@
-class nest::node::web (
-  Hash[String, String] $wordpress_database_passwords,
-) {
+class nest::node::web {
   include 'nest::service::bitwarden'
   include 'nest::service::mysql'
 
@@ -51,26 +49,6 @@ class nest::node::web (
     'vault.thesatelliteoflove.net':
       destination => '127.0.0.1:1003',
       websockets  => '127.0.0.1:3012',
-    ;
-  }
-
-  nest::service::wordpress {
-    default:
-      ip => ['104.156.227.40', '2001:19f0:300:2005::40'],
-    ;
-
-    'portfolio':
-      database_password => $wordpress_database_passwords['portfolio'],
-      servername        => 'james.tl',
-      serveraliases     => ['www.james.tl'],
-      priority          => '20',  # higher priority
-    ;
-
-    'thestaticvoid':
-      database_password => $wordpress_database_passwords['thestaticvoid'],
-      servername        => 'thestaticvoid.com',
-      serveraliases     => ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co'],
-      ip                => ['104.156.227.40', '2001:19f0:300:2005::40'],
     ;
   }
 }

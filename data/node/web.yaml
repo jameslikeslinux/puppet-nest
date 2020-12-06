@@ -2,5 +2,20 @@
 classes:
   - 'nest::node::web'
   - 'nest::service::bitwarden'
+  - 'nest::service::wordpress'
 
 puppet::environment: 'podman'
+
+nest::service::apache::manage_firewall: true
+
+nest::service::wordpress::sites:
+  portfolio:
+    ip: ['104.156.227.40', '2001:19f0:300:2005::40']
+    servername: 'james.tl'
+    serveraliases: ['www.james.tl']
+    priority: '20'  # higher priority
+
+  thestaticvoid:
+    ip: ['104.156.227.40', '2001:19f0:300:2005::40']
+    servername: 'thestaticvoid.com'
+    serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']

@@ -1,4 +1,8 @@
 ---
+lookup_options:
+  nest::service::wordpress::sites:
+    merge: 'hash'
+
 classes:
   - 'nest'
 

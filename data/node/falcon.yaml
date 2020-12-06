@@ -2,6 +2,7 @@
 classes:
   - 'nest::node::falcon'
   - 'nest::service::gitlab'
+  - 'nest::service::gitlab_runner'
   - 'nest::service::nzbget'
   - 'nest::service::ombi'
   - 'nest::service::plex'
@@ -66,3 +67,11 @@ nest::service::gitlab::gmail_password: >
   /1D+mlR8RK9//Yqz2NY+orCqMEwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
   EOlEDKD7T4YbsR6OpszDBlmAIIrvgKKfOqkbMmuaWkIAksyUj8T4g94OZGU8
   xneqfVZI]
+
+nest::service::gitlab_runner::instances:
+  gitlab.james.tl:
+    host: 'gitlab.james.tl'
+
+  gitlab.james.tl-podman:
+    volumes: ['/var/run/docker.sock:/run/podman/podman.sock']
+    tag_list: ['podman']
