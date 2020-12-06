@@ -7,5 +7,5 @@ git:
 
 sources:
   nest:
-    remote: 'https://gitlab.james.tl/nest/puppet.git'
+    remote: 'git@gitlab.james.tl:nest/puppet.git'
     basedir: '/etc/puppetlabs/code/environments'
