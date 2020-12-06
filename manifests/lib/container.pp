@@ -1,6 +1,6 @@
 define nest::lib::container (
   String $image,
-  Enum['running', 'enabled', 'present', 'stopped', 'absent'] $ensure = running,
+  Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   Optional[String] $cpuset_cpus = $::nest::availcpus_expanded.join(','),
   Optional[String] $dns         = undef,
   Optional[String] $dns_search  = undef,
