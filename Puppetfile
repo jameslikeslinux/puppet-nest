@@ -29,7 +29,7 @@ mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
 mod 'theforeman-puppet', '11.0.0'
-mod 'portage', :git => 'https://github.com/iamjamestl/puppet-portage.git'
+mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git'
 mod 'zfs_core',
   :git    => 'https://github.com/iamjamestl/puppetlabs-zfs_core.git',
   :branch => 'feature-sync-property'
