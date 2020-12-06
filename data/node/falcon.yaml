@@ -8,6 +8,7 @@ classes:
   - 'nest::service::plex'
   - 'nest::service::radarr'
   - 'nest::service::sonarr'
+  - 'nest::service::reverse_proxy'
 
 puppet::environment: 'podman'
 
@@ -75,3 +76,30 @@ nest::service::gitlab_runner::instances:
   gitlab.james.tl-podman:
     volumes: ['/var/run/docker.sock:/run/podman/podman.sock']
     tag_list: ['podman']
+
+nest::service::reverse_proxy::hosts:
+  nzbget.nest:
+    destination: '127.0.0.1:6789'
+    ip: '172.22.0.1'
+    ssl: false
+
+  ombi.nest:
+    destination: '127.0.0.1:3579'
+    ip: '172.22.0.1'
+    ssl: false
+
+  plex.nest:
+    destination: '127.0.0.1:32400'
+    ip: '172.22.0.1'
+    ssl: false
+    websockets: true
+
+  radarr.nest:
+    destination: '127.0.0.1:7878'
+    ip: '172.22.0.1'
+    ssl: false
+
+  sonarr.nest:
+    destination: '127.0.0.1:8989'
+    ip: '172.22.0.1'
+    ssl: false
