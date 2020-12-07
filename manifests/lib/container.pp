@@ -22,9 +22,9 @@ define nest::lib::container (
       ensure => absent,
     }
     ~>
-    nest::lib::systemd_reload { "podman-container-${name}": }
+    nest::lib::systemd_reload { "container-${name}": }
     ~>
-    exec { "podman-remove-${name}":
+    exec { "remove-container-${name}":
       command     => "/usr/bin/podman rm ${name.shellquote}",
       refreshonly => true,
     }
@@ -120,18 +120,18 @@ define nest::lib::container (
       require => Class['nest::base::containers'],
     }
     ~>
-    exec { "podman-create-${name}":
+    exec { "create-container-${name}":
       command     => shellquote($podman_create_cmd),
       refreshonly => true,
     }
     ~>
-    exec { "podman-generate-systemd-${name}":
+    exec { "generate-services-container-${name}":
       command     => "/usr/bin/podman generate systemd --files --name ${name.shellquote}",
       cwd         => '/etc/systemd/system',
       refreshonly => true,
     }
     ~>
-    nest::lib::systemd_reload { "podman-container-${name}": }
+    nest::lib::systemd_reload { "container-${name}": }
     ->
     service { "container-${name}":
       ensure => $service_ensure,
