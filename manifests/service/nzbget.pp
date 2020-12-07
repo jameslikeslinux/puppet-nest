@@ -29,10 +29,12 @@ class nest::service::nzbget {
   }
   ->
   nest::lib::container { 'nzbget':
-    image   => 'linuxserver/nzbget',
-    env     => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
-    publish => ['6789:6789'],
-    volumes => [
+    image      => 'linuxserver/nzbget',
+    dns        => '172.22.0.1',
+    dns_search => 'nest',
+    env        => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
+    publish    => ['6789:6789'],
+    volumes    => [
       '/srv/nzbget/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/downloads/nzbget/watch:/downloads/nzb',
