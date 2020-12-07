@@ -11,9 +11,10 @@ define nest::lib::srv (
 
   if $zfs {
     zfs { "srv/${name}":
-      name    => "${facts['rpool']}/srv/${name}",
-      require => Zfs['srv'],
-      before  => File["/srv/${name}"],
+      name       => "${facts['rpool']}/srv/${name}",
+      mountpoint => "/srv/${name}",
+      require    => Zfs['srv'],
+      before     => File["/srv/${name}"],
     }
   }
 
