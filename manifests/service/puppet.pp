@@ -30,13 +30,13 @@ class nest::service::puppet {
   }
   ->
   nest::lib::container { 'puppetserver':
+    pod     => 'puppet',
     image   => 'puppet/puppetserver',
     env     => [
       'PUPPETSERVER_HOSTNAME=puppet',
       'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
     ],
-    pod     => 'puppet',
     volumes => [
       '/etc/puppetlabs/code:/etc/puppetlabs/code',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
@@ -57,12 +57,9 @@ class nest::service::puppet {
   }
   ->
   nest::lib::container { 'puppet-postgres':
-    image   => 'postgres',
-    env     => [
-      'POSTGRES_PASSWORD=puppetdb',
-      'POSTGRES_USER=puppetdb',
-    ],
     pod     => 'puppet',
+    image   => 'postgres',
+    env     => ['POSTGRES_USER=puppetdb', 'POSTGRES_PASSWORD=puppetdb'],
     volumes => ['/srv/puppet/postgres/data:/var/lib/postgresql/data'],
   }
 
@@ -79,14 +76,10 @@ class nest::service::puppet {
   }
   ->
   nest::lib::container { 'puppetdb':
-    image   => 'puppet/puppetdb',
-    env     => [
-      'PUPPETDB_POSTGRES_HOSTNAME=localhost',
-    ],
     pod     => 'puppet',
-    volumes => [
-      '/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb',
-    ],
+    image   => 'puppet/puppetdb',
+    env     => ['PUPPETDB_POSTGRES_HOSTNAME=localhost'],
+    volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
   }
 
 
@@ -94,10 +87,8 @@ class nest::service::puppet {
   # Puppetboard
   #
   nest::lib::container { 'puppetboard':
-    image => 'camptocamp/puppetboard',
-    env   => [
-      'ENABLE_CATALOG=True',
-    ],
     pod   => 'puppet',
+    image => 'camptocamp/puppetboard',
+    env   => ['ENABLE_CATALOG=True'],
   }
 }
