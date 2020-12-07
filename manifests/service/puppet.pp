@@ -30,6 +30,7 @@ class nest::service::puppet {
       'PUPPETSERVER_HOSTNAME=puppet',
       'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
+      'PUPPETDB_SERVER_URLS=https://puppet:8081',
     ],
     pod     => 'puppet',
     volumes => [
@@ -75,9 +76,15 @@ class nest::service::puppet {
   ->
   nest::lib::container { 'puppetdb':
     image   => 'puppet/puppetdb',
-    env     => ['PUPPETDB_POSTGRES_HOSTNAME=puppet'],
+    env     => [
+      'CERTNAME=puppet',
+      'PUPPETDB_POSTGRES_HOSTNAME=puppet',
+    ],
     pod     => 'puppet',
-    volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
+    volumes => [
+      '/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb',
+      '/etc/puppetlabs/puppet/ssl:/opt/puppetlabs/server/data/puppetdb/certs',
+    ],
   }
 
 
