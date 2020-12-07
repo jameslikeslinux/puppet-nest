@@ -35,7 +35,6 @@ class nest::service::puppet {
       'PUPPETSERVER_HOSTNAME=puppet',
       'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
-      'PUPPETDB_SERVER_URLS=https://puppet:8081',
     ],
     pod     => 'puppet',
     volumes => [
@@ -43,11 +42,6 @@ class nest::service::puppet {
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
       '/srv/puppet/puppetserver/data:/opt/puppetlabs/server/data/puppetserver',
     ],
-  }
-  ~>
-  exec { 'wait-for-puppetserver':
-    command     => '/usr/bin/sleep 60',
-    refreshonly => true,
   }
 
 
@@ -87,17 +81,12 @@ class nest::service::puppet {
   nest::lib::container { 'puppetdb':
     image   => 'puppet/puppetdb',
     env     => [
-      'CERTNAME=puppet',
       'PUPPETDB_POSTGRES_HOSTNAME=puppet',
     ],
     pod     => 'puppet',
     volumes => [
       '/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb',
-      '/srv/puppet/puppetserver/config/ssl/certs/ca.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/ca.pem',
-      '/srv/puppet/puppetserver/config/ssl/certs/puppet.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/puppet.pem',
-      '/srv/puppet/puppetserver/config/ssl/private_keys/puppet.pem:/opt/puppetlabs/server/data/puppetdb/certs/private_keys/puppet.pem',
     ],
-    require => Exec['wait-for-puppetserver'],
   }
 
 
