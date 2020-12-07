@@ -88,7 +88,9 @@ class nest::service::puppet {
     pod     => 'puppet',
     volumes => [
       '/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb',
-      '/etc/puppetlabs/puppet/ssl:/opt/puppetlabs/server/data/puppetdb/certs',
+      '/srv/puppet/puppetserver/config/ssl/certs/ca.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/ca.pem',
+      '/srv/puppet/puppetserver/config/ssl/certs/puppet.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/puppet.pem',
+      '/srv/puppet/puppetserver/config/ssl/private_keys/puppet.pem:/opt/puppetlabs/server/data/puppetdb/certs/private_keys/puppet.pem',
     ],
   }
 
@@ -101,12 +103,16 @@ class nest::service::puppet {
     env     => [
       'PUPPETDB_HOST=puppet',
       'PUPPETDB_PORT=8081',
-      'PUPPETDB_SSL_VERIFY=/etc/puppetlabs/puppet/ssl/certs/ca.pem',
-      'PUPPETDB_KEY=/etc/puppetlabs/puppet/ssl/private_keys/puppet.pem',
-      'PUPPETDB_CERT=/etc/puppetlabs/puppet/ssl/certs/puppet.pem',
+      'PUPPETDB_SSL_VERIFY=/ca.pem',
+      'PUPPETDB_CERT=/cert.pem',
+      'PUPPETDB_KEY=/key.pem',
       'ENABLE_CATALOG=True',
     ],
     pod     => 'puppet',
-    volumes => ['/etc/puppetlabs/puppet/ssl:/etc/puppetlabs/puppet/ssl'],
+    volumes => [
+      '/srv/puppet/puppetserver/config/ssl/certs/ca.pem:/ca.pem:ro',
+      '/srv/puppet/puppetserver/config/ssl/certs/puppet.pem:/cert.pem:ro',
+      '/srv/puppet/puppetserver/config/ssl/private_keys/puppet.pem:/key.pem:ro',
+    ],
   }
 }
