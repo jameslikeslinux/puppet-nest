@@ -19,16 +19,28 @@ define nest::lib::container (
       enable => false,
     }
     ->
+    exec { "remove-container-${name}":
+      command => "/usr/bin/podman rm ${name.shellquote}",
+      onlyif  => "/usr/bin/podman inspect ${name.shellquote}",
+      before  => Nest::Lib::Pod[$pod],
+    }
+
     file { "/etc/systemd/system/container-${name}.service":
-      ensure => absent,
+      ensure  => absent,
     }
     ~>
-    nest::lib::systemd_reload { "container-${name}": }
-    ~>
-    exec { "remove-container-${name}":
-      command     => "/usr/bin/podman rm ${name.shellquote}",
-      refreshonly => true,
-      before      => Nest::Lib::Pod[$pod],
+    nest::lib::systemd_reload { "container-${name}":
+      require => Service["container-${name}"],
+    }
+
+    if $pod {
+      exec { "regenerate-services-pod-${pod}-${name}":
+        command     => "/usr/bin/podman generate systemd --files --name ${pod.shellquote}",
+        cwd         => '/etc/systemd/system',
+        refreshonly => true,
+        subscribe   => Exec["remove-container-${name}"],
+        notify      => Nest::Lib::Systemd_reload["container-${name}"],
+      }
     }
   } else {
     if $pod and !empty($publish) {
