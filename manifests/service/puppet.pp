@@ -87,6 +87,7 @@ class nest::service::puppet {
   nest::lib::container { 'puppetboard':
     image   => 'camptocamp/puppetboard',
     env     => [
+      'PUPPETDB_HOST=puppet',
       'PUPPETDB_PORT=8081',
       'PUPPETDB_SSL_VERIFY=/etc/puppetlabs/puppet/ssl/certs/ca.pem',
       'PUPPETDB_KEY=/etc/puppetlabs/puppet/ssl/private_keys/puppetboard.pem',
