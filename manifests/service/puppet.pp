@@ -81,7 +81,7 @@ class nest::service::puppet {
   nest::lib::container { 'puppetdb':
     image   => 'puppet/puppetdb',
     env     => [
-      'PUPPETDB_POSTGRES_HOSTNAME=puppet',
+      'PUPPETDB_POSTGRES_HOSTNAME=localhost',
     ],
     pod     => 'puppet',
     volumes => [
