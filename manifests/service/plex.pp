@@ -2,12 +2,13 @@ class nest::service::plex {
   # Required for plex user
   include 'nest'
 
-  nest::lib::srv { 'plex': }
+  nest::lib::srv { 'plex':
+    mode  => '0755',
+    owner => 'plex',
+    group => 'media',
+  }
   ->
-  file { [
-    '/srv/plex',
-    '/srv/plex/config',
-  ]:
+  file { '/srv/plex/config':
     ensure => directory,
     mode   => '0755',
     owner  => 'plex',

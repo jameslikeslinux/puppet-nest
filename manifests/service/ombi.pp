@@ -2,12 +2,13 @@ class nest::service::ombi {
   # Required for ombi user
   include 'nest'
 
-  nest::lib::srv { 'ombi': }
+  nest::lib::srv { 'ombi':
+    mode  => '0755',
+    owner => 'ombi',
+    group => 'media',
+  }
   ->
-  file { [
-    '/srv/ombi',
-    '/srv/ombi/config',
-  ]:
+  file { '/srv/ombi/config':
     ensure => directory,
     mode   => '0755',
     owner  => 'ombi',

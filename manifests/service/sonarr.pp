@@ -2,12 +2,13 @@ class nest::service::sonarr {
   # Required for sonarr user
   include 'nest'
 
-  nest::lib::srv { 'sonarr': }
+  nest::lib::srv { 'sonarr':
+    mode  => '0755',
+    owner => 'sonarr',
+    group => 'media',
+  }
   ->
-  file { [
-    '/srv/sonarr',
-    '/srv/sonarr/config',
-  ]:
+  file { '/srv/sonarr/config':
     ensure => directory,
     mode   => '0755',
     owner  => 'sonarr',

@@ -2,10 +2,9 @@ class nest::node::puppet (
   String[1] $r10k_deploy_key,
 ) {
   nest::lib::srv { 'puppetserver': }
-
+  ->
   file { '/srv/puppetserver/hiera.yaml':
-    source  => 'puppet:///modules/nest/puppet/hiera.yaml',
-    require => Nest::Lib::Srv['puppetserver'],
+    source => 'puppet:///modules/nest/puppet/hiera.yaml',
   }
 
   package { 'libgit2':

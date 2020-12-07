@@ -5,7 +5,11 @@ class nest::service::nzbget {
   nest::lib::srv { [
     'nzbget',
     'nzbget/downloads',
-  ]: }
+  ]:
+    mode  => '0755',
+    owner => 'nzbget',
+    group => 'media',
+  }
   ->
   file {
     default:
@@ -15,11 +19,7 @@ class nest::service::nzbget {
       group  => 'media',
     ;
 
-    [
-      '/srv/nzbget',
-      '/srv/nzbget/config',
-      '/srv/nzbget/downloads',
-    ]:
+    '/srv/nzbget/config':
       # use defaults
     ;
 

@@ -2,12 +2,13 @@ class nest::service::radarr {
   # Required for radarr user
   include 'nest'
 
-  nest::lib::srv { 'radarr': }
+  nest::lib::srv { 'radarr':
+    mode  => '0755',
+    owner => 'radarr',
+    group => 'media',
+  }
   ->
-  file { [
-    '/srv/radarr',
-    '/srv/radarr/config',
-  ]:
+  file { '/srv/radarr/config':
     ensure => directory,
     mode   => '0755',
     owner  => 'radarr',
