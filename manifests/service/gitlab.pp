@@ -3,13 +3,26 @@ class nest::service::gitlab (
 ) {
   nest::lib::srv { 'gitlab': }
   ->
-  file { '/srv/gitlab/gitlab.rb':
-    mode      => '0600',
-    owner     => 'root',
-    group     => 'root',
-    content   => template('nest/gitlab/gitlab.rb.erb'),
-    show_diff => false,
-    notify    => Service['container-gitlab'],
+  file {
+    default:
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/srv/gitlab/gitlab.rb':
+      mode      => '0600',
+      content   => template('nest/gitlab/gitlab.rb.erb'),
+      show_diff => false,
+      notify    => Service['container-gitlab'],
+    ;
+
+    [
+      '/srv/gitlab/config',
+      '/srv/gitlab/logs',
+      '/srv/gitlab/data',
+    ]:
+      ensure => directory,
+    ;
   }
   ->
   nest::lib::container { 'gitlab':
