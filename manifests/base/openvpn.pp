@@ -175,30 +175,12 @@ class nest::base::openvpn {
     }
 
     # Forwarding rules to control access to VPN
-    firewall {
-      default:
-        chain => 'FORWARD',
-      ;
-
-      '100 nest vpn: allow kvm guests':
-        proto    => all,
-        iniface  => 'virbr0',
-        outiface => $device,
-        action   => accept,
-      ;
-
-      '100 nest vpn: allow outbound packets':
-        proto   => all,
-        iniface => $device,
-        action  => accept,
-      ;
-
-      '100 nest vpn: allow return packets':
-        proto    => all,
-        outiface => $device,
-        state    => ['RELATED', 'ESTABLISHED'],
-        action   => accept,
-      ;
+    firewall { '100 nest vpn: allow kvm guests':
+      chain    => 'FORWARD',
+      proto    => all,
+      iniface  => 'virbr0',
+      outiface => $device,
+      action   => accept,
     }
   } else {
     $mode        = 'client'
@@ -225,10 +207,28 @@ class nest::base::openvpn {
     subscribe => File["/etc/openvpn/${mode}/nest.conf"],
   }
 
-  # Allow all VPN traffic
-  firewall { '001 vpn':
-    proto   => all,
-    iniface => $device,
-    action  => accept,
+  # Allow and forward all VPN traffic
+  firewall {
+    default:
+      proto => all,
+    ;
+
+    '001 nest vpn':
+      iniface => $device,
+      action  => accept,
+    ;
+
+    '001 nest vpn: forward all':
+      chain   => 'FORWARD',
+      iniface => $device,
+      action  => accept,
+    ;
+
+    '002 nest vpn: allow return packets':
+      chain    => 'FORWARD',
+      outiface => $device,
+      ctstate  => ['RELATED', 'ESTABLISHED'],
+      action   => accept,
+    ;
   }
 }
