@@ -5,6 +5,7 @@ define nest::lib::container (
   Optional[String] $dns         = undef,
   Array[String]    $env         = [],
   Optional[String] $network     = undef,
+  Optional[String] $pod         = undef,
   Array[String]    $publish     = [],
   Array[String]    $tmpfs       = [],
   Array[String]    $volumes     = [],
@@ -27,6 +28,7 @@ define nest::lib::container (
     exec { "remove-container-${name}":
       command     => "/usr/bin/podman rm ${name.shellquote}",
       refreshonly => true,
+      before      => Nest::Lib::Pod[$pod],
     }
   } else {
     case $ensure {
@@ -79,6 +81,11 @@ define nest::lib::container (
       default => ["--network=${network}"],
     }
 
+    $pod_args = $pod ? {
+      undef   => [],
+      default => ["--pod=${pod}"],
+    }
+
     $publish_args = $publish.map |$e| {
       "--publish=${e}"
     }
@@ -98,6 +105,7 @@ define nest::lib::container (
       $dns_args,
       $env_args,
       $network_args,
+      $pod_args,
       $publish_args,
       $tmpfs_args,
       $volumes_args,
@@ -123,10 +131,11 @@ define nest::lib::container (
     exec { "create-container-${name}":
       command     => shellquote($podman_create_cmd),
       refreshonly => true,
+      require     => Nest::Lib::Pod[$pod],
     }
     ~>
     exec { "generate-services-container-${name}":
-      command     => "/usr/bin/podman generate systemd --files --name ${name.shellquote}",
+      command     => "/usr/bin/podman generate systemd --files --name ${pick($pod, $name).shellquote}",
       cwd         => '/etc/systemd/system',
       refreshonly => true,
     }
