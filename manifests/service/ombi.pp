@@ -15,11 +15,10 @@ class nest::service::ombi {
   }
   ->
   nest::lib::container { 'ombi':
-    image      => 'linuxserver/ombi',
-    dns        => '172.22.0.1',
-    dns_search => 'nest',
-    env        => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
-    publish    => ['3579:3579'],
-    volumes    => ['/srv/ombi/config:/config'],
+    image   => 'linuxserver/ombi',
+    dns     => '172.22.0.1',
+    env     => ['PUID=3579', 'PGID=1001', 'TZ=America/New_York'],
+    publish => ['3579:3579'],
+    volumes => ['/srv/ombi/config:/config'],
   }
 }

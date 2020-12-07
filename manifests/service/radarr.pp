@@ -15,12 +15,11 @@ class nest::service::radarr {
   }
   ->
   nest::lib::container { 'radarr':
-    image      => 'linuxserver/radarr',
-    dns        => '172.22.0.1',
-    dns_search => 'nest',
-    env        => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
-    publish    => ['7878:7878'],
-    volumes    => [
+    image   => 'linuxserver/radarr',
+    dns     => '172.22.0.1',
+    env     => ['PUID=7878', 'PGID=1001', 'TZ=America/New_York'],
+    publish => ['7878:7878'],
+    volumes => [
       '/srv/radarr/config:/config',
       '/srv/nzbget/downloads:/downloads',
       '/nest/movies:/movies',

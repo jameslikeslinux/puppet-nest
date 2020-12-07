@@ -13,10 +13,9 @@ class nest::service::bitwarden (
   }
   ->
   nest::lib::container { 'bitwarden':
-    image      => 'bitwardenrs/server',
-    dns        => '172.22.0.1',
-    dns_search => 'nest',
-    env        => [
+    image   => 'bitwardenrs/server',
+    dns     => '172.22.0.1',
+    env     => [
       'DOMAIN=https://vault.thesatelliteoflove.net',
       "ADMIN_TOKEN=${admin_token}",
       "DATABASE_URL=mysql://bitwarden:${database_password}@web.nest/bitwarden",
@@ -29,7 +28,7 @@ class nest::service::bitwarden (
       "SMTP_PASSWORD=${smtp_password}",
       'WEBSOCKET_ENABLED=true',
     ],
-    publish    => ['1003:80', '3012:3012'],
-    volumes    => ['/srv/bitwarden/data:/data'],
+    publish => ['1003:80', '3012:3012'],
+    volumes => ['/srv/bitwarden/data:/data'],
   }
 }

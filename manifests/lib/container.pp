@@ -3,7 +3,6 @@ define nest::lib::container (
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   Optional[String] $cpuset_cpus = $::nest::availcpus_expanded.join(','),
   Optional[String] $dns         = undef,
-  Optional[String] $dns_search  = undef,
   Array[String]    $env         = [],
   Optional[String] $network     = undef,
   Array[String]    $publish     = [],
@@ -71,11 +70,6 @@ define nest::lib::container (
       default => ["--dns=${dns}"],
     }
 
-    $dns_search_args = $dns_search ? {
-      undef   => [],
-      default => ["--dns-search=${dns_search}"],
-    }
-
     $env_args = $env.map |$e| {
       "--env=${e}"
     }
@@ -102,7 +96,6 @@ define nest::lib::container (
       '--replace',
       $cpuset_cpus_args,
       $dns_args,
-      $dns_search_args,
       $env_args,
       $network_args,
       $publish_args,
