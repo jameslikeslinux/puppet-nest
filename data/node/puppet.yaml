@@ -1,6 +1,9 @@
 ---
 classes:
   - 'nest::node::puppet'
+  - 'nest::service::puppet'
+
+puppet::environment: 'podman'
 
 nest::bootloader: systemd
 nest::dvorak: true

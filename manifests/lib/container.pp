@@ -31,6 +31,10 @@ define nest::lib::container (
       before      => Nest::Lib::Pod[$pod],
     }
   } else {
+    if $pod and !empty($publish) {
+      fail("Ports must be published on the pod '${pod}'")
+    }
+
     case $ensure {
       running: {
         $service_ensure = running

@@ -1,5 +1,6 @@
 define nest::lib::pod (
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
+  Array[String] $publish = [],
 ) {
   # Required for /usr/bin/podman
   include 'nest'
@@ -52,18 +53,22 @@ define nest::lib::pod (
       }
     }
 
+    $publish_args = $publish.map |$e| {
+      "--publish=${e}"
+    }
+
     $podman_create_cmd = [
       '/usr/bin/podman', 'pod', 'create',
       '--replace',
+      $publish_args,
       "--label=nest.podman-version=${facts['podman_version']}",
       "--name=${name}",
-      $image,
     ].flatten
 
     $podman_create_str = "[${podman_create_cmd.join(' ')}]"
     $podman_inspect_create_command = [
       '/usr/bin/podman', 'pod', 'inspect',
-      '--format={{.Config.CreateCommand}}',
+      '--format={{.CreateCommand}}',
       $name,
     ]
 
