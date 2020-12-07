@@ -37,24 +37,4 @@ class nest::node::puppet (
       content => $r10k_deploy_key,
     ;
   }
-
-  file { '/etc/eyaml':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
-
-  $eyaml_config = @(EOT)
-    ---
-    pkcs7_private_key: '/srv/puppetserver/ssl/ca/ca_key.pem'
-    pkcs7_public_key: '/srv/puppetserver/ssl/certs/ca.pem'
-    | EOT
-
-  file { '/etc/eyaml/config.yaml':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $eyaml_config,
-  }
 }
