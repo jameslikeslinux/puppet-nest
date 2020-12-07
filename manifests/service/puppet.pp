@@ -105,21 +105,10 @@ class nest::service::puppet {
   # Puppetboard
   #
   nest::lib::container { 'puppetboard':
-    image   => 'camptocamp/puppetboard',
-    env     => [
-      'PUPPETDB_HOST=puppet',
-      'PUPPETDB_PORT=8081',
-      'PUPPETDB_SSL_VERIFY=/ca.pem',
-      'PUPPETDB_CERT=/cert.pem',
-      'PUPPETDB_KEY=/key.pem',
+    image => 'camptocamp/puppetboard',
+    env   => [
       'ENABLE_CATALOG=True',
     ],
-    pod     => 'puppet',
-    volumes => [
-      '/srv/puppet/puppetserver/config/ssl/certs/ca.pem:/ca.pem:ro',
-      '/srv/puppet/puppetserver/config/ssl/certs/puppet.pem:/cert.pem:ro',
-      '/srv/puppet/puppetserver/config/ssl/private_keys/puppet.pem:/key.pem:ro',
-    ],
-    require => Exec['wait-for-puppetserver'],
+    pod   => 'puppet',
   }
 }
