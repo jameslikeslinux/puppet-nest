@@ -21,7 +21,7 @@ define nest::lib::container (
     ->
     exec { "remove-container-${name}":
       command => "/usr/bin/podman rm ${name.shellquote}",
-      onlyif  => "/usr/bin/podman inspect ${name.shellquote}",
+      onlyif  => "/usr/bin/podman container exists ${name.shellquote}",
       before  => Nest::Lib::Pod[$pod],
     }
 
