@@ -74,7 +74,7 @@ nest::service::gitlab_runner::instances:
     host: 'gitlab.james.tl'
 
   gitlab.james.tl-podman:
-    volumes: ['/var/run/docker.sock:/run/podman/podman.sock']
+    volumes: ['/run/podman/podman.sock:/run/podman/podman.sock']
     tag_list: ['podman']
 
 nest::service::reverse_proxy::hosts:
