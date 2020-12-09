@@ -11,15 +11,17 @@ define nest::lib::pod (
       enable => false,
     }
     ->
+    exec { "remove-pod-${name}":
+      command => "/usr/bin/podman pod rm ${name.shellquote}",
+      onlyif  => "/usr/bin/podman pod exists ${name.shellquote}",
+    }
+
     file { "/etc/systemd/system/pod-${name}.service":
       ensure => absent,
     }
     ~>
-    nest::lib::systemd_reload { "pod-${name}": }
-    ~>
-    exec { "remove-pod-${name}":
-      command     => "/usr/bin/podman pod rm ${name.shellquote}",
-      refreshonly => true,
+    nest::lib::systemd_reload { "pod-${name}":
+      require => Service["pod-${name}"],
     }
   } else {
     case $ensure {

@@ -20,7 +20,7 @@ define nest::lib::container (
     }
     ->
     exec { "remove-container-${name}":
-      command => "/usr/bin/podman rm ${name.shellquote}",
+      command => "/usr/bin/podman container rm ${name.shellquote}",
       onlyif  => "/usr/bin/podman container exists ${name.shellquote}",
       before  => Nest::Lib::Pod[$pod],
     }
@@ -115,7 +115,7 @@ define nest::lib::container (
     }
 
     $podman_create_cmd = [
-      '/usr/bin/podman', 'create',
+      '/usr/bin/podman', 'container', 'create',
       '--replace',
       $cpuset_cpus_args,
       $dns_args,
@@ -132,7 +132,7 @@ define nest::lib::container (
 
     $podman_create_str = "[${podman_create_cmd.join(' ')}]"
     $podman_inspect_create_command = [
-      '/usr/bin/podman', 'inspect',
+      '/usr/bin/podman', 'container', 'inspect',
       '--format={{.Config.CreateCommand}}',
       $name,
     ]
