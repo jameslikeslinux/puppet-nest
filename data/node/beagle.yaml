@@ -1,4 +1,6 @@
 ---
+puppet::environment: 'podman'
+
 nest::kernel_cmdline:
   - 'zfs.zfs_arc_max=805306368' # she can handle it
   - 'console=ttyAMA0'           # qemu console
