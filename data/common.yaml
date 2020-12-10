@@ -65,10 +65,12 @@ nest::package_keywords:
     accept_keywords: '~*'
   app-emulation/slirp4netns:
     version: '~1.1.4'
+    accept_keywords: '~*'
   net-misc/cni-plugins:
     accept_keywords: '*'
   sys-fs/fuse-overlayfs:
     version: '~1.2.0'
+    accept_keywords: '~*'
 
   # Until 5.9 or later is stabilized, accept unstable
   sys-kernel/gentoo-sources: {}

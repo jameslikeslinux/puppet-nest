@@ -31,6 +31,12 @@ nest::package_keywords:
   dev-ruby/semantic_puppet:
     accept_keywords: '*'
 
+  # For app-emulation/libpod
+  dev-go/go-md2man:
+    version: '~2.0.0'
+  net-libs/libslirp:
+    accept_keywords: '*'
+
 nest::kernel_config:
   # Prefer giving the kernel more of the virtual address space for ZFS
   CONFIG_VMSPLIT_2G: y
