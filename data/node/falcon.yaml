@@ -75,9 +75,10 @@ nest::service::gitlab_runner::instances:
 
   nest:
     host: 'gitlab.james.tl'
-    privileged: true
-    volumes: ['/nest:/nest']
-    tag_list: ['nest']
+    cap_add: ['CAP_SETUID', 'CAP_SETGID']
+    devices: ['/dev/fuse']
+    volumes: ['/etc/containers/registries.conf:/etc/containers/registries.conf:ro', '/nest:/nest']
+    tag_list: ['buildah', 'nest']
 
 nest::service::reverse_proxy::hosts:
   nzbget.nest:

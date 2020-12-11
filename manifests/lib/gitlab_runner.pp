@@ -3,7 +3,8 @@ define nest::lib::gitlab_runner (
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   String $host            = $name,
   String $default_image   = 'nest/gentoo/stage3:amd64-systemd',
-  Boolean $privileged     = false,
+  Array[String] $cap_add  = [],
+  Array[String] $devices  = [],
   Array[String] $volumes  = [],
   Array[String] $tag_list = [],
 ) {
@@ -32,9 +33,12 @@ define nest::lib::gitlab_runner (
       group  => 'root',
     }
 
-    $privileged_arg = $privileged ? {
-      true    => ['--docker-privileged'],
-      default => [],
+    $cap_add_args = $cap_add.map |$cap| {
+      ['--docker-cap-add', $cap]
+    }
+
+    $device_args = $devices.map |$device| {
+      ['--docker-devices', $device]
     }
 
     $volume_args = $volumes.map |$volume| {
@@ -49,7 +53,8 @@ define nest::lib::gitlab_runner (
       '--non-interactive',
       '--executor', 'docker',
       '--docker-image', $default_image,
-      $privileged_arg,
+      $cap_add_args,
+      $device_args,
       $volume_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
