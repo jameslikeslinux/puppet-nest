@@ -158,6 +158,7 @@ nest::kernel_config:
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
   # For containers
+  CONFIG_POSIX_MQUEUE: y
   CONFIG_MEMCG: y
   CONFIG_MEMCG_SWAP: y
   CONFIG_CGROUP_PIDS: y
