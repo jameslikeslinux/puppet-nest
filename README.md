@@ -24,12 +24,9 @@ understands the following roles and platforms:
 | raspberrypi     |             |
 
 So you can build a "generic workstation" or a "beagleboneblack server" or any
-other combination.  Other types of platforms could include Raspberry Pi or EC2.
-Other types of roles could include "router" or "media PC."
-
-These roles and platforms sit on top of a more generic understanding of
-architecture such that configurations can be defined separately for ARM and
-different ARM platforms.
+other combination.  These roles and platforms sit on top of a more generic
+understanding of architecture such that configurations can be defined separately
+for, e.g., ARM and different ARM platforms.
 
 Beyond that, this module contains classes for a small set of services that can
 be applied to virtually any combination of role and platform.
