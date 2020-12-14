@@ -125,7 +125,7 @@ define nest::lib::container (
       $publish_args,
       $tmpfs_args,
       $volumes_args,
-      "--label=nest.podman-version=${facts['podman_version']}",
+      "--label=nest.podman.version=${facts['podman_version']}",
       "--name=${name}",
       $image,
     ].flatten

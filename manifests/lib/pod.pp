@@ -63,7 +63,7 @@ define nest::lib::pod (
       '/usr/bin/podman', 'pod', 'create',
       '--replace',
       $publish_args,
-      "--label=nest.podman-version=${facts['podman_version']}",
+      "--label=nest.podman.version=${facts['podman_version']}",
       "--name=${name}",
     ].flatten
 
