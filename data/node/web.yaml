@@ -6,8 +6,6 @@ classes:
   - 'nest::service::reverse_proxy'
   - 'nest::service::wordpress'
 
-puppet::environment: 'podman'
-
 nest::service::apache::manage_firewall: true
 
 nest::service::gateway::port_forwards:

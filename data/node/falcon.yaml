@@ -10,8 +10,6 @@ classes:
   - 'nest::service::sonarr'
   - 'nest::service::reverse_proxy'
 
-puppet::environment: 'podman'
-
 nest::bootloader: systemd
 nest::isolcpus: '16-31'
 nest::kernel_cmdline:
