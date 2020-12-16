@@ -1,13 +1,6 @@
 class nest::node::puppet (
   String[1] $r10k_deploy_key,
 ) {
-  nest::lib::srv { 'puppetserver': }
-
-  file { '/srv/puppetserver/hiera.yaml':
-    source  => 'puppet:///modules/nest/puppet/hiera.yaml',
-    require => Nest::Lib::Srv['puppetserver'],
-  }
-
   package { 'libgit2':
     ensure => installed,
   }
@@ -43,25 +36,5 @@ class nest::node::puppet (
       mode    => '0600',
       content => $r10k_deploy_key,
     ;
-  }
-
-  file { '/etc/eyaml':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
-
-  $eyaml_config = @(EOT)
-    ---
-    pkcs7_private_key: '/srv/puppetserver/ssl/ca/ca_key.pem'
-    pkcs7_public_key: '/srv/puppetserver/ssl/certs/ca.pem'
-    | EOT
-
-  file { '/etc/eyaml/config.yaml':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $eyaml_config,
   }
 }

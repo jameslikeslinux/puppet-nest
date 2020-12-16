@@ -1,94 +1,49 @@
 class nest::base::firewall {
+  $ignore = ['CNI-', 'DOCKER', 'LIBVIRT_']
+
   package { 'net-firewall/iptables':
     ensure => installed,
   }
 
-  # Doing anything related to iptables inside an ARM chroot fails
-  if $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
-    if $facts['virtual'] == 'lxc' {
-      file { [
-        '/sbin/iptables-save',
-        '/sbin/ip6tables-save',
-      ]:
-        ensure  => link,
-        target  => '/bin/true',
-        require => Package['net-firewall/iptables'],
-      }
-      ->
-      Firewall <| |>
-    } else {
-      file { [
-        '/sbin/iptables-save',
-        '/sbin/ip6tables-save',
-      ]:
-        ensure  => link,
-        target  => 'xtables-legacy-multi',
-        require => Package['net-firewall/iptables'],
-      }
-      ->
-      Firewall <| |>
+  ['iptables', 'ip6tables'].each |$i| {
+    $save_content = @("SAVE")
+      #!/bin/sh
+      /sbin/xtables-legacy-multi ${i}-legacy-save | /bin/grep -v ${ignore.join('\|').shellquote}
+      | SAVE
+
+    file { "/sbin/${i}-save":
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+      content => $save_content,
+      require => Package['net-firewall/iptables'],
     }
   }
 
 
-  # Keep the 'store' services alive after exit and don't run them at shutdown so
-  # that Puppet and only Puppet triggers them.  The idea is that ephemeral rules
-  # should not be saved just because the system is shutting down; Puppet has the
-  # final say in what gets saved.
-  $service_dropin = @(SVC_DROPIN)
-    [Service]
-    RemainAfterExit=yes
-    | SVC_DROPIN
-
-  file {
-    default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      require => Package['net-firewall/iptables'],
-      notify  => Nest::Lib::Systemd_reload['firewall'],
-    ;
-
-    [
-      '/etc/systemd/system/iptables-store.service.d',
-      '/etc/systemd/system/ip6tables-store.service.d',
-    ]:
-      ensure => directory,
-    ;
-
-    [
-      '/etc/systemd/system/iptables-store.service.d/10-remain-after-exit.conf',
-      '/etc/systemd/system/ip6tables-store.service.d/10-remain-after-exit.conf',
-    ]:
-      content => $service_dropin,
-    ;
+  file { [
+    '/etc/systemd/system/iptables-store.service.d',
+    '/etc/systemd/system/ip6tables-store.service.d',
+  ]:
+    ensure  => absent,
+    recurse => true,
+    force   => true,
   }
-
+  ~>
   nest::lib::systemd_reload { 'firewall': }
-
+  ->
   service { [
     'iptables-store',
-    'ip6tables-store',
-  ]:
-    ensure  => running,
-    enable  => false,
-    require => Nest::Lib::Systemd_reload['firewall'],
-  }
-
-  service { [
     'iptables-restore',
+    'ip6tables-store',
     'ip6tables-restore',
   ]:
     enable => true,
   }
 
 
-
-  # The firewall and firewallchain types define autorequires for package and
-  # service resources with Red Hat and Debian names, so it has to be done
-  # explicitly for Gentoo here.
   Package['net-firewall/iptables']
-  -> Firewallchain <| |>
+  -> Firewallchain <||>
   ~> [Service['iptables-store'], Service['ip6tables-store']]
 
   Package['net-firewall/iptables']
@@ -107,8 +62,13 @@ class nest::base::firewall {
   #
   firewallchain {
     default:
-      purge          => !str2bool($::chroot),
-      ignore_foreign => true,
+      purge  => true,
+
+      # This parameter is still necessary despite the change to the save command
+      # because it purges resources instantiated before the catalog is executed,
+      # i.e., before the save command is managed.  That matters after the
+      # package manager reverts the save command on updates.
+      ignore => $ignore,
     ;
 
     # Block inbound connections

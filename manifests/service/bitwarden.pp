@@ -1,58 +1,34 @@
 class nest::service::bitwarden (
-  Hash[String[1], String[1]] $env = {},
+  String $admin_token,
+  String $database_password,
+  String $smtp_password,
 ) {
-  if $::nest::containers == 'docker' {
-
-  package { 'app-emulation/docker-compose':
-    ensure  => installed,
-    require => Class['::nest::base::containers'],
-  }
-
   nest::lib::srv { 'bitwarden': }
-
-  file { '/srv/bitwarden':
+  ->
+  file { '/srv/bitwarden/data':
     ensure  => directory,
-    mode    => '0750',
-    owner   => 'bitwarden',
-    group   => 'bitwarden',
-    require => Nest::Lib::Srv['bitwarden'],
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
   }
-
-  vcsrepo { '/srv/bitwarden/core':
-    ensure   => latest,
-    provider => git,
-    source   => 'https://github.com/bitwarden/core.git',
-    revision => 'master',
-    user     => 'bitwarden',
-    require  => File['/srv/bitwarden'],
-  }
-
-  file { '/srv/bitwarden/bitwarden.sh':
-    ensure  => symlink,
-    target  => 'core/scripts/bitwarden.sh',
-    owner   => 'bitwarden',
-    group   => 'bitwarden',
-    require => Vcsrepo['/srv/bitwarden/core'],
-  }
-
-  if $facts['bitwarden_installed'] {
-    $env.each |$key, $value| {
-      $key_escaped = regexpescape($key)
-
-      file_line { "bitwarden-env-${key}":
-        path   => '/srv/bitwarden/bwdata/env/global.override.env',
-        line   => "${key}=${value}",
-        match  => "^${key_escaped}=",
-        notify => Exec['restart-bitwarden'],
-      }
-    }
-
-    exec { 'restart-bitwarden':
-      command     => '/srv/bitwarden/bitwarden.sh restart',
-      user        => 'bitwarden',
-      refreshonly => true,
-    }
-  }
-
+  ->
+  nest::lib::container { 'bitwarden':
+    image   => 'bitwardenrs/server',
+    dns     => '172.22.0.1',
+    env     => [
+      'DOMAIN=https://vault.thesatelliteoflove.net',
+      "ADMIN_TOKEN=${admin_token}",
+      "DATABASE_URL=mysql://bitwarden:${database_password}@web.nest/bitwarden",
+      'ENABLE_DB_WAL=false',
+      'SIGNUPS_ALLOWED=false',
+      'SHOW_PASSWORD_HINT=false',
+      'SMTP_HOST=smtp.gmail.com',
+      'SMTP_FROM=bitwarden@thesatelliteoflove.net',
+      'SMTP_USERNAME=system@james.tl',
+      "SMTP_PASSWORD=${smtp_password}",
+      'WEBSOCKET_ENABLED=true',
+    ],
+    publish => ['1003:80', '3012:3012'],
+    volumes => ['/srv/bitwarden/data:/data'],
   }
 }

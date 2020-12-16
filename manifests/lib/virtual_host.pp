@@ -46,7 +46,9 @@ define nest::lib::virtual_host (
 
   ensure_resource('apache::listen', $http_port, {})
 
-  ensure_resource('nest::lib::srv', "www/${servername}", { zfs => $zfs_docroot })
+  nest::lib::srv { "www/${servername}":
+    zfs => $zfs_docroot,
+  }
 
   if $ssl {
     ensure_resource('apache::listen', $https_port, {})

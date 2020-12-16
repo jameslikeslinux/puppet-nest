@@ -1,6 +1,9 @@
 define nest::lib::kernel_config (
   $value,
 ) {
+  # Required for Exec['make defconfig'], Exec['make kernel']
+  include 'nest'
+
   $line_ensure = $value ? {
     undef   => 'absent',
     default => 'present',

@@ -1,4 +1,6 @@
 ---
+puppet::environment: 'podman'
+
 nest::bootloader: systemd
 nest::isolcpus: '4-7'
 nest::kernel_config:

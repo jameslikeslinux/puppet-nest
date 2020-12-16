@@ -1,9 +1,11 @@
 ---
 classes:
   - 'nest::node::puppet'
+  - 'nest::service::puppet'
+
+puppet::environment: 'podman'
 
 nest::bootloader: systemd
-nest::containers: docker
 nest::dvorak: true
 nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
