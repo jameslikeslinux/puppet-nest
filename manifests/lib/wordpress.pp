@@ -36,23 +36,18 @@ define nest::lib::wordpress (
     'custom_fragment' => $php_fpm_config,
     'directories'     => [
       {
-        'path'           => "/srv/www/${servername}",
-        'options'        => ['Indexes', 'FollowSymLinks', 'MultiViews'],
-
-        # Straight lifted from https://github.com/puppetlabs/puppetlabs-apache#rewrites-1
-        'rewrites'       => [
-          {
-            'rewrite_base' => '/'
-          },
-          {
-            'rewrite_rule' => [ '^index\.php$ - [L]' ]
-          },
+        'path'     => "/srv/www/${servername}",
+        'options'  => ['Indexes', 'FollowSymLinks', 'MultiViews'],
+        'rewrites' => [
+          { 'rewrite_rule' => ['.* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]'] },
+          { 'rewrite_base' => '/' },
+          { 'rewrite_rule' => ['^index\.php$ - [L]'] },
           {
             'rewrite_cond' => [
               '%{REQUEST_FILENAME} !-f',
               '%{REQUEST_FILENAME} !-d',
             ],
-            'rewrite_rule' => [ '. /index.php [L]' ],
+            'rewrite_rule' => ['. /index.php [L]'],
           },
         ],
       },
