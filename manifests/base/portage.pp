@@ -87,6 +87,11 @@ class nest::base::portage {
     default                => 'unknown',
   }
 
+  $emerge_default_opts = $facts['makeopts'] ? {
+    undef   => '${EMERGE_DEFAULT_OPTS} --usepkg',
+    default => "\${EMERGE_DEFAULT_OPTS} --usepkg ${facts['makeopts']}"
+  }
+
   portage::makeconf {
     'accept_license':
       content => '*';
@@ -100,7 +105,7 @@ class nest::base::portage {
     'distdir':
       content => '/nest/portage/distfiles';
     'emerge_default_opts':
-      content => '${EMERGE_DEFAULT_OPTS} --usepkg';
+      content => $emerge_default_opts;
     'features':
       content => ['buildpkg', 'distcc', 'splitdebug'] + $sandbox_features;
     'input_devices':
