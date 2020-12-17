@@ -7,8 +7,8 @@ class nest::base::firewall {
 
   ['iptables', 'ip6tables'].each |$i| {
     $save_content = @("SAVE"/$)
-      #!/bin/bash
-      [[ \$container == 'oci' ]] || /sbin/xtables-legacy-multi ${i}-legacy-save | /bin/grep -v ${ignore.join('\|').shellquote}
+      #!/bin/sh
+      [ -e /run/.containerenv ] || /sbin/xtables-legacy-multi ${i}-legacy-save | /bin/grep -v ${ignore.join('\|').shellquote}
       | SAVE
 
     file { "/sbin/${i}-save":
