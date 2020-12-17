@@ -102,3 +102,8 @@ nest::service::reverse_proxy::hosts:
     destination: '127.0.0.1:8989'
     ip: '172.22.0.1'
     ssl: false
+
+  registry.nest:
+    destination: '127.0.0.1:5050'
+    ip: '172.22.0.1'
+    ssl: false
