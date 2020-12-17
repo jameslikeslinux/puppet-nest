@@ -11,7 +11,7 @@ unless defined('$role') {
 
 case $facts['osfamily'] {
   'Gentoo': {
-    $is_container = $facts['virtual'] == 'lxc'
+    $is_container = $facts['virtual'] == 'lxc' or $facts['build']
 
     Service {
       provider => systemd,

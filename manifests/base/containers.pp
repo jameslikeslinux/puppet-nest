@@ -1,21 +1,9 @@
 class nest::base::containers {
-  service { 'docker':
-    ensure => stopped,
-    enable => false,
-  }
-  ->
-  package { 'app-emulation/docker':
-    ensure => absent,
-  }
-  ->
-  file { '/usr/bin/docker':
-    ensure => absent,
-  }
-
-
-  zfs { 'containers':
-    name       => "${facts['rpool']}/containers",
-    mountpoint => '/var/lib/containers',
+  unless $::is_container {
+    zfs { 'containers':
+      name       => "${facts['rpool']}/containers",
+      mountpoint => '/var/lib/containers',
+    }
   }
 
   package { [

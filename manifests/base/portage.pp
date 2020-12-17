@@ -70,7 +70,7 @@ class nest::base::portage {
   }
 
   if $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
-    if $facts['virtual'] == 'lxc' {
+    if $::is_container {
       $sandbox_features = ['-sandbox', '-usersandbox', '-pid-sandbox', '-network-sandbox']
     } else {
       $sandbox_features = []

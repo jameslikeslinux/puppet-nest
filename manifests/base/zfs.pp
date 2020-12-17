@@ -113,7 +113,7 @@ class nest::base::zfs {
 
   ::nest::lib::systemd_reload { 'zfs': }
 
-  unless $facts['virtual'] == 'lxc' {
+  unless $::is_container {
     # Manage swap volume properties for experimenting with workarounds listed in
     # https://github.com/openzfs/zfs/issues/7734
     zfs { "${facts['rpool']}/swap":
