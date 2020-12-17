@@ -11,27 +11,56 @@ class nest::base {
 
   case $facts['osfamily'] {
     'Gentoo': {
-      contain '::nest::base::bootloader'
       contain '::nest::base::containers'
       contain '::nest::base::crossdev'
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'
-      contain '::nest::base::dracut'
       contain '::nest::base::fail2ban'
       contain '::nest::base::firewall'
-      contain '::nest::base::firmware'
       contain '::nest::base::fs'
       contain '::nest::base::fstab'
-      contain '::nest::base::kernel'
       contain '::nest::base::mta'
       contain '::nest::base::network'
       contain '::nest::base::openvpn'
-      contain '::nest::base::plymouth'
       contain '::nest::base::portage'
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
-      contain '::nest::base::zfs'
+
+      unless $facts['build'] == 'stage1' {
+        contain '::nest::base::bootloader'
+        contain '::nest::base::dracut'
+        contain '::nest::base::firmware'
+        contain '::nest::base::kernel'
+        contain '::nest::base::plymouth'
+        contain '::nest::base::zfs'
+
+        # Rebuild initramfs and reconfigure bootloader after kernel changes
+        Class['::nest::base::kernel']
+        ~> Class['::nest::base::dracut']
+        ~> Class['::nest::base::bootloader']
+
+        # Rebuild initramfs after firmware changes
+        Class['::nest::base::firmware']
+        ~> Class['::nest::base::dracut']
+
+        # Rebuild initramfs after ZFS changes
+        Class['::nest::base::kernel']
+        -> Class['::nest::base::zfs']
+        ~> Class['::nest::base::dracut']
+
+        # Dracut depends on systemd/console setup
+        Class['::nest::base::systemd']
+        ~> Class['::nest::base::dracut']
+
+        # Rebuild initramfs after plymouth changes
+        Class['::nest::base::plymouth']
+        ~> Class['::nest::base::dracut']
+
+        # Dracut liveimg depends on dhcp, pulled in by network class
+        Class['::nest::base::network']
+        -> Class['::nest::base::dracut']
+      }
 
       # Setup distcc before portage, but distccd needs systemd, which is
       # installed after portage is configured.
@@ -49,35 +78,9 @@ class nest::base {
       Class['::nest::base::portage']
       -> Class['::nest::base::systemd']
 
-      # Dracut depends on systemd/console setup
-      Class['::nest::base::systemd']
-      ~> Class['::nest::base::dracut']
-
-      # Rebuild initramfs and reconfigure bootloader after kernel changes
-      Class['::nest::base::kernel']
-      ~> Class['::nest::base::dracut']
-      ~> Class['::nest::base::bootloader']
-
-      # Rebuild initramfs after firmware changes
-      Class['::nest::base::firmware']
-      ~> Class['::nest::base::dracut']
-
-      # Rebuild initramfs after ZFS changes
-      Class['::nest::base::kernel']
-      -> Class['::nest::base::zfs']
-      ~> Class['::nest::base::dracut']
-
-      # Rebuild initramfs after plymouth changes
-      Class['::nest::base::plymouth']
-      ~> Class['::nest::base::dracut']
-
       # Sudo requires configured MTA
       Class['::nest::base::mta']
       -> Class['::nest::base::sudo']
-
-      # Dracut liveimg depends on dhcp, pulled in by network class
-      Class['::nest::base::network']
-      -> Class['::nest::base::dracut']
 
       # OpenVPN modifies resolvconf which is installed for NetworkManager
       Class['::nest::base::network']
@@ -85,10 +88,6 @@ class nest::base {
 
       if $::nest::libvirt {
         contain '::nest::base::libvirt'
-
-        # libvirt ebuild checks kernel config
-        Class['::nest::base::kernel']
-        -> Class['::nest::base::libvirt']
       }
     }
 

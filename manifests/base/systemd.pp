@@ -200,17 +200,6 @@ class nest::base::systemd {
     ;
   }
 
-  # During boot, systemd-udev-trigger -> systemd-udev-settle ->
-  # zfs-import-cache, but for some reason, persistent device labels aren't
-  # processed in time by the trigger-settle loop.  Triggering changes seems to
-  # fix the problem.
-  file_line { 'systemd-udev-trigger-changes':
-    path   => '/lib/systemd/system/systemd-udev-trigger.service',
-    after  => 'ExecStart=/bin/udevadm trigger --type=devices --action=add',
-    line   => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
-    notify => Class['::nest::base::dracut'],
-  }
-
   $kexec_tools_ensure = "${::nest::bootloader}-${facts['architecture']}" ? {
     'systemd-amd64' => installed,
     default         => absent,
