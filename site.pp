@@ -13,10 +13,6 @@ case $facts['osfamily'] {
   'Gentoo': {
     $is_container = $facts['virtual'] == 'lxc' or $facts['build']
 
-    Service {
-      provider => systemd,
-    }
-
     Firewall {
       noop => $is_container,
     }
@@ -27,6 +23,16 @@ case $facts['osfamily'] {
 
     Sysctl {
       noop => $is_container,
+    }
+
+    Service {
+      provider => systemd,
+    }
+
+    if $is_container {
+      Service <||> {
+        ensure => undef,
+      }
     }
   }
 
