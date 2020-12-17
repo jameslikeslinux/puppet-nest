@@ -1,11 +1,13 @@
 diff --git a/lib/puppet/provider/service/systemd.rb b/lib/puppet/provider/service/systemd.rb
-index 1ad5ce9997..4e7365b42b 100644
+index 6408f8cfb7..7cad2730b4 100644
 --- a/lib/puppet/provider/service/systemd.rb
 +++ b/lib/puppet/provider/service/systemd.rb
-@@ -13,6 +13,7 @@ Puppet::Type.type(:service).provide :systemd, :parent => :base do
+@@ -11,8 +11,7 @@ Puppet::Type.type(:service).provide :systemd, :parent => :base do
  
-   confine :true => Puppet::FileSystem.exist?('/proc/1/comm') && Puppet::FileSystem.read('/proc/1/comm').include?('systemd')
+   commands :systemctl => "systemctl"
  
+-  confine :true => Puppet::FileSystem.exist?('/proc/1/comm') && Puppet::FileSystem.read('/proc/1/comm').include?('systemd')
+-
 +  defaultfor :osfamily => :gentoo
    defaultfor :osfamily => [:archlinux]
    defaultfor :osfamily => :redhat, :operatingsystemmajrelease => ["7", "8"]
