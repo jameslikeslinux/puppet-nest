@@ -375,7 +375,7 @@ class nest::base::portage {
     ;
 
     '/var/cache/portage/gentoo':
-      source => 'https://github.com/iamjamestl/portage-gentoo.git',
+      source => 'https://gitlab.james.tl/nest/gentoo/portage.git',
     ;
 
     '/var/cache/portage/nest':
