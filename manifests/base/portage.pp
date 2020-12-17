@@ -14,22 +14,25 @@ class nest::base::portage {
     default => undef,
   }
 
-  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_memory_heavy = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024))
-  $makejobs_memory_heavier = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
+  $makejobs_memory          = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
+  $makejobs_memory_heavy    = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024))
+  $makejobs_memory_heavier  = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
   $makejobs_memory_heaviest = ceiling($facts['memory']['system']['total_bytes'] / (4096.0 * 1024 * 1024))
+
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
 
-  $makejobs = min($makejobs_memory, $makejobs_distcc)
-  $makejobs_heavy = min($makejobs_memory_heavy, $::nest::processorcount)
-  $makejobs_heavier = min($makejobs_memory_heavier, $::nest::processorcount)
+  $makejobs          = min($makejobs_memory, $makejobs_distcc)
+  $makejobs_heavy    = min($makejobs_memory_heavy, $::nest::processorcount)
+  $makejobs_heavier  = min($makejobs_memory_heavier, $::nest::processorcount)
   $makejobs_heaviest = min($makejobs_memory_heaviest, $::nest::processorcount)
 
   $loadlimit = $::nest::processorcount + 1
-  $makeopts = "-j${makejobs} -l${loadlimit}"
-  $makeopts_heavy = "-j${makejobs_heavy} -l${loadlimit}"
-  $makeopts_heavier = "-j${makejobs_heavier} -l${loadlimit}"
-  $makeopts_heaviest = "-j${makejobs_heaviest} -l${loadlimit}"
+
+  # Prioritize makeopts passed in from CI by facter
+  $makeopts          = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
+  $makeopts_heavy    = pick($facts['makeopts'], "-j${makejobs_heavy} -l${loadlimit}")
+  $makeopts_heavier  = pick($facts['makeopts'], "-j${makejobs_heavier} -l${loadlimit}")
+  $makeopts_heaviest = pick($facts['makeopts'], "-j${makejobs_heaviest} -l${loadlimit}")
 
   # Basically, this goes:
   #  1. Install portage stuff, like eselect
