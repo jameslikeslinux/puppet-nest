@@ -50,7 +50,7 @@ class nest::base::systemd {
     changes => flatten($nsswitch_id_changes + $nsswitch_hosts_changes),
   }
 
-  unless str2bool($::chroot) {
+  unless $::is_container {
     file { '/etc/resolv.conf':
       ensure => link,
       target => '/run/systemd/resolve/stub-resolv.conf',

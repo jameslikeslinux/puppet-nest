@@ -13,7 +13,7 @@ class nest::service::mysql {
     service_provider => 'systemd',
   }
 
-  unless str2bool($::chroot) {
+  unless $::is_container {
     exec { 'mysql-tmpfiles-create':
       command => '/usr/bin/systemd-tmpfiles --create /usr/lib/tmpfiles.d/mysql.conf',
       creates => '/run/mysqld',
