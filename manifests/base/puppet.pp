@@ -65,6 +65,12 @@ class nest::base::puppet {
       runmode              => 'systemd.timer',
       unavailable_runmodes => ['cron'],
     }
+
+    if $::is_container {
+      Exec <| title == 'systemctl-daemon-reload-puppet' |> {
+        noop => true,
+      }
+    }
   } else {
     class { '::puppet':
       dns_alt_names => $dns_alt_names,
