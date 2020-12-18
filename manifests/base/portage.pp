@@ -269,13 +269,6 @@ class nest::base::portage {
     | EOT
 
   if $::role == 'workstation' {
-    # Speed up metadata resolution of haskell overlay in eix-sync
-    # See: https://github.com/gentoo-haskell/gentoo-haskell/blob/master/README.rst
-    $eix_conf_content = @("EOT")
-      *
-      @egencache --jobs=${::nest::processorcount} --repo=haskell --update --update-use-local-desc
-      | EOT
-
     $repos_workstation = @(EOT)
 
       [haskell]
@@ -289,7 +282,6 @@ class nest::base::portage {
 
     $repos_workstation_ensure = 'present'
   } else {
-    $eix_conf_content = "*\n"
     $repos_workstation_ensure = 'absent'
   }
 
@@ -312,15 +304,8 @@ class nest::base::portage {
     content => "*/*::nest ~*\n",
   }
 
-  file { '/etc/portage/package.accept_keywords/tlp':
-    ensure  => absent,
-  }
-
   file { '/etc/eix-sync.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $eix_conf_content,
+    ensure => absent,
   }
 
   if $::nest::distcc_server or $::platform == 'pinebookpro' {
