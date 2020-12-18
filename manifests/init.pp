@@ -67,7 +67,7 @@ class nest (
       $video_cards    = ['panfrost', 'v3d', 'vc4']
       $use_defaults   = ['pulseaudio', 'vaapi', 'wayland']
     } elsif $facts['architecture'] == 'armv7l' and $::platform == 'beagleboneblack' and $::role == 'server' {
-      $gentoo_profile = 'default/linux/arm/17.0/armv7a/systemd'
+      $gentoo_profile = 'nest:armv7l-server'
       $input_devices  = undef
       $video_cards    = undef
       $use_defaults   = ['X']

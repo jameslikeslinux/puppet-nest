@@ -384,7 +384,7 @@ class nest::base::portage {
     ;
 
     '/var/cache/portage/nest':
-      source => 'https://github.com/iamjamestl/portage-overlay.git',
+      source => 'https://gitlab.james.tl/nest/portage.git',
     ;
 
     '/var/cache/portage/haskell':
