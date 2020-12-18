@@ -255,14 +255,14 @@ class nest::base::portage {
     [gentoo]
     location = /var/cache/portage/gentoo
     sync-type = git
-    sync-uri = https://github.com/iamjamestl/portage-gentoo.git
+    sync-uri = https://gitlab.james.tl/nest/gentoo/portage.git
     sync-depth = 1
     auto-sync = yes
 
     [nest]
     location = /var/cache/portage/nest
     sync-type = git
-    sync-uri = https://github.com/iamjamestl/portage-nest.git
+    sync-uri = https://gitlab.james.tl/nest/portage.git
     sync-depth = 1
     auto-sync = yes
     masters = gentoo
