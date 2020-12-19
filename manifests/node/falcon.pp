@@ -29,4 +29,10 @@ class nest::node::falcon {
       action => accept,
     ;
   }
+
+  nest::lib::toolchain { [
+    'aarch64-unknown-linux-gnu',
+    'armv7a-unknown-linux-gnueabihf',
+    'arm-none-eabi',
+  ]: }
 }

@@ -12,7 +12,6 @@ class nest::base {
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::base::containers'
-      contain '::nest::base::crossdev'
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'
       contain '::nest::base::fail2ban'
@@ -75,7 +74,9 @@ class nest::base {
       -> Class['::nest::base::portage']
 
       # Portage should be configured before any packages are installed/changed
-      Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and title != 'sys-devel/distcc' |>
+      Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
+                                                   title != 'dev-vcs/git' and
+                                                   title != 'sys-devel/distcc' |>
       Class['::nest::base::portage'] -> Nest::Lib::Package_use <| |>
 
       if $::nest::libvirt {

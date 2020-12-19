@@ -3,6 +3,55 @@ class nest::base::portage {
     eselect_ensure => installed,
   }
 
+  # Remove unused directories created by Class[portage]
+  File <|
+    title == '/etc/portage/package.keywords' or
+    title == '/etc/portage/package.mask' or
+    title == '/etc/portage/package.unmask' or
+    title == '/etc/portage/postsync.d'
+  |> {
+    ensure => absent,
+    force  => true,
+  }
+
+  # Purge all other unmanaged configs
+  File <| title == '/etc/portage/package.use' |> {
+    purge   => true,
+    recurse => true,
+    force   => true,
+  }
+
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      purge   => true,
+      recurse => true,
+      force   => true,
+    ;
+
+    [
+      '/etc/portage/package.accept_keywords',
+      '/etc/portage/package.env',
+    ]:
+      # use defaults
+    ;
+
+    [
+      '/etc/portage/package.accept_keywords/default',
+      '/etc/portage/package.env/default',
+      '/etc/portage/package.use/default',
+    ]:
+      ensure => file,
+    ;
+
+    '/etc/portage/patches':
+      source => 'puppet:///modules/nest/portage/patches',
+    ;
+  }
+
 
 
   #
@@ -46,16 +95,6 @@ class nest::base::portage {
   #
   # Repositories
   #
-  file { '/etc/portage/repos.conf':
-    ensure  => directory,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    purge   => true,
-    recurse => true,
-    force   => true,
-  }
-
   nest::lib::repo {
     'gentoo':
       url     => 'https://gitlab.james.tl/nest/gentoo/portage.git',
@@ -68,31 +107,17 @@ class nest::base::portage {
     ;
   }
 
-  # Don't let eix-sync override my tmux window title
-  file { '/etc/eixrc/10-nostatusline':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "NOSTATUSLINE=true\n",
-  }
-
-  exec { 'eix-update':
-    command     => '/usr/bin/eix-update -q',
-    refreshonly => true,
-  }
-
 
 
   #
   # Package environments and properties
   #
+  $cflags_no_debug  = regsubst($facts['portage_cflags'], '\s?-g(gdb)?\d?(\s|$)', '')
+  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
   $cflags_no_crypto_ensure = $cflags_no_crypto ? {
     $facts['portage_cflags'] => 'absent',
     default                  => 'present',
   }
-
-  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
-  $cflags_no_debug  = regsubst($facts['portage_cflags'], '\s?-g(gdb)?(\s|$)', '')
 
   file {
     default:
@@ -103,16 +128,19 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env':
-      ensure => directory,
+      ensure  => directory,
+      purge   => true,
+      recurse => true,
+      force   => true,
+    ;
+
+    '/etc/portage/env/no-debug.conf':
+      content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
 
     '/etc/portage/env/no-crypto.conf':
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
-    ;
-
-    '/etc/portage/env/no-debug.conf':
-      content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
   }
 
@@ -141,17 +169,6 @@ class nest::base::portage {
     ;
   }
 
-  file { '/etc/portage/patches':
-    ensure  => directory,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    source  => 'puppet:///modules/nest/portage/patches',
-    recurse => true,
-    force   => true,
-    purge   => true,
-  }
-
 
 
   #
@@ -174,15 +191,10 @@ class nest::base::portage {
   file { [
     '/etc/eix-sync.conf',
     '/etc/eixrc/10-disable-statusline',
-    '/etc/portage/env/heavy.conf',
-    '/etc/portage/env/heavier.conf',
-    '/etc/portage/env/heaviest.conf',
-    '/etc/portage/env/light-debug.conf',
-    '/etc/portage/package.use/default',
     '/etc/portage/profile',
+    '/var/cache/portage',
   ]:
-    ensure  => absent,
-    recurse => true,
-    force   => true,
+    ensure => absent,
+    force  => true,
   }
 }

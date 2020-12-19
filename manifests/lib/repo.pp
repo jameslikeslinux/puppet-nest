@@ -3,8 +3,7 @@ define nest::lib::repo (
   Boolean $default      = false,
   Boolean $unstable     = false,
 ) {
-  # Required for /etc/portage/repos.conf, eix-update
-  include 'nest'
+  include 'nest::lib::repos'
 
   $default_content = $default ? {
     true    => "[DEFAULT]\nmain-repo = ${name}\n\n",
@@ -21,10 +20,12 @@ define nest::lib::repo (
       auto-sync = yes
       | END_REPO
 
-    exec { "/usr/bin/emerge --sync ${name.shellquote}":
-      refreshonly => true,
-      require     => File["/etc/portage/repos.conf/${name}.conf"],
-      notify      => Exec['eix-update'],
+    vcsrepo { "/var/db/repos/${name}":
+      ensure   => latest,
+      provider => git,
+      source   => $url,
+      depth    => 1,
+      notify   => Exec['eix-update'],
     }
   } else {
     $repo_content = @("END_REPO")
@@ -34,20 +35,29 @@ define nest::lib::repo (
       | END_REPO
   }
 
-  file { "/etc/portage/repos.conf/${name}.conf":
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "${default_content}${repo_content}",
-  }
-
   $accept_keywords_ensure = $unstable ? {
     true    => present,
     default => absent,
   }
 
-  file { "/etc/portage/package.accept_keywords/${name}":
-    ensure => $accept_keywords_ensure,
-    content => "*/*::${name} ~*\n",
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    "/etc/portage/repos.conf/${name}.conf":
+      content => "${default_content}${repo_content}",
+    ;
+
+    "/etc/portage/package.accept_keywords/${name}":
+      ensure  => $accept_keywords_ensure,
+      content => "*/*::${name} ~*\n",
+    ;
+
+    "/var/db/repos/${name}":
+      ensure => directory,
+    ;
   }
 }
