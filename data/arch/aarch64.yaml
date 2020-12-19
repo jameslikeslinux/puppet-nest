@@ -221,11 +221,6 @@ nest::package_keywords:
   x11-apps/xlsfonts:
     accept_keywords: '*'
 
-nest::package_use:
-  # ARM64 binaries for building aren't always available so bootstrap our own
-  dev-lang/ghc:
-    use: 'ghcbootstrap'
-
 nest::kernel_config:
   # Unset default preempt for ZFS compatibility
   CONFIG_PREEMPT: n
