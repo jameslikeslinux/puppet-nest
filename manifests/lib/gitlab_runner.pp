@@ -72,7 +72,7 @@ define nest::lib::gitlab_runner (
       $volume_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
-      '--description', $facts['fqdn'],
+      '--description', $facts['hostname'],
       '--tag-list', $tag_list.join(','),
     ].flatten
 
