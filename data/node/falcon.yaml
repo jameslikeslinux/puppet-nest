@@ -75,6 +75,7 @@ nest::service::gitlab_runner::instances:
 
   nest:
     host: 'gitlab.james.tl'
+    security_options: ['seccomp=unconfined']
     volumes: ['/nest:/nest']
     tag_list: ['nest']
 
