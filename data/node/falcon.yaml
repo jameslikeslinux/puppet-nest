@@ -48,7 +48,6 @@ nest::barrier_config: |
   	mousebutton(7) = keystroke(WWWForward)
   end
 
-# XXX: Change this after moving it to a more private area
 nest::service::gitlab::gmail_password: >
   ENC[PKCS7,MIICpQYJKoZIhvcNAQcDoIICljCCApICAQAxggI9MIICOQIBADAhMBwxGjAY
   BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
@@ -66,8 +65,6 @@ nest::service::gitlab::gmail_password: >
   /1D+mlR8RK9//Yqz2NY+orCqMEwGCSqGSIb3DQEHATAdBglghkgBZQMEASoE
   EOlEDKD7T4YbsR6OpszDBlmAIIrvgKKfOqkbMmuaWkIAksyUj8T4g94OZGU8
   xneqfVZI]
-
-nest::gitlab::puma_workers: 4
 
 nest::service::gitlab_runner::instances:
   shared:
