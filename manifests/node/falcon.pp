@@ -9,7 +9,7 @@ class nest::node::falcon {
     '100 podman to apache':
       iniface => 'cni-podman0',
       proto   => tcp,
-      dport   => 80,
+      dport   => [80, 443],
       state   => 'NEW',
       action  => accept,
     ;

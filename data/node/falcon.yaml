@@ -68,9 +68,11 @@ nest::service::gitlab::gmail_password: >
 
 nest::service::gitlab_runner::instances:
   shared:
+    dns: '172.22.0.1'
     host: 'gitlab.james.tl'
 
   nest:
+    dns: '172.22.0.1'
     host: 'gitlab.james.tl'
     security_options: ['seccomp=unconfined']
     volumes: ['/nest:/nest']
@@ -106,4 +108,3 @@ nest::service::reverse_proxy::hosts:
   registry.gitlab.james.tl:
     destination: '127.0.0.1:5050'
     ip: '172.22.0.1'
-    ssl: false

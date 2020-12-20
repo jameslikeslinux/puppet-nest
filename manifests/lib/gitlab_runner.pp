@@ -2,8 +2,9 @@ define nest::lib::gitlab_runner (
   String $registration_token,
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   String $host                    = $name,
-  String $default_image           = 'nest/gentoo/stage3:amd64-systemd',
+  String $default_image           = 'registry.gitlab.james.tl/nest/stage1:haswell-server',
   Optional[String] $cpuset_cpus   = $::nest::availcpus_expanded.join(','),
+  Optional[String] $dns           = undef,
   Array[String] $devices          = [],
   Array[String] $security_options = [],
   Array[String] $volumes          = [],
@@ -34,6 +35,16 @@ define nest::lib::gitlab_runner (
       group  => 'root',
     }
 
+    $cpuset_cpus_args = $cpuset_cpus ? {
+      undef   => [],
+      default => ['--docker-cpuset-cpus', $cpuset_cpus],
+    }
+
+    $dns_args = $dns ? {
+      undef   => [],
+      default => ['--docker-dns', $dns],
+    }
+
     $device_args = $devices.map |$device| {
       ['--docker-devices', $device]
     }
@@ -54,7 +65,8 @@ define nest::lib::gitlab_runner (
       '--non-interactive',
       '--executor', 'docker',
       '--docker-image', $default_image,
-      '--docker-cpuset-cpus', $cpuset_cpus,
+      $cpuset_cpus_args,
+      $dns_args,
       $device_args,
       $security_opt_args,
       $volume_args,
@@ -74,6 +86,7 @@ define nest::lib::gitlab_runner (
       ensure      => $ensure,
       image       => 'gitlab/gitlab-runner',
       cpuset_cpus => $cpuset_cpus,
+      dns         => $dns,
       volumes     => [
         '/run/podman/podman.sock:/var/run/docker.sock',
         "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
