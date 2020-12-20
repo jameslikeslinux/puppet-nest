@@ -1,12 +1,18 @@
 define nest::lib::toolchain (
   Enum['present', 'absent'] $ensure = present,
+  Boolean $gcc_only = false,
 ) {
   case $ensure {
     'present': {
       include 'nest::lib::crossdev'
 
+      $stage = $gcc_only ? {
+        true    => 1,
+        default => 4,
+      }
+
       exec { "crossdev-install-${name}":
-        command => "/usr/bin/crossdev --stable --target ${name}",
+        command => "/usr/bin/crossdev --stable --stage${stage} --target ${name}",
         creates => "/usr/bin/${name}-gcc",
         require => Class['nest::lib::crossdev'],
       }
