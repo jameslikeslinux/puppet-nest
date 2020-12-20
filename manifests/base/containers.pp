@@ -21,7 +21,7 @@ class nest::base::containers {
     ;
 
     '/etc/containers/containers.conf':
-      content => "runtime = \"crun\"\n",
+      source => 'puppet:///modules/nest/containers/containers.conf'
     ;
 
     '/etc/containers/policy.json':
