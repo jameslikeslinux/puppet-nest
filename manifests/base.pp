@@ -12,7 +12,6 @@ class nest::base {
   case $facts['osfamily'] {
     'Gentoo': {
       contain '::nest::base::containers'
-      contain '::nest::base::crossdev'
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'
       contain '::nest::base::fail2ban'
@@ -62,22 +61,6 @@ class nest::base {
         -> Class['::nest::base::dracut']
       }
 
-      # Setup distcc before portage, but distccd needs systemd, which is
-      # installed after portage is configured.
-      Class['::nest::base::distcc']
-      -> Class['::nest::base::portage']
-      -> Class['::nest::base::distccd']
-
-      # Portage should be configured before any packages are installed/changed
-      Class['::nest::base::portage'] -> Package <| title != 'sys-devel/distcc' and
-                                                   title != 'dev-vcs/git' and
-                                                   title != 'app-admin/eselect' |>
-      Class['::nest::base::portage'] -> Nest::Lib::Package_use <| |>
-
-      # Portage configuration (profile) responsible for installing systemd
-      Class['::nest::base::portage']
-      -> Class['::nest::base::systemd']
-
       # Sudo requires configured MTA
       Class['::nest::base::mta']
       -> Class['::nest::base::sudo']
@@ -85,6 +68,16 @@ class nest::base {
       # OpenVPN modifies resolvconf which is installed for NetworkManager
       Class['::nest::base::network']
       -> Class['::nest::base::openvpn']
+
+      # Setup distcc before portage
+      Class['::nest::base::distcc']
+      -> Class['::nest::base::portage']
+
+      # Portage should be configured before any packages are installed/changed
+      Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
+                                                   title != 'dev-vcs/git' and
+                                                   title != 'sys-devel/distcc' |>
+      Class['::nest::base::portage'] -> Nest::Lib::Package_use <| |>
 
       if $::nest::libvirt {
         contain '::nest::base::libvirt'

@@ -76,22 +76,6 @@ nest::package_keywords:
   # Until 5.9 or later is stabilized, accept unstable
   sys-kernel/gentoo-sources: {}
 
-nest::package_use:
-  app-admin/puppet:
-    use: ['augeas', 'shadow']
-
-  # For plymouth
-  x11-libs/libdrm:
-    use: 'libkms'
-
-  # For networkmanager[wifi]
-  net-wireless/wpa_supplicant:
-    use: 'dbus'
-
-  sys-apps/systemd:
-    use:
-      - 'gnuefi'  # for systemd-boot
-
 nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n

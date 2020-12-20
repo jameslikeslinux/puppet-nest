@@ -1,6 +1,5 @@
 ---
 nest::bootloader: systemd
-nest::cflags: '-mcpu=cortex-a72.cortex-a53+crypto -O2 -pipe -ggdb'
 nest::dvorak: true
 nest::swap_alt_win: true
 nest::text_scaling_factor: 1.1
@@ -9,16 +8,6 @@ nest::text_scaling_factor: 1.1
 # build jobs to the number of big cores and leaving the LITTLE cores free for
 # better interactivity.
 nest::processorcount: 2
-
-nest::package_env:
-  dev-lang/rust:
-    env: 'light-debug.conf'
-  net-libs/nodejs:
-    env: 'light-debug.conf'
-  sys-devel/clang:
-    env: 'light-debug.conf'
-  www-client/chromium:
-    env: 'no-debug.conf'
 
 nest::package_keywords:
   # For now, I want the latest improvements to panfrost in mesa

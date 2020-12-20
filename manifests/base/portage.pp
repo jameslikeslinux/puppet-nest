@@ -1,45 +1,88 @@
 class nest::base::portage {
-  $input_devices_ensure = $::nest::input_devices ? {
-    undef   => absent,
-    default => undef,
+  class { 'portage':
+    eselect_ensure => installed,
   }
 
-  $video_cards_ensure = $::nest::video_cards ? {
-    undef   => absent,
-    default => undef,
+  # Remove unused directories created by Class[portage]
+  File <|
+    title == '/etc/portage/package.keywords' or
+    title == '/etc/portage/package.mask' or
+    title == '/etc/portage/package.unmask' or
+    title == '/etc/portage/postsync.d'
+  |> {
+    ensure => absent,
+    force  => true,
   }
 
-  $use_ensure = $::nest::use_combined ? {
-    []      => absent,
-    default => undef,
+  # Purge all other unmanaged configs
+  File <| title == '/etc/portage/package.use' |> {
+    purge   => true,
+    recurse => true,
+    force   => true,
   }
 
-  $makejobs_memory          = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_memory_heavy    = ceiling($facts['memory']['system']['total_bytes'] / (1024.0 * 1024 * 1024))
-  $makejobs_memory_heavier  = ceiling($facts['memory']['system']['total_bytes'] / (2048.0 * 1024 * 1024))
-  $makejobs_memory_heaviest = ceiling($facts['memory']['system']['total_bytes'] / (4096.0 * 1024 * 1024))
+  file {
+    default:
+      ensure  => directory,
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      purge   => true,
+      recurse => true,
+      force   => true,
+    ;
 
+    [
+      '/etc/portage/package.accept_keywords',
+      '/etc/portage/package.env',
+    ]:
+      # use defaults
+    ;
+
+    [
+      '/etc/portage/package.accept_keywords/default',
+      '/etc/portage/package.env/default',
+      '/etc/portage/package.use/default',
+    ]:
+      ensure => file,
+    ;
+
+    '/etc/portage/patches':
+      source => 'puppet:///modules/nest/portage/patches',
+    ;
+  }
+
+
+
+  #
+  # make.conf
+  #
+  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
   $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
-
-  $makejobs          = min($makejobs_memory, $makejobs_distcc)
-  $makejobs_heavy    = min($makejobs_memory_heavy, $::nest::processorcount)
-  $makejobs_heavier  = min($makejobs_memory_heavier, $::nest::processorcount)
-  $makejobs_heaviest = min($makejobs_memory_heaviest, $::nest::processorcount)
-
-  $loadlimit = $::nest::processorcount + 1
+  $makejobs        = min($makejobs_memory, $makejobs_distcc)
+  $loadlimit       = $::nest::processorcount + 1
 
   # Prioritize makeopts passed in from CI by facter
-  $makeopts          = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
-  $makeopts_heavy    = pick($facts['makeopts'], "-j${makejobs_heavy} -l${loadlimit}")
-  $makeopts_heavier  = pick($facts['makeopts'], "-j${makejobs_heavier} -l${loadlimit}")
-  $makeopts_heaviest = pick($facts['makeopts'], "-j${makejobs_heaviest} -l${loadlimit}")
+  $makeopts = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
-  # Basically, this goes:
-  #  1. Install portage stuff, like eselect
-  #  2. eselect profile/change make.conf
-  #  3. Rebuild packages as necessary (Exec[changed_makeconf])
-  class { '::portage':
-    eselect_ensure => installed,
+  $emerge_default_opts_ensure = $facts['emerge_default_opts'] ? {
+    undef   => absent,
+    default => present,
+  }
+
+  portage::makeconf {
+    'features':
+      content => ['distcc'],
+    ;
+
+    'makeopts':
+      content => $makeopts,
+    ;
+
+    'emerge_default_opts':
+      ensure  => $emerge_default_opts_ensure,
+      content => $facts['emerge_default_opts'],
+    ;
   }
 
   # Don't timeout rebuilding packages
@@ -47,125 +90,57 @@ class nest::base::portage {
     timeout => 0,
   }
 
-  Package_accept_keywords <| title == 'sys-apps/portage' |> {
-    ensure  => present,
-    version => '~3.0.2'
+
+
+  #
+  # Repositories
+  #
+  nest::lib::repo {
+    'gentoo':
+      url     => 'https://gitlab.james.tl/nest/gentoo/portage.git',
+      default => true,
+    ;
+
+    'nest':
+      url      => 'https://gitlab.james.tl/nest/overlay.git',
+      unstable => true,
+    ;
   }
 
-  eselect { 'profile':
-    set     => $::nest::gentoo_profile,
-    require => Package['app-admin/eselect'],
-    before  => Class['::portage'],
-  }
 
-  # Mesa has circular dependencies when USE=vaapi is set, so just build it
-  # before any USE variables are set and it will eventually converge.
-  if $::role == 'workstation' {
-    exec { '/usr/bin/emerge --oneshot media-libs/mesa':
-      timeout     => 0,
-      refreshonly => true,
-      subscribe   => Eselect['profile'],
-      before      => Portage::Makeconf['use'],
-    }
-  }
 
-  if $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
-    if $::is_container {
-      $sandbox_features = ['-sandbox', '-usersandbox', '-pid-sandbox', '-network-sandbox']
-    } else {
-      $sandbox_features = []
-    }
-
-    $cpu_flags_x86_ensure = 'absent'
-  } else {
-    $sandbox_features = []
-    $cpu_flags_x86_ensure = 'present'
-  }
-
-  $cflags_arch = $::nest::cflags ? {
-    /-m(?:arch|cpu)=(\S+)/ => $1,
-    default                => 'unknown',
-  }
-
-  $emerge_default_opts = $facts['makeopts'] ? {
-    undef   => '${EMERGE_DEFAULT_OPTS} --usepkg',
-    default => "\${EMERGE_DEFAULT_OPTS} --usepkg ${facts['makeopts']}"
-  }
-
-  portage::makeconf {
-    'accept_license':
-      content => '*';
-    'cflags':
-      content => $::nest::cflags;
-    'cxxflags':
-      content => $::nest::cflags;
-    'cpu_flags_x86':
-      ensure  => $cpu_flags_x86_ensure,
-      content => $::nest::cpu_flags_x86;
-    'distdir':
-      content => '/nest/portage/distfiles';
-    'emerge_default_opts':
-      content => $emerge_default_opts;
-    'features':
-      content => ['buildpkg', 'distcc', 'splitdebug'] + $sandbox_features;
-    'input_devices':
-      ensure  => $input_devices_ensure,
-      content => $::nest::input_devices;
-    'makeopts':
-      content => $makeopts;
-    'pkgdir':
-      content => "/nest/portage/packages/${::architecture}-${::role}.${cflags_arch}";
-    'use':
-      ensure  => $use_ensure,
-      content => $::nest::use_combined;
-    'video_cards':
-      ensure  => $video_cards_ensure,
-      content => $::nest::video_cards;
-  }
-
-  $cflags_no_debug    = regsubst($::nest::cflags, '\s?-g(gdb)?(\s|$)', '')
-  $cflags_light_debug = regsubst($::nest::cflags, '(\s?)(-g(gdb\d?)?)(\s|$)', '\1\21\4')
-  $cflags_no_crypto   = regsubst($::nest::cflags, '\+crypto(\s|$)', '')
+  #
+  # Package environments and properties
+  #
+  $cflags_no_debug  = regsubst($facts['portage_cflags'], '\s?-g(gdb)?\d?(\s|$)', '')
+  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
   $cflags_no_crypto_ensure = $cflags_no_crypto ? {
-    $::nest::cflags => 'absent',
-    default         => 'present',
+    $facts['portage_cflags'] => 'absent',
+    default                  => 'present',
   }
 
   file {
     default:
-      mode   => '0755',
+      mode   => '0644',
       owner  => 'root',
       group  => 'root',
       before => Class['::portage'],
     ;
 
     '/etc/portage/env':
-      ensure => directory,
+      ensure  => directory,
+      purge   => true,
+      recurse => true,
+      force   => true,
     ;
 
     '/etc/portage/env/no-debug.conf':
       content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
 
-    '/etc/portage/env/light-debug.conf':
-      content => "CFLAGS='${cflags_light_debug}'\nCXXFLAGS='${cflags_light_debug}'\n",
-    ;
-
     '/etc/portage/env/no-crypto.conf':
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
-    ;
-
-    '/etc/portage/env/heavy.conf':
-      content => "MAKEOPTS='${makeopts_heavy}'\n",
-    ;
-
-    '/etc/portage/env/heavier.conf':
-      content => "MAKEOPTS='${makeopts_heavier}'\n",
-    ;
-
-    '/etc/portage/env/heaviest.conf':
-      content => "MAKEOPTS='${makeopts_heaviest}'\n",
     ;
   }
 
@@ -178,8 +153,6 @@ class nest::base::portage {
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_env, $::nest::package_env_hiera, { 'before' => Class['::portage'] })
-  create_resources(package_mask, $::nest::package_mask_hiera, { 'before' => Class['::portage'] })
-  create_resources(package_use, $::nest::package_use_hiera, { 'notify' => Class['::portage'] })
 
   # Purge unmanaged portage package properties
   resources {
@@ -194,191 +167,34 @@ class nest::base::portage {
     'package_env':
       before => Class['::portage'],
     ;
-
-    'package_mask':
-      before => Class['::portage'],
-    ;
-
-    'package_use':
-      notify => Class['::portage'],
-    ;
   }
 
 
-  # Don't let eix-sync override my tmux window title
-  file { '/etc/eixrc/10-disable-statusline':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "NOSTATUSLINE=true\n",
-  }
 
-  file { '/etc/portage/patches':
-    ensure  => directory,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    source  => 'puppet:///modules/nest/portage/patches',
-    recurse => true,
-    force   => true,
-    purge   => true,
-  }
-
-  file { '/etc/portage/profile':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-  }
-
-  # Enable libzfs USE flag for GRUB
-  # XXX: This could be made more generic if needed
-  $use_mask_content = @(EOT)
-    -bundled-libjpeg-turbo
-    -input_devices_libinput
-    -gnuefi
-    -libzfs
-    -zfs
-    | EOT
-
-  file { '/etc/portage/profile/use.mask':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $use_mask_content,
-  }
-
-  $repos_conf = @(EOT)
-    [DEFAULT]
-    main-repo = gentoo
-
-    [gentoo]
-    location = /var/cache/portage/gentoo
-    sync-type = git
-    sync-uri = https://gitlab.james.tl/nest/gentoo/portage.git
-    sync-depth = 1
-    auto-sync = yes
-
-    [nest]
-    location = /var/cache/portage/nest
-    sync-type = git
-    sync-uri = https://gitlab.james.tl/nest/portage.git
-    sync-depth = 1
-    auto-sync = yes
-    masters = gentoo
-    | EOT
-
-  if $::role == 'workstation' {
-    $repos_workstation = @(EOT)
-
-      [haskell]
-      location = /var/cache/portage/haskell
-      sync-type = git
-      sync-uri = https://github.com/iamjamestl/gentoo-haskell.git
-      sync-depth = 1
-      auto-sync = yes
-      masters = gentoo
-      | EOT
-
-    $repos_workstation_ensure = 'present'
-  } else {
-    $repos_workstation_ensure = 'absent'
-  }
-
-  file { '/etc/portage/package.accept_keywords/kde':
-    ensure  => absent,
-  }
-
-  file { '/etc/portage/package.accept_keywords/haskell':
-    ensure  => $repos_workstation_ensure,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::haskell ~*\n",
-  }
-
-  file { '/etc/portage/package.accept_keywords/nest':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "*/*::nest ~*\n",
-  }
-
-  file { '/etc/eix-sync.conf':
+  #
+  # XXX: Removals
+  #
+  portage::makeconf { [
+    'accept_license',
+    'cflags',
+    'cxxflags',
+    'cpu_flags_x86',
+    'distdir',
+    'input_devices',
+    'pkgdir',
+    'use',
+    'video_cards',
+  ]:
     ensure => absent,
   }
 
-  if $::nest::distcc_server or $::platform == 'pinebookpro' {
-    $repos_crossdev = @(EOT)
-
-      [crossdev]
-      location = /var/cache/portage/crossdev
-      auto-sync = no
-      masters = gentoo
-      | EOT
-
-    file {
-      default:
-        mode  => '0644',
-        owner => 'root',
-        group => 'root',
-      ;
-
-      [
-        '/var/cache/portage/crossdev',
-        '/var/cache/portage/crossdev/metadata',
-        '/var/cache/portage/crossdev/profiles',
-      ]:
-        ensure => directory,
-      ;
-
-      '/var/cache/portage/crossdev/metadata/layout.conf':
-        content => "masters = gentoo\nthin-manifests = true\n",
-      ;
-
-      '/var/cache/portage/crossdev/profiles/repo_name':
-        content => "crossdev\n",
-      ;
-    }
-  } else {
-    file { '/var/cache/portage/crossdev':
-      ensure  => absent,
-      recurse => true,
-      force   => true,
-    }
-  }
-
-  file { '/etc/portage/repos.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "${repos_conf}${repos_workstation}${repos_crossdev}",
-  }
-
-  vcsrepo {
-    default:
-      ensure   => present,
-      provider => git,
-      force    => true,
-      depth    => 1,
-      notify   => Exec['/usr/bin/eix-update'],
-    ;
-
-    '/var/cache/portage/gentoo':
-      source => 'https://gitlab.james.tl/nest/gentoo/portage.git',
-    ;
-
-    '/var/cache/portage/nest':
-      source => 'https://gitlab.james.tl/nest/portage.git',
-    ;
-
-    '/var/cache/portage/haskell':
-      ensure => $repos_workstation_ensure,
-      source => 'https://github.com/iamjamestl/gentoo-haskell.git',
-    ;
-  }
-
-  exec { '/usr/bin/eix-update':
-    refreshonly => true,
+  file { [
+    '/etc/eix-sync.conf',
+    '/etc/eixrc/10-disable-statusline',
+    '/etc/portage/profile',
+    '/var/cache/portage',
+  ]:
+    ensure => absent,
+    force  => true,
   }
 }

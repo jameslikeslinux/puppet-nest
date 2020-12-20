@@ -23,13 +23,8 @@ class nest (
   $trackpoint_acceleration = 0.0,
   $barrier_config          = undef,
 
-  $cflags                  = $::portage_cflags,
-  $cpu_flags_x86           = $::portage_cpu_flags_x86,
   $package_env             = {},
   $package_keywords        = {},
-  $package_mask            = {},
-  $package_use             = {},
-  $use                     = [],
 
   $cups_servers            = [],
   $distcc_server           = false,
@@ -46,44 +41,11 @@ class nest (
   Boolean                 $public_ssh = false,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
-    if $facts['architecture'] == 'amd64' and $::role == 'server' {
-      $gentoo_profile = 'default/linux/amd64/17.1/systemd'
-      $input_devices  = undef
-      $video_cards    = undef
-      $use_defaults   = ['X']
-    } elsif $facts['architecture'] == 'amd64' and $::role == 'workstation' {
-      $gentoo_profile = 'default/linux/amd64/17.1/desktop/plasma/systemd'
-      $input_devices  = 'libinput'
-      $video_cards    = 'amdgpu i965 intel radeonsi'
-      $use_defaults   = ['pulseaudio', 'vaapi', 'wayland']
-    } elsif $facts['architecture'] == 'aarch64' and $::role == 'server' {
-      $gentoo_profile = 'default/linux/arm64/17.0/systemd'
-      $input_devices  = undef
-      $video_cards    = undef
-      $use_defaults   = ['X']
-    } elsif $facts['architecture'] == 'aarch64' and $::role == 'workstation' {
-      $gentoo_profile = 'default/linux/arm64/17.0/desktop/plasma/systemd'
-      $input_devices  = 'libinput'
-      $video_cards    = ['panfrost', 'v3d', 'vc4']
-      $use_defaults   = ['pulseaudio', 'vaapi', 'wayland']
-    } elsif $facts['architecture'] == 'armv7l' and $::platform == 'beagleboneblack' and $::role == 'server' {
-      $gentoo_profile = 'nest:armv7l-server'
-      $input_devices  = undef
-      $video_cards    = undef
-      $use_defaults   = ['X']
-    } else {
-      fail("Unsupported configuration: ${facts['architecture']}-${::platform}-${::role}")
-    }
-
     $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
     $kernel_cmdline_hiera = hiera_array('nest::kernel_cmdline', $kernel_cmdline)
     $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
     $package_env_hiera = hiera_hash('nest::package_env', $package_env)
     $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
-    $package_mask_hiera = hiera_hash('nest::package_mask', $package_mask)
-    $package_use_hiera = hiera_hash('nest::package_use', $package_use)
-    $use_hiera = hiera_array('nest::use', $use)
-    $use_combined = union($use_defaults, $use_hiera).sort
   }
 
   $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')

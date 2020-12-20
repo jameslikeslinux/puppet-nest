@@ -1,4 +1,9 @@
 class nest::role::workstation::xmonad {
+  nest::lib::repo { 'haskell':
+    url      => 'https://github.com/iamjamestl/gentoo-haskell.git',
+    unstable => true,
+  }
+
   nest::lib::package_use {
     'x11-misc/rofi':
       use => 'windowmode',
@@ -23,13 +28,8 @@ class nest::role::workstation::xmonad {
     'net-wireless/iw',
     'sys-fs/inotify-tools',
   ]:
-    ensure => installed,
-  }
-
-  # Replaced by picom
-  package { 'x11-misc/compton':
-    ensure => absent,
-    before => Package['x11-misc/picom'],
+    ensure  => installed,
+    require => Nest::Lib::Repo['haskell'],
   }
 
   # Gtk scaling for Taffybar doesn't work well
