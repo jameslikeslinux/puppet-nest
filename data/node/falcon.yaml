@@ -9,6 +9,7 @@ classes:
   - 'nest::service::radarr'
   - 'nest::service::sonarr'
   - 'nest::service::reverse_proxy'
+  - 'nest::tool::libvirt'
 
 nest::bootloader: systemd
 nest::isolcpus: '16-31'
@@ -22,7 +23,6 @@ nest::kernel_cmdline:
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
-nest::libvirt: true
 nest::processorcount: 16
 
 nest::dvorak: true

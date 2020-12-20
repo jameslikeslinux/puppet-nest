@@ -1,4 +1,6 @@
-class nest::base::libvirt {
+class nest::tool::libvirt {
+  include 'nest'
+
   nest::lib::package_use { 'app-emulation/libvirt':
     use => ['virt-network', 'zfs'],
   }
@@ -88,21 +90,30 @@ class nest::base::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
-  $bridge_udev_rules = @(EOT)
-    ACTION=="add", SUBSYSTEM=="module", KERNEL=="bridge", RUN+="/lib/systemd/systemd-sysctl --prefix=/proc/sys/net/bridge"
-    | EOT
-
-  # Apply the parameters from above when the bridge module is loaded
-  # See sysctl.d(5)
-  file { '/etc/udev/rules.d/10-bridge.rules':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $bridge_udev_rules,
+  $virt_manager_ensure = $::role ? {
+    'workstation' => installed,
+    default       => absent,
   }
 
-  # Don't like order 99
-  file { '/etc/udev/rules.d/99-bridge.rules':
+  package { [
+    'app-emulation/virt-manager',
+    'app-emulation/virt-viewer',
+  ]:
+    ensure => $virt_manager_ensure,
+  }
+
+  if $::nest::fileserver {
+    firewall { '100 fileserver':
+      proto   => tcp,
+      dport   => [139, 445, 2049],
+      iniface => 'virbr0',
+      state   => 'NEW',
+      action  => accept,
+    }
+  }
+
+  # XXX: Remove after 12/20
+  file { '/etc/udev/rules.d/10-bridge.rules':
     ensure => absent,
   }
 }

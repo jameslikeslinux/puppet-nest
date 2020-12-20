@@ -29,7 +29,6 @@ class nest (
   $cups_servers            = [],
   $distcc_server           = false,
   $fileserver              = false,
-  $libvirt                 = false,
   $openvpn_server          = false,
   Array[Stdlib::Fqdn] $nist_time_servers = [],
 

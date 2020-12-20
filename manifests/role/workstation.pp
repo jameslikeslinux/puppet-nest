@@ -11,7 +11,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::fonts'
       contain '::nest::role::workstation::input'
       contain '::nest::role::workstation::lastpass'
-      contain '::nest::role::workstation::libvirt'
       contain '::nest::role::workstation::media'
       contain '::nest::role::workstation::packages'
       contain '::nest::role::workstation::policykit'
@@ -58,7 +57,7 @@ class nest::role::workstation {
       Class['::nest::base::network']
       -> Class['::nest::role::workstation::bluetooth']
 
-      # NetworkManager, systemd, libvirt pull in policykit
+      # NetworkManager, systemd pull in policykit
       Class['::nest::base']
       -> Class['::nest::role::workstation::policykit']
     }

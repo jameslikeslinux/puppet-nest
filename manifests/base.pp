@@ -82,10 +82,6 @@ class nest::base {
       Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
                                                    title != 'dev-vcs/git' and
                                                    title != 'sys-devel/distcc' |>
-
-      if $::nest::libvirt {
-        contain '::nest::base::libvirt'
-      }
     }
 
     'windows': {
