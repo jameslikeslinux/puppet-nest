@@ -196,5 +196,6 @@ class nest::base::portage {
   ]:
     ensure => absent,
     force  => true,
+    backup => false,
   }
 }
