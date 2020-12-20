@@ -103,7 +103,7 @@ nest::service::reverse_proxy::hosts:
     ip: '172.22.0.1'
     ssl: false
 
-  registry.nest:
+  registry.gitlab.james.tl:
     destination: '127.0.0.1:5050'
     ip: '172.22.0.1'
     ssl: false

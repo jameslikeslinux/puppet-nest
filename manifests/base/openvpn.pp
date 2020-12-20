@@ -10,8 +10,10 @@ class nest::base::openvpn {
     client-to-client
     keepalive 10 30
     dhcp-option DOMAIN nest
+    dhcp-option DOMAIN james.tl
     dhcp-option DNS 172.22.0.1
     push "dhcp-option DOMAIN nest"
+    push "dhcp-option DOMAIN james.tl"
     push "dhcp-option DOMAIN home"
     push "dhcp-option DNS 172.22.0.1"
     push "route-metric 1000"

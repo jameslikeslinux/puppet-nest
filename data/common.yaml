@@ -12,7 +12,7 @@ nest::cnames:
   plex.nest: 'falcon.nest'
   radarr.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
-  registry.nest: 'falcon.nest'
+  registry.gitlab.james.tl: 'falcon.nest'
 nest::cups_servers:
   - 'eagle.nest'
   - 'falcon.nest'
