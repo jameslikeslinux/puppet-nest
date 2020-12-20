@@ -86,5 +86,10 @@ class nest (
   # Apply role-specific configuration
   contain "nest::role::${::role}"
 
+  # Let client ask for a tool configuration
+  if $facts['tool'] {
+    contain "nest::tool::${tool}"
+  }
+
   create_resources(host, $hosts)
 }
