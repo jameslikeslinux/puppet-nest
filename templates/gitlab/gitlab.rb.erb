@@ -52,3 +52,6 @@ gitlab_rails['incoming_email_start_tls'] = false
 gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
 gitlab_rails['incoming_email_idle_timeout'] = 60
 gitlab_rails['incoming_email_expunge_deleted'] = true
+
+# Tune performance and memory usage
+puma['worker_processes'] = <%= @puma_workers %>

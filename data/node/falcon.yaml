@@ -67,6 +67,8 @@ nest::service::gitlab::gmail_password: >
   EOlEDKD7T4YbsR6OpszDBlmAIIrvgKKfOqkbMmuaWkIAksyUj8T4g94OZGU8
   xneqfVZI]
 
+nest::gitlab::puma_workers: 4
+
 nest::service::gitlab_runner::instances:
   shared:
     host: 'gitlab.james.tl'

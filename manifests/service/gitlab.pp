@@ -1,5 +1,6 @@
 class nest::service::gitlab (
   String[1] $gmail_password,
+  Integer $puma_workers = $::nest::processorcount,
 ) {
   nest::lib::srv { 'gitlab': }
   ->
