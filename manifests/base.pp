@@ -61,6 +61,10 @@ class nest::base {
         -> Class['::nest::base::dracut']
       }
 
+      # Subuid/subgid maps override automatic entries from useradd
+      Class['::nest::base::users']
+      -> Class['::nest::base::containers']
+
       # Sudo requires configured MTA
       Class['::nest::base::mta']
       -> Class['::nest::base::sudo']
@@ -74,10 +78,10 @@ class nest::base {
       -> Class['::nest::base::portage']
 
       # Portage should be configured before any packages are installed/changed
+      Class['::nest::base::portage'] -> Nest::Lib::Package_use <||>
       Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
                                                    title != 'dev-vcs/git' and
                                                    title != 'sys-devel/distcc' |>
-      Class['::nest::base::portage'] -> Nest::Lib::Package_use <| |>
 
       if $::nest::libvirt {
         contain '::nest::base::libvirt'
