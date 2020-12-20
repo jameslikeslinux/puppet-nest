@@ -14,6 +14,14 @@ class nest::node::falcon {
       action  => accept,
     ;
 
+    '100 podman to distccd':
+      iniface => 'cni-podman0',
+      proto   => tcp,
+      dport   => 3632,
+      state   => 'NEW',
+      action  => accept,
+    ;
+
     '100 podman to dnsmasq':
       iniface => 'cni-podman0',
       proto   => udp,

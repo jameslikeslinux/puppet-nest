@@ -3,7 +3,7 @@ class nest::base::distccd {
     $disable_verbose_content = @(EOT)
       [Service]
       ExecStart=
-      ExecStart=/usr/bin/distccd --no-detach --daemon --port 3632 -N 15 --allow 172.22.0.0/24
+      ExecStart=/usr/bin/distccd --no-detach --daemon --port 3632 -N 15 --allow 0.0.0.0/0
       | EOT
 
     file { '/etc/systemd/system/distccd.service.d/10-nest.conf':
