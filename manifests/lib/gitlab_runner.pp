@@ -1,13 +1,11 @@
 define nest::lib::gitlab_runner (
   String $registration_token,
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  String $host                    = $name,
-  String $default_image           = 'nest/gentoo/stage3:amd64-systemd',
-  Optional[String] $cpuset_cpus   = $::nest::availcpus_expanded.join(','),
-  Array[String] $devices          = ['/dev/fuse'],
-  Array[String] $security_options = ['seccomp=unconfined'],
-  Array[String] $volumes          = [],
-  Array[String] $tag_list         = [],
+  String $host                  = $name,
+  String $default_image         = 'nest/gentoo/stage3:amd64-systemd',
+  Optional[String] $cpuset_cpus = $::nest::availcpus_expanded.join(','),
+  Array[String] $volumes        = [],
+  Array[String] $tag_list       = [],
 ) {
   if $ensure == absent {
     nest::lib::container { "gitlab-runner-${name}":
@@ -34,14 +32,6 @@ define nest::lib::gitlab_runner (
       group  => 'root',
     }
 
-    $device_args = $devices.map |$device| {
-      ['--docker-devices', $device]
-    }
-
-    $security_opt_args = $security_options.map |$option| {
-      ['--docker-security-opt', $option]
-    }
-
     $volume_args = $volumes.map |$volume| {
       ['--docker-volumes', $volume]
     }
@@ -55,8 +45,6 @@ define nest::lib::gitlab_runner (
       '--executor', 'docker',
       '--docker-image', $default_image,
       '--docker-cpuset-cpus', $cpuset_cpus,
-      $device_args,
-      $security_opt_args,
       $volume_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
