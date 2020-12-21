@@ -1,11 +1,18 @@
 unless defined('$platform') {
-  $platform = 'generic'
+  if $facts['profile'] {
+    $platform = $facts['profile']['platform']
+  } else {
+    $platform = $facts['hardwaremodel']
+  }
 }
 
 unless defined('$role') {
-  $role = $facts['osfamily'] ? {
-    'windows' => 'workstation',
-    default   => 'server',
+  if $facts['profile'] {
+    $role = $facts['profile']['role']
+  } elsif $facts['osfamily'] == 'windows' {
+    $role = 'workstation'
+  } else {
+    $role = 'server'
   }
 }
 
