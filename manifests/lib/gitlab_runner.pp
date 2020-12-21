@@ -2,7 +2,7 @@ define nest::lib::gitlab_runner (
   String $registration_token,
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   String $host                    = $name,
-  String $default_image           = 'registry.gitlab.james.tl/nest/stage1:haswell-server',
+  String $default_image           = "registry.gitlab.james.tl/nest/stage1:${::platform}-server",
   Optional[String] $cpuset_cpus   = $::nest::availcpus_expanded.join(','),
   Optional[String] $dns           = undef,
   Array[String] $devices          = [],
