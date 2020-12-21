@@ -65,6 +65,7 @@ define nest::lib::gitlab_runner (
       '--non-interactive',
       '--executor', 'docker',
       '--docker-image', $default_image,
+      '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${::nest::base::portage::emerge_default_opts}",
       '--env', "CI_HOST_MAKEOPTS=${::nest::base::portage::makeopts}",
       '--env', "CI_HOST_PLATFORM=${::platform}",
       $cpuset_cpus_args,
