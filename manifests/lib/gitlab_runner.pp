@@ -65,6 +65,7 @@ define nest::lib::gitlab_runner (
       '--non-interactive',
       '--executor', 'docker',
       '--docker-image', $default_image,
+      '--env', "PLATFORM=${::platform}",
       $cpuset_cpus_args,
       $dns_args,
       $device_args,
