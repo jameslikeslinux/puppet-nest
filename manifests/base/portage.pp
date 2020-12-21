@@ -57,18 +57,12 @@ class nest::base::portage {
   #
   # make.conf
   #
-  $makejobs_memory = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_distcc = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
-  $makejobs        = min($makejobs_memory, $makejobs_distcc)
-  $loadlimit       = $::nest::processorcount + 1
-
-  # Prioritize makeopts passed in from CI by facter
-  $makeopts = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
-
-  $emerge_default_opts_ensure = $facts['emerge_default_opts'] ? {
-    undef   => absent,
-    default => present,
-  }
+  $makejobs_memory     = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
+  $makejobs_distcc     = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
+  $makejobs            = min($makejobs_memory, $makejobs_distcc)
+  $loadlimit           = $::nest::processorcount + 1
+  $makeopts            = "-j${makejobs} -l${loadlimit}"
+  $emerge_default_opts = "--jobs=${::nest::processorcount} --load-average=${loadlimit}"
 
   portage::makeconf {
     'features':
@@ -76,12 +70,11 @@ class nest::base::portage {
     ;
 
     'makeopts':
-      content => $makeopts,
+      content => "-j${makejobs} -l${loadlimit}",
     ;
 
     'emerge_default_opts':
-      ensure  => $emerge_default_opts_ensure,
-      content => $facts['emerge_default_opts'],
+      ensure  => "\${EMERGE_DEFAULT_OPTS} ${emerge_default_opts}",
     ;
   }
 
