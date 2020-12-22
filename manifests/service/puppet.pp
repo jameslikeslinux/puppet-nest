@@ -89,6 +89,6 @@ class nest::service::puppet {
   nest::lib::container { 'puppetboard':
     pod   => 'puppet',
     image => 'camptocamp/puppetboard',
-    env   => ['ENABLE_CATALOG=True'],
+    env   => ['ENABLE_CATALOG=True', 'DEFAULT_ENVIRONMENT=main'],
   }
 }
