@@ -203,7 +203,7 @@ class nest::base::users {
       ensure   => latest,
       provider => git,
       source   => 'https://gitlab.james.tl/james/dotfiles.git',
-      revision => 'master',
+      revision => 'main',
       user     => $vcsrepo_user,
     }
 
