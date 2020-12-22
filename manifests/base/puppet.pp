@@ -57,22 +57,21 @@ class nest::base::puppet {
       content => "fqdn: ${trusted['certname']}.nest\n",
     }
 
-    class { '::puppet':
+    $puppet_runmode = $facts['is_container'] ? {
+      true    => 'unmanaged',
+      default => 'systemd.timer',
+    }
+
+    class { 'puppet':
       dns_alt_names        => $dns_alt_names,
       dir                  => '/etc/puppetlabs/puppet',
       codedir              => '/etc/puppetlabs/code',
       ssldir               => '/etc/puppetlabs/puppet/ssl',
-      runmode              => 'systemd.timer',
+      runmode              => $puppet_runmode,
       unavailable_runmodes => ['cron'],
     }
-
-    if $::is_container {
-      Exec <| title == 'systemctl-daemon-reload-puppet' |> {
-        noop => true,
-      }
-    }
   } else {
-    class { '::puppet':
+    class { 'puppet':
       dns_alt_names => $dns_alt_names,
     }
   }

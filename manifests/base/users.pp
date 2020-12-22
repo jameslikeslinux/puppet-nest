@@ -142,7 +142,7 @@ class nest::base::users {
           group  => 'users';
       }
 
-      if $::is_container {
+      if $facts['is_container'] {
         $user_homes = {}
       } else {
         $user_homes = { 'james' => '/home/james' }

@@ -4,7 +4,7 @@ define nest::lib::srv (
   Optional[String] $owner = undef,
   Optional[String] $group = undef,
 ) {
-  unless $::is_container {
+  unless $facts['is_container'] {
     ensure_resource('zfs', 'srv', {
       'name'       => "${facts['rpool']}/srv",
       'mountpoint' => '/srv',

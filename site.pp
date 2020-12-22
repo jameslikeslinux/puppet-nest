@@ -18,25 +18,16 @@ unless defined('$role') {
 
 case $facts['osfamily'] {
   'Gentoo': {
-    $is_container = $facts['virtual'] == 'lxc' or $facts['build']
+    # Effectively disable firewall and service resources in containers
+    if $facts['is_container'] {
+      Firewall <||> {
+        ensure => absent,
+      }
 
-    Firewall {
-      noop => $is_container,
-    }
+      Firewallchain <||> {
+        policy => accept,
+      }
 
-    Firewallchain {
-      noop => $is_container,
-    }
-
-    Sysctl {
-      noop => $is_container,
-    }
-
-    Service {
-      provider => systemd,
-    }
-
-    if $is_container {
       Service <||> {
         ensure => undef,
       }

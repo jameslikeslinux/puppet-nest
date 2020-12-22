@@ -113,7 +113,7 @@ class nest::base::zfs {
 
   ::nest::lib::systemd_reload { 'zfs': }
 
-  unless $::is_container {
+  unless $facts['is_container'] {
     # Manage swap volume properties for experimenting with workarounds listed in
     # https://github.com/openzfs/zfs/issues/7734
     zfs { "${facts['rpool']}/swap":
