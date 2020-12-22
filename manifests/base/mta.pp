@@ -32,7 +32,8 @@ class nest::base::mta {
   }
 
   service { 'nullmailer':
-    enable => true,
+    enable  => true,
+    require => Package['mail-mta/nullmailer'],
   }
 
   package { 'net-mail/mailbase':
