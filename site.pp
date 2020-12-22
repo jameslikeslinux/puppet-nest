@@ -25,6 +25,12 @@ case $facts['osfamily'] {
       }
 
       Firewallchain <||> {
+        ensure => absent,
+      }
+
+      # Built-in chains have to be handled specially
+      Firewallchain <| policy != undef |> {
+        ensure => present,
         policy => accept,
       }
 

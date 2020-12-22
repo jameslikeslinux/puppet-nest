@@ -6,16 +6,11 @@ class nest::base::firewall {
   }
 
   ['iptables', 'ip6tables'].each |$i| {
-    $save_content = @("SAVE"/$)
-      #!/bin/sh
-      [ -e /run/.containerenv ] || /sbin/xtables-legacy-multi ${i}-legacy-save | /bin/grep -v ${ignore.join('\|').shellquote}
-      | SAVE
-
     file { "/sbin/${i}-save":
       mode    => '0755',
       owner   => 'root',
       group   => 'root',
-      content => $save_content,
+      content => epp('nest/firewall/iptables-save.epp', { 'command' => $i, 'ignore' => $ignore }),
       require => Package['net-firewall/iptables'],
     }
   }
