@@ -1,6 +1,6 @@
 class nest::role::workstation::xmonad {
   nest::lib::repo { 'haskell':
-    url      => 'https://github.com/iamjamestl/gentoo-haskell.git',
+    url      => 'https://gitlab.james.tl/nest/gentoo/haskell.git',
     unstable => true,
   }
 
