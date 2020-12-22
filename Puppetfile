@@ -16,7 +16,7 @@ mod 'puppet-windows_env', '3.2.0'
 #
 # My modules
 #
-mod 'nest_private', :git => 'git@gitlab.james.tl:nest/private.git'
+mod 'nest_private', :git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main'
 
 
 # Required by nest
@@ -29,7 +29,7 @@ mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '2.4.0'
 mod 'theforeman-puppet', '11.0.0'
-mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git'
+mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git', :branch => 'main'
 mod 'zfs_core', :git => 'git@gitlab.james.tl:nest/forks/puppet-zfs_core.git', :branch => 'feature-sync-property'
 
 # Required by theforeman-puppet
