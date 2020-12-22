@@ -42,15 +42,21 @@ class nest::base::users {
         match => '^CREATE_HOME ',
       }
 
+      unless $facts['build'] == 'stage1' or $facts['tool'] {
+        $pw_hash = $::nest::pw_hash
+      }
+
       user {
         default:
           managehome => false,
-          require    => File_line['login.defs-create_home'];
+          require    => File_line['login.defs-create_home'],
+        ;
 
         'root':
           shell    => '/bin/zsh',
           require  => File['/bin/zsh'],
-          password => $::nest::pw_hash;
+          password => $pw_hash,
+        ;
 
         'james':
           uid      => '1000',
@@ -59,60 +65,68 @@ class nest::base::users {
           home     => '/home/james',
           comment  => 'James Lee',
           shell    => '/bin/zsh',
-          password => $::nest::pw_hash,
+          password => $pw_hash,
           require  => [
             Package['app-shells/zsh'],
             Class['::nest::base::network'],  # networkmanager creates 'plugdev' group
-          ];
+          ],
+        ;
 
         'ombi':
           uid     => '3579',
           gid     => 'media',
           home    => '/srv/ombi',
           comment => 'Ombi',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'couchpotato':
           uid     => '5050',
           gid     => 'media',
           home    => '/srv/couchpotato',
           comment => 'CouchPotato',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'nzbget':
           uid     => '6789',
           gid     => 'media',
           home    => '/srv/nzbget',
           comment => 'NZBGet',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'radarr':
           uid     => '7878',
           gid     => 'media',
           home    => '/srv/radarr',
           comment => 'Radarr',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'sonarr':
           uid     => '8989',
           gid     => 'media',
           home    => '/srv/sonarr',
           comment => 'Sonarr',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'transmission':
           uid     => '9091',
           gid     => 'media',
           home    => '/srv/transmission',
           comment => 'Transmission',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'plex':
           uid     => '32400',
           gid     => 'media',
           home    => '/srv/plex',
           comment => 'Plex Media Server',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'ubnt':
           ensure  => absent,
@@ -120,36 +134,37 @@ class nest::base::users {
           gid     => '1002',
           home    => '/srv/unifi',
           comment => 'Ubiquiti UniFi',
-          shell   => '/sbin/nologin';
+          shell   => '/sbin/nologin',
+        ;
 
         'bitwarden':
           uid     => '1003',
           gid     => '1003',
           home    => '/srv/bitwarden',
           comment => 'Bitwarden',
-          shell   => '/bin/zsh';
+          shell   => '/bin/zsh',
+        ;
       }
 
       file {
         '/root/.keep':
           ensure => absent,
-          before => Vcsrepo['/root'];
+          before => Vcsrepo['/root'],
+        ;
 
         '/home/james':
           ensure => directory,
           mode   => '0755',
           owner  => 'james',
-          group  => 'users';
+          group  => 'users',
+          before => Vcsrepo['/home/james'],
+        ;
       }
 
-      if $facts['is_container'] {
-        $user_homes = {}
-      } else {
-        $user_homes = { 'james' => '/home/james' }
-        File['/home/james'] -> Vcsrepo['/home/james']
+      $homes = {
+        'root'  => '/root',
+        'james' => '/home/james',
       }
-
-      $homes = { 'root'  => '/root' } + $user_homes
     }
 
     'windows': {
@@ -230,12 +245,14 @@ class nest::base::users {
       }
     }
 
-    file { "${vcsrepo_dir}/.ssh/id_rsa":
-      mode      => '0600',
-      owner     => $user,
-      content   => $::nest::ssh_private_key,
-      show_diff => false,
-      require   => Vcsrepo[$vcsrepo_dir],
+    unless $facts['build'] == 'stage1' or $facts['tool'] {
+      file { "${vcsrepo_dir}/.ssh/id_rsa":
+        mode      => '0600',
+        owner     => $user,
+        content   => $::nest::ssh_private_key,
+        show_diff => false,
+        require   => Vcsrepo[$vcsrepo_dir],
+      }
     }
   }
 }
