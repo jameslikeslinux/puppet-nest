@@ -3,34 +3,36 @@ class nest::base::mta {
     ensure => installed,
   }
 
-  file {
-    default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      require => Package['mail-mta/nullmailer'],
-      notify  => Service['nullmailer'],
-    ;
+  unless $facts['build'] == 'stage1' or $facts['tool'] {
+    file {
+      default:
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        require => Package['mail-mta/nullmailer'],
+        notify  => Service['nullmailer'],
+      ;
 
-    '/etc/nullmailer/remotes':
-      mode      => '0640',
-      group     => 'nullmail',
-      content   => "${::nest::nullmailer_config}\n",
-      show_diff => false,
-    ;
+      '/etc/nullmailer/remotes':
+        mode      => '0640',
+        group     => 'nullmail',
+        content   => "${::nest::nullmailer_config}\n",
+        show_diff => false,
+        notify    => Service['nullmailer'],
+      ;
 
-    '/etc/nullmailer/defaultdomain':
-      content => "nest\n",
-    ;
+      '/etc/nullmailer/defaultdomain':
+        content => "nest\n",
+      ;
 
-    '/etc/nullmailer/me':
-      content => "${facts['hostname']}\n",
-    ;
+      '/etc/nullmailer/me':
+        content => "${facts['hostname']}\n",
+      ;
+    }
   }
 
   service { 'nullmailer':
-    enable    => true,
-    subscribe => File['/etc/nullmailer/remotes'],
+    enable => true,
   }
 
   package { 'net-mail/mailbase':

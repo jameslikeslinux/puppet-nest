@@ -8,8 +8,10 @@ class nest::base::systemd {
     ensure  => directory,
   }
 
-  file { '/etc/hostname':
-    content => "${::trusted['certname']}\n",
+  unless $facts['build'] == 'stage1' or $facts['tool'] {
+    file { '/etc/hostname':
+      content => "${::trusted['certname']}\n",
+    }
   }
 
   # /etc/localtime is just a regular file in the Gentoo stage tarballs.  In
