@@ -312,4 +312,4 @@ apache::mpm_module: 'worker'
 apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
 
 puppet::puppetmaster: 'puppet.nest'
-puppet::environment: 'production'
+puppet::environment: 'main'
