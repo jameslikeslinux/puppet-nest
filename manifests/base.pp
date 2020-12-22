@@ -26,7 +26,7 @@ class nest::base {
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
 
-      unless $facts['build'] == 'stage1' {
+      unless $facts['build'] == 'stage1' or $facts['tool'] {
         contain '::nest::base::bootloader'
         contain '::nest::base::dracut'
         contain '::nest::base::firmware'
