@@ -1,13 +1,13 @@
 unless defined('$cpu') {
-  if $facts['profile'] {
-    $cpu = $facts['profile']['platform']
+  if $facts['profile'] and $facts['profile']['cpu'] {
+    $cpu = $facts['profile']['cpu']
   } else {
     $cpu = $facts['hardwaremodel']
   }
 }
 
 unless defined('$platform') {
-  if $facts['profile'] {
+  if $facts['profile'] and $facts['profile']['platform'] {
     $platform = $facts['profile']['platform']
   } else {
     $platform = $cpu
@@ -15,7 +15,7 @@ unless defined('$platform') {
 }
 
 unless defined('$role') {
-  if $facts['profile'] {
+  if $facts['profile'] and $facts['profile']['role'] {
     $role = $facts['profile']['role']
   } elsif $facts['osfamily'] == 'windows' {
     $role = 'workstation'
