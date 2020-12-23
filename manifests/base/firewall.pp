@@ -1,5 +1,5 @@
 class nest::base::firewall {
-  $ignore = ['CNI-', 'DOCKER', 'LIBVIRT_']
+  $ignore = ['CNI-', 'LIBVIRT_', 'f2b-sshd']
 
   package { 'net-firewall/iptables':
     ensure => installed,
