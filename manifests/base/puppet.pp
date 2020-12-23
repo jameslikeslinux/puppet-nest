@@ -54,7 +54,7 @@ class nest::base::puppet {
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => "fqdn: ${trusted['certname']}.nest\n",
+      content => "---\nfqdn: '${trusted['certname']}.nest'\n",
     }
 
     if $facts['build'] == 'stage1' or $facts['tool'] {
