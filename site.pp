@@ -1,8 +1,16 @@
+unless defined('$cpu') {
+  if $facts['profile'] {
+    $cpu = $facts['profile']['platform']
+  } else {
+    $cpu = $facts['hardwaremodel']
+  }
+}
+
 unless defined('$platform') {
   if $facts['profile'] {
     $platform = $facts['profile']['platform']
   } else {
-    $platform = $facts['hardwaremodel']
+    $platform = $cpu
   }
 }
 

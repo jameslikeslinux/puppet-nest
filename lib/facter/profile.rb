@@ -1,8 +1,12 @@
 Facter.add('profile') do
   confine :osfamily => 'Gentoo'
   setcode do
-    if Facter::Core::Execution.execute('/usr/bin/eselect --brief profile show') =~ %r{nest:(\S+)/(\S+)}
-      { :platform => $1, :role => $2 }
+    profile = Facter::Core::Execution.execute('/usr/bin/eselect --brief profile show')
+    case profile
+    when %r{nest:(\S+)/(\S+)/(\S+)}
+      { :cpu => $1, :platform => $2, :role => $2 }
+    when %r{nest:(\S+)/(\S+)}
+      { :cpu => $1, :role => $2 }
     end
   end
 end
