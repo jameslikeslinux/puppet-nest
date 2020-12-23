@@ -3,7 +3,7 @@ define nest::lib::cygwin_home_perms (
 ) {
   $user_quoted = shellquote($user)
 
-  $exceptions = '-not -path "**/.mozilla/firefox/**" -o -path "**/.mozilla/firefox/default/user.js*" -o -path "**/.mozilla/firefox/default/chrome/userChrome.css"'
+  $exceptions = '-not -path "**/.mozilla/firefox/default/**" -o -path "**/.mozilla/firefox/default/user.js*" -o -path "**/.mozilla/firefox/default/chrome/user*"'
 
   $find_bad_ownership = "find ~${user_quoted} -not \\( -user ${user_quoted} -group Administrators \\) \\( ${exceptions} \\)"
   $ownership_ok = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${find_bad_ownership} -exec kill 0 \\;"
