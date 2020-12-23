@@ -61,7 +61,7 @@ class nest::base::portage {
   $makejobs_distcc     = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
   $makejobs            = min($makejobs_memory, $makejobs_distcc)
   $loadlimit           = $::nest::processorcount + 1
-  $emerge_default_opts = pick($facts['emerge_default_opts'], "-j${::nest::processorcount} -l${loadlimit}")
+  $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${::nest::processorcount} --load-average=${loadlimit}")
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
   portage::makeconf {
