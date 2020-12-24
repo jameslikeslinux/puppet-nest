@@ -21,8 +21,8 @@ class nest::base::cygwin {
   #
   # Deterministic Permissions
   #
-  # Cygwin sets file ownership to whoever installs it, which may be me, or
-  # SYSTEM, depending on how Puppet runs.  Reassign such files to the
+  # Cygwin sets file ownership to whoever installs it, which may be me or
+  # SYSTEM depending on how Puppet runs.  Reassign such files to the
   # Administrators group.
   #
   $fix_perms_content = @(END_FIX_PERMS)
