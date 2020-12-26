@@ -189,42 +189,43 @@ class nest::base::users {
   $homes.each |$user, $dir| {
     case $facts['osfamily'] {
       'windows': {
-        $vcsrepo_user = undef
-        $vcsrepo_dir  = "C:/tools/cygwin${dir}"
+        $home_user   = undef
+        $home_dir    = "C:/tools/cygwin${dir}"
+        $refresh_cmd = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "source /etc/profile && ${home_dir}/.refresh")
+        $test_cmd    = shellquote('C:/tools/cygwin/bin/test.exe', '-x', "${home_dir}/.refresh")
       }
 
       default: {
-        $vcsrepo_user = $user
-        $vcsrepo_dir  = $dir
+        $home_user   = $user
+        $home_dir    = $dir
+        $refresh_cmd = shellquote("${home_dir}/.refresh")
+        $test_cmd    = shellquote('/usr/bin/test', '-x', "${home_dir}/.refresh")
       }
     }
 
-    vcsrepo { "$vcsrepo_dir":
+    vcsrepo { "$home_dir":
       ensure   => latest,
       provider => git,
       source   => 'https://gitlab.james.tl/james/dotfiles.git',
-      revision => 'main',
-      user     => $vcsrepo_user,
+      revision => 'windows',
+      user     => $home_user,
     }
 
-    if $facts['osfamily'] == 'windows' {
-      # empty
-    } else {
-      exec { "${dir}/.refresh":
-        user        => $user,
-        onlyif      => "/usr/bin/test -x '${dir}/.refresh'",
-        refreshonly => true,
-        subscribe   => Vcsrepo[$vcsrepo_dir],
-      }
+    exec { "refresh-${user}-home":
+      command     => $refresh_cmd,
+      user        => $home_user,
+      onlyif      => $test_cmd,
+      refreshonly => true,
+      subscribe   => Vcsrepo[$home_dir],
     }
 
     unless $facts['build'] == 'stage1' or $facts['tool'] {
-      file { "${vcsrepo_dir}/.ssh/id_rsa":
+      file { "${home_dir}/.ssh/id_rsa":
         mode      => '0600',
         owner     => $user,
         content   => $::nest::ssh_private_key,
         show_diff => false,
-        require   => Vcsrepo[$vcsrepo_dir],
+        require   => Vcsrepo[$home_dir],
       }
     }
   }
