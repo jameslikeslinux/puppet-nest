@@ -128,15 +128,6 @@ class nest::base::users {
           shell   => '/sbin/nologin',
         ;
 
-        'ubnt':
-          ensure  => absent,
-          uid     => '1002',
-          gid     => '1002',
-          home    => '/srv/unifi',
-          comment => 'Ubiquiti UniFi',
-          shell   => '/sbin/nologin',
-        ;
-
         'bitwarden':
           uid     => '1003',
           gid     => '1003',
@@ -189,69 +180,42 @@ class nest::base::users {
   $homes.each |$user, $dir| {
     case $facts['osfamily'] {
       'windows': {
-        $vcsrepo_user = undef
-        $vcsrepo_dir  = "C:/tools/cygwin${dir}"
+        $exec_user   = undef
+        $home_dir    = "C:/tools/cygwin${dir}"
+        $refresh_cmd = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${home_dir}/.refresh'"
+        $test_cmd    = "C:/tools/cygwin/bin/test.exe -x ${home_dir}/.refresh"
       }
 
       default: {
-        $vcsrepo_user = $user
-        $vcsrepo_dir  = $dir
+        $exec_user   = $user
+        $home_dir    = $dir
+        $refresh_cmd = "${home_dir}/.refresh"
+        $test_cmd    = "/usr/bin/test -x ${home_dir}/.refresh"
       }
     }
 
-    vcsrepo { "$vcsrepo_dir":
+    vcsrepo { "$home_dir":
       ensure   => latest,
       provider => git,
       source   => 'https://gitlab.james.tl/james/dotfiles.git',
       revision => 'main',
-      user     => $vcsrepo_user,
+      user     => $exec_user,
     }
-
-    if $facts['osfamily'] == 'windows' {
-      ::nest::lib::cygwin_home_perms { 'pre-refresh':
-        user    => $user,
-        require => Vcsrepo["$vcsrepo_dir"],
-        before  => Exec["refresh-${user}-dotfiles"],
-      }
-
-      $user_quoted     = shellquote($user)
-      $dir_quoted      = shellquote($dir)
-      $refresh_command = shellquote(
-        'C:/tools/cygwin/bin/bash.exe', '-c',
-        "source /etc/profile && ${dir_quoted}/.refresh ${user_quoted}",
-      )
-
-      exec { "refresh-${user}-dotfiles":
-        command     => $refresh_command,
-        onlyif      => "C:/tools/cygwin/bin/test.exe -x '${dir_quoted}/.refresh'",
-        refreshonly => true,
-        subscribe   => Vcsrepo["$vcsrepo_dir"],
-        logoutput   => true,
-      }
-
-      ::nest::lib::cygwin_home_perms { 'post-refresh':
-        user    => $user,
-        require => [
-          Exec["refresh-${user}-dotfiles"],
-          File["${vcsrepo_dir}/.ssh/id_rsa"],
-        ],
-      }
-    } else {
-      exec { "${dir}/.refresh":
-        user        => $user,
-        onlyif      => "/usr/bin/test -x '${dir}/.refresh'",
-        refreshonly => true,
-        subscribe   => Vcsrepo[$vcsrepo_dir],
-      }
+    ~>
+    exec { "refresh-${user}-home":
+      command     => $refresh_cmd,
+      user        => $exec_user,
+      onlyif      => $test_cmd,
+      refreshonly => true,
     }
 
     unless $facts['build'] == 'stage1' or $facts['tool'] {
-      file { "${vcsrepo_dir}/.ssh/id_rsa":
+      file { "${home_dir}/.ssh/id_rsa":
         mode      => '0600',
         owner     => $user,
         content   => $::nest::ssh_private_key,
         show_diff => false,
-        require   => Vcsrepo[$vcsrepo_dir],
+        require   => Vcsrepo[$home_dir],
       }
     }
   }
