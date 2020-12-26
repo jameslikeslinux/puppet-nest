@@ -128,15 +128,6 @@ class nest::base::users {
           shell   => '/sbin/nologin',
         ;
 
-        'ubnt':
-          ensure  => absent,
-          uid     => '1002',
-          gid     => '1002',
-          home    => '/srv/unifi',
-          comment => 'Ubiquiti UniFi',
-          shell   => '/sbin/nologin',
-        ;
-
         'bitwarden':
           uid     => '1003',
           gid     => '1003',
@@ -189,17 +180,17 @@ class nest::base::users {
   $homes.each |$user, $dir| {
     case $facts['osfamily'] {
       'windows': {
-        $home_user   = undef
+        $exec_user   = undef
         $home_dir    = "C:/tools/cygwin${dir}"
-        $refresh_cmd = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "source /etc/profile && ${home_dir}/.refresh")
-        $test_cmd    = shellquote('C:/tools/cygwin/bin/test.exe', '-x', "${home_dir}/.refresh")
+        $refresh_cmd = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${home_dir}/.refresh'"
+        $test_cmd    = "C:/tools/cygwin/bin/test.exe -x ${home_dir}/.refresh"
       }
 
       default: {
-        $home_user   = $user
+        $exec_user   = $user
         $home_dir    = $dir
-        $refresh_cmd = shellquote("${home_dir}/.refresh")
-        $test_cmd    = shellquote('/usr/bin/test', '-x', "${home_dir}/.refresh")
+        $refresh_cmd = "${home_dir}/.refresh"
+        $test_cmd    = "/usr/bin/test -x ${home_dir}/.refresh"
       }
     }
 
@@ -207,16 +198,15 @@ class nest::base::users {
       ensure   => latest,
       provider => git,
       source   => 'https://gitlab.james.tl/james/dotfiles.git',
-      revision => 'windows',
-      user     => $home_user,
+      revision => 'main',
+      user     => $exec_user,
     }
-
+    ~>
     exec { "refresh-${user}-home":
       command     => $refresh_cmd,
-      user        => $home_user,
+      user        => $exec_user,
       onlyif      => $test_cmd,
       refreshonly => true,
-      subscribe   => Vcsrepo[$home_dir],
     }
 
     unless $facts['build'] == 'stage1' or $facts['tool'] {
