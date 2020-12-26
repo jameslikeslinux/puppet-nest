@@ -199,6 +199,7 @@ class nest::base::users {
     }
     ~>
     exec { "refresh-${user}-home":
+      environment => "HOME=${home_dir}",
       command     => $refresh_cmd,
       user        => $exec_user,
       onlyif      => $test_cmd,
