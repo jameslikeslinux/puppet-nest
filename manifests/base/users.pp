@@ -24,10 +24,6 @@ class nest::base::users {
           require => File_line['useradd-group'];
         'media':
           gid => '1001';
-        'ubnt':
-          ensure  => absent,
-          gid     => '1002',
-          require => User['ubnt'];
         'bitwarden':
           gid => '1003';
       }
