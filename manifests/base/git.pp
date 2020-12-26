@@ -7,10 +7,7 @@ class nest::base::git {
     }
 
     'windows': {
-      package { [
-        'git',
-        'ruby',
-      ]:
+      package { ['git', 'ruby']:
         ensure   => installed,
         provider => 'cygwin',
       }
@@ -19,7 +16,8 @@ class nest::base::git {
       # but Cygwin has managed to hack it into `setuid` when coming from the
       # SYSTEM account.  Force git to operate as my user so I can work in repos
       # that `vcsrepo` manages.  This hack could be made more generic with a new
-      # custom type, but it's not worth the effort for just my home directory.
+      # custom type derived from `vcsrepo`, but it's not worth the effort for
+      # just my home directory.
       $git_wrapper_content = @(END_GIT_WRAPPER)
         #!/bin/ruby
         Process::Sys.setuid('james')
