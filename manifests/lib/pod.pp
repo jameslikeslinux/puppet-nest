@@ -1,6 +1,7 @@
 define nest::lib::pod (
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  Array[String] $publish = [],
+  Optional[String] $dns     = undef,
+  Array[String]    $publish = [],
 ) {
   # Required for /usr/bin/podman
   include 'nest'
@@ -55,6 +56,11 @@ define nest::lib::pod (
       }
     }
 
+    $dns_args = $dns ? {
+      undef   => [],
+      default => ["--dns=${dns}"],
+    }
+
     $publish_args = $publish.map |$e| {
       "--publish=${e}"
     }
@@ -62,6 +68,7 @@ define nest::lib::pod (
     $podman_create_cmd = [
       '/usr/bin/podman', 'pod', 'create',
       '--replace',
+      $dns_args,
       $publish_args,
       "--label=nest.podman.version=${facts['podman_version']}",
       "--name=${name}",
