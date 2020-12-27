@@ -1,28 +1,8 @@
 ---
 classes:
-  - 'nest::node::puppet'
   - 'nest::service::puppet'
 
 nest::bootloader: systemd
 nest::dvorak: true
 nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
 nest::nestfs_hostname: 'falcon.home'
-
-nest::package_keywords:
-  # R10k and dependencies
-  app-admin/r10k: {}
-  dev-ruby/colored: {}
-  dev-ruby/colored2: {}
-  dev-ruby/cri: {}
-  dev-ruby/faraday: {}
-  dev-ruby/faraday_middleware: {}
-  dev-ruby/hashie: {}
-  dev-ruby/minitar: {}
-  dev-ruby/multipart-post: {}
-  dev-ruby/puppet_forge: {}
-  dev-ruby/rash_alt: {}
-  dev-ruby/simple_oauth: {}
-
-  # For rugged
-  dev-libs/libgit2:
-    version: '~1.1.0'

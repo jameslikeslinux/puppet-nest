@@ -1,5 +1,23 @@
-class nest::service::puppet {
+class nest::service::puppet (
+  String[1] $r10k_deploy_key,
+) {
   nest::lib::srv { 'puppet': }
+  ->
+  file {
+    default:
+      mode  => '0755',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/srv/puppet/bin':
+      ensure => directory,
+    ;
+
+    '/srv/puppet/bin/r10k':
+      content => template('nest/puppet/r10k.erb'),
+    ;
+  }
 
   nest::lib::pod { 'puppet':
     publish => [
@@ -18,6 +36,7 @@ class nest::service::puppet {
   }
   ->
   file { [
+    '/srv/puppet/puppetserver/code',
     '/srv/puppet/puppetserver/config',
     '/srv/puppet/puppetserver/data',
   ]:
@@ -38,7 +57,7 @@ class nest::service::puppet {
       'DNS_ALT_NAMES=puppet.nest',
     ],
     volumes => [
-      '/etc/puppetlabs/code:/etc/puppetlabs/code',
+      '/srv/puppet/puppetserver/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
       '/srv/puppet/puppetserver/data:/opt/puppetlabs/server/data/puppetserver',
     ],
@@ -90,5 +109,38 @@ class nest::service::puppet {
     pod   => 'puppet',
     image => 'camptocamp/puppetboard',
     env   => ['ENABLE_CATALOG=True', 'DEFAULT_ENVIRONMENT=main'],
+  }
+
+
+  #
+  # R10k
+  #
+  nest::lib::srv { 'puppet/r10k':
+    require => Nest::Lib::Srv['puppet'],
+  }
+  ->
+  file {
+    default:
+      owner  => 'root',
+      group  => 'root',
+    ;
+
+    [
+      '/srv/puppet/r10k/cache',
+      '/srv/puppet/r10k/config',
+    ]:
+      mode   => '0755',
+      ensure => directory,
+    ;
+
+    '/srv/puppet/r10k/config/r10k.yaml':
+      mode   => '0644',
+      source => 'puppet:///modules/nest/puppet/r10k.yaml',
+    ;
+
+    '/srv/puppet/r10k/config/id_rsa':
+      mode    => '0600',
+      content => $r10k_deploy_key,
+    ;
   }
 }
