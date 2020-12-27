@@ -7,10 +7,14 @@ class nest::tool::r10k {
     ensure => installed,
   }
   ->
+  exec { 'gem-install-rugged':
+    command => '/usr/bin/gem install rugged -- --use-system-libraries',
+    unless  => '/usr/bin/gem which rugged',
+  }
+  ->
   package { 'rugged':
-    ensure          => installed,
-    install_options => ['--use-system-libraries'],
-    provider        => gem,
+    ensure   => installed,
+    provider => gem,
   }
 
   package_accept_keywords { [
