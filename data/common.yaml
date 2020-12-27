@@ -10,6 +10,7 @@ nest::cnames:
   nzbget.nest: 'falcon.nest'
   ombi.nest: 'falcon.nest'
   plex.nest: 'falcon.nest'
+  puppet.nest: 'falcon.nest'
   radarr.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
   registry.gitlab.james.tl: 'falcon.nest'
