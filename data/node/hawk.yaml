@@ -1,6 +1,6 @@
 ---
 classes:
-  - 'nest::tool::libvirt'
+  - 'nest::service::libvirt'
 
 nest::bootloader: systemd
 nest::isolcpus: '4-7'

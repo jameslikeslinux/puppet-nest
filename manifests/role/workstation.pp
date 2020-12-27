@@ -18,6 +18,7 @@ class nest::role::workstation {
       contain '::nest::role::workstation::pulseaudio'
       contain '::nest::role::workstation::sway'
       contain '::nest::role::workstation::terminals'
+      contain '::nest::role::workstation::virtualization'
       contain '::nest::role::workstation::xmonad'
       contain '::nest::role::workstation::xorg'
       contain '::nest::role::workstation::ydotool'

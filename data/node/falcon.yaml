@@ -3,13 +3,13 @@ classes:
   - 'nest::node::falcon'
   - 'nest::service::gitlab'
   - 'nest::service::gitlab_runner'
+  - 'nest::service::libvirt'
   - 'nest::service::nzbget'
   - 'nest::service::ombi'
   - 'nest::service::plex'
   - 'nest::service::radarr'
   - 'nest::service::sonarr'
   - 'nest::service::reverse_proxy'
-  - 'nest::tool::libvirt'
 
 nest::bootloader: systemd
 nest::isolcpus: '16-31'

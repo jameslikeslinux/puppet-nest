@@ -1,4 +1,4 @@
-class nest::tool::libvirt {
+class nest::service::libvirt {
   include 'nest'
 
   nest::lib::package_use { 'app-emulation/libvirt':
@@ -90,18 +90,6 @@ class nest::tool::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
-  $virt_manager_ensure = $::role ? {
-    'workstation' => installed,
-    default       => absent,
-  }
-
-  package { [
-    'app-emulation/virt-manager',
-    'app-emulation/virt-viewer',
-  ]:
-    ensure => $virt_manager_ensure,
-  }
-
   if $::nest::fileserver {
     firewall { '100 fileserver':
       proto   => tcp,
@@ -110,10 +98,5 @@ class nest::tool::libvirt {
       state   => 'NEW',
       action  => accept,
     }
-  }
-
-  # XXX: Remove after 12/20
-  file { '/etc/udev/rules.d/10-bridge.rules':
-    ensure => absent,
   }
 }
