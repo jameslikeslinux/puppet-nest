@@ -25,8 +25,8 @@ class nest::service::puppet (
   nest::lib::pod { 'puppet':
     publish => [
       '8140:8140',  # Puppet Server
-      '8080:8080',  # PuppetDB dashboard
-      '80:80',      # Puppetboard
+      '8141:8080',  # PuppetDB dashboard
+      '8142:80',    # Puppetboard
     ],
   }
 
