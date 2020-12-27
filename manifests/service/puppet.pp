@@ -1,21 +1,24 @@
 class nest::service::puppet (
   String[1] $r10k_deploy_key,
 ) {
-  nest::lib::srv { 'puppet': }
-  ->
-  file {
-    default:
-      mode  => '0755',
-      owner => 'root',
-      group => 'root',
+  Nest::Lib::Srv {
+    mode  => '0755',
+    owner => 'root',
+    group => 'root',
+  }
+
+  nest::lib::srv {
+    'puppet':
+      # use defaults
     ;
 
-    '/srv/puppet/bin':
-      ensure => directory,
+    'puppet/bin':
+      zfs     => false,
+      require => Nest::Lib::Srv['puppet'],
     ;
 
-    '/srv/puppet/bin/r10k':
-      content => template('nest/puppet/r10k.erb'),
+    'puppet/code':
+      require => Nest::Lib::Srv['puppet'],
     ;
   }
 
@@ -23,7 +26,7 @@ class nest::service::puppet (
     publish => [
       '8140:8140',  # Puppet Server
       '8080:8080',  # PuppetDB dashboard
-      '80:80'       # Puppetboard
+      '80:80',      # Puppetboard
     ],
   }
 
@@ -35,11 +38,7 @@ class nest::service::puppet (
     require => Nest::Lib::Srv['puppet'],
   }
   ->
-  file { [
-    '/srv/puppet/puppetserver/code',
-    '/srv/puppet/puppetserver/config',
-    '/srv/puppet/puppetserver/data',
-  ]:
+  file { '/srv/puppet/puppetserver/config':
     ensure => directory,
   }
   ->
@@ -56,11 +55,12 @@ class nest::service::puppet (
       'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
     ],
+    tmpfs   => ['/etc/puppetlabs/code/environments/production'],
     volumes => [
-      '/srv/puppet/puppetserver/code:/etc/puppetlabs/code:ro',
+      '/srv/puppet/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
-      '/srv/puppet/puppetserver/data:/opt/puppetlabs/server/data/puppetserver',
     ],
+    require => Nest::Lib::Srv['puppet/code'],
   }
 
 
@@ -142,5 +142,12 @@ class nest::service::puppet (
       mode    => '0600',
       content => $r10k_deploy_key,
     ;
+  }
+  ->
+  file { '/srv/puppet/bin/r10k':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => template('nest/puppet/r10k.erb'),
   }
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 podman exec --rm \
-            -v /srv/puppet/puppetserver/code:/etc/puppetlabs/code \
+            -v /srv/puppet/code:/etc/puppetlabs/code \
             -v /srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro \
             -v /srv/puppet/r10k/cache:/var/cache/r10k \
             nest/tools/r10k:<%= @facts['profile']['cpu'] %> \
