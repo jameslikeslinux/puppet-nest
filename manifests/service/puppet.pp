@@ -38,13 +38,29 @@ class nest::service::puppet (
     require => Nest::Lib::Srv['puppet'],
   }
   ->
-  file { '/srv/puppet/puppetserver/config':
-    ensure => directory,
-  }
-  ->
-  file { '/srv/puppet/puppetserver/config/hiera.yaml':
-    source => 'puppet:///modules/nest/puppet/hiera.yaml',
-    notify => Service['container-puppetserver'],
+  file {
+    '/srv/puppet/puppetserver/init':
+      ensure => directory,
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+    ;
+
+    '/srv/puppet/puppetserver/init/10-set-main-environment.sh':
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+      source => 'puppet:///modules/nest/puppet/set-main-environment.sh',
+    ;
+
+    '/srv/puppet/puppetserver/config':
+      ensure => directory,
+    ;
+
+    '/srv/puppet/puppetserver/config/hiera.yaml':
+      source => 'puppet:///modules/nest/puppet/hiera.yaml',
+      notify => Service['container-puppetserver'],
+    ;
   }
   ->
   nest::lib::container { 'puppetserver':
@@ -55,8 +71,8 @@ class nest::service::puppet (
       'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
     ],
-    tmpfs   => ['/etc/puppetlabs/code/environments/production'],
     volumes => [
+      '/srv/puppet/puppetserver/init:/docker-custom-entrypoint.d',
       '/srv/puppet/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
     ],
