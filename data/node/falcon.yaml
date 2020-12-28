@@ -11,6 +11,7 @@ classes:
   - 'nest::service::radarr'
   - 'nest::service::sonarr'
   - 'nest::service::reverse_proxy'
+  - 'nest::tool::qemu'
 
 nest::bootloader: systemd
 nest::isolcpus: '16-31'

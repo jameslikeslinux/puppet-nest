@@ -28,12 +28,6 @@ class nest::role::workstation {
         contain '::nest::role::workstation::barrier'
       }
 
-      # XXX: Need to figure out the role for qemu in other archs.  Should it go
-      # into the base config?
-      if $facts['architecture'] == 'amd64' {
-        contain '::nest::role::workstation::qemu'
-      }
-
       # Plasma installs pulseaudio, so we don't need to manage it separately
       Class['::nest::role::workstation::plasma']
       -> Class['::nest::role::workstation::pulseaudio']
