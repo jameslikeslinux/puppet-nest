@@ -77,8 +77,12 @@ nest::service::gitlab_runner::instances:
     dns: '172.22.0.1'
     host: 'gitlab.james.tl'
     security_options: ['seccomp=unconfined']
-    volumes: ['/nest:/nest']
     tag_list: ['nest']
+    volumes:
+      - '/nest:/nest'
+      - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
+      - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
+      - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
 
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
