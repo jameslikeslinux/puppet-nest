@@ -190,6 +190,10 @@ class nest::base::users {
       }
     }
 
+    exec { "/bin/ls -al ${home_dir}":
+      logoutput => true,
+    }
+    ->
     vcsrepo { "$home_dir":
       ensure   => latest,
       provider => git,
