@@ -4,29 +4,11 @@ class nest::base::fs {
   }
 
   file { '/etc/systemd/system/nfs-server.service.d':
-    ensure  => directory,
-    mode    => '0655',
-    owner   => 'root',
-    group   => 'root',
-
-    # Not strictly required, but packages pull in systemd
-    require => Package['net-fs/nfs-utils'],
+    ensure => absent,
+    force  => true,
   }
-
-  $nfs_server_make_v4recovery = @(EOT)
-    [Service]
-    ExecStartPre=-/bin/mkdir -p /var/lib/nfs/v4recovery
-    | EOT
-
-  file { '/etc/systemd/system/nfs-server.service.d/10-v4recovery.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $nfs_server_make_v4recovery,
-    notify  => Nest::Lib::Systemd_reload['nfs-server'],
-  }
-
-  ::nest::lib::systemd_reload { 'nfs-server': }
+  ~>
+  nest::lib::systemd_reload { 'nfs-server': }
 
   if $::nest::fileserver {
     service { 'nfs-server':
