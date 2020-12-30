@@ -134,8 +134,12 @@ class nest::base::users {
       }
 
       file {
-        '/root/.keep':
+        [
+          '/root/.distcc',
+          '/root/.keep',
+        ]:
           ensure => absent,
+          force  => true,
           before => Vcsrepo['/root'],
         ;
 
@@ -190,10 +194,6 @@ class nest::base::users {
       }
     }
 
-    exec { "/bin/ls -al ${home_dir}":
-      logoutput => true,
-    }
-    ->
     vcsrepo { "$home_dir":
       ensure   => latest,
       provider => git,
