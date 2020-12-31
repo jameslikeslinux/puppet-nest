@@ -17,6 +17,7 @@ class nest::base {
       contain '::nest::base::fail2ban'
       contain '::nest::base::firewall'
       contain '::nest::base::fs'
+      contain '::nest::base::locale'
       contain '::nest::base::mta'
       contain '::nest::base::network'
       contain '::nest::base::openvpn'
