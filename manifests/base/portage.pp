@@ -88,6 +88,8 @@ class nest::base::portage {
   #
   # Repositories
   #
+  contain 'nest::lib::repos'
+
   nest::lib::repo {
     'gentoo':
       url     => 'https://gitlab.james.tl/nest/gentoo/portage.git',

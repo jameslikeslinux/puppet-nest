@@ -25,7 +25,6 @@ define nest::lib::repo (
       provider => git,
       source   => $url,
       depth    => 1,
-      notify   => Exec['eix-update'],
     }
   } else {
     $repo_content = @("END_REPO")

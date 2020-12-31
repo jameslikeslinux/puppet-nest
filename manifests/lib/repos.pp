@@ -31,4 +31,9 @@ class nest::lib::repos {
     command     => '/usr/bin/eix-update',
     refreshonly => true,
   }
+
+  # eix depends on repository configurations and
+  # repository changes should update eix
+  Nest::Lib::Repo <||>
+  ~> Exec['eix-update']
 }

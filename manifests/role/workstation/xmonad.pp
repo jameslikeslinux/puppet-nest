@@ -20,16 +20,17 @@ class nest::role::workstation::xmonad {
     'x11-misc/picom',
     'x11-misc/rofi',
     'x11-misc/taffybar',
-    'dev-haskell/missingh',
     'media-gfx/feh',
+
+    # For taffybar.hs (Data.List.Utils)
+    'dev-haskell/missingh',
 
     # For taffybar status
     'dev-ruby/concurrent-ruby',
     'net-wireless/iw',
     'sys-fs/inotify-tools',
   ]:
-    ensure  => installed,
-    require => Nest::Lib::Repo['haskell'],
+    ensure => installed,
   }
 
   # Gtk scaling for Taffybar doesn't work well
