@@ -5,10 +5,6 @@ class nest::role::workstation::chromium {
         use => ['ozone', 'ozone-wayland', 'widevine'],
       }
 
-      package_env { 'www-client/chromium':
-        env => 'no-debug.conf',
-      }
-      ->
       package { 'www-client/chromium':
         ensure => installed,
       }
