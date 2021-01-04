@@ -129,13 +129,17 @@ class nest::base::portage {
       force   => true,
     ;
 
+    '/etc/portage/env/no-crypto.conf':
+      ensure  => $cflags_no_crypto_ensure,
+      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
+    ;
+
     '/etc/portage/env/no-debug.conf':
       content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
     ;
 
-    '/etc/portage/env/no-crypto.conf':
-      ensure  => $cflags_no_crypto_ensure,
-      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
+    '/etc/portage/env/no-makeopts.conf':
+      content => "MAKEOPTS=''\n",
     ;
   }
 
