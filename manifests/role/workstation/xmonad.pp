@@ -1,9 +1,4 @@
 class nest::role::workstation::xmonad {
-  nest::lib::repo { 'haskell':
-    url      => 'https://gitlab.james.tl/nest/gentoo/haskell.git',
-    unstable => true,
-  }
-
   nest::lib::package_use {
     'x11-misc/rofi':
       use => 'windowmode',
@@ -14,8 +9,35 @@ class nest::role::workstation::xmonad {
     ;
   }
 
+  nest::lib::repo { 'haskell':
+    url      => 'https://gitlab.james.tl/nest/gentoo/haskell.git',
+    unstable => true,
+  }
+
+  # Bootstrap GHC on architectures without up-to-date binaries
+  if $facts['architecture'] != 'amd64' {
+    exec { 'install-binary-ghc':
+      command     => '/usr/bin/emerge -v1 "=dev-lang/ghc-8.6.5::haskell"',
+      creates     => '/usr/bin/ghc',
+      environment => 'USE=binary -ghcbootstrap',
+      timeout     => 0,
+      require     => Class['nest::lib::repos'],
+    }
+    ~>
+    exec { 'bootstrap-ghc':
+      command     => '/usr/bin/emerge -v1 dev-lang/ghc::haskell',
+      refreshonly => true,
+      timeout     => 0,
+      before      => Package['x11-wm/xmonad'],
+    }
+  }
+
+  # Let xmonad serve as the synchronization point for the first Haskell package
+  package { 'x11-wm/xmonad':
+    ensure => installed,
+  }
+  ->
   package { [
-    'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
     'x11-misc/picom',
     'x11-misc/rofi',
