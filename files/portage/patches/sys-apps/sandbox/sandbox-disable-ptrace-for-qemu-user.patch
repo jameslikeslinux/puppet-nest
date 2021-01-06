@@ -1,0 +1,11 @@
+diff -ur sandbox-2.20.orig/configure sandbox-2.20/configure
+--- sandbox-2.20.orig/configure	2021-01-05 12:01:39.035638914 -0500
++++ sandbox-2.20/configure	2021-01-05 12:02:08.995021286 -0500
+@@ -2535,7 +2535,6 @@
+ as_fn_append ac_func_list " openat64"
+ as_fn_append ac_func_list " pathconf"
+ as_fn_append ac_func_list " process_vm_readv"
+-as_fn_append ac_func_list " ptrace"
+ as_fn_append ac_func_list " realpath"
+ as_fn_append ac_func_list " remove"
+ as_fn_append ac_func_list " renameat"
