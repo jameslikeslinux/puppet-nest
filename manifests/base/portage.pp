@@ -139,7 +139,7 @@ class nest::base::portage {
     ;
 
     '/etc/portage/env/no-makeopts.conf':
-      content => "MAKEOPTS=''\n",
+      content => "MAKEOPTS='-j4'\n",
     ;
   }
 
