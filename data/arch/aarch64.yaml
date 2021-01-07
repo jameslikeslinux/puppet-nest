@@ -1,8 +1,6 @@
 ---
 nest::package_env:
   # Compiler deadlocks under QEMU
-  dev-lang/ghc:
-    env: 'no-makeopts.conf'
   dev-lang/python:
     env: 'no-makeopts.conf'
 
