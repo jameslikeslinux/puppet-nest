@@ -64,13 +64,18 @@ class nest::base::portage {
   $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${::nest::processorcount} --load-average=${loadlimit}")
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
+  $features = $is_container ? {
+    true    => ['distcc', '-ipc-sandbox', '-pid-sandbox', '-network-sandbox', '-usersandbox'],
+    default => ['distcc'],
+  }
+
   portage::makeconf {
     'emerge_default_opts':
       content => "\${EMERGE_DEFAULT_OPTS} ${emerge_default_opts}",
     ;
 
     'features':
-      content => ['distcc'],
+      content => $features,
     ;
 
     'makeopts':
