@@ -112,7 +112,6 @@ class nest::base::portage {
   #
   # Package environments and properties
   #
-  $cflags_no_debug  = regsubst($facts['portage_cflags'], '\s?-g(gdb)?\d?(\s|$)', '')
   $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
   $cflags_no_crypto_ensure = $cflags_no_crypto ? {
     $facts['portage_cflags'] => 'absent',
@@ -137,14 +136,6 @@ class nest::base::portage {
     '/etc/portage/env/no-crypto.conf':
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
-    ;
-
-    '/etc/portage/env/no-debug.conf':
-      content => "CFLAGS='${cflags_no_debug}'\nCXXFLAGS='${cflags_no_debug}'\n",
-    ;
-
-    '/etc/portage/env/no-makeopts.conf':
-      content => "MAKEOPTS=''\n",
     ;
   }
 
