@@ -31,7 +31,18 @@ class nest::base::containers {
     '/etc/containers/registries.conf':
       source => 'puppet:///modules/nest/containers/registries.conf',
     ;
+
+    '/etc/systemd/system/podman.service.d':
+      ensure => directory,
+    ;
+
+    '/etc/systemd/system/podman.service.d/10-delegate.conf':
+      content => "[Service]\nDelegate=yes\n",
+      notify  => Nest::Lib::Systemd_reload['containers'],
+    ;
   }
+  ->
+  nest::lib::systemd_reload { 'containers': }
   ->
   service { 'podman.socket':
     enable => true,
