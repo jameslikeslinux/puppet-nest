@@ -21,6 +21,10 @@ class nest::base::zfs {
     ;
 
     '/etc/systemd/system/zfs-mount.service.d/load-key.conf':
+      ensure => absent,
+    ;
+
+    '/etc/systemd/system/zfs-mount.service.d/10-load-key.conf':
       content => $zfs_mount_override,
       notify  => Nest::Lib::Systemd_reload['zfs'],
     ;

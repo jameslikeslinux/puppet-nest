@@ -120,6 +120,10 @@ class nest::base::fstab {
     ;
 
     '/etc/systemd/system/var.mount.d/lazyunmount.conf':
+      ensure => absent,
+    ;
+
+    '/etc/systemd/system/var.mount.d/10-lazy-unmount.conf':
       content => $var_lazy_unmount,
       notify  => Nest::Lib::Systemd_reload['fstab'],
     ;
