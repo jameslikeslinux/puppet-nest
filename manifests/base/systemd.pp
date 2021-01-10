@@ -123,9 +123,32 @@ class nest::base::systemd {
 
   $availcpus_formatted = $::nest::availcpus_expanded.join(' ')
 
-  $cpu_affinity = $::nest::isolcpus ? {
-    undef   => '#CPUAffinity=1 2',  # the default
-    default => "CPUAffinity=${availcpus_formatted}",
+  file {
+    default:
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      notify => Nest::Lib::Systemd_reload['systemd'],
+    ;
+
+    [
+      '/etc/systemd/system/init.scope.d',
+      '/etc/systemd/system/system.slice.d',
+      '/etc/systemd/system/user.slice.d',
+    ]:
+      ensure => directory,
+    ;
+
+    '/etc/systemd/system/init.scope.d/10-allowed-cpus.conf':
+      content => "[Scope]\nAllowedCPUs=${availcpus_formatted}\n",
+    ;
+
+    [
+      '/etc/systemd/system/system.slice.d/10-allowed-cpus.conf',
+      '/etc/systemd/system/user.slice.d/10-allowed-cpus.conf',
+    ]:
+      content => "[Slice]\nAllowedCPUs=${availcpus_formatted}\n",
+    ;
   }
 
   $suspend_state = $::platform ? {
@@ -136,12 +159,6 @@ class nest::base::systemd {
   file_line {
     default:
       notify => Nest::Lib::Systemd_reload['systemd'],
-    ;
-
-    'system.conf-CPUAffinity':
-      path  => '/etc/systemd/system.conf',
-      line  => $cpu_affinity,
-      match => '^#?CPUAffinity=',
     ;
 
     # Kill all user processes at end of session.

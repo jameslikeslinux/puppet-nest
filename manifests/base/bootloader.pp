@@ -1,9 +1,8 @@
 class nest::base::bootloader {
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
-    'quiet',
     'loglevel=3',
-    'fbcon=scrollback:1024k',
+    'quiet',
 
     $::nest::isolcpus ? {
       undef   => [],
@@ -17,11 +16,11 @@ class nest::base::bootloader {
     #
     # See: https://github.com/openzfs/zfs/issues/7734
     # See also: nest::base::zfs for workarounds
+    'vm.swappiness=100',
     'zswap.enabled=1',
     'zswap.compressor=lzo-rle',
     'zswap.zpool=z3fold',
     'zswap.max_pool_percent=100',
-    'vm.swappiness=100',
 
     $::nest::kernel_cmdline_hiera,
   ].flatten.join(' ').strip
