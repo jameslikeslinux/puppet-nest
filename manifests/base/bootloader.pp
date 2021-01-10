@@ -7,11 +7,7 @@ class nest::base::bootloader {
 
     $::nest::isolcpus ? {
       undef   => [],
-      default => [
-        "isolcpus=${::nest::isolcpus}",
-        "nohz_full=${::nest::isolcpus}",
-        "rcu_nocbs=${::nest::isolcpus}",
-      ],
+      default => "nohz_full=${::nest::isolcpus}",
     },
 
     # Let kernel swap to compressed memory instead of a physical volume, which
