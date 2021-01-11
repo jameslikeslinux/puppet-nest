@@ -121,34 +121,46 @@ class nest::base::systemd {
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
 
-  $availcpus_formatted = $::nest::availcpus_expanded.join(' ')
+  if $::nest::isolcpus {
+    $availcpus_formatted = $::nest::availcpus_expanded.join(' ')
 
-  file {
-    default:
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
-      notify => Nest::Lib::Systemd_reload['systemd'],
-    ;
+    file {
+      default:
+        mode   => '0644',
+        owner  => 'root',
+        group  => 'root',
+        notify => Nest::Lib::Systemd_reload['systemd'],
+      ;
 
-    [
+      [
+        '/etc/systemd/system/init.scope.d',
+        '/etc/systemd/system/system.slice.d',
+        '/etc/systemd/system/user.slice.d',
+      ]:
+        ensure => directory,
+      ;
+
+      '/etc/systemd/system/init.scope.d/10-allowed-cpus.conf':
+        content => "[Scope]\nAllowedCPUs=${availcpus_formatted}\n",
+      ;
+
+      [
+        '/etc/systemd/system/system.slice.d/10-allowed-cpus.conf',
+        '/etc/systemd/system/user.slice.d/10-allowed-cpus.conf',
+      ]:
+        content => "[Slice]\nAllowedCPUs=${availcpus_formatted}\n",
+      ;
+    }
+  } else {
+    file { [
       '/etc/systemd/system/init.scope.d',
       '/etc/systemd/system/system.slice.d',
       '/etc/systemd/system/user.slice.d',
     ]:
-      ensure => directory,
-    ;
-
-    '/etc/systemd/system/init.scope.d/10-allowed-cpus.conf':
-      content => "[Scope]\nAllowedCPUs=${availcpus_formatted}\n",
-    ;
-
-    [
-      '/etc/systemd/system/system.slice.d/10-allowed-cpus.conf',
-      '/etc/systemd/system/user.slice.d/10-allowed-cpus.conf',
-    ]:
-      content => "[Slice]\nAllowedCPUs=${availcpus_formatted}\n",
-    ;
+      ensure => absent,
+      force  => true,
+      notify => Nest::Lib::Systemd_reload['systemd'],
+    }
   }
 
   $suspend_state = $::platform ? {
