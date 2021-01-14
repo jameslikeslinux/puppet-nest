@@ -65,7 +65,7 @@ class nest::base::portage {
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
   $features = $is_container ? {
-    true    => ['distcc', '-ipc-sandbox', '-pid-sandbox', '-network-sandbox', '-usersandbox'],
+    true    => ['distcc', '-ipc-sandbox', '-pid-sandbox', '-network-sandbox', '-sandbox', '-usersandbox'],
     default => ['distcc'],
   }
 
