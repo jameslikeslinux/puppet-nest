@@ -33,6 +33,7 @@ class nest::base::portage {
     ;
 
     [
+      '/etc/portage/env',
       '/etc/portage/package.accept_keywords',
       '/etc/portage/package.env',
     ]:
@@ -64,8 +65,8 @@ class nest::base::portage {
   $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${::nest::processorcount} --load-average=${loadlimit}")
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
-  $features = $is_container ? {
-    true    => ['distcc', '-ipc-sandbox', '-pid-sandbox', '-network-sandbox', '-sandbox', '-usersandbox'],
+  $features = $facts['is_container'] ? {
+    true    => ['distcc', '-ipc-sandbox', '-pid-sandbox', '-network-sandbox', '-usersandbox'],
     default => ['distcc'],
   }
 
@@ -112,37 +113,33 @@ class nest::base::portage {
   #
   # Package environments and properties
   #
-  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
-  $cflags_no_crypto_ensure = $cflags_no_crypto ? {
-    $facts['portage_cflags'] => 'absent',
-    default                  => 'present',
-  }
-
-  file {
-    default:
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
-      before => Class['::portage'],
-    ;
-
-    '/etc/portage/env':
-      ensure  => directory,
-      purge   => true,
-      recurse => true,
-      force   => true,
-    ;
-
-    '/etc/portage/env/no-crypto.conf':
-      ensure  => $cflags_no_crypto_ensure,
-      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
-    ;
-  }
-
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
-  package_env { 'media-libs/xvid':
-    ensure => $cflags_no_crypto_ensure,
-    env    => 'no-crypto.conf',
+  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
+  if $cflags_no_crypto != $facts['portage_cflags'] {
+    file { '/etc/portage/env/no-crypto.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
+    }
+    ->
+    package_env { 'media-libs/xvid':
+      env => 'no-crypto.conf',
+    }
+  }
+
+  # Workaround https://bugs.gentoo.org/666560
+  if $facts['is_container'] and $facts['architecture'] != 'amd64' {
+    file { '/etc/portage/env/no-sandbox.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "FEATURES='-sandbox'\n",
+    }
+    ->
+    package_env { 'sys-libs/glibc':
+      env => 'no-sandbox.conf',
+    }
   }
 
   # Create portage package properties rebuild affected packages
@@ -150,47 +147,11 @@ class nest::base::portage {
   create_resources(package_env, $::nest::package_env_hiera, { 'before' => Class['::portage'] })
 
   # Purge unmanaged portage package properties
-  resources {
-    default:
-      purge => true,
-    ;
-
-    'package_accept_keywords':
-      before => Class['::portage'],
-    ;
-
-    'package_env':
-      before => Class['::portage'],
-    ;
-  }
-
-
-
-  #
-  # XXX: Removals
-  #
-  portage::makeconf { [
-    'accept_license',
-    'cflags',
-    'cxxflags',
-    'cpu_flags_x86',
-    'distdir',
-    'input_devices',
-    'pkgdir',
-    'use',
-    'video_cards',
+  resources { [
+    'package_accept_keywords',
+    'package_env',
   ]:
-    ensure => absent,
-  }
-
-  file { [
-    '/etc/eix-sync.conf',
-    '/etc/eixrc/10-disable-statusline',
-    '/etc/portage/profile',
-    '/var/cache/portage',
-  ]:
-    ensure => absent,
-    force  => true,
-    backup => false,
+    purge  => true,
+    before => Class['::portage'],
   }
 }
