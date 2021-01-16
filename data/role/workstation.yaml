@@ -1,32 +1,20 @@
 ---
 nest::package_keywords:
   # I always want the latest of these
-  app-misc/ddcutil:
-    accept_keywords: '~*'
-  app-misc/flirc:
-    accept_keywords: '~*'
-  gui-apps/waybar:
-    accept_keywords: '~*'
-  gui-apps/wl-clipboard:
-    accept_keywords: '~*'
+  app-misc/ddcutil: {}
+  app-misc/flirc: {}
+  gui-apps/waybar: {}
+  gui-apps/wl-clipboard: {}
   gui-apps/ydotool:
     accept_keywords: '**'
-  gui-libs/wlroots:
-    accept_keywords: '~*'
-  gui-wm/sway:
-    accept_keywords: '~*'
-  media-fonts/fontawesome:
-    accept_keywords: '~*'
-  media-sound/pulseaudio-modules-bt:
-    accept_keywords: '~*'
-  net-im/zoom:
-    accept_keywords: '~*'
-  www-client/firefox:
-    accept_keywords: '~*'
-  x11-misc/barrier:
-    accept_keywords: '~*'
-  x11-terms/alacritty:
-    accept_keywords: '~*'
+  gui-libs/wlroots: {}
+  gui-wm/sway: {}
+  media-fonts/fontawesome: {}
+  media-sound/pulseaudio-modules-bt: {}
+  net-im/zoom: {}
+  www-client/firefox: {}
+  x11-misc/barrier: {}
+  x11-terms/alacritty: {}
 
   # For firefox
   dev-libs/nspr:
@@ -42,25 +30,7 @@ nest::package_keywords:
 
   # For waybar
   dev-libs/date:
-    accept_keywords: '~*'
     version: '~3.0.0'
-
-  # For ydotool
-  dev-libs/libevdevplus:
-    version: '~0.1.1'
-  dev-libs/libuinputplus:
-    version: '~0.1.4'
-
-  # Current stable version doesn't work on wayland
-  x11-libs/libva-intel-driver:
-    version: '~2.4.0_pre1'
-
-  # For xmonad, taffybar
-  dev-lang/ghc:
-    accept_keywords: '~*'
-  dev-haskell/either:
-    accept_keywords: '~*'
-    version: '~5.0.1.1'
 
 nest::kernel_config:
   # Networking

@@ -47,31 +47,21 @@ nest::root_mail_alias: 'james@james.tl'
 
 nest::package_keywords:
   # I always want the latest of these
-  app-misc/tmux:
-    accept_keywords: '~*'
-  app-editors/vim:
-    accept_keywords: '~*'
-  app-editors/vim-core:
-    accept_keywords: '~*'
-  sys-fs/zfs:
-    accept_keywords: '~*'
-  sys-fs/zfs-kmod:
-    accept_keywords: '~*'
+  app-misc/tmux: {}
+  app-editors/vim: {}
+  app-editors/vim-core: {}
+  sys-fs/zfs: {}
+  sys-fs/zfs-kmod: {}
 
   # Podman and dependencies
-  app-emulation/crun:
-    accept_keywords: '~*'
-  app-emulation/libpod:
-    accept_keywords: '~*'
+  app-emulation/crun: {}
+  app-emulation/libpod: {}
   app-emulation/conmon:
     version: '~2.0.20'
-    accept_keywords: '~*'
   app-emulation/slirp4netns:
     version: '~1.1.4'
-    accept_keywords: '~*'
   sys-fs/fuse-overlayfs:
     version: '~1.2.0'
-    accept_keywords: '~*'
 
   # Until 5.9 or later is stabilized, accept unstable
   sys-kernel/gentoo-sources: {}
