@@ -1,9 +1,4 @@
 ---
-nest::package_env:
-  # Compiler deadlocks under QEMU
-  dev-lang/python:
-    env: 'no-makeopts.conf'
-
 nest::kernel_config:
   # Unset default preempt for ZFS compatibility
   CONFIG_PREEMPT: n

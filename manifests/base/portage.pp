@@ -137,10 +137,6 @@ class nest::base::portage {
       ensure  => $cflags_no_crypto_ensure,
       content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
     ;
-
-    '/etc/portage/env/no-makeopts.conf':
-      content => "MAKEOPTS=''\n",
-    ;
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
