@@ -150,6 +150,7 @@ class nest::base::portage {
   resources { [
     'package_accept_keywords',
     'package_env',
+    'package_use',
   ]:
     purge  => true,
     before => Class['::portage'],
