@@ -114,7 +114,7 @@ class nest::base::portage {
   # Package environments and properties
   #
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
-  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto(\s|$)', '')
+  $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto', '')
   if $cflags_no_crypto != $facts['portage_cflags'] {
     file { '/etc/portage/env/no-crypto.conf':
       mode    => '0644',
