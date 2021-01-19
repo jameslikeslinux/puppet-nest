@@ -47,9 +47,11 @@ nest::root_mail_alias: 'james@james.tl'
 
 nest::package_keywords:
   # I always want the latest of these
+  app-emulation/qemu: {}
   app-misc/tmux: {}
   app-editors/vim: {}
   app-editors/vim-core: {}
+  media-libs/mesa: {}
   sys-fs/zfs: {}
   sys-fs/zfs-kmod: {}
 

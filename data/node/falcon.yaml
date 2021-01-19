@@ -37,10 +37,6 @@ nest::distcc_server: true
 nest::fileserver: true
 nest::openvpn_server: true
 
-nest::package_keywords:
-  # For now, I want the latest improvements to amdgpu in mesa
-  media-libs/mesa: {}
-
 nest::barrier_config: |
   section: screens
   	falcon:

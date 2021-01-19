@@ -4,13 +4,6 @@ nest::dvorak: true
 nest::swap_alt_win: true
 
 nest::package_keywords:
-  # For now, I want the latest improvements to v3d in mesa
-  media-libs/mesa: {}
-
-  # For mesa-20.1
-  x11-base/xorg-server:
-    version: '~1.20.8'
-
   # Still not fully open-source or mainlined...
   sys-boot/raspberrypi-firmware:
     accept_keywords: '**'

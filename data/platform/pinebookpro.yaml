@@ -9,14 +9,6 @@ nest::text_scaling_factor: 1.1
 # better interactivity.
 nest::processorcount: 2
 
-nest::package_keywords:
-  # For now, I want the latest improvements to panfrost in mesa
-  media-libs/mesa: {}
-
-  # For mesa-20.1
-  x11-base/xorg-server:
-    version: '~1.20.8'
-
 nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
   - 'console=ttyS2,1500000n8'
