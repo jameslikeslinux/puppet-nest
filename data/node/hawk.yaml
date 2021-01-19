@@ -11,6 +11,6 @@ nest::processorcount: 4
 nest::fileserver: true
 
 nest::dvorak: true
-nest::monitor_layout: ['DisplayPort-1', 'DisplayPort-0']
-nest::primary_monitor: 'DisplayPort-0'
+nest::monitor_layout: ['DP-2', 'DP-1']
+nest::primary_monitor: 'DP-1'
 nest::text_scaling_factor: 1.1
