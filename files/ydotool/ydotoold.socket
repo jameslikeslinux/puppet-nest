@@ -1,4 +1,4 @@
 [Socket]
-ListenStream=/tmp/.ydotool_socket
+ListenStream=/run/ydotool.sock
 SocketGroup=users
 SocketMode=0660
