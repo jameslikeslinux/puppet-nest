@@ -120,7 +120,7 @@ class nest::base::portage {
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => "CFLAGS='${cflags_no_crypto}'\nCXXFLAGS='${cflags_no_crypto}'\n",
+      content => "CFLAGS=\"${cflags_no_crypto}\"\nCXXFLAGS=\"\${CFLAGS}\"\n",
     }
     ->
     package_env { 'media-libs/xvid':
@@ -134,11 +134,37 @@ class nest::base::portage {
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => "FEATURES='-sandbox'\n",
+      content => "FEATURES=\"-sandbox\"\n",
     }
     ->
     package_env { 'sys-libs/glibc':
       env => 'no-sandbox.conf',
+    }
+  }
+
+  # GHC 8.10 or LLVM 9 hangs or crashes with big.LITTLE flags under qemu-user
+  $cflags_no_big_little = regsubst($facts['portage_cflags'], '\.cortex-\w+', '')
+  if $cflags_no_big_little != $facts['portage_cflags'] {
+    $haskell_env = @(HASKELL_ENV)
+      dev-haskell/* no-big-little.conf
+      dev-lang/ghc no-big-little.conf
+      x11-misc/taffybar no-big-little.conf
+      x11-wm/xmonad no-big-little.conf
+      x11-wm/xmonad-contrib no-big-little.conf
+      | HASKELL_ENV
+
+    file { '/etc/portage/env/no-big-little.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "CFLAGS=\"${cflags_no_big_little}\"\nCXXFLAGS=\"\${CFLAGS}\"\n",
+    }
+    ->
+    file { '/etc/portage/package.env/haskell':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => $haskell_env,
     }
   }
 
