@@ -168,20 +168,6 @@ class nest::base::portage {
     }
   }
 
-  # Firefox profile-guided optimization requires the Portage sandbox
-  unless 'usersandbox' in $facts['portage_features'] {
-    file { '/etc/portage/env/usersandbox.conf':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => "FEATURES=\"usersandbox\"\n",
-    }
-    ->
-    package_env { 'www-client/firefox':
-      env => 'usersandbox.conf',
-    }
-  }
-
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
   create_resources(package_env, $::nest::package_env_hiera, { 'before' => Class['::portage'] })
