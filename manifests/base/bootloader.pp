@@ -4,9 +4,9 @@ class nest::base::bootloader {
     'loglevel=3',
     'quiet',
 
-    $::nest::isolcpus ? {
-      undef   => [],
-      default => "nohz_full=${::nest::isolcpus}",
+    $::nest::isolate_smt ? {
+      true    => "nohz_full=${facts['processorcount'] / 2}-${facts['processorcount'] - 1}",
+      default => [],
     },
 
     # Let kernel swap to compressed memory instead of a physical volume, which

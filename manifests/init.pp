@@ -32,12 +32,11 @@ class nest (
   $openvpn_server          = false,
   Array[Stdlib::Fqdn] $nist_time_servers = [],
 
-  Optional[Pattern[/(\d+(-\d+)?)(,\d+(-\d+)?)*/]] $isolcpus = undef,
-
   Hash $hosts              = {},
 
-  Enum['grub', 'systemd'] $bootloader = grub,
-  Boolean                 $public_ssh = false,
+  Enum['grub', 'systemd'] $bootloader  = grub,
+  Boolean                 $isolate_smt = false,
+  Boolean                 $public_ssh  = false,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
     $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
@@ -61,23 +60,6 @@ class nest (
   $cursor_size_ideal   = 24 * $::nest::gui_scaling_factor
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
-
-  if $facts['kernel'] == 'Linux' {
-    if $isolcpus {
-      $isolcpus_expanded = $isolcpus.split(',').map |$cpuset| {
-        if $cpuset =~ /-/ {
-          $cpuset_split = $cpuset.split('-')
-          range($cpuset_split[0], $cpuset_split[1])
-        } else {
-          0 + $cpuset
-        }
-      }.flatten
-    } else {
-      $isolcpus_expanded = []
-    }
-
-    $availcpus_expanded = range(0, $facts['processors']['count'] - 1) - $isolcpus_expanded
-  }
 
   # Include standard base configuration
   contain 'nest::base'

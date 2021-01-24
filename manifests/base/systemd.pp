@@ -121,8 +121,8 @@ class nest::base::systemd {
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
 
-  if $::nest::isolcpus {
-    $availcpus_formatted = $::nest::availcpus_expanded.join(' ')
+  if $::nest::isolate_smt {
+    $allowed_cpus = "0-${facts['processorcount'] / 2 - 1}"
 
     file {
       default:
@@ -134,6 +134,7 @@ class nest::base::systemd {
 
       [
         '/etc/systemd/system/init.scope.d',
+        '/etc/systemd/system/machine.slice.d',
         '/etc/systemd/system/system.slice.d',
         '/etc/systemd/system/user.slice.d',
       ]:
@@ -141,19 +142,21 @@ class nest::base::systemd {
       ;
 
       '/etc/systemd/system/init.scope.d/10-allowed-cpus.conf':
-        content => "[Scope]\nAllowedCPUs=${availcpus_formatted}\n",
+        content => "[Scope]\nAllowedCPUs=${allowed_cpus}\n",
       ;
 
       [
+        '/etc/systemd/system/machine.slice.d/10-allowed-cpus.conf',
         '/etc/systemd/system/system.slice.d/10-allowed-cpus.conf',
         '/etc/systemd/system/user.slice.d/10-allowed-cpus.conf',
       ]:
-        content => "[Slice]\nAllowedCPUs=${availcpus_formatted}\n",
+        content => "[Slice]\nAllowedCPUs=${allowed_cpus}\n",
       ;
     }
   } else {
     file { [
       '/etc/systemd/system/init.scope.d',
+      '/etc/systemd/system/machine.slice.d',
       '/etc/systemd/system/system.slice.d',
       '/etc/systemd/system/user.slice.d',
     ]:

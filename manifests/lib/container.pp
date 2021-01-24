@@ -1,14 +1,13 @@
 define nest::lib::container (
   String $image,
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  Optional[String] $cpuset_cpus = $::nest::availcpus_expanded.join(','),
-  Optional[String] $dns         = undef,
-  Array[String]    $env         = [],
-  Optional[String] $network     = undef,
-  Optional[String] $pod         = undef,
-  Array[String]    $publish     = [],
-  Array[String]    $tmpfs       = [],
-  Array[String]    $volumes     = [],
+  Optional[String] $dns     = undef,
+  Array[String]    $env     = [],
+  Optional[String] $network = undef,
+  Optional[String] $pod     = undef,
+  Array[String]    $publish = [],
+  Array[String]    $tmpfs   = [],
+  Array[String]    $volumes = [],
 ) {
   # Required for /usr/bin/podman
   include 'nest'
@@ -78,11 +77,6 @@ define nest::lib::container (
       }
     }
 
-    $cpuset_cpus_args = $cpuset_cpus ? {
-      undef   => [],
-      default => ["--cpuset-cpus=${cpuset_cpus}"],
-    }
-
     $dns_args = $dns ? {
       undef   => [],
       default => ["--dns=${dns}"],
@@ -117,7 +111,6 @@ define nest::lib::container (
     $podman_create_cmd = [
       '/usr/bin/podman', 'container', 'create',
       '--replace',
-      $cpuset_cpus_args,
       $dns_args,
       $env_args,
       $network_args,

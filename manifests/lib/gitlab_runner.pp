@@ -3,7 +3,6 @@ define nest::lib::gitlab_runner (
   Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
   String $host                    = $name,
   String $default_image           = "registry.gitlab.james.tl/nest/stage1:${::platform}-server",
-  Optional[String] $cpuset_cpus   = $::nest::availcpus_expanded.join(','),
   Optional[String] $dns           = undef,
   Array[String] $devices          = [],
   Array[String] $security_options = [],
@@ -35,11 +34,6 @@ define nest::lib::gitlab_runner (
       group  => 'root',
     }
 
-    $cpuset_cpus_args = $cpuset_cpus ? {
-      undef   => [],
-      default => ['--docker-cpuset-cpus', $cpuset_cpus],
-    }
-
     $dns_args = $dns ? {
       undef   => [],
       default => ['--docker-dns', $dns],
@@ -69,7 +63,6 @@ define nest::lib::gitlab_runner (
       '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${::nest::base::portage::emerge_default_opts}",
       '--env', "CI_HOST_MAKEOPTS=${::nest::base::portage::makeopts}",
       '--env', "CI_HOST_CPU=${::cpu}",
-      $cpuset_cpus_args,
       $dns_args,
       $device_args,
       $security_opt_args,
@@ -87,15 +80,14 @@ define nest::lib::gitlab_runner (
     }
 
     nest::lib::container { "gitlab-runner-${name}":
-      ensure      => $ensure,
-      image       => 'gitlab/gitlab-runner',
-      cpuset_cpus => $cpuset_cpus,
-      dns         => $dns,
-      volumes     => [
+      ensure  => $ensure,
+      image   => 'gitlab/gitlab-runner',
+      dns     => $dns,
+      volumes => [
         '/run/podman/podman.sock:/var/run/docker.sock',
         "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
       ],
-      require     => Exec["gitlab-runner-${name}-register"],
+      require => Exec["gitlab-runner-${name}-register"],
     }
   }
 }

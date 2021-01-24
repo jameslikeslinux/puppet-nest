@@ -3,7 +3,7 @@ classes:
   - 'nest::service::libvirt'
 
 nest::bootloader: systemd
-nest::isolcpus: '4-7'
+nest::isolate_smt: true
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
