@@ -13,6 +13,7 @@ nest::cnames:
   puppet.nest: 'falcon.nest'
   puppetdb.nest: 'falcon.nest'
   radarr.nest: 'falcon.nest'
+  smtp.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
   registry.gitlab.james.tl: 'falcon.nest'
 nest::cups_servers:
@@ -43,7 +44,6 @@ nest::nist_time_servers:
   - 'utcnist.colorado.edu'
   - 'utcnist2.colorado.edu'
 nest::openvpn_hostname: 'nest.james.tl'
-nest::root_mail_alias: 'james@james.tl'
 
 nest::package_keywords:
   # I always want the latest of these
@@ -163,25 +163,6 @@ nest::kernel_config:
   CONFIG_NET_ACT_POLICE: m
   CONFIG_MACVLAN: m
   CONFIG_MACVTAP: m
-
-nest::nullmailer_config: >
-  ENC[PKCS7,MIIC9gYJKoZIhvcNAQcDoIIC5zCCAuMCAQAxggI9MIICOQIBADAhMBwxGjAY
-  BgNVBAMMEVB1cHBldCBDQTogcHVwcGV0AgEBMA0GCSqGSIb3DQEBAQUABIIC
-  AC7HvAXGrMs/MuMeZz6JToPMlxntkxl+E1382JREgOmb3KNCbMB3WgozKmOx
-  mp0Ggm/lcBK0rRXUgMQTW6LjSWEI4HJVIkyjP//VjoHGmak9pCm9/iwoIVIi
-  pwiwIjOOn7CJMhkBW9tbQbl0JEmeWeWZpEj0qBvbrIFQSaq4NLtZrkO9XAxY
-  /iEkY2R7U+oGCowIFsqUB2BhTR+WeovR6LEac5cHofY25ZKtafZFBUa8V4np
-  4BEJhqTgclrotwk8ucmWk2UuX9nBmdj42xUOdges1AJJHHoWh39b76qmN52P
-  +hRsTLWtVCDz72L7ip8aXU0+hcqwnNDKoZBOdqRwlYn7m3puN4/dM3Gf7tPn
-  9keAp4bo2+15kxou7HPD8VPsRaaqGVuSjMDSui9R8Mz26euNDTUCGI+MIEcm
-  8OfRtQ+ZFMscrkAvR2u0hdoH1dOIyCMh+OS360eit/leH+MxRm27lfCBhWsv
-  bb14v0peCh8BU+PuR1keMma72v2Fae4PMApwL99vZG+JmN1VwTPLi4jxmLbs
-  24oUlFkNMrRhiUbuD5KPAUl0gZCEQpGWp+tDzogd+c3eFAsOBy0+oERBfPQD
-  yLdxj3AfsKa4zfRA77cs+sw0lw/EfpS6ssuwrcBMBpAlKcCwZakSkGTPk7yL
-  3lSHxx2SyQ0vtkOGJtJ96WQtMIGcBgkqhkiG9w0BBwEwHQYJYIZIAWUDBAEq
-  BBClWWeYbpBpGL/PLfI/fi4zgHBLiYL7fZvQDaKwSXDriROw4BsJFcextb7h
-  FNiFb4LJdPOSuufmbijsj89nZ84M4NMv1fLcdSVeK9SaVWQ/Cgxa/tloSvjn
-  hX+Cz+gV0jtUK2uaNmhhkqJiimGAxsCcO/MxxksTl5h37LrhI6n0/vKT]
 
 # This is doubly-encrypted.  Don't waste your time.
 nest::ssh_private_key: >

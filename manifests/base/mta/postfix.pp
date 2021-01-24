@@ -1,0 +1,128 @@
+class nest::base::mta::postfix (
+  Enum['present', 'absent'] $ensure,
+) {
+  define map (
+    String $content,
+    String $mode = '0644',
+  ) {
+    file { "/etc/postfix/${name}":
+      mode    => $mode,
+      owner   => 'root',
+      group   => 'root',
+      content => $content,
+    }
+    ~>
+    exec { "/usr/sbin/postmap /etc/postfix/${name}":
+      refreshonly => true,
+    }
+  }
+
+  define setting (
+    String $value,
+  ) {
+    if $value {
+      exec { "postconf-set-${name}":
+        command => "/usr/sbin/postconf '${name}=${value}'",
+        unless  => "/usr/bin/test \"`/usr/sbin/postconf -h '${name}'`\" = '${value}'",
+      }
+    } else {
+      exec { "postconf-unset-${name}":
+        command => "/usr/sbin/postconf -X '${name}'",
+        unless  => "/usr/bin/test \"`/usr/sbin/postconf -n '${name}'`\" = ''",
+      }
+    }
+  }
+
+  case $ensure {
+    'present': {
+      if $::nest::gmail_username and $::nest::gmail_password {
+        $relayhost                  = '[smtp.gmail.com]:587'
+        $saslpass                   = "[smtp.gmail.com]:587 ${::nest::gmail_username}:${::nest::gmail_password}\n"
+        $smtp_sasl_auth_enable      = 'yes'
+        $smtp_sasl_password_maps    = 'hash:/etc/postfix/saslpass'
+        $smtp_sasl_security_options = 'noanonymous'
+        $smtp_tls_CAfile            = '/etc/ssl/certs/ca-certificates.crt'
+        $smtp_tls_security_level    = 'may'
+      } else {
+        $relayhost = '[smtp.nest]'
+        $saslpass  = ''
+      }
+
+      nest::lib::package_use { 'mail-mta/postfix':
+        use => 'sasl',
+      }
+
+      package { 'mail-mta/postfix':
+        ensure => installed,
+      }
+      ~>
+      exec { '/usr/bin/newaliases':
+        refreshonly => true,
+      }
+      ->
+      nest::base::mta::postfix::map {
+        'saslpass':
+          mode    => '0600',
+          content => $saslpass,
+        ;
+
+        'virtual':
+          content => "@${facts['fqdn']} james@james.tl\n",
+        ;
+      }
+      ->
+      nest::base::mta::postfix::setting {
+        'mydomain':
+          value => 'nest',
+        ;
+
+        'mynetworks_style':
+          value => 'subnet',
+        ;
+
+        'relayhost':
+          value => $relayhost,
+        ;
+
+        'smtp_sasl_auth_enable':
+          value => $smtp_sasl_auth_enable,
+        ;
+
+        'smtp_sasl_password_maps':
+          value => $smtp_sasl_password_maps,
+        ;
+
+        'smtp_sasl_security_options':
+          value => $smtp_sasl_security_options,
+        ;
+
+        'smtp_tls_security_level':
+          value => $smtp_tls_security_level,
+        ;
+
+        'smtp_tls_CAfile':
+          value => $smtp_tls_CAfile,
+        ;
+
+        'virtual_alias_maps':
+          value => 'hash:/etc/postfix/virtual'
+        ;
+      }
+      ~>
+      service { 'postfix':
+        enable => true,
+      }
+    }
+
+    'absent': {
+      service { 'postfix':
+        ensure => stopped,
+        enable => false,
+      }
+      ->
+      package { 'mail-mta/postfix':
+        ensure => absent,
+      }
+    }
+  }
+}

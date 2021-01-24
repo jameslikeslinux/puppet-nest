@@ -1,0 +1,74 @@
+class nest::base::mta::nullmailer (
+  Enum['present', 'absent'] $ensure,
+) {
+  case $ensure {
+    'present': {
+      if $::nest::gmail_username and $::nest::gmail_password {
+        $remotes_content = "smtp.gmail.com smtp --user=${::nest::gmail_username} --pass=${::nest::gmail_password} --port=587 --starttls\n"
+      } else {
+        $remotes_content = "smtp.nest\n"
+      }
+
+      package { 'mail-mta/nullmailer':
+        ensure => installed,
+      }
+      ->
+      file {
+        default:
+          mode  => '0644',
+          owner => 'root',
+          group => 'root',
+        ;
+
+        '/etc/nullmailer/adminaddr':
+          content => "james@james.tl\n",
+        ;
+
+        '/etc/nullmailer/defaultdomain':
+          content => "nest\n",
+        ;
+
+        '/etc/nullmailer/me':
+          content => "${facts['fqdn']}\n",
+        ;
+
+        '/etc/nullmailer/remotes':
+          mode      => '0640',
+          group     => 'nullmail',
+          content   => $remotes_content,
+          show_diff => false,
+        ;
+      }
+      ~>
+      service { 'nullmailer':
+        enable => true,
+      }
+
+      # XXX cleanup
+      package { 'net-mail/mailbase':
+        ensure => absent,
+      }
+
+      file { '/etc/mail':
+        ensure => absent,
+        force  => true,
+      }
+    }
+
+    'absent': {
+      service { 'nullmailer':
+        ensure => stopped,
+        enable => false,
+      }
+      ->
+      file { '/etc/nullmailer':
+        ensure => absent,
+        force  => true,
+      }
+      ->
+      package { 'mail-mta/nullmailer':
+        ensure => absent,
+      }
+    }
+  }
+}

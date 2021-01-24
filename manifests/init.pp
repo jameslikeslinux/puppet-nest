@@ -2,8 +2,6 @@ class nest (
   $nestfs_hostname,
   $openvpn_hostname,
 
-  $nullmailer_config,
-  $root_mail_alias,
   $ssh_private_key,
   $pw_hash,
 
@@ -31,12 +29,17 @@ class nest (
   $openvpn_server          = false,
   Array[Stdlib::Fqdn] $nist_time_servers = [],
 
-  Hash $hosts              = {},
 
-  Enum['grub', 'systemd'] $bootloader  = grub,
-  Boolean                 $isolate_smt = false,
-  Optional[Integer]       $cpus        = undef,
-  Boolean                 $public_ssh  = false,
+  Enum['grub', 'systemd']       $bootloader     = grub,
+  Optional[Integer]             $cpus           = undef,
+  Hash                          $hosts          = {},
+  Boolean                       $isolate_smt    = false,
+  Boolean                       $public_ssh     = false,
+
+  # Mail settings
+  Optional[String]              $gmail_username = undef,
+  Optional[String]              $gmail_password = undef,
+  Enum['nullmailer', 'postfix'] $mta            = nullmailer,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
     $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)

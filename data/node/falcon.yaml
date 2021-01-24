@@ -34,6 +34,7 @@ nest::text_scaling_factor: 1.1
 nest::distcc_hosts: {}
 nest::distcc_server: true
 nest::fileserver: true
+nest::mta: postfix
 nest::openvpn_server: true
 
 nest::barrier_config: |
