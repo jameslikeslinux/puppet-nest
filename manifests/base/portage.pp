@@ -59,10 +59,10 @@ class nest::base::portage {
   # make.conf
   #
   $makejobs_memory     = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_distcc     = $::nest::distcc_hosts.reduce($::nest::processorcount) |$memo, $host| { $memo + $host[1] }
+  $makejobs_distcc     = $::nest::distcc_hosts.reduce($::nest::concurrency) |$memo, $host| { $memo + $host[1] }
   $makejobs            = min($makejobs_memory, $makejobs_distcc)
-  $loadlimit           = $::nest::processorcount + 1
-  $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${::nest::processorcount} --load-average=${loadlimit}")
+  $loadlimit           = $::nest::concurrency + 1
+  $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${::nest::concurrency} --load-average=${loadlimit}")
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
   $features = $facts['is_container'] ? {

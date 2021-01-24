@@ -3,12 +3,11 @@ classes:
   - 'nest::service::libvirt'
 
 nest::bootloader: systemd
+nest::fileserver: true
 nest::isolate_smt: true
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
-nest::processorcount: 4
-nest::fileserver: true
 
 nest::dvorak: true
 nest::monitor_layout: ['DP-2', 'DP-1']

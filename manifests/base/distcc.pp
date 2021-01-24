@@ -3,14 +3,10 @@ class nest::base::distcc {
     ensure => installed,
   }
 
-  $localhost_jobs = $::nest::processorcount
-  $distcc_hosts_config = $::nest::distcc_hosts.map |$host, $processorcount| {
-    $jobs = $processorcount
-    "${host}/${jobs}"
-  }
-  $localhost_config = "localhost/${localhost_jobs}"
-  $distcc_hosts_content = empty($distcc_hosts_config) ? {
-    true    => "${localhost_config}\n",
+  $distcc_hosts_config = $::nest::distcc_hosts.map |$host, $jobs| { "${host}/${jobs}" }
+  $localhost_config = "localhost/${::nest::concurrency}"
+  $distcc_hosts_content = $distcc_hosts_config ? {
+    []      => "${localhost_config}\n",
     default => "${distcc_hosts_config.join("\n")}\n${localhost_config}\n",
   }
 

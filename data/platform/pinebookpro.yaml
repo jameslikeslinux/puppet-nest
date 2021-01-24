@@ -7,7 +7,7 @@ nest::text_scaling_factor: 1.1
 # Sustained load drains the battery.  Reduce load from compilation by limiting
 # build jobs to the number of big cores and leaving the LITTLE cores free for
 # better interactivity.
-nest::processorcount: 2
+nest::cpus: 2
 
 nest::kernel_cmdline:
   - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash

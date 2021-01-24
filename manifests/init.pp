@@ -16,7 +16,6 @@ class nest (
   $swap_alt_win            = false,
   $monitor_layout          = [],
   $primary_monitor         = undef,
-  $processorcount          = $::processorcount,
   $gui_scaling_factor      = 1.0,
   $text_scaling_factor     = 1.0,
   $touchpad_acceleration   = 0.0,
@@ -36,6 +35,7 @@ class nest (
 
   Enum['grub', 'systemd'] $bootloader  = grub,
   Boolean                 $isolate_smt = false,
+  Optional[Integer]       $cpus        = undef,
   Boolean                 $public_ssh  = false,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
@@ -60,6 +60,14 @@ class nest (
   $cursor_size_ideal   = 24 * $::nest::gui_scaling_factor
   $cursor_size_smaller = inline_template('<%= @cursor_sizes.reverse.find(24) { |size| size - @cursor_size_ideal <= 0 } %>')
   $cursor_size         = $cursor_size_smaller
+
+  if $cpus {
+    $concurrency = $cpus
+  } elsif $isolate_smt {
+    $concurrency = $facts['processors']['count'] / 2
+  } else {
+    $concurrency = $facts['processors']['count']
+  }
 
   # Include standard base configuration
   contain 'nest::base'

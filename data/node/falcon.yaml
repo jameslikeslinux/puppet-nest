@@ -25,7 +25,6 @@ nest::kernel_cmdline:
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
-nest::processorcount: 16
 
 nest::dvorak: true
 nest::monitor_layout: ['DP-2', 'DP-1']
