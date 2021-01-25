@@ -1,5 +1,5 @@
 define nest::lib::kernel_config (
-  Any $value,
+  Nest::Kconfig $value,
 ) {
   # Required for Exec['make defconfig'], Exec['make kernel']
   include 'nest'
@@ -11,7 +11,7 @@ define nest::lib::kernel_config (
 
   $line = $value ? {
     Numeric   => "${name}=${value}",
-    'n'       => "# ${name} is not set",
+    n         => "# ${name} is not set",
     /^(y|m)$/ => "${name}=${value}",
     default   => "${name}=\"${value}\"",
   }
