@@ -44,14 +44,6 @@ class nest (
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
 ) {
-  if $facts['osfamily'] == 'Gentoo' {
-    $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)
-    $kernel_cmdline_hiera = hiera_array('nest::kernel_cmdline', $kernel_cmdline)
-    $cups_servers_hiera = hiera_array('nest::cups_servers', $cups_servers)
-    $package_env_hiera = hiera_hash('nest::package_env', $package_env)
-    $package_keywords_hiera = hiera_hash('nest::package_keywords', $package_keywords)
-  }
-
   $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')
   $gui_scaling_factor_rounded = 0 + inline_template('<%= @gui_scaling_factor.round %>')
   $text_scaling_factor_percent_of_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor * 96.0)).round(3) %>')

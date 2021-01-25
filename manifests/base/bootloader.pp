@@ -22,7 +22,7 @@ class nest::base::bootloader {
     'zswap.zpool=z3fold',
     'zswap.max_pool_percent=100',
 
-    $::nest::kernel_cmdline_hiera,
+    $::nest::kernel_cmdline,
   ].flatten.join(' ').strip
 
   case $::nest::bootloader {

@@ -27,7 +27,7 @@ class nest::base::kernel {
     notify  => Exec['make kernel'],
   }
 
-  $::nest::kernel_config_hiera.each |$config, $value| {
+  $::nest::kernel_config.each |$config, $value| {
     nest::lib::kernel_config { $config:
       value => $value,
     }

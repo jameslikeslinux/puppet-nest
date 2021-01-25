@@ -1,5 +1,13 @@
 ---
 lookup_options:
+  nest::kernel_cmdline:
+    merge: 'unique'
+  nest::kernel_config:
+    merge: 'hash'
+  nest::package_env:
+    merge: 'hash'
+  nest::package_keywords:
+    merge: 'hash'
   nest::service::wordpress::sites:
     merge: 'hash'
 

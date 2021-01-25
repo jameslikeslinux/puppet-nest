@@ -169,8 +169,8 @@ class nest::base::portage {
   }
 
   # Create portage package properties rebuild affected packages
-  create_resources(package_accept_keywords, $::nest::package_keywords_hiera, { 'before' => Class['::portage'] })
-  create_resources(package_env, $::nest::package_env_hiera, { 'before' => Class['::portage'] })
+  create_resources(package_accept_keywords, $::nest::package_keywords, { 'before' => Class['::portage'] })
+  create_resources(package_env, $::nest::package_env, { 'before' => Class['::portage'] })
 
   # Purge unmanaged portage package properties
   resources { [
