@@ -120,6 +120,11 @@ class nest::base::mta::postfix (
         enable => false,
       }
       ->
+      file { '/etc/postfix':
+        ensure => absent,
+        force  => true,
+      }
+      ->
       package { 'mail-mta/postfix':
         ensure => absent,
       }
