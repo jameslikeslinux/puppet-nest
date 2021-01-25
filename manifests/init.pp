@@ -77,6 +77,4 @@ class nest (
   if $facts['tool'] {
     contain "nest::tool::${tool}"
   }
-
-  create_resources(host, $hosts)
 }

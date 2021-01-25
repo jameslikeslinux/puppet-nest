@@ -1,13 +1,6 @@
 class nest::base::network {
-  # resolvconf now provided by systemd
-  nest::lib::package_use { 'net-misc/networkmanager':
-    ensure => absent,
-    use    => 'resolvconf',
-  }
-
   package { 'net-misc/networkmanager':
-    ensure  => installed,
-    require => Package_use['net-misc/networkmanager'],
+    ensure => installed,
   }
 
   $networkmanager_conf = @(EOT)
