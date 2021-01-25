@@ -22,13 +22,13 @@ class nest::base::mta::postfix (
   ) {
     if $value {
       exec { "postconf-set-${name}":
-        command => "/usr/sbin/postconf '${name}=${value}'",
-        unless  => "/usr/bin/test \"`/usr/sbin/postconf -h '${name}'`\" = '${value}'",
+        command => "/usr/sbin/postconf ${name.shellquote}=${value.shellquote}",
+        unless  => "/usr/bin/test \"`/usr/sbin/postconf -h ${name.shellquote}`\" = ${value.shellquote}",
       }
     } else {
       exec { "postconf-unset-${name}":
-        command => "/usr/sbin/postconf -X '${name}'",
-        unless  => "/usr/bin/test \"`/usr/sbin/postconf -n '${name}'`\" = ''",
+        command => "/usr/sbin/postconf -X ${name.shellquote}",
+        unless  => "/usr/bin/test -z \"`/usr/sbin/postconf -n ${name.shellquote}`\"",
       }
     }
   }
