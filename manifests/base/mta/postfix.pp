@@ -18,7 +18,7 @@ class nest::base::mta::postfix (
   }
 
   define setting (
-    String $value,
+    Optional[String] $value,
   ) {
     if $value {
       exec { "postconf-set-${name}":
