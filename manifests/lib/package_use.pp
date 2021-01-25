@@ -1,7 +1,7 @@
 define nest::lib::package_use (
-  $use,
-  $package = $name,
-  $ensure  = 'present',
+  Variant[String, Array[String]] $use,
+  String                         $package = $name,
+  Enum['present', 'absent']      $ensure  = 'present',
 ) {
   package_use { $package:
     ensure => $ensure,

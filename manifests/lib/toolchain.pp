@@ -1,6 +1,6 @@
 define nest::lib::toolchain (
-  Enum['present', 'absent'] $ensure = present,
-  Boolean $gcc_only = false,
+  Enum['present', 'absent'] $ensure   = present,
+  Boolean                   $gcc_only = false,
 ) {
   case $ensure {
     'present': {

@@ -1,7 +1,7 @@
 define nest::lib::pod (
-  Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  Optional[String] $dns     = undef,
-  Array[String]    $publish = [],
+  Optional[String]    $dns     = undef,
+  Nest::ServiceEnsure $ensure  = running,
+  Array[String]       $publish = [],
 ) {
   # Required for /usr/bin/podman
   include 'nest'

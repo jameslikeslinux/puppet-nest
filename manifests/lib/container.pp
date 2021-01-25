@@ -1,13 +1,13 @@
 define nest::lib::container (
-  String $image,
-  Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  Optional[String] $dns     = undef,
-  Array[String]    $env     = [],
-  Optional[String] $network = undef,
-  Optional[String] $pod     = undef,
-  Array[String]    $publish = [],
-  Array[String]    $tmpfs   = [],
-  Array[String]    $volumes = [],
+  String              $image,
+  Optional[String]    $dns     = undef,
+  Nest::ServiceEnsure $ensure  = running,
+  Array[String]       $env     = [],
+  Optional[String]    $network = undef,
+  Optional[String]    $pod     = undef,
+  Array[String]       $publish = [],
+  Array[String]       $tmpfs   = [],
+  Array[String]       $volumes = [],
 ) {
   # Required for /usr/bin/podman
   include 'nest'

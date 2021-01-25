@@ -1,13 +1,13 @@
 define nest::lib::gitlab_runner (
-  String $registration_token,
-  Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent'] $ensure = running,
-  String $host                    = $name,
-  String $default_image           = "registry.gitlab.james.tl/nest/stage1:${::platform}-server",
-  Optional[String] $dns           = undef,
-  Array[String] $devices          = [],
-  Array[String] $security_options = [],
-  Array[String] $volumes          = [],
-  Array[String] $tag_list         = [],
+  String              $registration_token,
+  String              $default_image    = "registry.gitlab.james.tl/nest/stage1:${::platform}-server",
+  Optional[String]    $dns              = undef,
+  Array[String]       $devices          = [],
+  Nest::ServiceEnsure $ensure           = running,
+  String              $host             = $name,
+  Array[String]       $security_options = [],
+  Array[String]       $volumes          = [],
+  Array[String]       $tag_list         = [],
 ) {
   if $ensure == absent {
     nest::lib::container { "gitlab-runner-${name}":

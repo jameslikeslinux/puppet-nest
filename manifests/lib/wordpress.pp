@@ -1,11 +1,11 @@
 define nest::lib::wordpress (
-  String[1]            $database_password,
-  String[1]            $servername,
-  Array[String[1]]     $serveraliases                = [],
-  Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
-  Boolean              $ssl                          = true,
-  Hash[String[1], Any] $extra_vhost_params           = {},
-  Optional[String[1]]  $priority                     = undef,
+  String                 $database_password,
+  String                 $servername,
+  Hash[String, Any]      $extra_vhost_params = {},
+  Optional[Nest::IPList] $ip                 = undef,
+  Optional[String]       $priority           = undef,
+  Array[String]          $serveraliases      = [],
+  Boolean                $ssl                = true,
 ) {
   include 'nest::service::apache'
   include 'nest::service::mysql'

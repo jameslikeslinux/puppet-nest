@@ -1,5 +1,5 @@
 class nest::service::puppet (
-  String[1] $r10k_deploy_key,
+  String $r10k_deploy_key,
 ) {
   Nest::Lib::Srv {
     mode  => '0755',

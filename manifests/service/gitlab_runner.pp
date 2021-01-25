@@ -1,5 +1,5 @@
 class nest::service::gitlab_runner (
-  String $registration_token,
+  String             $registration_token,
   Hash[String, Hash] $instances = {},
 ) {
   nest::lib::srv { 'gitlab-runner': }

@@ -1,45 +1,48 @@
 class nest (
-  $nestfs_hostname,
-  $openvpn_hostname,
+  # Required settings
+  Stdlib::Host $nestfs_hostname,
+  Stdlib::Host $openvpn_hostname,
+  String       $pw_hash,
+  String       $ssh_private_key,
 
-  $ssh_private_key,
-  $pw_hash,
+  # Service discovery configuration
+  Hash[Stdlib::Fqdn, Stdlib::Fqdn] $cnames       = {},
+  Array[Stdlib::Host]              $cups_servers = [],
+  Hash[Stdlib::Host, Integer]      $distcc_hosts = {},
+  Hash[Stdlib::Fqdn, Hash]         $hosts        = {},
 
-  $cnames                  = {},
-  $distcc_hosts            = {},
-  $kernel_config           = {},
-  $kernel_cmdline          = [],
+  # Service toggles
+  Boolean $distcc_server  = false,
+  Boolean $fileserver     = false,
+  Boolean $openvpn_server = false,
+  Boolean $public_ssh     = false,
 
-  $dvorak                  = false,
-  $swap_alt_win            = false,
-  $monitor_layout          = [],
-  $primary_monitor         = undef,
-  $gui_scaling_factor      = 1.0,
-  $text_scaling_factor     = 1.0,
-  $touchpad_acceleration   = 0.0,
-  $trackpoint_acceleration = 0.0,
-  $barrier_config          = undef,
-
-  $package_env             = {},
-  $package_keywords        = {},
-
-  $cups_servers            = [],
-  $distcc_server           = false,
-  $fileserver              = false,
-  $openvpn_server          = false,
-  Array[Stdlib::Fqdn] $nist_time_servers = [],
-
-
-  Enum['grub', 'systemd']       $bootloader     = grub,
-  Optional[Integer]             $cpus           = undef,
-  Hash                          $hosts          = {},
-  Boolean                       $isolate_smt    = false,
-  Boolean                       $public_ssh     = false,
+  # System settings
+  Enum['grub', 'systemd'] $bootloader     = grub,
+  Optional[Integer]       $cpus           = undef,
+  Boolean                 $isolate_smt    = false,
+  Hash[String, Any]       $kernel_config  = {},
+  Array[String]           $kernel_cmdline = [],
 
   # Mail settings
-  Optional[String]              $gmail_username = undef,
-  Optional[String]              $gmail_password = undef,
-  Enum['nullmailer', 'postfix'] $mta            = nullmailer,
+  Optional[String] $gmail_username   = undef,
+  Optional[String] $gmail_password   = undef,
+  Enum['nullmailer', 'postfix'] $mta = nullmailer,
+
+  # Package resources
+  Hash[String, Hash] $package_env      = {},
+  Hash[String, Hash] $package_keywords = {},
+
+  # Input settings
+  Optional[String] $barrier_config = undef,
+  Boolean          $dvorak         = false,
+  Boolean          $swap_alt_win   = false,
+
+  # Output settings
+  Float            $gui_scaling_factor  = 1.0,
+  Float            $text_scaling_factor = 1.0,
+  Array[String]    $monitor_layout      = [],
+  Optional[String] $primary_monitor     = undef,
 ) {
   if $facts['osfamily'] == 'Gentoo' {
     $kernel_config_hiera = hiera_hash('nest::kernel_config', $kernel_config)

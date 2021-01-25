@@ -1,5 +1,5 @@
 define nest::lib::kernel_config (
-  $value,
+  Any $value,
 ) {
   # Required for Exec['make defconfig'], Exec['make kernel']
   include 'nest'

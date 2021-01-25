@@ -1,12 +1,12 @@
 define nest::lib::virtual_host (
-  String[1] $servername,
-  Array[String[1]] $serveraliases                    = [],
-  Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
-  Optional[Integer] $port                            = undef,
-  Boolean $ssl                                       = true,
-  Hash[String[1], Any] $extra_params                 = {},
-  Boolean $zfs_docroot                               = true,
-  Optional[String[1]] $priority                      = undef,
+  String                 $servername,
+  Hash[String, Any]      $extra_params  = {},
+  Optional[Nest::IPList] $ip            = undef,
+  Optional[Integer]      $port          = undef,
+  Optional[String]       $priority      = undef,
+  Array[String]          $serveraliases = [],
+  Boolean                $ssl           = true,
+  Boolean                $zfs_docroot   = true,
 ) {
   include '::nest::service::apache'
 

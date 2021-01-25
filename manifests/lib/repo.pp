@@ -1,7 +1,7 @@
 define nest::lib::repo (
-  Optional[String] $url = undef,
-  Boolean $default      = false,
-  Boolean $unstable     = false,
+  Boolean          $default  = false,
+  Boolean          $unstable = false,
+  Optional[String] $url      = undef,
 ) {
   include 'nest::lib::repos'
 

@@ -1,5 +1,5 @@
 class nest::service::gitlab (
-  String[1] $gmail_password,
+  String  $gmail_password,
   Integer $puma_workers = $::nest::concurrency,
 ) inherits nest {
   nest::lib::srv { 'gitlab': }

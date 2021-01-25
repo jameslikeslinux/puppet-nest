@@ -6,17 +6,3 @@ Section "InputClass"
     Option          "Tapping" "yes"
     Option          "DPIScaleFactor" "<%= scope['::nest::gui_scaling_factor'] %>"
 EndSection
-
-Section "InputClass"
-    Identifier      "libinput-touchpad-acceleration"
-    MatchDriver     "libinput"
-    MatchIsTouchpad "on"
-    Option          "AccelSpeed" "<%= scope['::nest::touchpad_acceleration'] %>"
-EndSection
-
-Section "InputClass"
-    Identifier   "libinput-trackpoint-acceleration"
-    MatchDriver  "libinput"
-    MatchProduct "TPPS/2 IBM TrackPoint"
-    Option       "AccelSpeed" "<%= scope['::nest::trackpoint_acceleration'] %>"
-EndSection

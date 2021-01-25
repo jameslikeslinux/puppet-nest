@@ -1,8 +1,8 @@
 define nest::lib::srv (
-  Boolean          $zfs   = true,
   Optional[String] $mode  = undef,
   Optional[String] $owner = undef,
   Optional[String] $group = undef,
+  Boolean          $zfs   = true,
 ) {
   unless $facts['is_container'] {
     ensure_resource('zfs', 'srv', {

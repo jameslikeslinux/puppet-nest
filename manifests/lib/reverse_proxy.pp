@@ -1,14 +1,14 @@
 define nest::lib::reverse_proxy (
-  String[1] $destination,
-  String[1] $servername                              = $name,
-  Array[String[1]] $serveraliases                    = [],
-  Optional[Variant[String[1], Array[String[1]]]] $ip = undef,
-  Optional[Integer] $port                            = undef,
-  Boolean $ssl                                       = true,
-  Boolean $encoded_slashes                           = false,
-  Boolean $preserve_host                             = false,
-  Variant[Boolean, String] $websockets               = false,
-  Hash[String[1], Any] $extra_params                 = {},
+  String                   $destination,
+  Boolean                  $encoded_slashes = false,
+  Hash[String, Any]        $extra_params    = {},
+  Optional[Nest::IPList]   $ip              = undef,
+  Optional[Integer]        $port            = undef,
+  Boolean                  $preserve_host   = false,
+  String                   $servername      = $name,
+  Array[String]            $serveraliases   = [],
+  Boolean                  $ssl             = true,
+  Variant[Boolean, String] $websockets      = false,
 ) {
   if $encoded_slashes {
     $proxy_pass_keywords = ['nocanon']
