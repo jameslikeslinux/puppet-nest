@@ -2,10 +2,13 @@ class nest::role::workstation::firefox {
   case $facts['osfamily'] {
     'Gentoo': {
       # clang-11: error: the clang compiler does not support '-mcpu=cortex-a72.cortex-a53+crypto'
-      package_env { 'www-client/firefox':
-        env => 'no-big-little.conf',
+      if defined(File['/etc/portage/env/no-big-little.conf']) {
+        package_env { 'www-client/firefox':
+          env    => 'no-big-little.conf',
+          before => Nest::Lib::Package_use['www-client/firefox'],
+        }
       }
-      ->
+
       nest::lib::package_use { 'www-client/firefox':
         use => ['hwaccel', 'wifi'],
       }
