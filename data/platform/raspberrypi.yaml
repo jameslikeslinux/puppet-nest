@@ -11,11 +11,10 @@ nest::package_keywords:
     accept_keywords: '**'
 
 nest::kernel_cmdline:
-  - 'zfs.zfs_txg_timeout=30'  # be nicer to the cheap flash
-  - '8250.nr_uarts=1'         # set in DT but not passed by u-boot/systemd-boot
+  - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
-  - 'noefi'                   # u-boot doesn't provide EFI services
+  - 'noefi'             # u-boot doesn't provide EFI services
 
 nest::kernel_config:
   # Enable frequency scaling based on scheduler data
