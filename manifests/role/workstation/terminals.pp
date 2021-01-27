@@ -30,4 +30,20 @@ class nest::role::workstation::terminals {
   ]:
     require => Package['x11-terms/rxvt-unicode'],
   }
+
+  file {
+    default:
+      mode  => '0755',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/usr/local/bin/alacritty':
+      source => 'puppet:///modules/nest/terminals/alacritty',
+    ;
+
+    '/usr/local/bin/terminal':
+      content => template('nest/terminals/terminal.erb'),
+    ;
+  }
 }
