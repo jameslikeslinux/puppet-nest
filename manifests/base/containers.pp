@@ -6,10 +6,11 @@ class nest::base::containers {
     }
   }
 
-  package { [
-    'app-emulation/crun',
-    'app-emulation/libpod',
-  ]:
+  package { 'app-emulation/crun':
+    ensure => installed,
+  }
+  ->
+  package { 'app-emulation/podman':
     ensure => installed,
   }
   ->
