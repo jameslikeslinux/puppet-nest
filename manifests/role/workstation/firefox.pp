@@ -31,6 +31,16 @@ class nest::role::workstation::firefox {
           content => template('nest/firefox/wrapper.erb'),
         ;
 
+        '/usr/local/bin/firefox-wayland':
+          mode   => '0755',
+          source => 'puppet:///modules/nest/firefox/firefox-wayland',
+        ;
+
+        '/usr/local/bin/firefox-x11':
+          mode   => '0755',
+          source => 'puppet:///modules/nest/firefox/firefox-x11',
+        ;
+
         '/usr/lib64/firefox/firefox.cfg':
           mode    => '0644',
           content => template('nest/firefox/firefox.cfg.erb'),

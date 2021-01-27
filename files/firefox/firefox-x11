@@ -1,0 +1,3 @@
+#!/bin/bash
+export MOZ_DISABLE_WAYLAND=1
+exec /usr/local/bin/firefox "$@"
