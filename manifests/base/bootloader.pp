@@ -1,8 +1,8 @@
 class nest::base::bootloader {
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
-    'loglevel=3',
     'quiet',
+    'loglevel=3',   # must come after 'quiet'
 
     $::nest::isolate_smt ? {
       true    => "nohz_full=${facts['processorcount'] / 2}-${facts['processorcount'] - 1}",
