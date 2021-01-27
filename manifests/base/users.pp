@@ -133,13 +133,18 @@ class nest::base::users {
         ;
       }
 
+      # Early stages often have hidden files blocking vcsrepo initialization
+      exec { '/bin/rm -rf /root':
+        unless => '/usr/bin/test -d /root/.git',
+        before => File['/root'],
+      }
+
       file {
-        [
-          '/root/.distcc',
-          '/root/.keep',
-        ]:
-          ensure => absent,
-          force  => true,
+        '/root':
+          ensure => directory,
+          mode   => '0700',
+          owner  => 'root',
+          group  => 'root',
           before => Vcsrepo['/root'],
         ;
 
