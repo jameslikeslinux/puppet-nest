@@ -1,8 +1,0 @@
----
-classes:
-  - 'nest::service::puppet'
-
-nest::bootloader: systemd
-nest::dvorak: true
-nest::kernel_cmdline: ['console=ttyS0', 'console=tty0']
-nest::nestfs_hostname: 'falcon.home'
