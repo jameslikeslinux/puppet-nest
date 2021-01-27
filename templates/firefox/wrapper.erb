@@ -6,22 +6,17 @@ export MOZ_USE_XINPUT2=1
 # Enable or disable accelerated compositing
 export MOZ_WEBRENDER=<%= @webrender %>
 
+# For VAAPI support
+export MOZ_X11_EGL=1
+
 if [[ $XDG_SESSION_TYPE == 'x11' ]]; then
     # Use KDE file/print dialogs when available
     export GTK_USE_PORTAL=1
-
-    # For VAAPI support
-    export MOZ_X11_EGL=1
-else
-    if [[ $MOZ_DISABLE_WAYLAND == '1' ]]; then
-        # Requested X11 under Wayland--DPI scaling is automatic
-        unset GDK_DPI_SCALE
-    else
-        # Force Wayland
-        export MOZ_ENABLE_WAYLAND=1
-    fi
+elif [[ -n $MOZ_DISABLE_WAYLAND ]]; then
+    # Requested X11 under Wayland--DPI scaling is automatic
+    unset GDK_DPI_SCALE
 fi
 
-exec /usr/lib64/firefox/firefox "$@"
+exec /usr/bin/firefox "$@"
 
 # vim: filetype=bash

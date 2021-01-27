@@ -12,12 +12,6 @@ class nest::role::workstation::sway {
     ensure => installed,
   }
 
-  exec { 'move-sway-binary':
-    command => '/bin/mv -f /usr/bin/sway /usr/bin/sway.real',
-    unless  => '/bin/grep \'^#!/bin/bash$\' /usr/bin/sway',
-    require => Package['gui-wm/sway'],
-  }
-
   # Sway will scale the display to our gui_scaling_factor, but we need
   # to change the DPI to effect our text_scaling_factor
   $gui_scaling_factor  = $::nest::gui_scaling_factor
@@ -28,15 +22,14 @@ class nest::role::workstation::sway {
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     # Workaround https://github.com/swaywm/sway/issues/3109
-    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} /usr/bin/sway.real \${*@Q}"
+    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} /usr/bin/sway \${*@Q}"
     | END_WRAPPER
 
-  file { '/usr/bin/sway':
+  file { '/usr/local/bin/sway':
     mode    => '0755',
     owner   => 'root',
     group   => 'root',
     content => $sway_wrapper_content,
-    require => Exec['move-sway-binary'],
   }
 
   $xresources_content = @("XRESOURCES")

@@ -26,7 +26,7 @@ class nest::role::workstation::firefox {
           require => Package['www-client/firefox'],
         ;
 
-        '/usr/bin/firefox':
+        '/usr/local/bin/firefox':
           mode    => '0755',
           content => template('nest/firefox/wrapper.erb'),
         ;
