@@ -18,6 +18,7 @@ class nest::role::workstation::firefox {
       }
 
       $webrender = $::platform ? {
+        'pinebookpro' => 0,
         'raspberrypi' => 0,
         default       => 1,
       }
