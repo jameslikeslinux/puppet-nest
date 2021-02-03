@@ -72,6 +72,10 @@ class nest::base::mta::postfix (
       }
       ->
       nest::base::mta::postfix::setting {
+        'compatibility_level':
+          value => '2',
+        ;
+
         'mydomain':
           value => 'nest',
         ;
