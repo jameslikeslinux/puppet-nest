@@ -38,7 +38,7 @@ class nest::base::users {
         match => '^CREATE_HOME ',
       }
 
-      unless $facts['build'] == 'stage1' or $facts['tool'] {
+      unless $facts['build'] {
         $pw_hash = $::nest::pw_hash
       }
 
@@ -215,7 +215,7 @@ class nest::base::users {
       refreshonly => true,
     }
 
-    unless $facts['build'] == 'stage1' or $facts['tool'] {
+    unless $facts['build'] {
       file { "${home_dir}/.ssh/id_rsa":
         mode      => '0600',
         owner     => $user,

@@ -57,7 +57,7 @@ class nest::base::puppet {
       content => "---\nfqdn: '${trusted['certname']}.nest'\n",
     }
 
-    if $facts['build'] == 'stage1' or $facts['tool'] {
+    if $facts['build'] {
       $puppet_runmode = 'unmanaged'
     } else {
       $puppet_runmode = 'systemd.timer'

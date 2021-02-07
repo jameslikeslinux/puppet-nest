@@ -1,5 +1,5 @@
 class nest::base::timesyncd {
-  unless $facts['build'] == 'stage1' or $facts['tool'] {
+  unless $facts['build'] {
     # NIST provides reliable, public time servers which are explicitly allowed to
     # be referenced by IP address.  See: https://tf.nist.gov/tf-cgi/servers.cgi.
     # Look them up here, randomly rotate them, and set them as the list of NTP

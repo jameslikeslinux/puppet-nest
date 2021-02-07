@@ -8,7 +8,7 @@ class nest::base::systemd {
     ensure  => directory,
   }
 
-  unless $facts['build'] == 'stage1' or $facts['tool'] {
+  unless $facts['build'] {
     file { '/etc/hostname':
       content => "${::trusted['certname']}\n",
     }

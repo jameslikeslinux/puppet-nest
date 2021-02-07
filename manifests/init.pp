@@ -74,7 +74,7 @@ class nest (
   contain "nest::role::${::role}"
 
   # Let client ask for a tool configuration
-  if $facts['tool'] {
-    contain "nest::tool::${tool}"
+  if $facts['build'] in ['buildah', 'qemu', 'r10k'] {
+    contain "nest::tool::${facts['build']}"
   }
 }
