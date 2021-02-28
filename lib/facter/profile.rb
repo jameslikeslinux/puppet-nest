@@ -6,7 +6,7 @@ Facter.add('profile') do
     when %r{nest:(\S+)/(\S+)/(\S+)}
       { :cpu => $1, :platform => $2, :role => $3 }
     when %r{nest:(\S+)/(\S+)}
-      { :cpu => $1, :role => $2 }
+      { :cpu => $1, :platform => $1, :role => $2 }
     end
   end
 end
