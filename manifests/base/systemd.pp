@@ -166,7 +166,7 @@ class nest::base::systemd {
     }
   }
 
-  $suspend_state = $::platform ? {
+  $suspend_state = $facts['profile']['platform'] ? {
     'pinebookpro' => 'SuspendState=freeze',   # TF-A doesn't support deep sleep yet
     default       => '#SuspendState=mem standby freeze',
   }

@@ -27,7 +27,7 @@ class nest::base::packages {
         ensure => installed,
       }
 
-      unless $::platform == 'beagleboneblack' {
+      unless $facts['profile']['platform'] == 'beagleboneblack' {
         package { 'sys-process/parallel':
           ensure => installed,
         }

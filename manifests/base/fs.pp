@@ -58,7 +58,7 @@ class nest::base::fs {
       enable    => true,
       subscribe => File['/etc/samba/smb.conf'],
     }
-  } elsif !$facts['live'] and $::platform != 'beagleboneblack' {
+  } elsif !$facts['live'] and $facts['profile']['platform'] != 'beagleboneblack' {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
     }

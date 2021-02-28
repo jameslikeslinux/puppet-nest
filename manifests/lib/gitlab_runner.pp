@@ -1,6 +1,6 @@
 define nest::lib::gitlab_runner (
   String              $registration_token,
-  String              $default_image    = "registry.gitlab.james.tl/nest/stage1:${::platform}-server",
+  String              $default_image    = "registry.gitlab.james.tl/nest/stage1:${facts['profile']['platform']}-server",
   Optional[String]    $dns              = undef,
   Array[String]       $devices          = [],
   Nest::ServiceEnsure $ensure           = running,
@@ -62,7 +62,7 @@ define nest::lib::gitlab_runner (
       '--docker-image', $default_image,
       '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${::nest::base::portage::emerge_default_opts}",
       '--env', "CI_HOST_MAKEOPTS=${::nest::base::portage::makeopts}",
-      '--env', "CI_HOST_CPU=${::cpu}",
+      '--env', "CI_HOST_CPU=${facts['profile']['cpu']}",
       $dns_args,
       $device_args,
       $security_opt_args,

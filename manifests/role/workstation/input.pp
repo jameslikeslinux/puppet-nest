@@ -1,5 +1,5 @@
 class nest::role::workstation::input {
-  $hwdb_ensure = $::platform ? {
+  $hwdb_ensure = $facts['profile']['platform'] ? {
     'pinebookpro' => present,
     default       => absent,
   }

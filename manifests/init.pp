@@ -71,7 +71,7 @@ class nest (
   contain 'nest::base'
 
   # Apply role-specific configuration
-  contain "nest::role::${::role}"
+  contain "nest::role::${facts['profile']['role']}"
 
   # Let client ask for a tool configuration
   if $facts['build'] in ['buildah', 'qemu', 'r10k'] {

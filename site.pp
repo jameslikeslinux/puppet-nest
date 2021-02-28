@@ -1,29 +1,3 @@
-unless defined('$cpu') {
-  if $facts['profile'] and $facts['profile']['cpu'] {
-    $cpu = $facts['profile']['cpu']
-  } else {
-    $cpu = $facts['hardwaremodel']
-  }
-}
-
-unless defined('$platform') {
-  if $facts['profile'] and $facts['profile']['platform'] {
-    $platform = $facts['profile']['platform']
-  } else {
-    $platform = $cpu
-  }
-}
-
-unless defined('$role') {
-  if $facts['profile'] and $facts['profile']['role'] {
-    $role = $facts['profile']['role']
-  } elsif $facts['osfamily'] == 'windows' {
-    $role = 'workstation'
-  } else {
-    $role = 'server'
-  }
-}
-
 case $facts['osfamily'] {
   'Gentoo': {
     # Effectively disable firewall and service resources in containers

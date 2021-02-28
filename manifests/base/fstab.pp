@@ -83,9 +83,9 @@ class nest::base::fstab {
 
   if $facts['live'] {
     $fstab = $specs['nest-nocache']
-  } elsif $::platform == 'beagleboneblack' {
+  } elsif $facts['profile']['platform'] == 'beagleboneblack' {
     $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-nocache']
-  } elsif $::platform in ['pinebookpro', 'raspberrypi'] {
+  } elsif $facts['profile']['platform'] in ['pinebookpro', 'raspberrypi'] {
     $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
   } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
     $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var']
