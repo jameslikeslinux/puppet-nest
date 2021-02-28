@@ -19,6 +19,11 @@ class nest::base::dracut {
       omit_dracutmodules+=" zfs "
       kernel_cmdline="rd.live.overlay.thin=1 rd.vconsole.font=ter-v16b"
       | EOT
+  } elsif $facts['build'] {
+    $base_config_content = @("EOT")
+      early_microcode="${early_microcode}"
+      force="yes"
+      | EOT
   } else {
     $base_config_content = @("EOT")
       early_microcode="${early_microcode}"

@@ -27,8 +27,7 @@ class nest::base {
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
 
-      if !$facts['build'] or $facts['build'] == 'stage2' {
-        contain '::nest::base::bootloader'
+      if $facts['build'] in ['stage2', 'stage3'] {
         contain '::nest::base::dracut'
         contain '::nest::base::firmware'
         contain '::nest::base::fstab'
@@ -39,7 +38,6 @@ class nest::base {
         # Rebuild initramfs and reconfigure bootloader after kernel changes
         Class['::nest::base::kernel']
         ~> Class['::nest::base::dracut']
-        ~> Class['::nest::base::bootloader']
 
         # Rebuild initramfs after firmware changes
         Class['::nest::base::firmware']
@@ -61,6 +59,14 @@ class nest::base {
         # Dracut liveimg depends on dhcp, pulled in by network class
         Class['::nest::base::network']
         -> Class['::nest::base::dracut']
+
+        # Bootloaders are host-specific
+        if $facts['build'] == 'stage3' {
+          contain '::nest::base::bootloader'
+
+          Class['::nest::base::dracut']
+          ~> Class['::nest::base::bootloader']
+        }
       }
 
       # Subuid/subgid maps override automatic entries from useradd
