@@ -10,3 +10,10 @@ Facter.add('profile') do
     end
   end
 end
+
+Facter.add('profile') do
+  confine :osfamily => 'windows'
+  setcode do
+    { :role => 'workstation' }
+  end
+end
