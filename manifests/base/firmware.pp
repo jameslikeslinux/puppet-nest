@@ -19,7 +19,7 @@ class nest::base::firmware {
     $platforms = $file[1]
     $target    = regsubst($file[0], '^[^/]*/', '')
 
-    if $::platform in $platforms {
+    if $facts['profile']['platform'] in $platforms {
       [$present + { $target => $source }, $absent]
     } else {
       [$present, $absent + { $target => $source }]

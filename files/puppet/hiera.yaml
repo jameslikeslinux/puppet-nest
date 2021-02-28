@@ -2,7 +2,7 @@
 version: 5
 
 defaults:
-  datadir: "/etc/puppetlabs/code/environments/%{::environment}/data"
+  datadir: "/etc/puppetlabs/code/environments/%{server_facts.environment}/data"
   lookup_key: eyaml_lookup_key
   options:
     pkcs7_private_key: '/etc/puppetlabs/puppet/ssl/ca/ca_key.pem'
@@ -11,24 +11,24 @@ defaults:
 hierarchy:
   - name: 'Nodes'
     paths:
-      - "private/node/%{::trusted.certname}.yaml"
-      - "node/%{::trusted.certname}.yaml"
+      - "private/node/%{trusted.certname}.yaml"
+      - "node/%{trusted.certname}.yaml"
   - name: 'Roles'
     paths:
-      - "private/role/%{::role}.yaml"
-      - "role/%{::role}.yaml"
+      - "private/role/%{facts.profile.role}.yaml"
+      - "role/%{facts.profile.role}.yaml"
   - name: 'Platforms'
     paths:
-      - "private/platform/%{::platform}.yaml"
-      - "platform/%{::platform}.yaml"
+      - "private/platform/%{facts.profile.platform}.yaml"
+      - "platform/%{facts.profile.platform}.yaml"
   - name: 'Architectures'
     paths:
-      - "private/arch/%{::architecture}.yaml"
-      - "arch/%{::architecture}.yaml"
+      - "private/arch/%{facts.os.architecture}.yaml"
+      - "arch/%{facts.os.architecture}.yaml"
   - name: 'Operating Systems'
     paths:
-      - "private/os/%{::facts.osfamily}.yaml"
-      - "os/%{::facts.osfamily}.yaml"
+      - "private/os/%{facts.os.family}.yaml"
+      - "os/%{facts.os.family}.yaml"
   - name: 'Common'
     paths:
       - 'private/common.yaml'
