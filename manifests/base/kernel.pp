@@ -55,7 +55,7 @@ class nest::base::kernel {
   }
 
   exec { 'module-rebuild':
-    command     => "/usr/bin/emerge --usepkg n --jobs ${::nest::concurrency} --load-average ${::nest::base::portage::loadlimit} @module-rebuild",
+    command     => "/usr/bin/emerge --oneshot --usepkg n --jobs ${::nest::concurrency} --load-average ${::nest::base::portage::loadlimit} @module-rebuild zfs-kmod",
     timeout     => 0,
     refreshonly => true,
     subscribe   => Exec['make kernel'],
