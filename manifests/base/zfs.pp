@@ -30,12 +30,14 @@ class nest::base::zfs {
     ;
   }
 
-  exec { 'zgenhostid':
-    command => 'zgenhostid `hostid`',
-    creates => '/etc/hostid',
-    path    => '/usr/bin:/bin',
-    require => Package['sys-fs/zfs'],
-    notify  => Class['::nest::base::dracut'],
+  unless $facts['is_container'] {
+    exec { 'zgenhostid':
+      command => 'zgenhostid `hostid`',
+      creates => '/etc/hostid',
+      path    => '/usr/bin:/bin',
+      require => Package['sys-fs/zfs'],
+      notify  => Class['::nest::base::dracut'],
+    }
   }
 
   file { '/usr/lib/dracut/modules.d/90zfs/zfs-load-key.sh':
