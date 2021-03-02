@@ -14,6 +14,7 @@ define nest::lib::toolchain (
       exec { "crossdev-install-${name}":
         command => "/usr/bin/crossdev --stable --stage${stage} --target ${name}",
         creates => "/usr/bin/${name}-gcc",
+        timeout => 0,
         require => Class['nest::lib::crossdev'],
       }
       ->
