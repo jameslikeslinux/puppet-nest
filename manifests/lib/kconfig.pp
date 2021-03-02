@@ -1,9 +1,7 @@
-define nest::lib::kernel_config (
-  Nest::Kconfig $value,
+define nest::lib::kconfig (
+  Stdlib::Absolutepath $config,
+  Nest::Kconfig        $value,
 ) {
-  # Required for Exec['make defconfig'], Exec['make kernel']
-  include 'nest'
-
   $line_ensure = $value ? {
     undef   => 'absent',
     default => 'present',
@@ -16,13 +14,11 @@ define nest::lib::kernel_config (
     default   => "${name}=\"${value}\"",
   }
 
-  file_line { "kernel-config-${name}-${value}":
+  file_line { "kconfig-${name}-${value}":
     ensure            => $line_ensure,
-    path              => '/usr/src/linux/.config',
+    path              => $config,
     line              => $line,
     match             => "(^| )${name}[= ]",
     match_for_absence => true,
-    require           => Exec['make defconfig'],
-    notify            => Exec['make kernel'],
   }
 }

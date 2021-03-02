@@ -1,4 +1,7 @@
 class nest::base::kernel {
+  # For nest::base::portage::makeopts
+  include '::nest::base::portage'
+
   $sources_package = $facts['profile']['platform'] ? {
     'raspberrypi' => 'sys-kernel/raspberrypi-sources',
     default       => 'sys-kernel/gentoo-sources',
@@ -19,45 +22,51 @@ class nest::base::kernel {
     default           => 'defconfig kvmconfig',
   }
 
-  exec { 'make defconfig':
+  exec { 'kernel-defconfig':
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
     require => Package[$sources_package],
-    notify  => Exec['make kernel'],
+    notify  => Exec['kernel-build'],
   }
 
   $::nest::kernel_config.each |$config, $value| {
-    nest::lib::kernel_config { $config:
-      value => $value,
+    nest::lib::kconfig { $config:
+      config => '/usr/src/linux/.config',
+      value  => $value,
     }
   }
 
   if $::nest::bootloader == 'systemd' {
-    nest::lib::kernel_config { 'CONFIG_EFI_STUB':
-      value => 'y',
+    nest::lib::kconfig { 'CONFIG_EFI_STUB':
+      config => '/usr/src/linux/.config',
+      value  => y,
     }
-
-    # Use kernel-install(8) instead
-    $install_target = ''
-  } else {
-    $install_target = 'install'
   }
 
-  include '::nest::base::portage'
-  exec { 'make kernel':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} olddefconfig all ${install_target} modules_install | /usr/bin/tee build.log",
+  exec { 'kernel-olddefconfig':
+    command     => '/usr/bin/make olddefconfig',
+    cwd         => '/usr/src/linux',
+    refreshonly => true,
+  }
+  ~>
+  exec { 'kernel-build':
+    command     => "/usr/bin/make ${::nest::base::portage::makeopts} all modules_install | /usr/bin/tee build.log",
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
     timeout     => 0,
     refreshonly => true,
+    noop        => !$facts['build'],
   }
-
+  ~>
   exec { 'module-rebuild':
     command     => "/usr/bin/emerge --oneshot --usepkg n --jobs ${::nest::concurrency} --load-average ${::nest::base::portage::loadlimit} zfs-kmod",
     timeout     => 0,
     refreshonly => true,
-    subscribe   => Exec['make kernel'],
   }
+
+  Exec['kernel-defconfig']
+  -> Nest::Lib::Kconfig <| config == '/usr/src/linux/.config' |>
+  ~> Exec['kernel-olddefconfig']
 }

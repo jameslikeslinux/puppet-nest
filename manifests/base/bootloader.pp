@@ -32,14 +32,6 @@ class nest::base::bootloader {
 
     default: {
       contain 'nest::base::bootloader::grub'
-
-      exec { 'dracut':
-        command     => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
-        refreshonly => true,
-        timeout     => 0,
-        provider    => shell,
-        notify      => Class['nest::base::bootloader::grub'],
-      }
     }
   }
 }

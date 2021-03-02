@@ -1,4 +1,21 @@
 class nest::base::bootloader::grub {
+  # Install stuff normally handled by kernel-install(8)
+  exec {
+    default:
+      refreshonly => true,
+    ;
+
+    'kernel-install':
+      command => '/usr/bin/make install',
+      cwd     => '/usr/src/linux',
+    ;
+
+    'dracut':
+      command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
+      provider => shell,
+    ;
+  }
+
   $font = "ter-x${::nest::console_font_size}b"
 
   nest::lib::package_use { 'sys-boot/grub':
@@ -53,7 +70,7 @@ class nest::base::bootloader::grub {
     exec { 'grub-mkconfig':
       command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
       refreshonly => true,
-      require     => Exec['grub-mkfont'],
+      require     => Exec['grub-mkfont', 'kernel-install', 'dracut'],
     }
 
     $file_line_notify    = Exec['grub-mkconfig']
