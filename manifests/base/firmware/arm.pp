@@ -16,7 +16,7 @@ class nest::base::firmware::arm {
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
     timeout     => 0,
-    refreshonly => true,
+    creates     => '/usr/src/arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf',
     subscribe   => Vcsrepo['/usr/src/arm-trusted-firmware'],
     require     => Nest::Lib::Toolchain['arm-none-eabi'],
   }
