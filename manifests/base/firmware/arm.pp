@@ -4,10 +4,10 @@ class nest::base::firmware::arm {
   }
 
   vcsrepo { '/usr/src/arm-trusted-firmware':
-    ensure   => present,
+    ensure   => latest,
     provider => git,
-    source   => 'https://github.com/ARM-software/arm-trusted-firmware.git',
-    revision => 'v2.4',
+    source   => 'https://gitlab.james.tl/nest/forks/arm-trusted-firmware.git',
+    revision => 'main',
   }
 
   include '::nest::base::portage'
