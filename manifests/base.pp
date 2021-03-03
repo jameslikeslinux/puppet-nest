@@ -39,8 +39,10 @@ class nest::base {
         Class['::nest::base::kernel']
         ~> Class['::nest::base::dracut']
 
-        # Rebuild initramfs after firmware changes
-        Class['::nest::base::firmware']
+        # Kernel builds Device Tree files used by firmware,
+        # firmware pulls in files to be included in initramfs
+        Class['::nest::base::kernel']
+        -> Class['::nest::base::firmware']
         ~> Class['::nest::base::dracut']
 
         # Rebuild initramfs after ZFS changes
