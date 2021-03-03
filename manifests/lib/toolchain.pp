@@ -6,6 +6,22 @@ define nest::lib::toolchain (
     'present': {
       include 'nest::lib::crossdev'
 
+      if $name =~ /armv7.*-gnueabihf$/ {
+        file { "/etc/portage/env/cross-${name}-gcc.conf":
+          mode  => '0644',
+          owner => 'root',
+          group => 'root',
+          content => "EXTRA_ECONF='--with-float=hard --with-fpu=vfpv3-d16'\n",
+        }
+
+        package_env { "cross-${name}/gcc":
+          env     => "cross-${name}-gcc.conf",
+          require => File["/etc/portage/env/cross-${name}-gcc.conf"],
+          before  => Exec["crossdev-install-${name}"],
+        }
+      }
+
+
       $stage = $gcc_only ? {
         true    => 1,
         default => 4,
