@@ -19,8 +19,9 @@ class nest::base::firmware::uboot {
   }
 
   $defconfig = $facts['profile']['platform'] ? {
-    'pinebookpro' => 'pinebook-pro-rk3399_defconfig',
-    'raspberrypi' => 'rpi_arm64_defconfig',
+    'beagleboneblack' => 'am335x_evm_defconfig',
+    'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
+    'raspberrypi'     => 'rpi_arm64_defconfig',
   }
 
   exec { 'uboot-defconfig':
@@ -30,15 +31,32 @@ class nest::base::firmware::uboot {
     require => Vcsrepo['/usr/src/u-boot'],
   }
 
+  nest::lib::kconfig {
+    # Replace boot delay with interrupt
+    'CONFIG_BOOTDELAY':
+      value => 0;
+    'CONFIG_AUTOBOOT_KEYED':
+      value => y;
+    'CONFIG_AUTOBOOT_PROMPT':
+      value => 'Press Ctrl-C to interrupt autoboot\n';
+    'CONFIG_AUTOBOOT_KEYED_CTRLC':
+      value => y,
+    ;
+
+    # Always use default environment to avoid divergence
+    'CONFIG_ENV_IS_NOWHERE':
+      value => y;
+    'CONFIG_ENV_IS_IN_FAT':
+      value => n,
+    ;
+  }
+
   case $facts['profile']['platform'] {
     'pinebookpro': {
       $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
 
       nest::lib::kconfig {
-        # Leave no trace...
-        # may want to use SPI for other things
-        'CONFIG_ENV_IS_NOWHERE':
-          value => y;
+        # May want to use SPI for other things
         'CONFIG_ENV_IS_IN_SPI_FLASH':
           value => n,
         ;
