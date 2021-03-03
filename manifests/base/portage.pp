@@ -36,6 +36,7 @@ class nest::base::portage {
       '/etc/portage/env',
       '/etc/portage/package.accept_keywords',
       '/etc/portage/package.env',
+      '/etc/portage/profile',
     ]:
       # use defaults
     ;
@@ -139,6 +140,15 @@ class nest::base::portage {
     ->
     package_env { 'sys-libs/glibc':
       env => 'no-sandbox.conf',
+    }
+  }
+
+  if $facts['is_container'] {
+    file { '/etc/portage/profile/profile.bashrc':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "DONT_MOUNT_BOOT=1\n",
     }
   }
 

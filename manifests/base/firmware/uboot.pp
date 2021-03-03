@@ -20,6 +20,7 @@ class nest::base::firmware::uboot {
 
   $defconfig = $facts['profile']['platform'] ? {
     'pinebookpro' => 'pinebook-pro-rk3399_defconfig',
+    'raspberrypi' => 'rpi_arm64_defconfig',
   }
 
   exec { 'uboot-defconfig':
@@ -46,6 +47,13 @@ class nest::base::firmware::uboot {
         'CONFIG_USB_OHCI_GENERIC':
           value => n,
         ;
+      }
+    }
+
+    'raspberrypi': {
+      # Fails with "Unknown partition table type 0"
+      nest::lib::kconfig { 'CONFIG_MMC_SDHCI_SDMA':
+        value => n,
       }
     }
   }
