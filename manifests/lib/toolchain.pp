@@ -22,8 +22,15 @@ define nest::lib::toolchain (
         "/etc/portage/package.accept_keywords/cross-${name}",
         "/etc/portage/package.env/cross-${name}",
         "/etc/portage/package.use/cross-${name}",
+        "/etc/portage/profile/package.use.force/cross-${name}",
       ]:
         ensure => present,
+      }
+
+      if $gcc_only {
+        file { "/etc/portage/profile/package.use.mask/cross-${name}":
+          ensure => present,
+        }
       }
     }
 
