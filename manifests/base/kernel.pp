@@ -51,7 +51,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} all modules_install | /usr/bin/tee build.log",
+    command     => "/usr/bin/make ${::nest::base::portage::makeopts} olddefconfig all modules_install 2>&1 | /usr/bin/tee build.log",
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
