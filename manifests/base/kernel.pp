@@ -19,7 +19,8 @@ class nest::base::kernel {
     'beagleboneblack' => 'multi_v7_defconfig',
     'pinebookpro'     => 'defconfig',
     'raspberrypi'     => 'bcm2711_defconfig',
-    default           => 'defconfig kvmconfig',
+    'sopine'          => 'defconfig',
+    default           => 'defconfig kvm_guest.config',
   }
 
   exec { 'kernel-defconfig':
