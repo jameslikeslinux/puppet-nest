@@ -51,13 +51,9 @@ class nest::base::firmware {
 
     'sopine': {
       contain '::nest::base::firmware::arm'
-      contain '::nest::base::firmware::crust'
       contain '::nest::base::firmware::uboot'
 
       Class['nest::base::firmware::arm']
-      ~> Class['nest::base::firmware::uboot']
-
-      Class['nest::base::firmware::crust']
       ~> Class['nest::base::firmware::uboot']
     }
   }

@@ -81,7 +81,7 @@ class nest::base::firmware::uboot {
     }
 
     'sopine': {
-      $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/usr/src/crust/build/scp/scp.bin'
+      $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
     }
   }
 
