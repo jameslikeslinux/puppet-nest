@@ -17,11 +17,16 @@ class nest::base::firmware::uboot {
     source   => 'https://gitlab.james.tl/nest/forks/u-boot.git',
     revision => $uboot_branch,
   }
+  ~>
+  exec { '/bin/rm -f /usr/src/u-boot/.config':
+    refreshonly => true,
+  }
 
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'am335x_evm_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi'     => 'rpi_arm64_defconfig',
+    'sopine'          => 'pine64_plus_defconfig',
   }
 
   exec { 'uboot-defconfig':
@@ -73,6 +78,10 @@ class nest::base::firmware::uboot {
       nest::lib::kconfig { 'CONFIG_MMC_SDHCI_SDMA':
         value => n,
       }
+    }
+
+    'sopine': {
+      $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/usr/src/crust/build/scp/scp.bin'
     }
   }
 
