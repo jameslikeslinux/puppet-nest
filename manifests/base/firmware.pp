@@ -55,6 +55,16 @@ class nest::base::firmware {
 
       Class['nest::base::firmware::arm']
       ~> Class['nest::base::firmware::uboot']
+
+      file {
+        '/boot/allwinner':
+          ensure => directory,
+        ;
+
+        '/boot/allwinner/sun50i-a64-sopine-baseboard.dtb':
+          source => '/usr/src/linux/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dtb',
+        ;
+      }
     }
   }
 

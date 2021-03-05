@@ -26,7 +26,7 @@ class nest::base::firmware::uboot {
     'beagleboneblack' => 'am335x_evm_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi'     => 'rpi_arm64_defconfig',
-    'sopine'          => 'pine64_plus_defconfig',
+    'sopine'          => 'sopine_baseboard_defconfig',
   }
 
   exec { 'uboot-defconfig':
@@ -37,17 +37,6 @@ class nest::base::firmware::uboot {
   }
 
   nest::lib::kconfig {
-    # Replace boot delay with interrupt
-    'CONFIG_BOOTDELAY':
-      value => 0;
-    'CONFIG_AUTOBOOT_KEYED':
-      value => y;
-    'CONFIG_AUTOBOOT_PROMPT':
-      value => 'Press Ctrl-C to interrupt autoboot\n';
-    'CONFIG_AUTOBOOT_KEYED_CTRLC':
-      value => y,
-    ;
-
     # Always use default environment to avoid divergence
     'CONFIG_ENV_IS_NOWHERE':
       value => y;
