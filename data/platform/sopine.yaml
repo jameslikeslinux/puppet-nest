@@ -1,0 +1,4 @@
+---
+nest::bootloader: systemd
+nest::kernel_cmdline:
+  - 'console=ttyS0,115200n8'
