@@ -51,6 +51,8 @@ class nest::base::portage {
       '/etc/portage/package.accept_keywords',
       '/etc/portage/package.env',
       '/etc/portage/profile',
+      '/etc/portage/profile/package.use.force',
+      '/etc/portage/profile/package.use.mask',
     ]:
       # use defaults
     ;
