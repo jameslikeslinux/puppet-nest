@@ -14,6 +14,7 @@ class nest (
   # Service toggles
   Boolean $distcc_server  = false,
   Boolean $fileserver     = false,
+  Boolean $fscache        = true,
   Boolean $openvpn_server = false,
   Boolean $public_ssh     = false,
 

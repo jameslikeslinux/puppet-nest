@@ -1,6 +1,7 @@
 ---
 nest::bootloader: systemd
 nest::dvorak: true
+nest::fscache: false
 nest::swap_alt_win: true
 
 nest::package_keywords:

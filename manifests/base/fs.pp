@@ -3,17 +3,9 @@ class nest::base::fs {
     ensure => installed,
   }
 
-  file { '/etc/systemd/system/nfs-server.service.d':
-    ensure => absent,
-    force  => true,
-  }
-  ~>
-  nest::lib::systemd_reload { 'nfs-server': }
-
   if $::nest::fileserver {
     service { 'nfs-server':
-      enable    => true,
-      subscribe => Nest::Lib::Systemd_reload['nfs-server'],
+      enable => true,
     }
 
     service { 'zfs-share':
@@ -58,7 +50,9 @@ class nest::base::fs {
       enable    => true,
       subscribe => File['/etc/samba/smb.conf'],
     }
-  } elsif !$facts['live'] and $facts['profile']['platform'] != 'beagleboneblack' {
+  }
+
+  if $::nest::fscache {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
     }
@@ -75,10 +69,6 @@ class nest::base::fs {
       group  => 'root',
     }
 
-    file { '/etc/systemd/system/cachefilesd.service.d/10-fix-path.conf':
-      ensure => absent,
-    }
-
     file { '/etc/systemd/system/cachefilesd.service.d/10-requires-mounts-for.conf':
       mode    => '0644',
       owner   => 'root',
@@ -93,6 +83,19 @@ class nest::base::fs {
     service { 'cachefilesd':
       enable  => true,
       require => Nest::Lib::Systemd_reload['cachefilesd'],
+    } 
+  } else {
+    service { 'cachefilesd':
+      enable => false,
+    }
+    ->
+    file { '/etc/systemd/system/cachefilesd.service.d':
+      ensure => absent,
+      force  => true,
+    }
+    ->
+    package { 'sys-fs/cachefilesd':
+      ensure => absent,
     }
   }
 }

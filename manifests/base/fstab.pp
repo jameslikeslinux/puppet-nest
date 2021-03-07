@@ -81,18 +81,19 @@ class nest::base::fstab {
     ],
   }
 
+  $nest_spec = $::nest::fscache ? {
+    false   => 'nest-nocache',
+    default => 'nest-fscache',
+  }
+
   if $facts['live'] {
     $fstab = $specs['nest-nocache']
-  } elsif $facts['profile']['platform'] == 'beagleboneblack' {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-nocache']
-  } elsif $facts['profile']['platform'] in ['pinebookpro', 'raspberrypi'] {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
   } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
     $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var']
-  } elsif $::nest::bootloader == 'systemd' {
-    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
+  } elsif $facts['mountpoints']['/efi'] {
+    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
   } else {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs['nest-fscache']
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
   }
 
   augeas { 'fstab':

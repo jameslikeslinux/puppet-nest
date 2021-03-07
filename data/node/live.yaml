@@ -1,4 +1,6 @@
 ---
+nest::fscache: false
+
 # Try to be readable on a wide variety of screens
 nest::text_scaling_factor: 1.25
 
