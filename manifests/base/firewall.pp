@@ -1,8 +1,27 @@
 class nest::base::firewall {
   $ignore = ['CNI-', 'LIBVIRT_', 'f2b-sshd']
 
+  $first_boot_ruleset = @(FIRST_BOOT)
+    *filter
+    :INPUT ACCEPT [0:0]
+    :FORWARD ACCEPT [0:0]
+    :OUTPUT ACCEPT [0:0]
+    COMMIT
+    | FIRST_BOOT
+
   package { 'net-firewall/iptables':
     ensure => installed,
+  }
+  ->
+  file { [
+    '/var/lib/iptables/rules-save',
+    '/var/lib/ip6tables/rules-save',
+  ]:
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $first_boot_ruleset,
+    replace => false,
   }
 
   ['iptables', 'ip6tables'].each |$i| {
@@ -14,7 +33,6 @@ class nest::base::firewall {
       require => Package['net-firewall/iptables'],
     }
   }
-
 
   file { [
     '/etc/systemd/system/iptables-store.service.d',
