@@ -1,19 +1,69 @@
 class nest::base::bootloader::systemd {
-  if $facts['is_container'] or $facts['os']['architecture'] =~ /^(arm|aarch64)/ {
-    $bootctl_args = '--no-variables'
+  case $facts['os']['architecture'] {
+    'amd64': {
+      $boot_efi = 'bootx64.efi'
+      $image    = '/usr/src/linux/arch/x86/boot/bzImage'
+    }
+
+    'aarch64': {
+      $boot_efi = 'bootaa64.efi'
+      $image    = '/usr/src/linux/arch/arm64/boot/Image'
+    }
+
+    'armv7l': {
+      $boot_efi = 'bootarm.efi'
+      $image    = '/usr/src/linux/arch/arm/boot/zImage'
+    }
+  }
+
+  if $mountpoints['/boot'] {
+    if $facts['is_container'] or $facts['dmi']['bios']['vendor'] == 'U-Boot' {
+      $bootctl_args = '--no-variables'
+    } else {
+      $bootctl_args = ''
+    }
+
+    exec { 'bootctl-install':
+      command => "/usr/bin/bootctl install --graceful ${bootctl_args}",
+      unless  => '/usr/bin/bootctl is-installed | /bin/grep yes',
+      before  => Exec['kernel-install'],
+    }
+    ~>
+    exec { 'bootctl-update':
+      command     => "/usr/bin/bootctl update --no-variables",
+      refreshonly => true,
+    }
   } else {
-    $bootctl_args = ''
-  }
+    file {
+      default:
+        mode  => '0755',
+        owner => 'root',
+        group => 'root',
+      ;
 
-  exec { 'bootctl-install':
-    command => "/usr/bin/bootctl install --graceful ${bootctl_args}",
-    unless  => '/usr/bin/bootctl is-installed | /bin/grep yes',
-  }
+      [
+        '/boot/EFI',
+        '/boot/EFI/BOOT',
+      ]:
+        ensure => directory,
+      ;
 
-  exec { 'bootctl-update':
-    command     => "/usr/bin/bootctl update --no-variables",
-    refreshonly => true,
-    require     => Exec['bootctl-install'],
+      "/boot/EFI/BOOT/${boot_efi.upcase}":
+        source => "/usr/lib/systemd/boot/efi/systemd-${boot_efi}",
+      ;
+
+      "/boot/${facts['machine_id']}":
+        ensure => directory,
+        before => Exec['kernel-install'],
+      ;
+    }
+
+    exec { 'kernel-install-fix-boot-path':
+      command     => '/bin/sed -i "s@/boot/@//@g" /boot/loader/entries/*.conf',
+      provider    => shell,
+      refreshonly => true,
+      subscribe   => Exec['kernel-install'],
+    }
   }
 
   file {
@@ -33,17 +83,9 @@ class nest::base::bootloader::systemd {
     ;
   }
 
-  $image = $facts['os']['architecture'] ? {
-    'amd64'   => '/usr/src/linux/arch/x86/boot/bzImage',
-    'armv7l'  => '/usr/src/linux/arch/arm/boot/zImage',
-    'aarch64' => '/usr/src/linux/arch/arm64/boot/Image',
-  }
-
   exec { 'kernel-install':
     command     => "version=\$(ls /lib/modules | sort -V | tail -1) && kernel-install add \$version ${image}",
-    timeout     => 0,
-    refreshonly => true,
     provider    => shell,
-    require     => Exec['bootctl-install'],
+    refreshonly => true,
   }
 }
