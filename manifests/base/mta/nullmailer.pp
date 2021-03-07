@@ -29,7 +29,7 @@ class nest::base::mta::nullmailer (
         ;
 
         '/etc/nullmailer/me':
-          content => "${facts['fqdn']}\n",
+          content => "${trusted['certname']}.nest\n",
         ;
 
         '/etc/nullmailer/remotes':
