@@ -120,6 +120,11 @@ class nest::base::zfs {
   ::nest::lib::systemd_reload { 'zfs': }
 
   unless $facts['is_container'] {
+    exec { 'generate-zpool-cache':
+      command => "/sbin/zpool set cachefile= ${trusted['certname']}",
+      creates => '/etc/zfs/zpool.cache',
+    }
+
     # Manage swap volume properties for experimenting with workarounds listed in
     # https://github.com/openzfs/zfs/issues/7734
     zfs { "${facts['rpool']}/swap":
