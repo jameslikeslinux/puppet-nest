@@ -32,6 +32,12 @@ class nest::base::packages {
           ensure => installed,
         }
       }
+
+      if $facts['profile']['platform'] in ['pinebookpro', 'sopine'] {
+        package { 'sys-fs/mtd-utils':
+          ensure => installed,
+        }
+      }
     }
 
     'windows': {
