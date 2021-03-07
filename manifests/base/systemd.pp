@@ -218,8 +218,9 @@ class nest::base::systemd {
   }
 
   $kexec_tools_ensure = "${::nest::bootloader}-${facts['architecture']}" ? {
-    'systemd-amd64' => installed,
-    default         => absent,
+    'systemd-aarch64' => installed,
+    'systemd-amd64'   => installed,
+    default           => absent,
   }
 
   package { 'sys-apps/kexec-tools':
