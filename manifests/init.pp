@@ -24,6 +24,7 @@ class nest (
   Boolean                     $isolate_smt    = false,
   Hash[String, Nest::Kconfig] $kernel_config  = {},
   Array[String]               $kernel_cmdline = [],
+  Boolean                     $live           = false,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,
