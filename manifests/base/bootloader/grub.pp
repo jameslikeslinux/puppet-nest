@@ -67,13 +67,16 @@ class nest::base::bootloader::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     }
 
-    exec { 'grub-mkconfig':
-      command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
-      refreshonly => true,
-      require     => Exec['grub-mkfont', 'kernel-install', 'dracut'],
+    unless $facts['is_container'] {
+      exec { 'grub-mkconfig':
+        command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
+        refreshonly => true,
+        require     => Exec['grub-mkfont', 'kernel-install', 'dracut'],
+      }
+
+      $file_line_notify = Exec['grub-mkconfig']
     }
 
-    $file_line_notify    = Exec['grub-mkconfig']
     $grub_install_before = File['/boot/grub']
   }
 
