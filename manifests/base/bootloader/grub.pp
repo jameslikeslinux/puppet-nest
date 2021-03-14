@@ -8,25 +8,6 @@ class nest::base::bootloader::grub {
   }
 
   if $facts['mountpoints']['/boot'] or ($::nest::live and $facts['virtual'] == 'lxc') {
-    # Install stuff normally handled by kernel-install(8)
-    exec {
-      default:
-        refreshonly => true,
-      ;
-
-      'kernel-install':
-        command => '/usr/bin/make install',
-        cwd     => '/usr/src/linux',
-      ;
-
-      'dracut':
-        command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
-        provider => shell,
-      ;
-    }
-
-    $font = "ter-x${::nest::console_font_size}b"
-
     file { '/boot/grub':
       ensure => directory,
       mode   => '0755',
@@ -45,6 +26,8 @@ class nest::base::bootloader::grub {
       recurse => true,
       purge   => true,
     }
+
+    $font = "ter-x${::nest::console_font_size}b"
 
     exec { 'grub-mkfont':
       command => "/usr/bin/grub-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
@@ -66,10 +49,28 @@ class nest::base::bootloader::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     }
 
+    # Install stuff normally handled by kernel-install(8)
+    exec {
+      default:
+        refreshonly => true,
+        subscribe   => File['/boot/grub']
+      ;
+
+      'kernel-install':
+        command => '/usr/bin/make install',
+        cwd     => '/usr/src/linux',
+      ;
+
+      'dracut':
+        command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
+        provider => shell,
+      ;
+    }
+    ~>
     exec { 'grub-mkconfig':
       command     => '/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg',
       refreshonly => true,
-      require     => Exec['grub-mkfont', 'kernel-install', 'dracut'],
+      require     => Exec['grub-mkfont'],
     }
 
     File_line {
