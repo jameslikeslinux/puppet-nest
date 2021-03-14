@@ -7,7 +7,7 @@ class nest::base::bootloader::grub {
     ensure => installed,
   }
 
-  if $facts['mountpoints']['/boot'] {
+  if $facts['mountpoints']['/boot'] or ($::nest::live and $facts['virtual'] == 'lxc') {
     # Install stuff normally handled by kernel-install(8)
     exec {
       default:
