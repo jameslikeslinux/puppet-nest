@@ -3,7 +3,7 @@
 | -%>
 #!/bin/sh
 
-if [ -e /run/.containerenv ]; then
+if systemd-detect-virt -q --container; then
     cat << FAKE_DEFAULTS
 # Fake default rules for fooling Puppet
 *filter
