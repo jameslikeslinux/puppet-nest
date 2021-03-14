@@ -3,7 +3,7 @@ class nest::tool::r10k {
     version => '~1.1.0',
   }
   ->
-  package { 'libgit2':
+  package { 'dev-libs/libgit2':
     ensure => installed,
   }
   ->
@@ -32,7 +32,7 @@ class nest::tool::r10k {
     'dev-ruby/simple_oauth',
   ]: }
   ->
-  package { 'r10k':
+  package { 'app-admin/r10k':
     ensure => installed,
   }
 }
