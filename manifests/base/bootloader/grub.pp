@@ -73,6 +73,14 @@ class nest::base::bootloader::grub {
       require     => Exec['grub-mkfont'],
     }
 
+    if $::nest::live {
+      exec { 'grub-modify-live-config':
+        command     => 'sed -i -r "/insmod ext2/,/fi/d" /boot/grub/grub.cfg',
+        refreshonly => true,
+        subscribe   => Exec['grub-mkconfig'],
+      }
+    }
+
     File_line {
       path    => '/etc/default/grub',
       require => Package['sys-boot/grub'],

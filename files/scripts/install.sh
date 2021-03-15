@@ -303,7 +303,6 @@ if [[ $live ]]; then
     task "Configuring live CD boot..."
     make_dir "${live_dir}/boot"
     cmd mv "${target}/boot/"* "${live_dir}/boot/"
-    cmd sed -i -r '/insmod ext2/,/fi/d; s/root=UUID=[[:graph:]]+/root=live:LABEL='"$iso_label"'/g' "${live_dir}/boot/grub/grub.cfg"
 
     cleanup
 
