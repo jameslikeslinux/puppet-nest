@@ -107,8 +107,13 @@ class nest::base::bootloader::grub {
       match => '^#?GRUB_DISABLE_LINUX_UUID=',
     }
 
+    $grub_device = $::nest::live ? {
+      true    => "live:LABEL=${trusted['certname'].upcase}",
+      default => 'zfs:AUTO',
+    }
+
     file_line { 'grub-set-device':
-      line  => 'GRUB_DEVICE=zfs:AUTO',
+      line  => "GRUB_DEVICE=${grub_device}",
       match => '^#?GRUB_DEVICE=',
     }
 
