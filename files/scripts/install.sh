@@ -14,7 +14,7 @@ Options:
   -n, --dry-run         just print out what would be done
   --partition-only      just partition/format the disk and exit
   --resume              mount and resume install at image copy stage
-  --shell               mount and launch a shell inside the chroot
+  --shell               mount and launch a debug shell inside the chroot
   --help                display this message and exit
 END
 }
@@ -71,15 +71,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ -z $disk ]]; then
-    live=1
-fi
-
-if [[ $encrypt && $live ]]; then
-    echo "Live images cannot be encrypted" >&2
-    usage
-    exit 1
-elif [[ $# -ne 1 ]]; then
+if [[ $# -ne 1 ]]; then
     echo "Must specify a name" >&2
     usage
     exit 1
@@ -98,6 +90,21 @@ if profile="$(readlink -f "${img}/etc/portage/make.profile")"; then
     platform="${profile%/*}"
     platform="${platform##*/}"
     role="${profile##*/}"
+fi
+
+if [[ $platform == 'live' ]]; then
+    if [[ $encrypt ]]; then
+        echo "Live images cannot be encrypted" >&2
+        exit 1
+    fi
+
+    disk="${disk:-${name}.iso}"
+fi
+
+if [[ -z $disk ]]; then
+    echo "Must specify a disk" >&2
+    usage
+    exit 1
 fi
 
 
@@ -191,7 +198,7 @@ echo "Making build target..."
 make_dir "$target"
 
 
-if [[ $live ]]; then
+if [[ $platform == 'live' ]]; then
     live_dir="/var/tmp/${name}"
 
     task "Making live CD directory structure..."
@@ -284,11 +291,12 @@ fi
 [[ $partition_only ]] && exit
 
 if [[ $shell ]]; then
-    task "Launching shell..."
+    # This is inteneded for debugging a failed installation
+    # Not really meant for recovering established images
+    task "Launching debug shell..."
     systemd-nspawn --console=interactive -q -E TERM="$TERM" --bind=/nest --bind-ro=/usr/bin/qemu-aarch64 --bind-ro=/usr/bin/qemu-arm --capability=all -D "$target" zsh
     exit
 fi
-
 
 task "Copying image..."
 cmd rsync --archive --delete --hard-links --info=progress2 --no-inc-recursive "${img}/" "$target"
@@ -296,23 +304,24 @@ cmd rsync --archive --delete --hard-links --info=progress2 --no-inc-recursive "$
 task "Installing bootloader..."
 chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --tags nest::base::bootloader
 
+case "$platform" in
+    'live')
+        iso_label=$(echo "$name" | tr 'a-z' 'A-Z')
 
-if [[ $live ]]; then
-    iso_label=$(echo "$name" | tr 'a-z' 'A-Z')
+        task "Configuring live CD boot..."
+        make_dir "${live_dir}/boot"
+        cmd mv "${target}/boot/"* "${live_dir}/boot/"
 
-    task "Configuring live CD boot..."
-    make_dir "${live_dir}/boot"
-    cmd mv "${target}/boot/"* "${live_dir}/boot/"
+        cleanup
 
-    cleanup
+        task "Making squashfs.img..."
+        cmd mksquashfs "${live_dir}/LiveOS/squashfs-root" "${live_dir}/LiveOS/squashfs.img"
+        cmd rm -rf "${live_dir}/LiveOS/squashfs-root"
 
-    task "Making squashfs.img..."
-    cmd mksquashfs "${live_dir}/LiveOS/squashfs-root" "${live_dir}/LiveOS/squashfs.img"
-    cmd rm -rf "${live_dir}/LiveOS/squashfs-root"
+        task "Making ISO..."
+        cmd grub-mkrescue --modules=part_gpt -o "$disk" "$live_dir" -- -volid "$iso_label"
 
-    task "Making ISO..."
-    cmd grub-mkrescue --modules=part_gpt -o "${name}.iso" "$live_dir" -- -volid "$iso_label"
-
-    task "Cleaning up..."
-    cmd rm -rf "$live_dir"
-fi
+        task "Cleaning up..."
+        cmd rm -rf "$live_dir"
+    ;;
+esac

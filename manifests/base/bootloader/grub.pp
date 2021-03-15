@@ -7,7 +7,7 @@ class nest::base::bootloader::grub {
     ensure => installed,
   }
 
-  if $facts['mountpoints']['/boot'] or ($::nest::live and $facts['is_container'] and !$facts['build']) {
+  if $facts['mountpoints']['/boot'] or ($facts['profile']['platform'] == 'live' and $facts['is_container'] and !$facts['build']) {
     file { '/boot/grub':
       ensure => directory,
       mode   => '0755',
@@ -75,7 +75,7 @@ class nest::base::bootloader::grub {
 
     if $facts['profile']['platform'] == 'live' {
       exec { 'grub-modify-live-config':
-        command     => 'sed -i -r "/insmod ext2/,/fi/d" /boot/grub/grub.cfg',
+        command     => '/bin/sed -i -r "/insmod ext2/,/fi/d" /boot/grub/grub.cfg',
         refreshonly => true,
         subscribe   => Exec['grub-mkconfig'],
       }
