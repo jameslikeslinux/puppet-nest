@@ -11,6 +11,7 @@ mod 'puppetlabs-chocolatey', '3.1.1'
 mod 'puppetlabs-host_core', '1.0.3'
 mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-registry', '2.1.0'
+mod 'puppetlabs-sshkeys_core', '2.2.0'
 mod 'puppet-windows_env', '3.2.0'
 
 #

@@ -62,12 +62,28 @@ class nest::base::ssh {
           ;
         }
       }
+
+      # Collect SSH keys exported by other hosts below
+      if $facts['build'] in [undef, 'stage3'] {
+        Sshkey <<||>>
+
+        resources { 'sshkey':
+          purge => true,
+        }
+      }
     }
 
     'windows': {
       package { 'openssh':
         ensure => installed,
       }
+    }
+  }
+
+  # Export SSH keys for collecting on other hosts
+  $facts['ssh'].each |$key, $value| {
+    @@sshkey { "${trusted['certname']}.nest@${value['type']}":
+      key => $value['key'],
     }
   }
 }
