@@ -76,6 +76,7 @@ class nest::base::kernel {
   ~>
   exec { 'module-rebuild':
     command     => "/usr/bin/emerge --oneshot --usepkg n --jobs ${::nest::concurrency} --load-average ${::nest::base::portage::loadlimit} zfs-kmod",
+    environment => 'FEATURES=-buildpkg',
     timeout     => 0,
     refreshonly => true,
   }
