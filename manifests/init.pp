@@ -24,7 +24,7 @@ class nest (
   Boolean $fileserver     = false,
   Boolean $fscache        = !$live,
   Boolean $openvpn_server = false,
-  Boolean $public_ssh     = false,
+  Boolean $public_ssh     = $live,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,
