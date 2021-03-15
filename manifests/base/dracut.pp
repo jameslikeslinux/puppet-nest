@@ -1,4 +1,7 @@
 class nest::base::dracut {
+  # For nest::base::systemd::keymap
+  include 'nest::base::systemd'
+
   package { 'sys-kernel/dracut':
     ensure => installed,
   }
@@ -7,29 +10,24 @@ class nest::base::dracut {
     package { 'sys-firmware/intel-microcode':
       ensure => installed,
     }
-
-    $early_microcode = 'yes'
-  } else {
-    $early_microcode = 'no'
   }
+
+  $vconsole_params = "rd.vconsole.font=ter-v${::nest::console_font_size}b rd.vconsole.keymap=${::nest::base::systemd::keymap}"
 
   if $facts['profile']['platform'] == 'live' {
     $base_config_content = @("EOT")
       add_dracutmodules+=" dmsquash-live livenet "
       omit_dracutmodules+=" zfs "
-      kernel_cmdline="rd.live.overlay.overlayfs=1 rd.vconsole.font=ter-v${::nest::console_font_size}b"
+      kernel_cmdline="rd.live.overlay.overlayfs=1 ${vconsole_params}"
       | EOT
   } elsif $facts['build'] {
     $base_config_content = @("EOT")
-      early_microcode="${early_microcode}"
-      force="yes"
+      kernel_cmdline="${vconsole_params}"
       | EOT
   } else {
     $base_config_content = @("EOT")
-      early_microcode="${early_microcode}"
-      hostonly="yes"
-      hostonly_cmdline="no"
       force="yes"
+      hostonly="yes"
       | EOT
   }
 
