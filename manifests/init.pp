@@ -5,6 +5,14 @@ class nest (
   String       $pw_hash,
   String       $ssh_private_key,
 
+  # System settings
+  Enum['grub', 'systemd']     $bootloader     = grub,
+  Optional[Integer]           $cpus           = undef,
+  Boolean                     $isolate_smt    = false,
+  Hash[String, Nest::Kconfig] $kernel_config  = {},
+  Array[String]               $kernel_cmdline = [],
+  Boolean                     $live           = $trusted['certname'] == 'live',
+
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn] $cnames       = {},
   Array[Stdlib::Host]              $cups_servers = [],
@@ -14,17 +22,9 @@ class nest (
   # Service toggles
   Boolean $distcc_server  = false,
   Boolean $fileserver     = false,
-  Boolean $fscache        = true,
+  Boolean $fscache        = !$live,
   Boolean $openvpn_server = false,
   Boolean $public_ssh     = false,
-
-  # System settings
-  Enum['grub', 'systemd']     $bootloader     = grub,
-  Optional[Integer]           $cpus           = undef,
-  Boolean                     $isolate_smt    = false,
-  Hash[String, Nest::Kconfig] $kernel_config  = {},
-  Array[String]               $kernel_cmdline = [],
-  Boolean                     $live           = false,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,

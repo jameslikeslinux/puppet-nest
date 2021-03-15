@@ -2,6 +2,10 @@ class nest::base::kernel {
   # For nest::base::portage::makeopts
   include '::nest::base::portage'
 
+  Nest::Lib::Kconfig {
+    config => '/usr/src/linux/.config',
+  }
+
   $sources_package = $facts['profile']['platform'] ? {
     'raspberrypi' => 'sys-kernel/raspberrypi-sources',
     default       => 'sys-kernel/gentoo-sources',
@@ -33,15 +37,24 @@ class nest::base::kernel {
 
   $::nest::kernel_config.each |$config, $value| {
     nest::lib::kconfig { $config:
-      config => '/usr/src/linux/.config',
-      value  => $value,
+      value => $value,
     }
   }
 
   if $::nest::bootloader == 'systemd' {
     nest::lib::kconfig { 'CONFIG_EFI_STUB':
-      config => '/usr/src/linux/.config',
-      value  => y,
+      value => y,
+    }
+  }
+
+  if $::nest::live {
+    nest::lib::kconfig {
+      'CONFIG_DM_THIN_PROVISIONING':
+        value => m;
+
+      # xorriso makes GPT-compatible ISO images using an HFS+ filesystem
+      'CONFIG_HFSPLUS_FS':
+        value => y;
     }
   }
 
