@@ -305,6 +305,20 @@ task "Installing bootloader..."
 chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --tags nest::base::bootloader
 
 case "$platform" in
+    'beagleboneblack')
+        cmd dd if="${img}/usr/src/u-boot/MLO" of="$disk" bs=512 seek=256
+        cmd dd if="${img}/usr/src/u-boot/u-boot.img" of="$disk" bs=512 seek=768
+        ;;
+
+    'pinebookpro')
+        cmd dd if="${img}/usr/src/u-boot/idbloader.img" of="$disk" seek=64
+        cmd dd if="${img}/usr/src/u-boot/u-boot.itb" of="$disk" bs=512 seek=32
+        ;;
+
+    'sopine')
+        cmd dd if="${img}/usr/src/u-boot/u-boot-sunxi-with-spl.bin" of="$disk" bs=512 seek=16
+        ;;
+
     'live')
         iso_label=$(echo "$name" | tr 'a-z' 'A-Z')
 
@@ -323,5 +337,5 @@ case "$platform" in
 
         task "Cleaning up..."
         cmd rm -rf "$live_dir"
-    ;;
+        ;;
 esac
