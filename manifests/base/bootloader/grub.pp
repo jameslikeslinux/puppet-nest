@@ -84,7 +84,7 @@ class nest::base::bootloader::grub {
       match => '^#?GRUB_CMDLINE_LINUX=',
     }
 
-    if $facts['virtual'] == 'kvm' {
+    if $::nest::live or $facts['virtual'] == 'kvm' {
       $gfxmode    = 'GRUB_GFXMODE=1024x768'
       $gfxpayload = 'GRUB_GFXPAYLOAD_LINUX=keep'
     } else {
