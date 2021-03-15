@@ -86,7 +86,7 @@ class nest::base::fstab {
     default => 'nest-fscache',
   }
 
-  if $::nest::live {
+  if $facts['profile']['platform'] == 'live' {
     $fstab = $specs['nest-nocache']
   } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
     $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var']

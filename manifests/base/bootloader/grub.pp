@@ -73,7 +73,7 @@ class nest::base::bootloader::grub {
       require     => Exec['grub-mkfont'],
     }
 
-    if $::nest::live {
+    if $facts['profile']['platform'] == 'live' {
       exec { 'grub-modify-live-config':
         command     => 'sed -i -r "/insmod ext2/,/fi/d" /boot/grub/grub.cfg',
         refreshonly => true,
@@ -92,7 +92,7 @@ class nest::base::bootloader::grub {
       match => '^#?GRUB_CMDLINE_LINUX=',
     }
 
-    if $::nest::live or $facts['virtual'] == 'kvm' {
+    if $facts['profile']['platform'] or $facts['virtual'] == 'kvm' {
       $gfxmode    = 'GRUB_GFXMODE=1024x768'
       $gfxpayload = 'GRUB_GFXPAYLOAD_LINUX=keep'
     } else {
@@ -115,7 +115,7 @@ class nest::base::bootloader::grub {
       match => '^#?GRUB_DISABLE_LINUX_UUID=',
     }
 
-    $grub_device = $::nest::live ? {
+    $grub_device = $facts['profile']['platform'] == 'live' ? {
       true    => "live:LABEL=${trusted['certname'].upcase}",
       default => 'zfs:AUTO',
     }

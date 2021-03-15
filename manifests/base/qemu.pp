@@ -1,7 +1,7 @@
 class nest::base::qemu {
   case $facts['osfamily'] {
     'Gentoo': {
-      if $facts['virtual'] == 'kvm' or $::nest::live {
+      if $facts['virtual'] == 'kvm' or $facts['profile']['platform'] == 'live' {
         $qemu_guest_agent_ensure = installed
       } else {
         $qemu_guest_agent_ensure = absent

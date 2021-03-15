@@ -13,7 +13,7 @@ class nest::base::dracut {
     $early_microcode = 'no'
   }
 
-  if $::nest::live {
+  if $facts['profile']['platform'] == 'live' {
     $base_config_content = @("EOT")
       add_dracutmodules+=" dmsquash-live livenet "
       omit_dracutmodules+=" zfs "

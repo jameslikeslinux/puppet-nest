@@ -47,17 +47,6 @@ class nest::base::kernel {
     }
   }
 
-  if $::nest::live {
-    nest::lib::kconfig {
-      'CONFIG_OVERLAY_FS':
-        value => m;
-
-      # xorriso makes GPT-compatible ISO images using an HFS+ filesystem
-      'CONFIG_HFSPLUS_FS':
-        value => y;
-    }
-  }
-
   exec { 'kernel-olddefconfig':
     command     => '/usr/bin/make olddefconfig',
     cwd         => '/usr/src/linux',
