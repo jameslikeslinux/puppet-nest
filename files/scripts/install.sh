@@ -218,19 +218,20 @@ else
         gpt_table_length='table-length: 56'
     fi
 
-    if [[ -d "${img}/boot/EFI" ]]; then
+    if [[ ! -d /sys/firmware/efi ]]; then
+        # The hopefully-rare exception
         destructive_cmd sfdisk "$disk" <<END
 label: gpt
 $gpt_table_length
-start=32768, size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
+size=30720, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios"
+size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot"
 name="${name}"
 END
     else
         destructive_cmd sfdisk "$disk" <<END
 label: gpt
 $gpt_table_length
-size=30720, type=21686148-6449-6E6F-744E-656564454649, name="${name}-bios"
-size=512MiB, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name="${name}-boot"
+start=32768, size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="${name}-boot"
 name="${name}"
 END
     fi
