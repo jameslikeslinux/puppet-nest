@@ -1,5 +1,9 @@
 class nest::base::containers {
-  unless $facts['is_container'] or $facts['running_live'] {
+  if $facts['is_container'] or $facts['running_live'] {
+    $storage_driver = 'vfs'
+  } else {
+    $storage_driver = 'zfs'
+
     zfs { 'containers':
       name       => "${facts['rpool']}/containers",
       mountpoint => '/var/lib/containers',
@@ -31,6 +35,10 @@ class nest::base::containers {
 
     '/etc/containers/registries.conf':
       source => 'puppet:///modules/nest/containers/registries.conf',
+    ;
+
+    '/etc/containers/storage.conf':
+      content => "[storage]\ndriver = \"${storage_driver}\"\n",
     ;
 
     '/etc/systemd/system/podman.service.d':
