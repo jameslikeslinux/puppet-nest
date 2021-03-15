@@ -7,7 +7,7 @@ class nest::base::bootloader::grub {
     ensure => installed,
   }
 
-  if $facts['mountpoints']['/boot'] or ($::nest::live and $facts['virtual'] == 'lxc') {
+  if $facts['mountpoints']['/boot'] or ($::nest::live and $facts['is_container'] and !$facts['build']) {
     file { '/boot/grub':
       ensure => directory,
       mode   => '0755',
