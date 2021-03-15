@@ -23,6 +23,7 @@ class nest::base {
       contain '::nest::base::network'
       contain '::nest::base::openvpn'
       contain '::nest::base::portage'
+      contain '::nest::base::scripts'
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
