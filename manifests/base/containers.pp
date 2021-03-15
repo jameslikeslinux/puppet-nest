@@ -1,5 +1,5 @@
 class nest::base::containers {
-  unless $facts['is_container'] {
+  unless $facts['is_container'] or $facts['running_live'] {
     zfs { 'containers':
       name       => "${facts['rpool']}/containers",
       mountpoint => '/var/lib/containers',
