@@ -49,7 +49,7 @@ class nest::base::kernel {
 
   if $::nest::live {
     nest::lib::kconfig {
-      'CONFIG_DM_THIN_PROVISIONING':
+      'CONFIG_OVERLAY_FS':
         value => m;
 
       # xorriso makes GPT-compatible ISO images using an HFS+ filesystem
