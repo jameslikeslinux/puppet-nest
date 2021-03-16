@@ -81,9 +81,11 @@ class nest::base::ssh {
   }
 
   # Export SSH keys for collecting on other hosts
-  $facts['ssh'].each |$key, $value| {
-    @@sshkey { "${trusted['certname']}.nest@${value['type']}":
-      key => $value['key'],
+  if $facts['ssh'] {
+    $facts['ssh'].each |$key, $value| {
+      @@sshkey { "${trusted['certname']}.nest@${value['type']}":
+        key => $value['key'],
+      }
     }
   }
 }
