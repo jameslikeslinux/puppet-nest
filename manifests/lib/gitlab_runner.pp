@@ -8,6 +8,7 @@ define nest::lib::gitlab_runner (
   Array[String]       $security_options = [],
   Array[String]       $volumes          = [],
   Array[String]       $tag_list         = [],
+  Boolean             $zfs              = false,
 ) {
   if $ensure == absent {
     nest::lib::container { "gitlab-runner-${name}":
@@ -51,6 +52,15 @@ define nest::lib::gitlab_runner (
       ['--docker-volumes', $volume]
     }
 
+    $zfs_args = $zfs ? {
+      true    => [
+        '--docker-cap-add', 'SYS_ADMIN',
+        '--docker-devices', '/dev/zfs',
+        '--env', 'STORAGE_DRIVER=zfs',
+      ],
+      default => [],
+    }
+
     # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
     $register_command = [
       '/usr/bin/podman', 'run', '--rm',
@@ -67,6 +77,7 @@ define nest::lib::gitlab_runner (
       $device_args,
       $security_opt_args,
       $volume_args,
+      $zfs_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
       '--description', $facts['hostname'],

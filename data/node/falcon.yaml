@@ -66,6 +66,7 @@ nest::service::gitlab_runner::instances:
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
+    zfs: true
 
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
