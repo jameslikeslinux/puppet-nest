@@ -31,7 +31,6 @@ nest::service::reverse_proxy::hosts:
     destination: 'ombi.nest'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
     serveraliases: ['requests.heloandnala.net']
-    ssl: false
 
   vault.thesatelliteoflove.net:
     destination: '127.0.0.1:1003'
@@ -44,7 +43,6 @@ nest::service::wordpress::sites:
     servername: 'james.tl'
     serveraliases: ['www.james.tl']
     priority: '20'  # higher priority
-    ssl: false
 
   thestaticvoid:
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
