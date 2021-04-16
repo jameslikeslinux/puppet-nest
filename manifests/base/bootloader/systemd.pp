@@ -44,6 +44,7 @@ class nest::base::bootloader::systemd {
       command     => "version=\$(ls /lib/modules | sort -V | tail -1) && kernel-install add \$version ${image}",
       provider    => shell,
       refreshonly => true,
+      timeout     => 0,
     }
   }
 }
