@@ -1,13 +1,14 @@
-diff -ur chromium-78.0.3904.108.orig/ui/gfx/font_render_params_linux.cc chromium-78.0.3904.108/ui/gfx/font_render_params_linux.cc
---- chromium-78.0.3904.108.orig/ui/gfx/font_render_params_linux.cc	2019-11-18 20:38:36.000000000 -0500
-+++ chromium-78.0.3904.108/ui/gfx/font_render_params_linux.cc	2019-11-23 14:48:39.540360533 -0500
-@@ -283,21 +283,6 @@
+diff --git a/ui/gfx/font_render_params_linux.cc b/ui/gfx/font_render_params_linux.cc
+index 3ab8b2ed3e..eed71df9c6 100644
+--- a/ui/gfx/font_render_params_linux.cc
++++ b/ui/gfx/font_render_params_linux.cc
+@@ -226,21 +226,6 @@ FontRenderParams GetFontRenderParams(const FontRenderParamsQuery& query,
      params.hinting = FontRenderParams::HINTING_FULL;
      params.subpixel_rendering = FontRenderParams::SUBPIXEL_RENDERING_NONE;
      params.subpixel_positioning = false;
 -  } else if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
 -                 switches::kDisableFontSubpixelPositioning)) {
--#if !defined(OS_CHROMEOS)
+-#if !BUILDFLAG(IS_CHROMEOS_ASH)
 -    params.subpixel_positioning = actual_query.device_scale_factor > 1.0f;
 -#else
 -    // We want to enable subpixel positioning for fractional dsf.
@@ -15,7 +16,7 @@ diff -ur chromium-78.0.3904.108.orig/ui/gfx/font_render_params_linux.cc chromium
 -        std::abs(std::round(actual_query.device_scale_factor) -
 -                 actual_query.device_scale_factor) >
 -        std::numeric_limits<float>::epsilon();
--#endif  // !defined(OS_CHROMEOS)
+-#endif  // !BUILDFLAG(IS_CHROMEOS_ASH)
 -
 -    // To enable subpixel positioning, we need to disable hinting.
 -    if (params.subpixel_positioning)
@@ -23,4 +24,3 @@ diff -ur chromium-78.0.3904.108.orig/ui/gfx/font_render_params_linux.cc chromium
    }
  
    // Use the first family from the list if Fontconfig didn't suggest a family.
-Only in chromium-78.0.3904.108/ui/gfx: font_render_params_linux.cc.orig
