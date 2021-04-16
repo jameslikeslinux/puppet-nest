@@ -1,6 +1,6 @@
 class nest::role::workstation::terminals {
   nest::lib::package_use { 'x11-terms/rxvt-unicode':
-    use => ['256-color', 'alt-font-width', 'secondary-wheel', 'unicode3', '-vanilla', 'xft'],
+    use => ['256-color', 'alt-font-width', 'secondary-wheel', 'sgrmouse', 'unicode3', '-vanilla', 'xft'],
   }
 
   file { '/etc/portage/env/xterm.conf':
