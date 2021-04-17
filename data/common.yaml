@@ -55,6 +55,8 @@ nest::package_keywords:
   # For qemu
   sys-firmware/ipxe:
     version: '~1.21.1'
+  sys-firmware/seabios:
+    version: '~1.14.0'
 
 nest::kernel_config:
   # Support distcc
