@@ -52,6 +52,10 @@ nest::package_keywords:
   app-emulation/slirp4netns: {}
   sys-fs/fuse-overlayfs: {}
 
+  # For qemu
+  sys-firmware/ipxe:
+    version: '~1.21.1'
+
 nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
