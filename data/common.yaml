@@ -52,9 +52,6 @@ nest::package_keywords:
   app-emulation/slirp4netns: {}
   sys-fs/fuse-overlayfs: {}
 
-  # Until 5.9 or later is stabilized, accept unstable
-  sys-kernel/gentoo-sources: {}
-
 nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
