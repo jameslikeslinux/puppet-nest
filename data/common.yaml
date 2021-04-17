@@ -57,6 +57,8 @@ nest::package_keywords:
     version: '~1.21.1'
   sys-firmware/seabios:
     version: '~1.14.0'
+  sys-firmware/sgabios:
+    version: '~0.1_pre10'
 
 nest::kernel_config:
   # Support distcc
