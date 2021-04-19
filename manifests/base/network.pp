@@ -9,7 +9,7 @@ class nest::base::network {
     wifi.powersave=2
 
     [keyfile]
-    unmanaged-devices=interface-name:cni-podman*,interface-name:tun0,interface-name:virbr*,interface-name:vnet*
+    unmanaged-devices=interface-name:cni-podman*,interface-name:tun0,interface-name:veth*,interface-name:virbr*,interface-name:vnet*
     | EOT
 
   file {
