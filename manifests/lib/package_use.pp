@@ -8,13 +8,15 @@ define nest::lib::package_use (
     use    => $use,
   }
 
-  exec { "emerge-newuse-${name}":
-    command     => "/usr/bin/emerge -N ${package}",
-    timeout     => 0,
-    refreshonly => true,
-  }
+  if defined("Package[${name}]") {
+    exec { "emerge-newuse-${name}":
+      command     => "/usr/bin/emerge -N ${package}",
+      timeout     => 0,
+      refreshonly => true,
+    }
 
-  Package_use[$package]
-  ~> Exec["emerge-newuse-${name}"]
-  ~> Package[$name]
+    Package_use[$package]
+    ~> Exec["emerge-newuse-${name}"]
+    ~> Package[$name]
+  }
 }
