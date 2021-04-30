@@ -1,9 +1,0 @@
-#!/bin/bash
-<% case @facts['profile']['platform'] -%>
-<% when 'pinebookpro' -%>
-exec alacritty "$@"
-<% when 'raspberrypi' -%>
-exec xterm "$@"
-<% else -%>
-exec urxvt "$@"
-<% end -%>
