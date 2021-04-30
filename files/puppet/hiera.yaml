@@ -5,8 +5,8 @@ defaults:
   datadir: "/etc/puppetlabs/code/environments/%{server_facts.environment}/data"
   lookup_key: eyaml_lookup_key
   options:
-    pkcs7_private_key: '/etc/puppetlabs/puppet/ssl/ca/ca_key.pem'
-    pkcs7_public_key: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
+    pkcs7_private_key: '/etc/puppetlabs/puppetserver/ca/ca_key.pem'
+    pkcs7_public_key: '/etc/puppetlabs/puppetserver/ca/ca_crt.pem'
 
 hierarchy:
   - name: 'Nodes'
