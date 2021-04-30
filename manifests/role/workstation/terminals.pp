@@ -17,6 +17,7 @@ class nest::role::workstation::terminals {
   }
 
   package { [
+    'gui-apps/foot',
     'x11-terms/alacritty',
     'x11-terms/rxvt-unicode',
     'x11-terms/xterm',
