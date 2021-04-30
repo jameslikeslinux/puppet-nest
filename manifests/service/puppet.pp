@@ -76,6 +76,7 @@ class nest::service::puppet (
       '/srv/puppet/puppetserver/init:/docker-custom-entrypoint.d',
       '/srv/puppet/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
+      '/srv/puppet/puppetserver/ca:/etc/puppetlabs/puppetserver/ca',
     ],
     require => Nest::Lib::Srv['puppet/code'],
   }
