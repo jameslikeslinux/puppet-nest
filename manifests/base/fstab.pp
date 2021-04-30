@@ -89,7 +89,7 @@ class nest::base::fstab {
   if $facts['profile']['platform'] == 'live' {
     $fstab = $specs['nest-nocache']
   } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
-    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var']
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var']
   } elsif $facts['mountpoints']['/efi'] {
     $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
   } else {
