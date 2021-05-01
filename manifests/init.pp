@@ -35,9 +35,8 @@ class nest (
   Hash[String, Hash] $package_keywords = {},
 
   # Input settings
-  Optional[String] $barrier_config = undef,
-  Boolean          $dvorak         = false,
-  Boolean          $swap_alt_win   = false,
+  Boolean $dvorak       = false,
+  Boolean $swap_alt_win = false,
 
   # Output settings
   Float            $gui_scaling_factor  = 1.0,

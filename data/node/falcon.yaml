@@ -1,6 +1,7 @@
 ---
 classes:
   - 'nest::node::falcon'
+  - 'nest::service::barrier'
   - 'nest::service::gitlab'
   - 'nest::service::gitlab_runner'
   - 'nest::service::libvirt'
@@ -37,19 +38,6 @@ nest::fileserver: true
 nest::fscache: false
 nest::mta: postfix
 nest::openvpn_server: true
-
-nest::barrier_config: |
-  section: screens
-  	falcon:
-  	hawk:
-  end
-  
-  section: options
-  	keystroke(super+alt+up) = switchToScreen(hawk)
-  	keystroke(super+alt+down) = switchToScreen(falcon)
-  	mousebutton(6) = keystroke(WWWBack)
-  	mousebutton(7) = keystroke(WWWForward)
-  end
 
 nest::service::gitlab_runner::instances:
   shared:

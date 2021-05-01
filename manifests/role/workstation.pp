@@ -24,10 +24,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::ydotool'
       contain '::nest::role::workstation::zoom'
 
-      if $::nest::barrier_config {
-        contain '::nest::role::workstation::barrier'
-      }
-
       # Plasma installs pulseaudio, so we don't need to manage it separately
       Class['::nest::role::workstation::plasma']
       -> Class['::nest::role::workstation::pulseaudio']
