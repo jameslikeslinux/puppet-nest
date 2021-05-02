@@ -10,7 +10,7 @@ nest::package_keywords:
   gui-libs/wlroots: {}
   gui-wm/sway: {}
   media-fonts/fontawesome: {}
-  media-sound/pulseaudio-modules-bt: {}
+  media-video/pipewire: {}
   net-im/zoom: {}
   www-client/firefox: {}
   x11-misc/barrier: {}
