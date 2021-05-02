@@ -1,5 +1,8 @@
 class nest::role::workstation::media {
-  package { 'media-video/libva-utils':
+  package { [
+    'media-sound/playerctl',
+    'media-video/libva-utils',
+  ]:
     ensure => installed,
   }
 }
