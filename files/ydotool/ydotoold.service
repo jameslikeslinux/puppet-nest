@@ -1,7 +1,6 @@
 [Unit]
 Description=ydotool input automation service
 Requires=ydotoold.socket
-After=ydotoold.socket
 
 [Service]
 ExecStart=/usr/bin/ydotoold
