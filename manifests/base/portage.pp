@@ -154,7 +154,10 @@ class nest::base::portage {
       content => "FEATURES=\"-sandbox\"\n",
     }
     ->
-    package_env { 'sys-libs/glibc':
+    package_env { [
+      'app-emulation/podman',
+      'sys-libs/glibc',
+    ]:
       env => 'no-sandbox.conf',
     }
   }
