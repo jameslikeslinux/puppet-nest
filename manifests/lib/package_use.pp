@@ -1,10 +1,11 @@
 define nest::lib::package_use (
-  Variant[String, Array[String]] $use,
-  String                         $package = $name,
-  Enum['present', 'absent']      $ensure  = 'present',
+  Optional[Nest::UseFlags]  $use,
+  Enum['present', 'absent'] $ensure  = 'present',
+  String                    $package = $name,
 ) {
-  package_use { $package:
+  package_use { $name:
     ensure => $ensure,
+    name   => $package,
     use    => $use,
   }
 
@@ -15,7 +16,7 @@ define nest::lib::package_use (
       refreshonly => true,
     }
 
-    Package_use[$package]
+    Package_use[$name]
     ~> Exec["emerge-newuse-${name}"]
     ~> Package[$name]
   }

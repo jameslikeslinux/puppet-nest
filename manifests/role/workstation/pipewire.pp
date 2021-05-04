@@ -1,10 +1,7 @@
 class nest::role::workstation::pipewire {
-  nest::lib::package_use { 'media-video/pipewire':
-    use => ['aptx', 'ldac'],
-  }
-
-  package { 'media-video/pipewire':
+  nest::lib::package { 'media-video/pipewire':
     ensure => installed,
+    use    => ['aptx', 'ldac'],
   }
   ->
   exec {
@@ -24,6 +21,10 @@ class nest::role::workstation::pipewire {
     ;
   }
 
+  nest::lib::package { 'media-sound/pulseaudio':
+    world => false,
+  }
+  ->
   file_line { 'pulse-client.conf-disable-autospawn':
     path  => '/etc/pulse/client.conf',
     match => '^(; )?autospawn = ',

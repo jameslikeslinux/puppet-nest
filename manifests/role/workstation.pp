@@ -24,10 +24,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::ydotool'
       contain '::nest::role::workstation::zoom'
 
-      # Plasma installs pulseaudio which pipewire must disable
-      Class['::nest::role::workstation::plasma']
-      -> Class['::nest::role::workstation::pipewire']
-
       # Plasma installs xorg-server, so we don't need to manage it separately
       Class['::nest::role::workstation::plasma']
       -> Class['::nest::role::workstation::xorg']
