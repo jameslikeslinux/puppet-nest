@@ -22,7 +22,7 @@ class nest::role::workstation::sway {
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     # Workaround https://github.com/swaywm/sway/issues/3109
-    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} /usr/bin/sway \${*@Q}"
+    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} XDG_CURRENT_DESKTOP=sway /usr/bin/sway \${*@Q}"
     | END_WRAPPER
 
   file { '/usr/local/bin/sway':
