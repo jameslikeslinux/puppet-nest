@@ -1,5 +1,5 @@
 define nest::lib::package (
-  String                   $ensure  = 'present',
+  String                   $ensure  = 'installed',
   String                   $package = $name,
   Optional[Nest::UseFlags] $use     = undef,
   Boolean                  $world   = true,
