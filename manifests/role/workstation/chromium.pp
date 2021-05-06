@@ -2,7 +2,7 @@ class nest::role::workstation::chromium {
   case $facts['osfamily'] {
     'Gentoo': {
       nest::lib::package_use { 'www-client/chromium':
-        use => 'widevine',
+        use => ['-screencast', 'widevine'],
       }
 
       unless $facts['build'] == 'stage1' {
