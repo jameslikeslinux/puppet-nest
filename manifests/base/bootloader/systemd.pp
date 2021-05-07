@@ -24,6 +24,11 @@ class nest::base::bootloader::systemd {
         group => 'root',
       ;
 
+      "/boot/${facts['machine_id']}":
+        ensure => directory,
+        before => Exec['kernel-install'],
+      ;
+
       '/etc/kernel':
         ensure => directory,
       ;
