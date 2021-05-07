@@ -32,9 +32,8 @@ class nest::base::zfs {
 
   unless $facts['is_container'] or $facts['running_live'] {
     exec { 'zgenhostid':
-      command => 'zgenhostid `hostid`',
+      command => '/sbin/zgenhostid `hostid`',
       creates => '/etc/hostid',
-      path    => '/usr/bin:/bin',
       require => Package['sys-fs/zfs'],
       notify  => Class['::nest::base::dracut'],
     }
