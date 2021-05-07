@@ -1,21 +1,8 @@
 class nest::service::barrier {
-  package { 'x11-misc/barrier':
+  nest::lib::package { 'x11-misc/barrier':
     ensure => installed,
+    use    => '-gui',
   }
-
-  # barrier pulls in avahi, which I don't want, and it gets started by
-  # cups-browsed.service.  Mask it:
-  file { [
-    '/etc/systemd/system/avahi-daemon.service',
-    '/etc/systemd/system/avahi-daemon.socket',
-  ]:
-    ensure  => link,
-    target  => '/dev/null',
-    require => Package['x11-misc/barrier'],
-    notify  => Nest::Lib::Systemd_reload['barrier'],
-  }
-
-  ::nest::lib::systemd_reload { 'barrier': }
 
   firewall { '100 barrier':
     proto   => tcp,
@@ -24,4 +11,15 @@ class nest::service::barrier {
     state   => 'NEW',
     action  => accept,
   }
+
+  # XXX: Cleanup from previous dependency on avahi
+  file { [
+    '/etc/systemd/system/avahi-daemon.service',
+    '/etc/systemd/system/avahi-daemon.socket',
+  ]:
+    ensure => absent,
+    notify => Nest::Lib::Systemd_reload['barrier'],
+  }
+
+  ::nest::lib::systemd_reload { 'barrier': }
 }
