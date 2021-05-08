@@ -38,7 +38,7 @@ class nest::base::containers {
     ;
 
     '/etc/containers/storage.conf':
-      content => "[storage]\ndriver = \"${storage_driver}\"\n",
+      content => "[storage]\ndriver = \"${storage_driver}\"\ngraphroot = \"/var/lib/containers/storage\"\n",
     ;
 
     '/etc/systemd/system/podman.service.d':
