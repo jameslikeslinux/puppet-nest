@@ -28,7 +28,7 @@ class nest::base {
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
 
-      if $facts['build'] in [undef, 'stage2', 'stage3'] {
+      if $facts['build'] in [undef, 'stage2', 'stage3', 'kernel'] {
         contain '::nest::base::dracut'
         contain '::nest::base::firmware'
         contain '::nest::base::fstab'
@@ -64,7 +64,7 @@ class nest::base {
         -> Class['::nest::base::dracut']
 
         # Bootloaders are host-specific
-        if $facts['build'] in [undef, 'stage3'] {
+        if $facts['build'] in [undef, 'stage3', 'kernel'] {
           contain '::nest::base::bootloader'
 
           Class['::nest::base::dracut']

@@ -20,7 +20,7 @@ class nest::base::dracut {
       omit_dracutmodules+=" zfs "
       kernel_cmdline="rd.live.overlay.overlayfs=1 ${vconsole_params}"
       | EOT
-  } elsif $facts['build'] {
+  } elsif $facts['build'] and $facts['build'] != 'kernel' {
     $base_config_content = @("EOT")
       kernel_cmdline="${vconsole_params}"
       | EOT
