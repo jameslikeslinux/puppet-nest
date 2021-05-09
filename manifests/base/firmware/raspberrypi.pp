@@ -3,6 +3,13 @@ class nest::base::firmware::raspberrypi {
     ensure => installed,
   }
 
+  # /boot is fat32
+  File {
+    mode  => undef,
+    owner => undef,
+    group => undef,
+  }
+
   file { '/boot/u-boot.bin':
     source => '/usr/src/u-boot/u-boot.bin',
   }
@@ -20,9 +27,6 @@ class nest::base::firmware::raspberrypi {
     | BOOT_CONFIG
 
   file { '/boot/config.txt':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
     content => $boot_config,
     require => Package['sys-boot/raspberrypi-firmware'],
   }
