@@ -1,0 +1,13 @@
+diff --git a/contrib/dracut/90zfs/zfs-load-key.sh.in b/contrib/dracut/90zfs/zfs-load-key.sh.in
+index 9b7716ae9..0ad154037 100755
+--- a/contrib/dracut/90zfs/zfs-load-key.sh.in
++++ b/contrib/dracut/90zfs/zfs-load-key.sh.in
+@@ -48,7 +48,7 @@ if [ "$(zpool list -H -o feature@encryption "$(echo "${BOOTFS}" | awk -F/ '{prin
+             # decrypt them
+             TRY_COUNT=5
+             while [ $TRY_COUNT -gt 0 ]; do
+-                systemd-ask-password "Encrypted ZFS password for ${BOOTFS}" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
++                systemd-ask-password "Enter passphrase for '${ENCRYPTIONROOT}':" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
+                 TRY_COUNT=$((TRY_COUNT - 1))
+             done
+         fi
