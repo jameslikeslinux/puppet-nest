@@ -55,8 +55,10 @@ class nest::base::firmware::uboot {
           value => n,
         ;
 
-        # Hangs system during early kernel init
-        'CONFIG_USB_OHCI_GENERIC':
+        # Disable unstable USB boot support
+        # See: https://gitlab.manjaro.org/manjaro-arm/packages/core/uboot-rockpro64/-/issues/4
+        # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
+        'CONFIG_USE_PREBOOT':
           value => n,
         ;
       }
