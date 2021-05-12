@@ -64,10 +64,14 @@ class nest::base::kernel {
   }
   ~>
   exec { 'module-rebuild':
-    command     => "/usr/bin/emerge --oneshot --usepkg n --jobs ${::nest::concurrency} --load-average ${::nest::base::portage::loadlimit} zfs-kmod",
-    environment => 'FEATURES=-buildpkg',
+    command     => "/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild",
     timeout     => 0,
     refreshonly => true,
+  }
+  ->
+  nest::lib::package { 'sys-fs/zfs-kmod':
+    ensure => installed,
+    binpkg => false,
   }
 
   Exec['kernel-defconfig']

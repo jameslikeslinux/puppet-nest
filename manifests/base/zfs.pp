@@ -1,6 +1,10 @@
 class nest::base::zfs {
-  package { 'sys-fs/zfs':
+  nest::lib::package { 'sys-fs/zfs':
     ensure => installed,
+    use    => 'kernel-builtin'
+  }
+
+  if defined(Class['nest::base::kernel']) {
   }
 
   $zfs_mount_override = @(EOF)
@@ -25,6 +29,8 @@ class nest::base::zfs {
       notify  => Nest::Lib::Systemd_reload['zfs'],
     ;
   }
+
+  nest::lib::systemd_reload { 'zfs': }
 
   unless $facts['is_container'] or $facts['running_live'] {
     exec { 'zgenhostid':

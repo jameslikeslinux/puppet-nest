@@ -27,6 +27,7 @@ class nest::base {
       contain '::nest::base::sudo'
       contain '::nest::base::systemd'
       contain '::nest::base::timesyncd'
+      contain '::nest::base::zfs'
 
       if $facts['build'] in [undef, 'stage2', 'stage3', 'kernel'] {
         contain '::nest::base::dracut'
@@ -34,7 +35,6 @@ class nest::base {
         contain '::nest::base::fstab'
         contain '::nest::base::kernel'
         contain '::nest::base::plymouth'
-        contain '::nest::base::zfs'
 
         # Rebuild initramfs and reconfigure bootloader after kernel changes
         Class['::nest::base::kernel']
@@ -46,22 +46,21 @@ class nest::base {
         -> Class['::nest::base::firmware']
         ~> Class['::nest::base::dracut']
 
-        # Rebuild initramfs after ZFS changes
-        Class['::nest::base::kernel']
-        -> Class['::nest::base::zfs']
+        # Dracut liveimg depends on dhcp, pulled in by network class
+        Class['::nest::base::network']
+        -> Class['::nest::base::dracut']
+
+        # Rebuild initramfs after plymouth changes
+        Class['::nest::base::plymouth']
         ~> Class['::nest::base::dracut']
 
         # Dracut depends on systemd/console setup
         Class['::nest::base::systemd']
         ~> Class['::nest::base::dracut']
 
-        # Rebuild initramfs after plymouth changes
-        Class['::nest::base::plymouth']
+        # Rebuild initramfs after ZFS changes
+        Class['::nest::base::zfs']
         ~> Class['::nest::base::dracut']
-
-        # Dracut liveimg depends on dhcp, pulled in by network class
-        Class['::nest::base::network']
-        -> Class['::nest::base::dracut']
 
         # Bootloaders are host-specific
         if $facts['build'] in [undef, 'stage3', 'kernel'] {

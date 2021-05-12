@@ -1,9 +1,20 @@
 define nest::lib::package (
+  Boolean                  $binpkg  = true,
   String                   $ensure  = 'installed',
   String                   $package = $name,
   Optional[Nest::UseFlags] $use     = undef,
   Boolean                  $world   = true,
 ) {
+  unless $binpkg {
+    package_env { $name:
+      name   => $package,
+      env    => 'no-buildpkg.conf',
+      before => Package[$name],
+    }
+
+    $install_options = [{ '--usepkg' => 'n' }]
+  }
+
   $use_ensure = $use ? {
     undef   => 'absent',
     default => 'present',
@@ -16,8 +27,9 @@ define nest::lib::package (
   }
 
   package { $name:
-    ensure => $ensure,
-    name   => $package,
+    ensure          => $ensure,
+    install_options => $install_options,
+    name            => $package,
   }
 
   if $world {
