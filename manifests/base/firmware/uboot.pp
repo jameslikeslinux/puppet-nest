@@ -55,10 +55,11 @@ class nest::base::firmware::uboot {
           value => n,
         ;
 
-        # Disable unstable USB boot support
-        # See: https://gitlab.manjaro.org/manjaro-arm/packages/core/uboot-rockpro64/-/issues/4
+        # Disable unstable USB 1.1 support
+        # See: https://lists.denx.de/pipermail/u-boot/2020-November/433070.html
         # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
-        'CONFIG_USE_PREBOOT':
+        # See: https://gitlab.manjaro.org/manjaro-arm/packages/core/uboot-rockpro64/-/issues/4
+        'CONFIG_USB_OHCI_HCD':
           value => n,
         ;
       }
