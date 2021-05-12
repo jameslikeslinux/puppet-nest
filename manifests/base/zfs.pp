@@ -20,10 +20,6 @@ class nest::base::zfs {
       ensure => directory,
     ;
 
-    '/etc/systemd/system/zfs-mount.service.d/load-key.conf':
-      ensure => absent,
-    ;
-
     '/etc/systemd/system/zfs-mount.service.d/10-load-key.conf':
       content => $zfs_mount_override,
       notify  => Nest::Lib::Systemd_reload['zfs'],
@@ -58,56 +54,6 @@ class nest::base::zfs {
     enable  => true,
     require => Package['sys-fs/zfs'],
   }
-
-  group { 'zfssnap':
-    ensure => absent,
-  }
-
-  user { 'zfssnap':
-    ensure => absent,
-    before => Group['zfssnap'],
-  }
-
-  file { '/var/lib/zfssnap':
-    ensure  => absent,
-    recurse => true,
-    force   => true,
-  }
-
-  file { '/etc/sudoers.d/10_zfssnap':
-    ensure => absent,
-  }
-
-  file { '/usr/sbin/zfs-auto-snapshot':
-    ensure => absent,
-  }
-
-  file { '/etc/systemd/system/zfs-auto-snapshot@.service':
-    ensure => absent,
-    notify => Nest::Lib::Systemd_reload['zfs'],
-  }
-
-  $zfs_auto_snapshot_timer_frequencies = {
-    'frequent' => '*:0/15',
-    'hourly'   => 'hourly',
-    'daily'    => 'daily',
-    'weekly'   => 'weekly',
-    'monthly'  => 'monthly',
-  }
-
-  $zfs_auto_snapshot_timer_frequencies.each |$frequency, $calendar| {
-    file { "/etc/systemd/system/zfs-auto-snapshot@${frequency}.timer":
-      ensure => absent,
-      notify => Nest::Lib::Systemd_reload['zfs'],
-    }
-
-    service { "zfs-auto-snapshot@${frequency}.timer":
-      enable => false,
-      before => Nest::Lib::Systemd_reload['zfs'],
-    }
-  }
-
-  ::nest::lib::systemd_reload { 'zfs': }
 
   unless $facts['is_container'] or $facts['running_live'] {
     exec { 'generate-zpool-cache':
