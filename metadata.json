@@ -53,6 +53,10 @@
       "version_requirement": "2.x"
     },
     {
+      "name": "puppet-nodejs",
+      "version_requirement": ">= 9.0.0 < 10.0.0"
+    },
+    {
       "name": "puppet-windows_env",
       "version_requirement": "3.x"
     },
