@@ -102,7 +102,7 @@ class nest::role::workstation::sway {
     ;
 
     '/etc/sway/config.d/10-xwayland':
-      content => "exec xrdb /etc/sway/Xresources\n",
+      content => epp('nest/sway/xwayland.epp', { 'dvorak' => $::nest::dvorak }),
     ;
   }
 }
