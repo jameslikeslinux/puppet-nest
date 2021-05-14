@@ -1,29 +1,23 @@
 class nest::role::workstation::ydotool {
-  package { 'gui-apps/ydotool':
-    ensure => installed,
+  service { [
+    'ydotoold.service',
+    'ydotoold.socket',
+  ]:
+    ensure  => stopped,
+    enable  => false,
   }
-
-  file {
-    default:
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
-      notify => Nest::Lib::Systemd_reload['ydotool'],
-    ;
-
-    '/etc/systemd/system/ydotoold.service':
-      source => 'puppet:///modules/nest/ydotool/ydotoold.service',
-    ;
-
-    '/etc/systemd/system/ydotoold.socket':
-      source => 'puppet:///modules/nest/ydotool/ydotoold.socket',
-    ;
+  ->
+  file { [
+    '/etc/systemd/system/ydotoold.service',
+    '/etc/systemd/system/ydotoold.socket'
+  ]:
+    ensure => absent,
   }
-
+  ~>
   ::nest::lib::systemd_reload { 'ydotool': }
 
-  service { 'ydotoold':
-    enable  => true,
-    require => Nest::Lib::Systemd_reload['ydotool'],
+  package { 'gui-apps/ydotool':
+    ensure  => absent,
+    require => Service['ydotoold.service'],
   }
 }
