@@ -8,6 +8,7 @@ class nest::role::workstation::sway {
     'gui-apps/waybar',
     'app-misc/jq',            # for interacting with swaymsg
     'gui-apps/wl-clipboard',  # for tmux-yank
+    'gui-apps/wtype',         # for simulating keyboard input
   ]:
     ensure => installed,
   }
