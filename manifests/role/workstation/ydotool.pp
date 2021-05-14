@@ -15,9 +15,4 @@ class nest::role::workstation::ydotool {
   }
   ~>
   ::nest::lib::systemd_reload { 'ydotool': }
-
-  package { 'gui-apps/ydotool':
-    ensure  => absent,
-    require => Service['ydotoold.service'],
-  }
 }
