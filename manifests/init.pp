@@ -74,7 +74,7 @@ class nest (
   contain "nest::role::${facts['profile']['role']}"
 
   # Let client ask for a tool configuration
-  if $facts['build'] in ['bitwarden_cli', 'buildah', 'qemu', 'r10k'] {
+  if $facts['build'] in ['buildah', 'qemu', 'r10k'] {
     contain "nest::tool::${facts['build']}"
   }
 }

@@ -4,6 +4,7 @@ class nest::role::workstation {
 
   case $facts['osfamily'] {
     'Gentoo': {
+      contain '::nest::role::workstation::bitwarden'
       contain '::nest::role::workstation::bluetooth'
       contain '::nest::role::workstation::cups'
       contain '::nest::role::workstation::cursor'

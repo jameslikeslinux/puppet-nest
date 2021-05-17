@@ -1,4 +1,4 @@
-class nest::tool::bitwarden_cli {
+class nest::role::workstation::bitwarden {
   include 'nodejs'
 
   file { '/opt/bitwarden':
