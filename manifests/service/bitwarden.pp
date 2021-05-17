@@ -13,7 +13,7 @@ class nest::service::bitwarden (
   }
   ->
   nest::lib::container { 'bitwarden':
-    image   => 'bitwardenrs/server',
+    image   => 'vaultwarden/server',
     env     => [
       'DOMAIN=https://vault.thesatelliteoflove.net',
       "ADMIN_TOKEN=${admin_token}",
