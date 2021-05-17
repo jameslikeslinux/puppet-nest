@@ -19,6 +19,7 @@ class nest::service::bitwarden (
       "ADMIN_TOKEN=${admin_token}",
       "DATABASE_URL=mysql://bitwarden:${database_password}@web.nest/bitwarden",
       'ENABLE_DB_WAL=false',
+      'IP_HEADER=X-Forwarded-For',
       'SIGNUPS_ALLOWED=false',
       'SHOW_PASSWORD_HINT=false',
       'SMTP_HOST=smtp.gmail.com',
