@@ -2,8 +2,7 @@ class nest::base::portage {
   $python = regsubst($facts['portage_python_single_target'], '_', '.')
 
   class { 'portage':
-    eselect_ensure    => installed,
-    make_conf_remerge => $facts['build'] != 'stage1',
+    eselect_ensure => installed,
   }
   ->
   exec {
