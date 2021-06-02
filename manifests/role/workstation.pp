@@ -11,7 +11,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::dunst'
       contain '::nest::role::workstation::fonts'
       contain '::nest::role::workstation::input'
-      contain '::nest::role::workstation::lastpass'
       contain '::nest::role::workstation::media'
       contain '::nest::role::workstation::packages'
       contain '::nest::role::workstation::policykit'
