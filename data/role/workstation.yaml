@@ -17,16 +17,7 @@ nest::package_keywords:
   x11-terms/alacritty: {}
 
   # For firefox
-  dev-libs/nspr:
-    version: '~4.29'
-  dev-libs/nss:
-    version: '~3.60'
-  media-libs/harfbuzz:
-    version: '~2.7.1'
-  media-libs/libvpx:
-    version: '~1.8.2'
-  media-libs/libwebp:
-    version: '~1.1.0'
+  dev-libs/nss: {}
 
   # For pipewire
   media-libs/libopenaptx:
