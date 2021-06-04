@@ -29,14 +29,7 @@ class nest::base::systemd {
     replace => false,
   }
 
-  $nsswitch_id_changes = ['passwd', 'shadow', 'group'].map |$database| {
-    [
-      "rm database[. = '${database}']/service",
-      "set database[. = '${database}']/service files",
-    ]
-  }
-
-  $nsswitch_hosts_changes = [
+  $nsswitch_changes = [
     'rm database[. = "hosts"]/*',
     'set database[. = "hosts"]/service[1] files',
     'set database[. = "hosts"]/service[2] resolve',
@@ -45,11 +38,24 @@ class nest::base::systemd {
     'set database[. = "hosts"]/reaction/status/action return',
     'set database[. = "hosts"]/service[3] dns',
     'set database[. = "hosts"]/service[4] myhostname',
+
+    'rm database[. = "group"]/*',
+    'set database[. = "group"]/service[1] files',
+    'set database[. = "group"]/reaction/status SUCCESS',
+    'set database[. = "group"]/reaction/status/action merge',
+    'set database[. = "group"]/service[2] systemd',
+
+    'rm database[. = "passwd"]/*',
+    'set database[. = "passwd"]/service[1] files',
+    'set database[. = "passwd"]/service[2] systemd',
+
+    'rm database[. = "shadow"]/*',
+    'set database[. = "shadow"]/service[1] files',
   ]
 
   augeas { 'nsswitch':
     context => '/files/etc/nsswitch.conf',
-    changes => flatten($nsswitch_id_changes + $nsswitch_hosts_changes),
+    changes => $nsswitch_changes,
   }
 
   unless $facts['is_container'] {
