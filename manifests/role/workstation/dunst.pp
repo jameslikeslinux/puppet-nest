@@ -7,7 +7,10 @@ class nest::role::workstation::dunst {
     ensure => installed,
   }
 
-  file { '/usr/share/dunst/icons':
+  file { [
+    '/usr/share/dunst',
+    '/usr/share/dunst/icons',
+  ]:
     ensure => directory,
     mode   => '0755',
     owner  => 'root',
