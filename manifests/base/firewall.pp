@@ -34,6 +34,20 @@ class nest::base::firewall {
     }
   }
 
+  # Replacing the save command above breaks eselect-iptables.
+  # Manage the things eselect would manage here.
+  file { [
+    '/sbin/iptables',
+    '/sbin/iptables-restore',
+    '/sbin/iptables-xml',
+    '/sbin/ip6tables',
+    '/sbin/ip6tables-restore',
+  ]:
+    ensure  => link,
+    target  => 'xtables-legacy-multi',
+    require => Package['net-firewall/iptables'],
+  }
+
   file { [
     '/etc/systemd/system/iptables-store.service.d',
     '/etc/systemd/system/ip6tables-store.service.d',
@@ -55,15 +69,15 @@ class nest::base::firewall {
   }
 
 
-  Package['net-firewall/iptables']
+  File['/sbin/iptables', '/sbin/ip6tables']
   -> Firewallchain <||>
   ~> [Service['iptables-store'], Service['ip6tables-store']]
 
-  Package['net-firewall/iptables']
+  File['/sbin/iptables']
   -> Firewall <| provider == iptables or provider == undef |>
   ~> Service['iptables-store']
 
-  Package['net-firewall/iptables']
+  File['/sbin/ip6tables']
   -> Firewall <| provider == ip6tables |>
   ~> Service['ip6tables-store']
 
