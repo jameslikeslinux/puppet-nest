@@ -17,9 +17,12 @@ class nest::base::bootloader::systemd {
       refreshonly => true,
     }
 
-    file_line { 'loader.conf-default':
-      path    => '/boot/loader/loader.conf',
-      line    => "default ${facts['machine_id']}-*",
+    $loader_conf = @("LOADER_CONF")
+      default ${facts['machine_id']}-*
+      | LOADER_CONF
+
+    file { '/boot/loader/loader.conf':
+      content => $loader_conf,
       require => Exec['bootctl-install'],
     }
 
