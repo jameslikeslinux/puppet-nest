@@ -21,7 +21,6 @@ class nest::role::workstation {
       contain '::nest::role::workstation::virtualization'
       contain '::nest::role::workstation::xmonad'
       contain '::nest::role::workstation::xorg'
-      contain '::nest::role::workstation::ydotool'
       contain '::nest::role::workstation::zoom'
 
       # Plasma installs xorg-server, so we don't need to manage it separately
