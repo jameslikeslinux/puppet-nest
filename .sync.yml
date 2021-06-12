@@ -1,4 +1,8 @@
 ---
+.gitignore:
+  paths:
+    - 'modules/private'
+
 .rubocop.yml:
   default_configs:
     AllCops:
