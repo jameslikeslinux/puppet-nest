@@ -18,6 +18,7 @@ AllCops:
   - "**/Puppetfile"
   - "**/Vagrantfile"
   - "**/Guardfile"
+  - lib/puppet/provider/package/cygwin.rb
 Layout/LineLength:
   Description: People have wide screens, use them.
   Max: 200
