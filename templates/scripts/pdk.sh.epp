@@ -7,4 +7,6 @@
 # See: https://github.com/puppetlabs/pdk-docker
 #
 
-exec podman run --rm -it -v "$(pwd):/root" puppet/pdk "$@"
+exec podman run --rm -it -v "$(pwd):/root" nest/tools/pdk:<%= $facts['profile']['cpu'] %> pdk "$@"
+
+# vim: filetype=bash

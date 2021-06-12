@@ -10,6 +10,6 @@ class nest::base::scripts {
   }
 
   file { '/usr/local/bin/pdk':
-    source => 'puppet:///modules/nest/scripts/pdk.sh',
+    content => epp('nest/scripts/pdk.sh.epp'),
   }
 }
