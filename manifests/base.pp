@@ -17,6 +17,7 @@ class nest::base {
       contain '::nest::base::fail2ban'
       contain '::nest::base::firewall'
       contain '::nest::base::fs'
+      contain '::nest::base::gentoo'
       contain '::nest::base::hosts'
       contain '::nest::base::locale'
       contain '::nest::base::mta'
@@ -74,6 +75,10 @@ class nest::base {
       # Subuid/subgid maps override automatic entries from useradd
       Class['::nest::base::users']
       -> Class['::nest::base::containers']
+
+      # Gentoo news might send mail
+      Class['::nest::base::mta']
+      -> Class['::nest::base::gentoo']
 
       # Sudo requires configured MTA
       Class['::nest::base::mta']
