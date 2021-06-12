@@ -1,4 +1,4 @@
 .bundle/
 Gemfile.lock
 vendor/
-modules/nest_private
+modules/private
