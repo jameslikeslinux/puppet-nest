@@ -17,8 +17,8 @@ mod 'puppet-windows_env', '3.2.0'
 #
 # My modules
 #
-mod 'self', :git => 'git@gitlab.james.tl:nest/self.git', :branch => 'main'
-mod 'private', :git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main'
+mod 'self', :git => 'git@gitlab.james.tl:nest/self.git', :branch => 'main', :install_path => '.'
+mod 'private',:git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main', :install_path => '.'
 
 
 # Required by nest

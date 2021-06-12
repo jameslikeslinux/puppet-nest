@@ -1,7 +1,7 @@
 ---
 .gitignore:
   paths:
-    - 'modules/private'
+    - 'private'
 
 .rubocop.yml:
   default_configs:
