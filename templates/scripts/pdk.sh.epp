@@ -2,9 +2,11 @@
 #
 # PDK container wrapper
 #
-# Run the Puppet Development Kit container image provided by Puppet.
-# See: https://hub.docker.com/r/puppet/pdk
-# See: https://github.com/puppetlabs/pdk-docker
+# Run a custom Puppet Development Kit container image that
+# supports all of the Nest platforms.
+
+# See: https://gitlab.james.tl/nest/tools/pdk
+# See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/tool/pdk.pp
 #
 
 exec podman run --rm -it -v "$(pwd):/root" nest/tools/pdk:<%= $facts['profile']['cpu'] %> pdk "$@"
