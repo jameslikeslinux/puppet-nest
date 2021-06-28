@@ -23,6 +23,9 @@ nest::kernel_cmdline:
   - 'intel_iommu=on'
   - 'pci-stub.ids=10de:0fbc,1912:0014'
   - 'intel_idle.max_cstate=2'
+  # Workaround https://gitlab.freedesktop.org/drm/amd/-/issues/929
+  - 'video=DP-1:2560x1440@60'
+  - 'video=DP-2:2560x1440@60'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
