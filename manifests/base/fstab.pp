@@ -26,7 +26,7 @@ class nest::base::fstab {
     ],
 
     'swap'    => [
-      "set 3/spec LABEL=${hostname}-swap",
+      "set 3/spec /dev/zvol/${facts['rpool']}/swap",
       'set 3/file none',
       'set 3/vfstype swap',
       'set 3/opt discard',
@@ -46,7 +46,7 @@ class nest::base::fstab {
     ],
 
     'nest-fscache' => [
-      "set 5/spec LABEL=${hostname}-fscache",
+      "set 5/spec /dev/zvol/${facts['rpool']}/fscache",
       'set 5/file /var/cache/fscache',
       'set 5/vfstype ext4',
       'set 5/opt[1] defaults',

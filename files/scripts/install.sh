@@ -273,13 +273,13 @@ END
 
     destructive_cmd zfs create -V "$swap_size" -b 4096 -o refreservation=none "${zroot}/swap"
     destructive_cmd udevadm settle
-    destructive_cmd mkswap -L "${name}-swap" "/dev/zvol/${zroot}/swap"
+    destructive_cmd mkswap "/dev/zvol/${zroot}/swap"
 
     if grep "${name}-fscache" "${img}/etc/fstab" > /dev/null; then
         task "Creating fscache..."
         destructive_cmd zfs create -V 2G "${zroot}/fscache"
         destructive_cmd udevadm settle
-        destructive_cmd mkfs.ext4 -L "${name}-fscache" "/dev/zvol/${zroot}/fscache"
+        destructive_cmd mkfs.ext4 "/dev/zvol/${zroot}/fscache"
         destructive_cmd tune2fs -o discard "/dev/zvol/${zroot}/fscache"
     fi
 
