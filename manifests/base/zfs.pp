@@ -4,9 +4,6 @@ class nest::base::zfs {
     use    => 'kernel-builtin'
   }
 
-  if defined(Class['nest::base::kernel']) {
-  }
-
   $zfs_mount_override = @(EOF)
     [Service]
     ExecStart=

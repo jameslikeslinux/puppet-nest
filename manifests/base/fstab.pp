@@ -1,6 +1,12 @@
 class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
+  if length($hostname) > 8 {
+    $labelname = "${hostname[0,4]}${hostname[-4,4]}"
+  } else {
+    $labelname = $hostname
+  }
+
   $boot_vfstype = $::nest::bootloader ? {
     'systemd' => 'vfat',
     default   => 'ext2',
@@ -26,7 +32,7 @@ class nest::base::fstab {
     ],
 
     'swap'    => [
-      "set 3/spec /dev/zvol/${facts['rpool']}/swap",
+      "set 3/spec LABEL=${labelname}-swap",
       'set 3/file none',
       'set 3/vfstype swap',
       'set 3/opt discard',
@@ -46,7 +52,7 @@ class nest::base::fstab {
     ],
 
     'nest-fscache' => [
-      "set 5/spec /dev/zvol/${facts['rpool']}/fscache",
+      "set 5/spec LABEL=${labelname}-fscache",
       'set 5/file /var/cache/fscache',
       'set 5/vfstype ext4',
       'set 5/opt[1] defaults',
