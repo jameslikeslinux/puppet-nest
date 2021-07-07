@@ -24,6 +24,8 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_IGB: m
+  CONFIG_IWLWIFI: m
+  CONFIG_IWLMVM: m
   CONFIG_IPMI_HANDLER: m
   CONFIG_IPMI_DEVICE_INTERFACE: m
   CONFIG_IPMI_SI: m
