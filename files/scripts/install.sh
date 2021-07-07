@@ -293,7 +293,7 @@ END
     destructive_cmd udevadm settle
     destructive_cmd mkswap -L "${labelname}-swap" "/dev/zvol/${zroot}/swap"
 
-    if grep "${name}-fscache" "${img}/etc/fstab" > /dev/null; then
+    if grep "${labelname}-fscache" "${img}/etc/fstab" > /dev/null; then
         task "Creating fscache..."
         destructive_cmd zfs create -V 2G "${zroot}/fscache"
         destructive_cmd udevadm settle
