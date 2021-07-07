@@ -75,7 +75,7 @@ class nest::base::bootloader::grub {
 
     if $facts['profile']['platform'] == 'live' {
       exec { 'grub-modify-live-config':
-        command     => '/bin/sed -i -r "/insmod ext2/,/fi/d" /boot/grub/grub.cfg',
+        command     => '/bin/sed -i -r "/insmod ext2/,/search/d" /boot/grub/grub.cfg',
         refreshonly => true,
         subscribe   => Exec['grub-mkconfig'],
       }
