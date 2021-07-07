@@ -1,7 +1,4 @@
 class nest::base::dracut {
-  # For nest::base::systemd::keymap
-  include 'nest::base::systemd'
-
   package { 'sys-kernel/dracut':
     ensure => installed,
   }
@@ -12,18 +9,14 @@ class nest::base::dracut {
     }
   }
 
-  $vconsole_params = "rd.hostonly=1 rd.vconsole.font=ter-v${::nest::console_font_size}b rd.vconsole.keymap=${::nest::base::systemd::keymap}"
-
   if $facts['profile']['platform'] == 'live' {
     $base_config_content = @("EOT")
       add_dracutmodules+=" dmsquash-live livenet "
       omit_dracutmodules+=" zfs "
-      kernel_cmdline="rd.live.overlay.overlayfs=1 ${vconsole_params}"
+      kernel_cmdline="rd.live.overlay.overlayfs=1"
       | EOT
   } elsif $facts['build'] and $facts['build'] != 'kernel' {
-    $base_config_content = @("EOT")
-      kernel_cmdline="${vconsole_params}"
-      | EOT
+    $base_config_content = ''
   } else {
     $base_config_content = @("EOT")
       force="yes"

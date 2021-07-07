@@ -86,41 +86,9 @@ class nest::base::systemd {
     enable => true,
   }
 
-  package { 'media-fonts/terminus-font':
-    ensure => installed,
-  }
-
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root';
-
-    '/usr/share/keymaps/i386/dvorak/dvorak-nocaps.map.gz':
-      source => 'puppet:///modules/nest/keymaps/dvorak-nocaps.map.gz';
-
-    '/usr/share/keymaps/i386/dvorak/dvorak-nocaps-swap_alt_win.map.gz':
-      ensure => absent;
-
-    '/usr/share/keymaps/i386/qwerty/us-nocaps.map.gz':
-      source => 'puppet:///modules/nest/keymaps/us-nocaps.map.gz';
-
-    '/usr/share/keymaps/i386/qwerty/us-nocaps-swap_alt_win.map.gz':
-      ensure => absent;
-  }
-
-  $keymap = $::nest::dvorak ? {
-    true    => 'dvorak-nocaps',
-    default => 'us-nocaps',
-  }
-
-  $vconsole_conf_content = @("EOT")
-    FONT=ter-v${::nest::console_font_size}b
-    KEYMAP=${keymap}
-    | EOT
-
+  # XXX: Remove this resource after some time
   file { '/etc/vconsole.conf':
-    content => $vconsole_conf_content,
+    ensure => absent,
   }
 
   file { '/etc/issue':

@@ -11,6 +11,7 @@ class nest::base {
 
   case $facts['osfamily'] {
     'Gentoo': {
+      contain '::nest::base::console'
       contain '::nest::base::containers'
       contain '::nest::base::distcc'
       contain '::nest::base::distccd'
@@ -37,6 +38,10 @@ class nest::base {
         contain '::nest::base::kernel'
         contain '::nest::base::plymouth'
 
+        # Dracut depends on console fonts and keymaps
+        Class['::nest::base::console']
+        ~> Class['::nest::base::dracut']
+
         # Rebuild initramfs and reconfigure bootloader after kernel changes
         Class['::nest::base::kernel']
         ~> Class['::nest::base::dracut']
@@ -53,10 +58,6 @@ class nest::base {
 
         # Rebuild initramfs after plymouth changes
         Class['::nest::base::plymouth']
-        ~> Class['::nest::base::dracut']
-
-        # Dracut depends on systemd/console setup
-        Class['::nest::base::systemd']
         ~> Class['::nest::base::dracut']
 
         # Rebuild initramfs after ZFS changes

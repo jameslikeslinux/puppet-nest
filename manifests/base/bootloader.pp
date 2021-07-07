@@ -1,4 +1,7 @@
 class nest::base::bootloader {
+  # For nest::base::console::keymap
+  include '::nest::base::console'
+
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'quiet',
@@ -8,6 +11,10 @@ class nest::base::bootloader {
       true    => "nohz_full=${facts['processorcount'] / 2}-${facts['processorcount'] - 1}",
       default => [],
     },
+
+    # Let I/O preferences be configurable at boot time
+    "rd.vconsole.font=ter-v${::nest::console_font_size}b",
+    "rd.vconsole.keymap=${::nest::base::console::keymap}",
 
     # Let kernel swap to compressed memory instead of a physical volume, which
     # is slow and, currently, prone to hanging.  max_pool_percent=100 ensures
