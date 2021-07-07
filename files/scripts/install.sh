@@ -148,10 +148,22 @@ destructive_cmd() {
     [[ $resume ]] || cmd "$@"
 }
 
+nspawn() {
+    local -a bindargs
+
+    for arch in aarch64 arm; do
+        if [[ -f "/usr/bin/qemu-${arch}" ]]; then
+            bindargs+=("--bind-ro=/usr/bin/qemu-${arch}")
+        fi
+    done
+
+    systemd-nspawn "${bindargs[@]}" "$@"
+}
+
 chroot_cmd() {
     echo ">> $@"
     if [[ ! $dryrun ]]; then
-        if ! systemd-nspawn --console=pipe -q --bind=/dev --bind=/nest --bind-ro=/usr/bin/qemu-aarch64 --bind-ro=/usr/bin/qemu-arm --capability=all --property='DeviceAllow=block-* rwm' -D "$target" "$@"; then
+        if ! nspawn --console=pipe -q --bind=/dev --bind=/nest --capability=all --property='DeviceAllow=block-* rwm' -D "$target" "$@"; then
             echo "FAILED"
             exit 1
         fi
@@ -279,7 +291,7 @@ END
 
     destructive_cmd zfs create -V "$swap_size" -b 4096 -o refreservation=none "${zroot}/swap"
     destructive_cmd udevadm settle
-    destructive_cmd mkswap -L "${labelname}-swap" /dev/zvol/${zroot}/swap"
+    destructive_cmd mkswap -L "${labelname}-swap" "/dev/zvol/${zroot}/swap"
 
     if grep "${name}-fscache" "${img}/etc/fstab" > /dev/null; then
         task "Creating fscache..."
@@ -301,7 +313,7 @@ if [[ $shell ]]; then
     # This is inteneded for debugging a failed installation
     # Not really meant for recovering established images
     task "Launching debug shell..."
-    systemd-nspawn --console=interactive -q -E TERM="$TERM" --bind=/nest --bind-ro=/usr/bin/qemu-aarch64 --bind-ro=/usr/bin/qemu-arm --capability=all -D "$target" zsh
+    nspawn --console=interactive -q -E TERM="$TERM" --bind=/nest --capability=all -D "$target" zsh
     exit
 fi
 

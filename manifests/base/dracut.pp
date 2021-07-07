@@ -12,7 +12,7 @@ class nest::base::dracut {
     }
   }
 
-  $vconsole_params = "rd.vconsole.font=ter-v${::nest::console_font_size}b rd.vconsole.keymap=${::nest::base::systemd::keymap}"
+  $vconsole_params = "rd.hostonly=1 rd.vconsole.font=ter-v${::nest::console_font_size}b rd.vconsole.keymap=${::nest::base::systemd::keymap}"
 
   if $facts['profile']['platform'] == 'live' {
     $base_config_content = @("EOT")
