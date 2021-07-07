@@ -283,8 +283,13 @@ END
             ;;
     esac
 
+
+    if [[ $name =~ ([0-9]+)$ ]]; then
+        suffix="${BASH_REMATCH[1]}"
+    fi
+
     if (( ${#name} > 8 )); then
-        labelname="${name:0:4}${name: -4}"
+        labelname="${name:0:$((8 - ${#suffix}))}${suffix}"
     else
         labelname="$name"
     fi

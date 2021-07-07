@@ -1,8 +1,13 @@
 class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
+  $suffix = $hostname ? {
+    /(\d+)$/ => "$1",
+    default  => '',
+  }
+
   if length($hostname) > 8 {
-    $labelname = "${hostname[0,4]}${hostname[-4,4]}"
+    $labelname = "${hostname[0,8 - $suffix.length]}${suffix}"
   } else {
     $labelname = $hostname
   }
