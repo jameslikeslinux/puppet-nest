@@ -205,7 +205,7 @@ if [[ $platform == 'live' ]]; then
     make_dir "${live_dir}/LiveOS/squashfs-root/LiveOS"
 
     task "Making live CD root image..."
-    destructive_cmd truncate -s 10G "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
+    destructive_cmd truncate -s 20G "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
     destructive_cmd mkfs.ext4 "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
     destructive_cmd tune2fs -o discard "${live_dir}/LiveOS/squashfs-root/LiveOS/rootfs.img"
 
@@ -300,7 +300,7 @@ if [[ $shell ]]; then
 fi
 
 task "Copying image..."
-cmd rsync --archive --delete --hard-links --info=progress2 --no-inc-recursive "${img}/" "$target"
+cmd rsync --archive --delete --hard-links --info=progress2 "${img}/" "$target"
 
 task "Installing bootloader..."
 chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --tags nest::base::bootloader
