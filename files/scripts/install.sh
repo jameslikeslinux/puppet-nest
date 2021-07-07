@@ -318,7 +318,7 @@ if [[ $shell ]]; then
 fi
 
 task "Copying image..."
-cmd rsync --archive --delete --hard-links --info=progress2 "${img}/" "$target"
+cmd rsync --archive --delete --hard-links --info=progress2 "root@falcon:${img}/" "$target"
 
 task "Installing bootloader..."
 chroot_cmd puppet agent --onetime --verbose --no-daemonize --no-splay --show_diff --tags nest::base::bootloader
