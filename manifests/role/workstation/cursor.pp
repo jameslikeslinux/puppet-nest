@@ -24,20 +24,11 @@ class nest::role::workstation::cursor {
       group => 'root';
 
     '/etc/X11/Xresources':
-      content => "Xcursor.size: ${::nest::cursor_size}\n",
-    ;
+      content => "Xcursor.size: ${::nest::cursor_size}\n";
 
-    [
-      '/etc/plasma',
-      '/etc/plasma/startup',
-    ]:
-      ensure => directory,
-    ;
-
-
+    # XCURSOR_SIZE management is pretty good now
     '/etc/plasma/startup/10-cursor.sh':
-      content => "export XCURSOR_SIZE=${::nest::cursor_size}\n",
-    ;
+      ensure => absent,
   }
 
   file_line { 'sddm-load-xresources':
