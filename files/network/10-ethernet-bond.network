@@ -1,0 +1,6 @@
+[Match]
+Host=falcon
+Name=en*
+
+[Network]
+Bond=bond0

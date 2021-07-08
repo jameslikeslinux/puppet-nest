@@ -1,0 +1,10 @@
+[Match]
+Host=falcon
+
+[NetDev]
+Kind=bond
+Name=bond0
+
+[Bond]
+Mode=balance-alb
+MIIMonitorSec=0.1
