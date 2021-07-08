@@ -1,6 +1,6 @@
 [Match]
 Host=web
-Name=br0
+Name=en*
 
 [Network]
 DHCP=yes
