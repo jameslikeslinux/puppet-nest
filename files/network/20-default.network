@@ -1,0 +1,5 @@
+[Match]
+Name=bond* br* en* eth*
+
+[Network]
+DHCP=yes

@@ -1,5 +1,5 @@
 [Match]
-Host=!web
+Host=hawk
 
 [NetDev]
 Kind=bridge

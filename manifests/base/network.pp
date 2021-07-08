@@ -6,7 +6,6 @@ class nest::base::network {
     group        => root,
     purge        => true,
     recurse      => true,
-    force        => true,
     source       => [
       'puppet:///modules/nest/private/network',
       'puppet:///modules/nest/network',
