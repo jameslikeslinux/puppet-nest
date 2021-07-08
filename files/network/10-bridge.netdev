@@ -1,3 +1,6 @@
+[Match]
+Host=!web
+
 [NetDev]
 Kind=bridge
 Name=br0
