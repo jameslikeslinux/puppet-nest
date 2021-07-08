@@ -1,0 +1,6 @@
+[Match]
+Host=hawk
+
+[NetDev]
+Kind=bridge
+Name=br0
