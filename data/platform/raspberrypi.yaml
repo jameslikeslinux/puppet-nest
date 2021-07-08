@@ -3,6 +3,7 @@ nest::bootloader: systemd
 nest::dvorak: true
 nest::fscache: false
 nest::swap_alt_win: true
+nest::wifi: true
 
 nest::package_keywords:
   # Still not fully open-source or mainlined...

@@ -15,12 +15,49 @@ class nest::base::network {
   ~>
   exec { 'systemd-networkd-reload':
     command     => '/bin/networkctl reload',
+    onlyif      => '/bin/systemctl is-active systemd-networkd',
     refreshonly => true,
   }
   ->
   service { 'systemd-networkd':
     enable => true,
   }
+
+
+  if $::nest::wifi {
+    package { 'net-wireless/iwd':
+      ensure => installed,
+    }
+    ->
+    file { '/var/lib/iwd':
+      ensure    => directory,
+      mode      => '0600',
+      owner     => root,
+      group     => root,
+      recurse   => true,
+      show_diff => false,
+      source    => 'puppet:///modules/nest/private/iwd',
+    }
+    ->
+    service { 'iwd':
+      enable => true,
+    }
+  } else {
+    service { 'iwd':
+      ensure => stopped,
+      enable => false,
+    }
+    ->
+    package { 'net-wireless/iwd':
+      ensure => absent,
+    }
+    ->
+    file { '/var/lib/iwd':
+      ensure => absent,
+      force  => true,
+    }
+  }
+
 
 
   #

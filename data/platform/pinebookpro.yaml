@@ -3,6 +3,7 @@ nest::bootloader: systemd
 nest::dvorak: true
 nest::swap_alt_win: true
 nest::text_scaling_factor: 1.1
+nest::wifi: true
 
 # Sustained load drains the battery.  Reduce load from compilation by limiting
 # build jobs to the number of big cores and leaving the LITTLE cores free for
