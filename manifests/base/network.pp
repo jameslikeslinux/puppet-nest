@@ -38,32 +38,9 @@ class nest::base::network {
       show_diff => false,
       source    => 'puppet:///modules/nest/private/iwd',
     }
-    ->  # iwd monitors state directory changes
+    ->
     service { 'iwd':
       enable => true,
-    }
-
-    $iwd_debug_override = @(IWD_DEBUG)
-      [Service]
-      ExecStart=
-      ExecStart=/usr/libexec/iwd --debug
-      | IWD_DEBUG
-
-    file {
-      default:
-        mode  => '0644',
-        owner => 'root',
-        group => 'root',
-      ;
-
-      '/etc/systemd/system/iwd.service.d':
-        ensure => directory,
-      ;
-
-      '/etc/systemd/system/iwd.service.d/10-debug.conf':
-        content => $iwd_debug_override,
-        notify  => Service['iwd']
-      ;
     }
   } else {
     service { 'iwd':
@@ -75,10 +52,7 @@ class nest::base::network {
       ensure => absent,
     }
     ->
-    file { [
-      '/etc/systemd/system/iwd.service.d',
-      '/var/lib/iwd',
-    ]:
+    file { '/var/lib/iwd':
       ensure => absent,
       force  => true,
     }
