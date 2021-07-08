@@ -1,6 +1,5 @@
 [Match]
-Host=hawk
-Name=en*
+Name=bond0
 
 [Network]
 Bridge=br0

@@ -1,0 +1,6 @@
+[Match]
+Name=wl*
+SSID="Prestige Worldwide"
+
+[Network]
+Bond=bond0

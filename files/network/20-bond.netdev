@@ -1,0 +1,7 @@
+[NetDev]
+Kind=bond
+Name=bond0
+
+[Bond]
+Mode=active-backup
+MIIMonitorSec=1
