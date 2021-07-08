@@ -1,0 +1,6 @@
+[Match]
+Host=web
+Name=en*
+
+[Network]
+DHCP=yes

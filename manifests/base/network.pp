@@ -1,4 +1,31 @@
 class nest::base::network {
+  file { '/etc/systemd/network':
+    ensure       => directory,
+    mode         => '0644',
+    owner        => root,
+    group        => root,
+    purge        => true,
+    recurse      => true,
+    source       => [
+      'puppet:///modules/nest/private/network',
+      'puppet:///modules/nest/network',
+    ],
+    sourceselect => all,
+  }
+  ~>
+  exec { 'systemd-networkd-reload':
+    command     => '/bin/networkctl reload',
+    refreshonly => true,
+  }
+  ->
+  service { 'systemd-networkd':
+    enable => true,
+  }
+
+
+  #
+  # XXX: Deprecated
+  #
   package { 'net-misc/networkmanager':
     ensure => installed,
   }
@@ -31,7 +58,7 @@ class nest::base::network {
   }
 
   service { 'NetworkManager':
-    enable  => true,
+    enable  => false,
     require => Package['net-misc/networkmanager'],
   }
 
