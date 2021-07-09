@@ -14,6 +14,7 @@ class nest::service::bitwarden (
   ->
   nest::lib::container { 'bitwarden':
     image   => 'vaultwarden/server',
+    dns     => '172.22.0.1',
     env     => [
       'DOMAIN=https://vault.thesatelliteoflove.net',
       "ADMIN_TOKEN=${admin_token}",
