@@ -48,5 +48,3 @@ nest::service::wordpress::sites:
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
     servername: 'thestaticvoid.com'
     serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
-
-puppet::environment: 'network'
