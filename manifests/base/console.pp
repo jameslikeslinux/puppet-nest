@@ -20,4 +20,13 @@ class nest::base::console {
     '/usr/share/keymaps/i386/qwerty/us-nocaps.map.gz':
       source => 'puppet:///modules/nest/keymaps/us-nocaps.map.gz';
   }
+
+  $vconsole_conf_content = @("EOT")
+    FONT=ter-v${::nest::console_font_size}b
+    KEYMAP=${keymap}
+    | EOT
+
+  file { '/etc/vconsole.conf':
+    content => $vconsole_conf_content,
+  }
 }

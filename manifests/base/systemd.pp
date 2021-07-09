@@ -86,11 +86,6 @@ class nest::base::systemd {
     enable => true,
   }
 
-  # XXX: Remove this resource after some time
-  file { '/etc/vconsole.conf':
-    ensure => absent,
-  }
-
   file { '/etc/issue':
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
