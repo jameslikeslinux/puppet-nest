@@ -62,8 +62,11 @@ class nest::base::network {
 
       '/etc/systemd/system/iwd.service.d/10-fix-shutdown.conf':
         content => $iwd_service_fix_content,
-        notify  => Service['iwd']
       ;
+    }
+    ~>
+    nest::lib::systemd_reload { 'network':
+      notify => Service['iwd'],
     }
   } else {
     service { 'iwd':
