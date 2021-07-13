@@ -1,17 +1,10 @@
 class nest::role::workstation::plasma {
   nest::lib::package_use { 'kde-plasma/plasma-meta':
-    use => 'networkmanager',
+    use => ['-firewall', '-networkmanager']
   }
 
   package { 'kde-plasma/plasma-meta':
     ensure => installed,
-  }
-
-  # XXX: Remove after sddm is taken out of video group
-  # (was for nvidia support)
-  user { 'sddm':
-    groups  => [],
-    require => Package['kde-plasma/plasma-meta'],
   }
 
   $sddm_conf = @("EOT")
@@ -97,7 +90,6 @@ class nest::role::workstation::plasma {
   service { 'sddm':
     enable  => true,
     require => [
-      User['sddm'],
       File['/etc/sddm.conf'],
       Augeas['pam-sddm'],
     ],

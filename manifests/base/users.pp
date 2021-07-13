@@ -57,15 +57,12 @@ class nest::base::users {
         'james':
           uid      => '1000',
           gid      => 'users',
-          groups   => ['plugdev', 'video', 'wheel'],
+          groups   => ['wheel'],
           home     => '/home/james',
           comment  => 'James Lee',
           shell    => '/bin/zsh',
           password => $pw_hash,
-          require  => [
-            Package['app-shells/zsh'],
-            Class['::nest::base::network'],  # networkmanager creates 'plugdev' group
-          ],
+          require  => Package['app-shells/zsh'],
         ;
 
         'ombi':

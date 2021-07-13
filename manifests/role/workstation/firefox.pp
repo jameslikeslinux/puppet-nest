@@ -10,7 +10,7 @@ class nest::role::workstation::firefox {
       }
 
       nest::lib::package_use { 'www-client/firefox':
-        use => ['hwaccel', 'wifi'],
+        use => ['hwaccel'],
       }
 
       package { 'www-client/firefox':

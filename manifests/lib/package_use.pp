@@ -1,7 +1,7 @@
 define nest::lib::package_use (
-  Optional[Nest::UseFlags]  $use,
   Enum['present', 'absent'] $ensure  = 'present',
   String                    $package = $name,
+  Optional[Nest::UseFlags]  $use     = undef,
 ) {
   package_use { $name:
     ensure => $ensure,
