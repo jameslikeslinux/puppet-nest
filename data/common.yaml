@@ -53,6 +53,8 @@ nest::package_keywords:
   sys-fs/fuse-overlayfs: {}
 
   # For qemu
+  sys-firmware/edk2-ovmf:
+    version: '~202105'
   sys-firmware/ipxe:
     version: '~1.21.1'
   sys-firmware/seabios:
