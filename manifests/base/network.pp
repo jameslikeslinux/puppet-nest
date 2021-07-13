@@ -39,9 +39,31 @@ class nest::base::network {
       show_diff => false,
       source    => 'puppet:///modules/nest/private/iwd',
     }
-    ->
+    ->  # iwd monitors state directory changes
     service { 'iwd':
       enable => true,
+    }
+
+    $iwd_service_fix_content = @(IWD_SERVICE_FIX)
+      [Unit]
+      After=dbus.service
+      | IWD_SERVICE_FIX
+
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      '/etc/systemd/system/iwd.service.d':
+        ensure => directory,
+      ;
+
+      '/etc/systemd/system/iwd.service.d/10-fix-shutdown.conf':
+        content => $iwd_service_fix_content,
+        notify  => Service['iwd']
+      ;
     }
   } else {
     service { 'iwd':
@@ -53,7 +75,10 @@ class nest::base::network {
       ensure => absent,
     }
     ->
-    file { '/var/lib/iwd':
+    file { [
+      '/etc/systemd/system/iwd.service.d',
+      '/var/lib/iwd',
+    ]:
       ensure => absent,
       force  => true,
     }
