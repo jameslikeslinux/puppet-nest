@@ -41,7 +41,7 @@ class nest (
 
   # Output settings
   Float            $gui_scaling_factor  = 1.0,
-  Float            $text_scaling_factor = 1.0,
+  Float            $text_scaling_factor = $gui_scaling_factor,
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
 ) {
