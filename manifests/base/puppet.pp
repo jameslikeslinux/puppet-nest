@@ -70,6 +70,9 @@ class nest::base::puppet {
       ssldir               => '/etc/puppetlabs/puppet/ssl',
       runmode              => $puppet_runmode,
       unavailable_runmodes => ['cron'],
+      additional_settings  => {
+        'publicdir' => '/var/lib/puppet/public',
+      },
     }
   } else {
     class { 'puppet':
