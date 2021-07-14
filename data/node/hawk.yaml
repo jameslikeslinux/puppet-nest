@@ -13,5 +13,3 @@ nest::dvorak: true
 nest::monitor_layout: ['DP-2', 'DP-1']
 nest::primary_monitor: 'DP-1'
 nest::text_scaling_factor: 1.1
-
-puppet::environment: 'network'
