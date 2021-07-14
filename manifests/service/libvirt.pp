@@ -1,10 +1,6 @@
 class nest::service::libvirt {
   include 'nest'
 
-  nest::lib::package_use { 'app-emulation/libvirt':
-    use => ['virt-network', 'zfs'],
-  }
-
   package { 'app-emulation/libvirt':
     ensure => installed,
   }
