@@ -33,6 +33,7 @@ class nest::role::workstation::dunst {
       validate_cmd => "rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' | sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' && mv '%.tmp' '%'",
       checksum     => mtime,
       links        => follow,
+      max_files    => 10000,
       require      => Package['gnome-base/librsvg'],
     }
   }
