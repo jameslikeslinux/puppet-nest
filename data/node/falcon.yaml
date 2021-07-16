@@ -95,5 +95,3 @@ nest::service::reverse_proxy::hosts:
   registry.gitlab.james.tl:
     destination: '127.0.0.1:5050'
     ip: '172.22.0.1'
-
-puppet::environment: 'network'
