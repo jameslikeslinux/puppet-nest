@@ -39,13 +39,9 @@ class nest::role::workstation {
       Class['::nest::role::workstation::xorg']
       -> Class['::nest::role::workstation::input']
 
-      # NetworkManager pulls in bluez
-      Class['::nest::base::network']
-      -> Class['::nest::role::workstation::bluetooth']
-
-      # NetworkManager, systemd pull in policykit
-      Class['::nest::base']
-      -> Class['::nest::role::workstation::policykit']
+      # virt-viewer pulls in zfs
+      Class['::nest::base::zfs']
+      -> Class['::nest::role::workstation::virtualization']
     }
   }
 }
