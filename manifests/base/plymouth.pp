@@ -1,4 +1,8 @@
 class nest::base::plymouth {
+  nest::lib::package_use { 'sys-boot/plymouth':
+    use => '-pango',
+  }
+
   package { 'sys-boot/plymouth':
     ensure => installed,
   }
