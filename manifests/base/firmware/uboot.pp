@@ -6,6 +6,11 @@ class nest::base::firmware::uboot {
     config => '/usr/src/u-boot/.config',
   }
 
+  package { 'dev-lang/swig':
+    ensure => installed,
+    before => Exec['uboot-build'],
+  }
+
   $uboot_branch = $facts['profile']['platform'] ? {
     'pinebookpro' => 'pinebookpro',
     default       => 'main',
