@@ -4,7 +4,12 @@ class nest::base::zfs {
     use    => 'kernel-builtin'
   }
 
-  $zfs_mount_override = @(EOF)
+  $zfs_mount_activate_be_override = @(EOF)
+    [Service]
+    ExecStartPre=-/sbin/beadm activate
+    | EOF
+
+  $zfs_mount_load_key_override = @(EOF)
     [Service]
     ExecStart=
     ExecStart=/sbin/zfs mount -al
@@ -12,22 +17,24 @@ class nest::base::zfs {
 
   file {
     default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
     ;
 
     '/etc/systemd/system/zfs-mount.service.d':
       ensure => directory,
     ;
 
+    '/etc/systemd/system/zfs-mount.service.d/10-activate-be.conf':
+      content => $zfs_mount_activate_be_override,
+    ;
+
     '/etc/systemd/system/zfs-mount.service.d/10-load-key.conf':
-      content => $zfs_mount_override,
-      notify  => Nest::Lib::Systemd_reload['zfs'],
+      content => $zfs_mount_load_key_override,
     ;
   }
-
-  nest::lib::systemd_reload { 'zfs': }
+  ~> nest::lib::systemd_reload { 'zfs': }
 
   unless $facts['is_container'] or $facts['running_live'] {
     exec { 'zgenhostid':

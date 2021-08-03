@@ -5,6 +5,10 @@ class nest::base::scripts {
     group => 'root',
   }
 
+  file { '/sbin/beadm':
+    source => 'puppet:///modules/nest/scripts/beadm.zsh',
+  }
+
   file { '/usr/local/sbin/nest-install':
     source => 'puppet:///modules/nest/scripts/install.sh',
   }
