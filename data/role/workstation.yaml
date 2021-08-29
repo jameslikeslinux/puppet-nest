@@ -17,6 +17,7 @@ nest::package_keywords:
   x11-terms/alacritty: {}
 
   # For firefox
+  dev-libs/nspr: {}
   dev-libs/nss: {}
 
   # For pipewire
