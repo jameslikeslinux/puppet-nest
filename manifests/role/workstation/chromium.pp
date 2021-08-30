@@ -1,4 +1,8 @@
-class nest::role::workstation::chromium {
+class nest::role::workstation::chromium (
+  String $google_api_key,
+  String $google_oauth_id,
+  String $google_oauth_secret,
+) {
   case $facts['osfamily'] {
     'Gentoo': {
       nest::lib::package_use { 'www-client/chromium':
@@ -23,6 +27,12 @@ class nest::role::workstation::chromium {
           CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
           CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
           CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"
+
+          # For Sync and other Google services
+          # See: https://www.gentoo.org/support/news-items/2021-08-11-oauth2-creds-chromium.html
+          export GOOGLE_API_KEY='${google_api_key}'
+          export GOOGLE_DEFAULT_CLIENT_ID='${google_oauth_id}'
+          export GOOGLE_DEFAULT_CLIENT_SECRET='${google_oauth_secret}'
           | EOT
 
         file { '/etc/chromium/nest':
