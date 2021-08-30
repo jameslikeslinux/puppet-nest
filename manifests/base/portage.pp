@@ -1,20 +1,6 @@
 class nest::base::portage {
-  $python = regsubst($facts['portage_python_single_target'], '_', '.')
-
   class { 'portage':
     eselect_ensure => installed,
-  }
-  ->
-  exec {
-    'eselect-python-cleanup':
-      command => '/usr/bin/eselect python cleanup',
-      onlyif  => '/usr/bin/eselect --brief python list | /bin/grep uninstalled',
-    ;
-
-    'eselect-python-set':
-      command => "/usr/bin/eselect python set ${python.shellquote}",
-      unless  => "/usr/bin/eselect --brief python show | /bin/grep ${python.shellquote}",
-    ;
   }
 
   # Remove unused directories created by Class[portage]
