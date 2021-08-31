@@ -204,7 +204,7 @@ nest::kernel_config:
 apache::mpm_module: 'worker'
 apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
 
-puppet::environment: 'main'
+puppet::environment: 'firewalld'
 puppet::puppetmaster: 'puppet.nest'
 puppet::runinterval: 21600
 puppet::agent_additional_settings:
