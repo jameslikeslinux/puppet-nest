@@ -85,10 +85,6 @@ class nest::base {
       Class['::nest::base::mta']
       -> Class['::nest::base::sudo']
 
-      # OpenVPN modifies resolvconf which is installed for NetworkManager
-      Class['::nest::base::network']
-      -> Class['::nest::base::openvpn']
-
       # Setup distcc before portage
       Class['::nest::base::distcc']
       -> Class['::nest::base::portage']

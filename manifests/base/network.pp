@@ -86,26 +86,4 @@ class nest::base::network {
       force  => true,
     }
   }
-
-
-
-  #
-  # XXX: Remove after NetworkManager is cleaned up
-  #
-  service { 'NetworkManager':
-    ensure => stopped,
-    enable => false,
-  }
-  ->
-  package { 'net-misc/networkmanager':
-    ensure => absent,
-  }
-  ->
-  file { [
-    '/etc/NetworkManager',
-    '/var/lib/NetworkManager',
-  ]:
-    ensure => absent,
-    force  => true,
-  }
 }
