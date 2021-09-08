@@ -4,22 +4,8 @@ if $trusted['certname'] in ['bolt', 'puppetdb'] {
 
 case $facts['osfamily'] {
   'Gentoo': {
-    # Effectively disable firewall and service resources in containers
+    # Effectively disable service resources in containers
     if $facts['is_container'] {
-      Firewall <||> {
-        ensure => absent,
-      }
-
-      Firewallchain <||> {
-        ensure => absent,
-      }
-
-      # Built-in chains have to be handled specially
-      Firewallchain <| policy != undef |> {
-        ensure => present,
-        policy => accept,
-      }
-
       Service <||> {
         ensure => undef,
       }

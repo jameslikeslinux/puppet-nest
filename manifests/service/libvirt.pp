@@ -1,6 +1,10 @@
 class nest::service::libvirt {
   include 'nest'
 
+  nest::lib::package_use { 'app-emulation/libvirt':
+    use => 'firewalld',
+  }
+
   package { 'app-emulation/libvirt':
     ensure => installed,
   }
