@@ -7,7 +7,7 @@ index 9b7716ae9..5492b1767 100755
              TRY_COUNT=5
              while [ $TRY_COUNT -gt 0 ]; do
 -                systemd-ask-password "Encrypted ZFS password for ${BOOTFS}" --no-tty | zfs load-key "${ENCRYPTIONROOT}" && break
-+                systemd-ask-password "Enter passphrase for '${ENCRYPTIONROOT}':" --no-tty --timeout=0 | zfs load-key "${ENCRYPTIONROOT}" && break
++                systemd-ask-password --no-tty --timeout=0 "Enter passphrase for '${ENCRYPTIONROOT}':" | zfs load-key "${ENCRYPTIONROOT}" && break
                  TRY_COUNT=$((TRY_COUNT - 1))
              done
          fi
