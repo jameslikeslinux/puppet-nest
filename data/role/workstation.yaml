@@ -21,6 +21,8 @@ nest::package_keywords:
   dev-libs/nss: {}
 
   # For pipewire
+  dev-util/meson:
+    version: '~0.59.1'
   media-libs/libopenaptx:
     version: '~0.2.0'
 
