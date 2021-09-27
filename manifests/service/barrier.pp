@@ -4,12 +4,9 @@ class nest::service::barrier {
     use    => '-gui',
   }
 
-  firewall { '100 barrier':
-    proto   => tcp,
-    dport   => 24800,
-    iniface => 'virbr0',
-    state   => 'NEW',
-    action  => accept,
+  firewalld_service { 'synergy':
+    ensure => present,
+    zone   => 'libvirt',
   }
 
   # XXX: Cleanup from previous dependency on avahi

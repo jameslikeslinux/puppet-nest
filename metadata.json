@@ -33,10 +33,6 @@
       "version_requirement": "4.x"
     },
     {
-      "name": "puppetlabs-firewall",
-      "version_requirement": "1.x"
-    },
-    {
       "name": "puppetlabs-mysql",
       "version_requirement": "5.x"
     },
@@ -51,6 +47,10 @@
     {
       "name": "puppetlabs-vcsrepo",
       "version_requirement": "2.x"
+    },
+    {
+      "name": "puppet-firewalld",
+      "version_requirement": "4.x"
     },
     {
       "name": "puppet-nodejs",

@@ -40,21 +40,8 @@ class nest::service::apache (
   }
 
   if $manage_firewall {
-    firewall {
-      default:
-        proto  => tcp,
-        dport  => [80, 443],
-        state  => 'NEW',
-        action => accept,
-      ;
-
-      '100 http (v4)':
-        provider => iptables,
-      ;
-
-      '100 http (v6)':
-        provider => ip6tables,
-      ;
+    firewalld_service { ['http', 'https']:
+      ensure => present,
     }
   }
 }

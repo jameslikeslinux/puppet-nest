@@ -170,30 +170,8 @@ class nest::base::openvpn {
           ],
         }
 
-        firewall {
-          default:
-            proto  => udp,
-            dport  => 1194,
-            state  => 'NEW',
-            action => accept,
-          ;
-
-          '100 openvpn (v4)':
-            provider => iptables,
-          ;
-
-          '100 openvpn (v6)':
-            provider => ip6tables,
-          ;
-        }
-
-        # Forwarding rules to control access to VPN
-        firewall { '100 nest vpn: allow kvm guests':
-          chain    => 'FORWARD',
-          proto    => all,
-          iniface  => 'virbr0',
-          outiface => $device,
-          action   => accept,
+        firewalld_service { 'openvpn':
+          ensure => present,
         }
       } else {
         $mode   = 'client'
@@ -208,31 +186,6 @@ class nest::base::openvpn {
         ensure  => directory,
         mode    => '0755',
         require => Package[$openvpn_package_name],
-      }
-
-      # Allow and forward all VPN traffic
-      firewall {
-        default:
-          proto => all,
-        ;
-
-        '001 nest vpn':
-          iniface => $device,
-          action  => accept,
-        ;
-
-        '001 nest vpn: forward all':
-          chain   => 'FORWARD',
-          iniface => $device,
-          action  => accept,
-        ;
-
-        '002 nest vpn: allow return packets':
-          chain    => 'FORWARD',
-          outiface => $device,
-          ctstate  => ['RELATED', 'ESTABLISHED'],
-          action   => accept,
-        ;
       }
     }
 

@@ -1,3 +1,6 @@
+#
+# XXX Refactor or remove this class for better firewalld support
+#
 define nest::lib::port_forward (
   Enum['tcp', 'udp']                $proto,
   Stdlib::Port                      $from_port,
@@ -7,71 +10,29 @@ define nest::lib::port_forward (
   Optional[Stdlib::IP::Address::V6] $source_ip6      = undef,
   Optional[Stdlib::IP::Address::V6] $destination_ip6 = undef,
 ) {
-  $combined_spec = {
-    'v4' => {
-      'source'      => $source_ip4,
-      'destination' => $destination_ip4,
-      'provider'    => iptables,
-    },
-
-    'v6' => {
-      'source'      => $source_ip6,
-      'destination' => $destination_ip6,
-      'provider'    => ip6tables,
-    },
+  if $destination_ip4 {
+    firewalld_rich_rule { "${name} (v4)":
+      family       => ipv4,
+      dest         => $source_ip4,
+      forward_port => {
+        port     => $from_port,
+        protocol => $proto,
+        to_addr  => $destination_ip4,
+        to_port  => $to_port,
+      },
+    }
   }
 
-  $combined_spec.each |$comment, $spec| {
-    if $spec['source'] and $spec['destination'] {
-      firewall {
-        default:
-          provider => $spec['provider'],
-        ;
-
-        "100 ${name} (${comment}): modify destination on incoming packets":
-          table       => nat,
-          chain       => 'PREROUTING',
-          destination => $spec['source'],
-          proto       => $proto,
-          dport       => $from_port,
-          jump        => 'DNAT',
-          todest      => "${spec['destination']}:${to_port}",
-        ;
-
-        "100 ${name} (${comment}): modify destination on generated packets":
-          table       => nat,
-          chain       => 'OUTPUT',
-          destination => $spec['source'],
-          proto       => $proto,
-          dport       => $from_port,
-          jump        => 'DNAT',
-          todest      => "${spec['destination']}:${to_port}",
-        ;
-
-        "100 ${name} (${comment}): allow forwarding":
-          chain       => 'FORWARD',
-          destination => $spec['destination'],
-          proto       => $proto,
-          dport       => $to_port,
-          action      => accept,
-        ;
-
-        "100 ${name} (${comment}): allow return packets":
-          chain   => 'FORWARD',
-          source  => $spec['destination'],
-          ctstate => ['RELATED', 'ESTABLISHED'],
-          action  => accept,
-        ;
-
-        "100 ${name} (${comment}): modify source for return routing":
-          table       => nat,
-          chain       => 'POSTROUTING',
-          destination => $spec['destination'],
-          proto       => $proto,
-          dport       => $to_port,
-          jump        => 'MASQUERADE',
-        ;
-      }
+  if $destination_ip6 {
+    firewalld_rich_rule { "${name} (v6)":
+      family       => ipv6,
+      dest         => $source_ip6,
+      forward_port => {
+        port     => $from_port,
+        protocol => $proto,
+        to_addr  => $destination_ip6,
+        to_port  => $to_port,
+      },
     }
   }
 }

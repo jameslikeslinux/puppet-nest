@@ -90,13 +90,13 @@ class nest::service::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
-  if $::nest::fileserver {
-    firewall { '100 fileserver':
-      proto   => tcp,
-      dport   => [139, 445, 2049],
-      iniface => 'virbr0',
-      state   => 'NEW',
-      action  => accept,
-    }
+  $fileserver_service_ensure = $::nest::fileserver ? {
+    true    => present,
+    default => absent,
+  }
+
+  firewalld_service { ['nfs', 'samba']:
+    ensure => $fileserver_service_ensure,
+    zone   => 'libvirt',
   }
 }

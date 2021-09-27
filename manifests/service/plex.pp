@@ -26,4 +26,8 @@ class nest::service::plex {
       '/nest/tv:/tv',
     ],
   }
+
+  firewalld_service { 'plex':
+    ensure => present,
+  }
 }
