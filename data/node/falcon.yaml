@@ -38,6 +38,7 @@ nest::fileserver: true
 nest::fscache: false
 nest::mta: postfix
 nest::openvpn_server: true
+nest::public_ssh: true
 
 nest::service::gitlab_runner::instances:
   shared:
