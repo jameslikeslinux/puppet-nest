@@ -11,6 +11,7 @@ nest::package_keywords:
   gui-wm/sway: {}
   media-fonts/fontawesome: {}
   media-video/pipewire: {}
+  media-video/wireplumber: {}
   net-im/zoom: {}
   www-client/firefox: {}
   x11-misc/barrier: {}
@@ -30,7 +31,7 @@ nest::package_keywords:
   dev-libs/date:
     version: '~3.0.0'
   dev-libs/spdlog:
-    version: '~1.8.2'
+    version: '~1.8.5'
 
 nest::kernel_config:
   # Networking
