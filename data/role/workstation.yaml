@@ -33,6 +33,10 @@ nest::package_keywords:
   dev-libs/spdlog:
     version: '~1.8.5'
 
+  # For barrier
+  dev-cpp/gulrak-filesystem:
+    version: '~1.5.10'
+
 nest::kernel_config:
   # Networking
   CONFIG_BT: m
