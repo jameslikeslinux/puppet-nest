@@ -15,9 +15,9 @@ class nest::role::workstation::pipewire {
       creates => '/etc/systemd/user/sockets.target.wants/pipewire-pulse.socket',
     ;
 
-    'systemd-enable-pipewire-media-session':
-      command => '/bin/systemctl --user --global enable pipewire-media-session.service',
-      creates => '/etc/systemd/user/pipewire.service.wants/pipewire-media-session.service',
+    'systemd-enable-wireplumber':
+      command => '/bin/systemctl --user --global enable wireplumber.service',
+      creates => '/etc/systemd/user/pipewire.service.wants/wireplumber.service',
     ;
   }
 
@@ -30,5 +30,13 @@ class nest::role::workstation::pipewire {
     path  => '/etc/pulse/client.conf',
     match => '^(; )?autospawn = ',
     line  => 'autospawn = no',
+  }
+
+
+  #
+  # XXX: Cleanup
+  #
+  file { '/etc/systemd/user/pipewire.service.wants/pipewire-media-session.service':
+    ensure => absent,
   }
 }
