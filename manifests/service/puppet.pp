@@ -69,8 +69,9 @@ class nest::service::puppet (
     image   => 'puppet/puppetserver',
     env     => [
       'PUPPETSERVER_HOSTNAME=puppet',
-      'CA_ALLOW_SUBJECT_ALT_NAMES=true',
       'DNS_ALT_NAMES=puppet.nest',
+      'CA_ALLOW_SUBJECT_ALT_NAMES=true',
+      'PUPPETDB_SERVER_URLS=https://puppet:8081',
     ],
     volumes => [
       '/srv/puppet/puppetserver/init:/docker-custom-entrypoint.d',
@@ -115,7 +116,7 @@ class nest::service::puppet (
   nest::lib::container { 'puppetdb':
     pod     => 'puppet',
     image   => 'puppet/puppetdb',
-    env     => ['PUPPETDB_POSTGRES_HOSTNAME=localhost'],
+    env     => ['DNS_ALT_NAMES=puppet', 'PUPPETDB_POSTGRES_HOSTNAME=localhost'],
     volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
   }
 
