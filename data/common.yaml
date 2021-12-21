@@ -67,9 +67,6 @@ nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
 
-  # Preferences
-  CONFIG_LOGO: n
-
   # Networking
   CONFIG_NETFILTER: y
   CONFIG_NETFILTER_ADVANCED: y
@@ -96,6 +93,10 @@ nest::kernel_config:
   CONFIG_VLAN_8021Q: m
   CONFIG_BONDING: m
   CONFIG_TUN: m
+
+  # Framebuffer
+  CONFIG_FB: y
+  CONFIG_LOGO: n
 
   # Device drivers
   CONFIG_BLK_DEV_NVME: m
@@ -126,6 +127,7 @@ nest::kernel_config:
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
+  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: y
   CONFIG_FANOTIFY: y
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
