@@ -47,6 +47,11 @@ class nest::base::kernel {
     }
   }
 
+  # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
+  if $facts['profile']['platform'] == 'raspberrypi' {
+    $lld_override = 'LD=ld.lld'
+  }
+
   exec { 'kernel-olddefconfig':
     command     => '/usr/bin/make olddefconfig',
     cwd         => '/usr/src/linux',
@@ -54,7 +59,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} olddefconfig all modules_install 2>&1 | /usr/bin/tee build.log",
+    command     => "/usr/bin/make ${::nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 | /usr/bin/tee build.log",
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
