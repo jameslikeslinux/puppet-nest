@@ -11,6 +11,7 @@ usage() {
 Usage: beadm COMMAND [options]
 
 Commands:
+  list          Print the names of all boot environments
   create        Clone the current boot environment to a new one
   mount         Mount a boot environment under /mnt
   activate      Enable the current boot environment for mounting at boot
@@ -45,6 +46,18 @@ be_root() {
     fi
 
     print "$root"
+}
+
+cmd_list() {
+    local current_be be_root be
+
+    current_be="$(current_be)"
+    be_root="$(be_root "$current_be")"
+
+    zfs list -H -o name -r "$be_root" | gawk -v be_root="$be_root" 'match($0, "^" be_root "/([^/]+)$", a) { print a[1] }' | while read be; do
+        [[ "${be_root}/${be}" == $current_be ]] && print -n '*'
+        print "$be"
+    done
 }
 
 cmd_create() {
@@ -169,7 +182,7 @@ cmd_destroy() {
 }
 
 case "$1" in
-    'create'|'mount'|'activate'|'destroy')
+    'list'|'create'|'mount'|'activate'|'destroy')
         cmd="$1"; shift
         "cmd_${cmd}" "$@"
         ;;
