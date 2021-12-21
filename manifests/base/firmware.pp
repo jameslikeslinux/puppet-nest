@@ -39,12 +39,8 @@ class nest::base::firmware {
         ;
 
         '/boot/overlays':
-          source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
-          links   => follow,
-          recurse => true,
-          purge   => true,
-          force   => true,
-          ignore  => ['.*', '*.dts', 'Makefile'],
+          ensure => absent,
+          force  => true,
         ;
       }
     }
