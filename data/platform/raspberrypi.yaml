@@ -24,5 +24,4 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
 
   # Not available in raspberrypi-sources
-  CONFIG_GCC_PLUGINS: null
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: null
