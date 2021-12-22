@@ -7,7 +7,8 @@ class nest::base::kernel {
   }
 
   $sources_package = $facts['profile']['platform'] ? {
-    default => 'sys-kernel/gentoo-sources',
+    'raspberrypi' => 'sys-kernel/raspberrypi-sources',
+    default       => 'sys-kernel/gentoo-sources',
   }
 
   nest::lib::package_use { $sources_package:
@@ -21,7 +22,7 @@ class nest::base::kernel {
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'multi_v7_defconfig',
     'pinebookpro'     => 'defconfig',
-    'raspberrypi'     => 'defconfig',
+    'raspberrypi'     => 'bcm2711_defconfig',
     'sopine'          => 'defconfig',
     default           => 'defconfig kvm_guest.config',
   }
