@@ -50,6 +50,10 @@ class nest::base::kernel {
   # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
   if $facts['profile']['platform'] == 'raspberrypi' {
     $lld_override = 'LD=ld.lld'
+
+    Package_env <| title == 'sys-fs/zfs-kmod' |> {
+      env +> 'lld.conf',
+    }
   }
 
   exec { 'kernel-olddefconfig':
