@@ -21,7 +21,7 @@ class nest::base::firmware::raspberrypi {
     disable_overscan=1
     disable_splash=1
     dtparam=act_led_trigger=actpwr
-    dtoverlay=vc4-kms-v3d-pi4,cma-512
+    dtoverlay=vc4-kms-v3d
     enable_uart=1
     kernel=u-boot.bin
     | BOOT_CONFIG
