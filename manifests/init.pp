@@ -26,6 +26,7 @@ class nest (
   Hash[String, Nest::Kconfig]   $kernel_config  = {},
   Array[String]                 $kernel_cmdline = [],
   Boolean                       $wifi           = false,
+  Optional[Sensitive[Hash]]     $wlans          = undef,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,

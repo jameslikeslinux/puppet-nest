@@ -29,17 +29,25 @@ class nest::base::network {
     package { 'net-wireless/iwd':
       ensure => installed,
     }
-    ->
-    file { '/var/lib/iwd':
-      ensure    => directory,
-      mode      => '0600',
-      owner     => root,
-      group     => root,
-      recurse   => true,
-      show_diff => false,
-      source    => 'puppet:///modules/nest/private/iwd',
+
+    if $::nest::wlans {
+      $::nest::wlans.unwrap.each |$wlan, $wlan_params| {
+        $wlan_params_sensitive = $wlan_params.reduce({}) |$memo, $param| {
+          if $param[0] == 'passphrase' {
+            $memo + { $param[0] => Sensitive($param[1]) }
+          } else {
+            $memo + { $param[0] => $param[1] }
+          }
+        }
+
+        nest::lib::wlan { $wlan:
+          *       => $wlan_params_sensitive,
+          require => Package['net-wireless/iwd'],
+          before  => Service['iwd'],  # iwd monitors state directory changes
+        }
+      }
     }
-    ->  # iwd monitors state directory changes
+
     service { 'iwd':
       enable => true,
     }

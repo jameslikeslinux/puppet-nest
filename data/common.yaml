@@ -10,6 +10,9 @@ lookup_options:
     merge: 'hash'
   nest::service::wordpress::sites:
     merge: 'hash'
+  nest::wlans:
+    merge: 'hash'
+    convert_to: 'Sensitive'
 
 classes:
   - 'nest'
