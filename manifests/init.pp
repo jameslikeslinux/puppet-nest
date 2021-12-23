@@ -19,12 +19,13 @@ class nest (
   Boolean $public_ssh     = false,
 
   # System settings
-  Enum['grub', 'systemd']     $bootloader     = grub,
-  Optional[Integer]           $cpus           = undef,
-  Boolean                     $isolate_smt    = false,
-  Hash[String, Nest::Kconfig] $kernel_config  = {},
-  Array[String]               $kernel_cmdline = [],
-  Boolean                     $wifi           = false,
+  Enum['off', 'sway', 'xmonad'] $autologin      = xmonad,
+  Enum['grub', 'systemd']       $bootloader     = grub,
+  Optional[Integer]             $cpus           = undef,
+  Boolean                       $isolate_smt    = false,
+  Hash[String, Nest::Kconfig]   $kernel_config  = {},
+  Array[String]                 $kernel_cmdline = [],
+  Boolean                       $wifi           = false,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,

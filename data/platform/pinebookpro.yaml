@@ -1,4 +1,5 @@
 ---
+nest::autologin: sway
 nest::bootloader: systemd
 nest::dvorak: true
 nest::swap_alt_win: true

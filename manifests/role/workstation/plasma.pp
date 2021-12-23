@@ -20,6 +20,20 @@ class nest::role::workstation::plasma {
     MaximumUid=1000
     | EOT
 
+  if $::nest::autologin != off {
+    $session = $::nest::autologin ? {
+      xmonad  => 'plasma',
+      default => $::nest::autologin,
+    }
+
+    $sddm_autologin_conf = @("AUTOLOGIN")
+
+      [Autologin]
+      User=james
+      Session=${session}
+      | AUTOLOGIN
+  }
+
   $sddm_theme_conf = @(EOT)
     [General]
     background=/home/james/.wallpaper.png
@@ -36,7 +50,7 @@ class nest::role::workstation::plasma {
     ;
 
     '/etc/sddm.conf':
-      content => $sddm_conf,
+      content => "${sddm_conf}${sddm_autologin_conf}",
     ;
 
     '/etc/sddm.conf.d/kde_settings.conf':
