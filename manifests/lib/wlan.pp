@@ -28,7 +28,7 @@ define nest::lib::wlan (
         path      => $file,
         section   => 'Security',
         setting   => 'Passphrase',
-        value     => $passphrase.unwrap,
+        value     => $passphrase,
         show_diff => false,
       }
     }
