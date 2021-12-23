@@ -32,6 +32,11 @@ class nest::role::workstation::pipewire {
     line  => 'autospawn = no',
   }
 
+  # For increasing pipewire scheduling priority
+  nest::lib::package { 'sys-auth/rtkit':
+    ensure => installed,
+  }
+
 
   #
   # XXX: Cleanup
