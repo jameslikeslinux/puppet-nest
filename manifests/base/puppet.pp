@@ -60,7 +60,7 @@ class nest::base::puppet {
     if $facts['build'] or $facts['running_live'] {
       $puppet_runmode = 'unmanaged'
     } else {
-      $puppet_runmode = 'systemd.timer'
+      $puppet_runmode = 'service'
     }
 
     class { 'puppet':
