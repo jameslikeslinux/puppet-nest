@@ -60,9 +60,26 @@ class nest::base::puppet {
     if $facts['build'] or $facts['running_live'] {
       $puppet_runmode = 'unmanaged'
     } else {
-      $puppet_runmode = 'service'
+      $puppet_runmode = 'systemd.timer'
     }
 
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      '/etc/systemd/system/puppet-run.timer.d':
+        ensure => directory,
+      ;
+
+      # Avoid running Puppet immediately at boot; just wait for the next run
+      '/etc/systemd/system/puppet-run.timer.d/10-nonpersistent.conf':
+        content => "[Timer]\nPersistent=false\n",
+      ;
+    }
+    ->
     class { 'puppet':
       dns_alt_names        => $dns_alt_names,
       dir                  => '/etc/puppetlabs/puppet',

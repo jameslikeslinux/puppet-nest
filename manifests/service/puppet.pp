@@ -127,7 +127,12 @@ class nest::service::puppet (
   nest::lib::container { 'puppetboard':
     pod   => 'puppet',
     image => 'ghcr.io/voxpupuli/puppetboard',
-    env   => ['PUPPETDB_HOST=puppet', 'ENABLE_CATALOG=True', 'DEFAULT_ENVIRONMENT=main'],
+    env   => [
+      'PUPPETDB_HOST=puppet',
+      'ENABLE_CATALOG=True',
+      'DEFAULT_ENVIRONMENT=main',
+      'UNRESPONSIVE_HOURS=24',
+    ],
   }
 
 

@@ -193,4 +193,4 @@ apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1'
 
 puppet::environment: 'main'
 puppet::puppetmaster: 'puppet.nest'
-puppet::splay: true
+puppet::runinterval: 21600
