@@ -28,6 +28,11 @@ class nest::role::workstation::chromium (
           CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
           CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"
 
+          # Workaround issue with dark Gtk theme detection
+          # See: https://bugs.chromium.org/p/chromium/issues/detail?id=998903
+          # See: https://wiki.archlinux.org/title/chromium#Dark_mode
+          CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-dark-mode --enable-features=WebUIDarkMode"
+
           # For Sync and other Google services
           # See: https://www.gentoo.org/support/news-items/2021-08-11-oauth2-creds-chromium.html
           export GOOGLE_API_KEY='${google_api_key}'
