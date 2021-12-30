@@ -6,7 +6,7 @@ class nest::base::scripts {
   }
 
   file { '/sbin/beadm':
-    source => 'puppet:///modules/nest/scripts/beadm.zsh',
+    ensure => absent,
   }
 
   file { '/usr/local/sbin/nest-install':

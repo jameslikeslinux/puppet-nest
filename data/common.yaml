@@ -49,6 +49,10 @@ nest::package_keywords:
   sys-fs/zfs-kmod: {}
   sys-kernel/gentoo-sources: {}
 
+  # For Nest CLI
+  dev-ruby/tty-command:
+    version: '~0.10.1'
+
   # Podman and dependencies
   app-emulation/crun: {}
   app-emulation/podman: {}

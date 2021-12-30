@@ -6,7 +6,7 @@ class nest::base::zfs {
 
   $zfs_mount_activate_be_override = @(EOF)
     [Service]
-    ExecStartPre=-/sbin/beadm activate
+    ExecStartPre=-/usr/bin/nest beadm activate
     | EOF
 
   $zfs_mount_load_key_override = @(EOF)
