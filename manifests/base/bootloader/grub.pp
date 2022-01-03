@@ -62,7 +62,7 @@ class nest::base::bootloader::grub {
       ;
 
       'dracut':
-        command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version',
+        command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version && chmod 644 /boot/initramfs-${version}.img',
         provider => shell,
       ;
     }
