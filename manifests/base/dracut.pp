@@ -11,7 +11,7 @@ class nest::base::dracut {
 
   if $facts['profile']['platform'] == 'live' {
     $base_config_content = @("EOT")
-      add_dracutmodules+=" dmsquash-live livenet "
+      add_dracutmodules+=" dmsquash-live "
       omit_dracutmodules+=" zfs "
       kernel_cmdline="rd.live.overlay.overlayfs=1"
       | EOT

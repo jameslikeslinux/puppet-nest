@@ -53,10 +53,6 @@ class nest::base {
         -> Class['::nest::base::firmware']
         ~> Class['::nest::base::dracut']
 
-        # Dracut liveimg depends on dhcp, pulled in by network class
-        Class['::nest::base::network']
-        -> Class['::nest::base::dracut']
-
         # Rebuild initramfs after plymouth changes
         Class['::nest::base::plymouth']
         ~> Class['::nest::base::dracut']
