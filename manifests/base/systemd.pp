@@ -14,6 +14,17 @@ class nest::base::systemd {
     }
   }
 
+  # Remove container hostnames that break systemd-resolved
+  if $facts['build'] == 'stage3' {
+    file_line { 'etc-hosts-container-entries':
+      ensure            => absent,
+      path              => '/etc/hosts',
+      match             => '^10\.88\.',
+      match_for_absence => true,
+      multiple          => true,
+    }
+  }
+
   # /etc/localtime is just a regular file in the Gentoo stage tarballs.  In
   # that case, remove it and allow it to be set by the File['/etc/localtime']
   # resource; otherwise, this lets me set the timezone manually when I travel
