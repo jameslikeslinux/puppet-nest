@@ -3,3 +3,7 @@ nest::bootloader: systemd
 nest::fscache: false
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
+
+nest::kernel_config:
+  # Device drivers ('y' for early boot)
+  CONFIG_DMA_SUN6I: y
