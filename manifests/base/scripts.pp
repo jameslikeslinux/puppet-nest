@@ -5,15 +5,18 @@ class nest::base::scripts {
     group => 'root',
   }
 
-  file { '/sbin/beadm':
-    ensure => absent,
-  }
-
-  file { '/usr/local/sbin/nest-install':
-    source => 'puppet:///modules/nest/scripts/install.sh',
-  }
-
   file { '/usr/local/bin/pdk':
     content => epp('nest/scripts/pdk.sh.epp'),
+  }
+
+
+  #
+  # XXX Cleanup
+  #
+  file { [
+    '/sbin/beadm',
+    '/usr/local/sbin/nest-install',
+  ]:
+    ensure => absent,
   }
 }
