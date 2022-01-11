@@ -29,7 +29,6 @@ nest::cnames:
   registry.gitlab.james.tl: 'falcon.nest'
 nest::cups_servers:
   - 'falcon.nest'
-  - 'hawk.nest'
 nest::distcc_hosts:
   falcon.nest: 16
 nest::hosts:
