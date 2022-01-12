@@ -55,7 +55,10 @@ class nest (
   $console_font_sizes        = [16, 18, 20, 22, 24, 28, 32]
   $console_font_size_ideal   = 16 * $::nest::text_scaling_factor
   $console_font_size_smaller = inline_template('<%= @console_font_sizes.reverse.find(16) { |size| size - @console_font_size_ideal <= 0 } %>')
-  $console_font_size         = $console_font_size_smaller
+  $console_font_size         = $facts['virtual'] ? {
+    'vmware' => min($console_font_sizes),
+    default  => $console_font_size_smaller,
+  }
 
   $cursor_sizes        = [24, 32, 36, 40, 48, 64, 96]
   $cursor_size_ideal   = 24 * $::nest::gui_scaling_factor
