@@ -64,13 +64,14 @@ class nest::role::workstation::xorg {
   }
 
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
-  $scaling = @("EOT")
+  $scaling = @("EOT"/$)
     #!/bin/bash
     export GDK_SCALE=${::nest::gui_scaling_factor_rounded}
     export GDK_DPI_SCALE=${::nest::text_scaling_factor_percent_of_rounded_gui}
     export QT_SCALE_FACTOR=${::nest::gui_scaling_factor}
     export QT_FONT_DPI=${qt_font_dpi}
     export XCURSOR_SIZE=${::nest::cursor_size}
+    kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize ${::nest::cursor_size}
     | EOT
 
   file { '/etc/X11/xinit/xinitrc.d/10-scaling':

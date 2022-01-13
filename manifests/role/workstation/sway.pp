@@ -55,6 +55,11 @@ class nest::role::workstation::sway {
     default => "input type:keyboard xkb_options ctrl:nocaps",
   }
 
+  $cursor_conf = @("CURSOR_CONF"/$)
+    seat seat0 xcursor_theme breeze_cursors 24
+    exec kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize --delete
+    | CURSOR_CONF
+
   $input_conf = @("INPUT_CONF")
     input type:keyboard xkb_layout us
     ${xkb_variant}${xkb_options}
@@ -90,7 +95,7 @@ class nest::role::workstation::sway {
     ;
 
     '/etc/sway/config.d/10-cursor':
-      content => "seat seat0 xcursor_theme breeze_cursors 24\n",
+      content => $cursor_conf,
     ;
 
     '/etc/sway/config.d/10-input':
