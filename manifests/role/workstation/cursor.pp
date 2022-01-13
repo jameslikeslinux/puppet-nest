@@ -26,8 +26,8 @@ class nest::role::workstation::cursor {
     '/etc/X11/Xresources':
       content => "Xcursor.size: ${::nest::cursor_size}\n";
 
-    # XCURSOR_SIZE management is pretty good now
-    '/etc/plasma/startup/10-cursor.sh':
+    # Prevent Plasma from changing these settings
+    '/usr/share/kservices5/mouse.desktop':
       ensure => absent,
   }
 
