@@ -5,6 +5,7 @@ class nest::base {
   contain '::nest::base::qemu'
   contain '::nest::base::ssh'
   contain '::nest::base::users'
+  contain '::nest::base::vmware'
 
   # Git should be installed before managing any Vcsrepos
   Class['::nest::base::git'] -> Vcsrepo <| provider == git |>
