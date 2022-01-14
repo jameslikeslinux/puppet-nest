@@ -20,7 +20,7 @@ class nest::role::workstation::xmonad {
     'x11-misc/picom',
     'x11-misc/rofi',
     'x11-misc/taffybar',
-    'media-gfx/feh',
+    'x11-misc/xwallpaper',
 
     # For taffybar.hs (Data.List.Utils)
     'dev-haskell/missingh',
@@ -43,5 +43,13 @@ class nest::role::workstation::xmonad {
     owner   => 'root',
     group   => 'root',
     content => $taffybar_wrapper_content,
+  }
+
+
+  #
+  # XXX Cleanup
+  #
+  package { 'media-gfx/feh':
+    ensure => absent,
   }
 }
