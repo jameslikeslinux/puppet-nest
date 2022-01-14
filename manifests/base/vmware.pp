@@ -25,6 +25,20 @@ class nest::base::vmware {
         service { 'run-vmblock\x2dfuse.mount':
           enable => true,
         }
+
+        # For shared folders
+        # See: https://kb.vmware.com/s/article/60262
+        Augeas <| title == 'fstab' |> {
+          changes +> [
+            'set 9/spec vmhgfs-fuse',
+            'set 9/file /mnt/hgfs',
+            'set 9/vfstype fuse',
+            'set 9/opt[1] defaults',
+            'set 9/opt[2] allow_other',
+            'set 9/dump 0',
+            'set 9/passno 0',
+          ],
+        }
       }
     }
 
