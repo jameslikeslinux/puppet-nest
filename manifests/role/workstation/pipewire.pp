@@ -37,11 +37,24 @@ class nest::role::workstation::pipewire {
     ensure => installed,
   }
 
+  # Fix stuttering audio in VMware
+  # See: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/469
+  if $facts['virtual'] == 'vmware' {
+    file_line {
+      default:
+        path               => '/usr/share/wireplumber/main.lua.d/50-alsa-config.lua',
+        append_on_no_match => false,
+      ;
 
-  #
-  # XXX: Cleanup
-  #
-  file { '/etc/systemd/user/pipewire.service.wants/pipewire-media-session.service':
-    ensure => absent,
+      'alsa-period-size':
+        line  => '      ["api.alsa.period-size"]     = 256,',
+        match => '\s*--\["api.alsa.period-size"\]\s*=',
+      ;
+
+      'alsa-headroom':
+        line  => '      ["api.alsa.headroom"]        = 8192,',
+        match => '\s*--\["api.alsa.headroom"\]\s*=',
+      ;
+    }
   }
 }
