@@ -53,6 +53,7 @@ nest::kernel_config:
   CONFIG_VMXNET3: m
   CONFIG_DRM_VMWGFX: m
   CONFIG_DRM_VMWGFX_FBCON: y
+  CONFIG_SND_ENS1371: m
 
 # Support new multilib layout in Gentoo 17.1 profile
 apache::lib_path: '/usr/lib64/apache2/modules'
