@@ -1,5 +1,5 @@
 class nest::role::workstation {
-  contain '::nest::role::workstation::chromium'
+  contain '::nest::role::workstation::chrome'
   contain '::nest::role::workstation::firefox'
 
   case $facts['osfamily'] {

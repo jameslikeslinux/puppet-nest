@@ -1,3 +1,4 @@
 ---
 nest::dvorak: true
 nest::gui_scaling_factor: 2.0
+nest::role::workstation::chrome::chromium: false
