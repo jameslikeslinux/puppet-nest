@@ -1,0 +1,12 @@
+[Unit]
+Description=Keep VMware screen DPI
+ConditionEnvironment=XDG_SESSION_TYPE=x11
+ConditionVirtualization=vmware
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/local/bin/vmware-keep-dpi
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

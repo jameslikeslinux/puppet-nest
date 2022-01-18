@@ -1,0 +1,16 @@
+<%- | Integer $dpi,
+| -%>
+#!/bin/zsh
+#
+# vmware-keep-dpi
+#
+# The Xorg DPI setting is reset every time the VMware screen size changes.
+# Detect screen size changes and preserve the desired DPI setting.
+#
+
+INSTANCE="${${DISPLAY:-:0}#:}"
+
+tail -c 0 -f "/var/log/Xorg.${INSTANCE}.log" | grep --line-buffered 'vmware.*New layout' | while read; do
+    echo 'VMware screen size changed. Resetting DPI to <%= $dpi %>.'
+    xrandr --dpi <%= $dpi %>
+done
