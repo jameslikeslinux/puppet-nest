@@ -10,7 +10,6 @@
 #
 
 exec podman run --rm -it \
-    -e TERM \
     -v "$(pwd):/module" \
     nest/tools/pdk:<%= $facts['profile']['cpu'] %> \
     pdk "$@"
