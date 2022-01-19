@@ -13,8 +13,10 @@ if [[ -r /etc/puppetlabs/puppet/ssl ]]; then
 fi
 
 exec podman run --rm -it \
+    -e TERM \
     -v "$(pwd):/Boltdir" \
     ${extra_args[@]} \
-    nest/tools/bolt:<%= $facts['profile']['cpu'] %> bolt "$@"
+    nest/tools/bolt:<%= $facts['profile']['cpu'] %> \
+    bolt "$@"
 
 # vim: filetype=bash
