@@ -15,6 +15,7 @@ fi
 exec podman run --rm -it \
     -e TERM \
     -v "$(pwd):/Boltdir" \
+    -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     ${extra_args[@]} \
     nest/tools/bolt:<%= $facts['profile']['cpu'] %> \
     bolt "$@"
