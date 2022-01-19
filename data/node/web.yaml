@@ -18,7 +18,7 @@ nest::service::gateway::port_forwards:
 
 nest::service::reverse_proxy::hosts:
   gitlab.james.tl:
-    destination: '172.22.0.1:8080'
+    destination: '172.22.0.1:8000'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
     encoded_slashes: true
     websockets: true

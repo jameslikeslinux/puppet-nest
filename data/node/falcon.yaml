@@ -74,12 +74,12 @@ nest::service::reverse_proxy::hosts:
     websockets: true
 
   puppet.nest:
-    destination: '127.0.0.1:8142'
+    destination: '127.0.0.1:8082'
     ip: '172.22.0.1'
     ssl: false
 
   puppetdb.nest:
-    destination: '127.0.0.1:8141'
+    destination: '127.0.0.1:8080'
     ip: '172.22.0.1'
     ssl: false
 

@@ -29,7 +29,7 @@ class nest::service::gitlab (
   nest::lib::container { 'gitlab':
     image   => 'gitlab/gitlab-ce',
     env     => ["GITLAB_OMNIBUS_CONFIG=from_file('/omnibus_config.rb')"],
-    publish => ['2222:22', '8080:80', '5050:5050'],
+    publish => ['2222:22', '8000:80', '5050:5050'],
     volumes => [
       '/srv/gitlab/gitlab.rb:/omnibus_config.rb:ro',
       '/srv/gitlab/config:/etc/gitlab',
