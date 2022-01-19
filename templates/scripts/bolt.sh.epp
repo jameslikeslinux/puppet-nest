@@ -8,9 +8,13 @@
 # See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/tool/bolt.pp
 #
 
+if [[ -r /etc/puppetlabs/puppet/ssl ]]; then
+    extra_args=(-v /etc/puppetlabs/puppet/ssl:/etc/puppetlabs/puppet/ssl:ro)
+fi
+
 exec podman run --rm -it \
     -v "$(pwd):/Boltdir" \
-    -v /etc/puppetlabs/puppet/ssl:/etc/puppetlabs/puppet/ssl:ro \
+    ${extra_args[@]} \
     nest/tools/bolt:<%= $facts['profile']['cpu'] %> bolt "$@"
 
 # vim: filetype=bash
