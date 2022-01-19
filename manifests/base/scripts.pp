@@ -5,8 +5,10 @@ class nest::base::scripts {
     group => 'root',
   }
 
-  file { '/usr/local/bin/pdk':
-    content => epp('nest/scripts/pdk.sh.epp'),
+  ['bolt', 'pdk'].each |$script| {
+    file { "/usr/local/bin/${script}":
+      content => epp("nest/scripts/${script}.sh.epp"),
+    }
   }
 
 
