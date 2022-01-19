@@ -4,7 +4,7 @@ class nest::tool::bolt {
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }
-  } else {
+  } elsif $facts['os']['family'] == 'Gentoo' {
     file { '/usr/local/bin/bolt':
       mode    => '0755',
       owner   => 'root',

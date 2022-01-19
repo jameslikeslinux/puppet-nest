@@ -36,7 +36,7 @@ class nest::tool::pdk {
       ensure   => '2.1.0',
       provider => gem,
     }
-  } else {
+  } elsif $facts['os']['family'] == 'Gentoo' {
     file { '/usr/local/bin/pdk':
       mode    => '0755',
       owner   => 'root',
