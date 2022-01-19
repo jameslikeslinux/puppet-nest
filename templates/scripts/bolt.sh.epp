@@ -8,6 +8,9 @@
 # See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/tool/bolt.pp
 #
 
-exec podman run --rm -it -v "$(pwd):/Boltdir" nest/tools/bolt:<%= $facts['profile']['cpu'] %> bolt "$@"
+exec podman run --rm -it \
+    -v "$(pwd):/Boltdir" \
+    -v /etc/puppetlabs/puppet/ssl:/etc/puppetlabs/puppet/ssl:ro \
+    nest/tools/bolt:<%= $facts['profile']['cpu'] %> bolt "$@"
 
 # vim: filetype=bash
