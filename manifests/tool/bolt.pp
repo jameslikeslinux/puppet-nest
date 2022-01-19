@@ -1,7 +1,15 @@
 class nest::tool::bolt {
-  package { 'bolt':
-    install_options => ['--bindir', '/usr/local/bin'],
-    provider        => gem,
-    require         => File['/usr/local/bin/bolt'],  # overwrites wrapper
+  if $facts['build'] == 'bolt' {
+    package { 'bolt':
+      install_options => ['--bindir', '/usr/local/bin'],
+      provider        => gem,
+    }
+  } else {
+    file { '/usr/local/bin/bolt':
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+      content => epp('nest/scripts/bolt.sh.epp'),
+    }
   }
 }

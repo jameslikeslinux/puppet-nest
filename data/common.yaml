@@ -16,6 +16,8 @@ lookup_options:
 
 classes:
   - 'nest'
+  - 'nest::tool::bolt'
+  - 'nest::tool::pdk'
 
 nest::cnames:
   nzbget.nest: 'falcon.nest'

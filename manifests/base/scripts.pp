@@ -5,20 +5,5 @@ class nest::base::scripts {
     group => 'root',
   }
 
-  ['bolt', 'pdk'].each |$script| {
-    file { "/usr/local/bin/${script}":
-      content => epp("nest/scripts/${script}.sh.epp"),
-    }
-  }
-
-
-  #
-  # XXX Cleanup
-  #
-  file { [
-    '/sbin/beadm',
-    '/usr/local/sbin/nest-install',
-  ]:
-    ensure => absent,
-  }
+  # No scripts currently defined
 }
