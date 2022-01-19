@@ -20,7 +20,7 @@ if [[ -S $SSH_AUTH_SOCK ]]; then
     extra_args+=(-e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro")
 fi
 
-exec podman run --rm -it \
+exec podman run --rm -it --net=host \
     -e TERM \
     -v "$(pwd):/Boltdir" \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \

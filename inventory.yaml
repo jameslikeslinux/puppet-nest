@@ -1,0 +1,9 @@
+---
+targets:
+  - _plugin: puppetdb
+    query: "inventory[certname] { facts.osfamily = 'Gentoo' and certname != 'builder' }"
+    target_mapping:
+      name: certname
+      config:
+        ssh:
+          host: facts.fqdn

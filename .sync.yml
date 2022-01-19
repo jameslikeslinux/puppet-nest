@@ -1,6 +1,9 @@
 ---
 .gitignore:
   paths:
+    - '!/inventory.yaml'
+    - '/bolt-debug.log'
+    - '/.rerun.json'
     - 'private'
 
 .rubocop.yml:
