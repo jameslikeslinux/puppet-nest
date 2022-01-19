@@ -9,6 +9,6 @@
 # See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/tool/pdk.pp
 #
 
-exec podman run --rm -it -v "$(pwd):/root" nest/tools/pdk:<%= $facts['profile']['cpu'] %> pdk "$@"
+exec podman run --rm -it -v "$(pwd):/module" nest/tools/pdk:<%= $facts['profile']['cpu'] %> pdk "$@"
 
 # vim: filetype=bash
