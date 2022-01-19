@@ -1,0 +1,11 @@
+<%- | String $puppetdb_server_url,
+      String $puppetdb_cacert,
+      String $puppetdb_cert,
+      String $puppetdb_key,
+| -%>
+---
+puppetdb:
+  server_urls: ['<%= $puppetdb_server_url %>']
+  cacert: '<%= $puppetdb_cacert %>'
+  cert: '<%= $puppetdb_cert %>'
+  key: '<%= $puppetdb_key %>'
