@@ -33,16 +33,31 @@ class nest::role::workstation::xmonad {
     ensure => installed,
   }
 
-  $taffybar_wrapper_content = @("END_WRAPPER")
+  $xmonad_wrapper_content = @("END_WRAPPER")
     #!/bin/bash
-    GDK_DPI_SCALE=${::nest::text_scaling_factor} GDK_SCALE=1 exec /usr/bin/taffybar "$@"
+    xrdb -merge /etc/X11/Xresources
+    exec /usr/bin/xmonad "$@"
     | END_WRAPPER
 
-  file { '/usr/local/bin/taffybar':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => $taffybar_wrapper_content,
+  $taffybar_wrapper_content = @("END_WRAPPER")
+    #!/bin/bash
+    GDK_DPI_SCALE=1 GDK_SCALE=1 exec /usr/bin/taffybar "$@"
+    | END_WRAPPER
+
+  file {
+    default:
+      mode  => '0755',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/usr/local/bin/xmonad':
+      content => $xmonad_wrapper_content,
+    ;
+
+    '/usr/local/bin/taffybar':
+      content => $taffybar_wrapper_content,
+    ;
   }
 
 

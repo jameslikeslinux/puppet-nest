@@ -63,11 +63,12 @@ class nest::role::workstation::xorg {
     content => template('nest/xorg/libinput.conf.erb'),
   }
 
+  $gdk_dpi_scale = inline_template('<%= (1.0 / scope.lookupvar("nest::gui_scaling_factor")).round(3) %>')
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
   $scaling = @("EOT"/$)
     #!/bin/bash
     export GDK_SCALE=${::nest::gui_scaling_factor_rounded}
-    export GDK_DPI_SCALE=${::nest::text_scaling_factor_percent_of_rounded_gui}
+    export GDK_DPI_SCALE=${gdk_dpi_scale}
     export QT_SCALE_FACTOR=${::nest::gui_scaling_factor}
     export QT_FONT_DPI=${qt_font_dpi}
     export XCURSOR_SIZE=${::nest::cursor_size}
@@ -79,6 +80,13 @@ class nest::role::workstation::xorg {
     owner   => 'root',
     group   => 'root',
     content => $scaling,
+  }
+
+  file { '/etc/X11/Xresources':
+    mode  => '0644',
+    owner => 'root',
+    group => 'root',
+    content => "Xcursor.size: ${::nest::cursor_size}\nXft.dpi: ${::nest::dpi}\n",
   }
 
   package { 'x11-misc/vdpauinfo':

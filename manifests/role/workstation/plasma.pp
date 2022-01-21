@@ -89,6 +89,11 @@ class nest::role::workstation::plasma {
       line  => '            visible: false',
       after => 'WallpaperFader {',
     ;
+
+    'sddm-load-xresources':
+      path => '/usr/share/sddm/scripts/Xsetup',
+      line => 'xrdb -merge /etc/X11/Xresources',
+    ;
   }
 
   # When system-login is "included" and contains a sufficient auth

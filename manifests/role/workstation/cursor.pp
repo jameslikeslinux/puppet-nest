@@ -18,16 +18,4 @@ class nest::role::workstation::cursor {
       source => 'puppet:///modules/nest/cursors/Breeze_Snow',
     ;
   }
-
-  file { '/etc/X11/Xresources':
-    mode  => '0644',
-    owner => 'root',
-    group => 'root',
-    content => "Xcursor.size: ${::nest::cursor_size}\n",
-  }
-
-  file_line { 'sddm-load-xresources':
-    path => '/usr/share/sddm/scripts/Xsetup',
-    line => 'xrdb -merge /etc/X11/Xresources',
-  }
 }
