@@ -63,7 +63,7 @@ class nest::role::workstation::xorg {
     content => template('nest/xorg/libinput.conf.erb'),
   }
 
-  $gdk_dpi_scale = inline_template('<%= (1.0 / scope.lookupvar("nest::gui_scaling_factor")).round(3) %>')
+  $gdk_dpi_scale = inline_template('<%= (1.0 / scope.lookupvar("nest::gui_scaling_factor_rounded")).round(3) %>')
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
   $scaling = @("EOT"/$)
     #!/bin/bash
