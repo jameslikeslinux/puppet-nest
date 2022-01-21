@@ -3,5 +3,5 @@ classes:
   - 'nest::service::libvirt'
 
 nest::dvorak: true
-nest::gui_scaling_factor: 2.0
+nest::gui_scaling_factor: 1.5
 nest::role::workstation::chrome::chromium: false
