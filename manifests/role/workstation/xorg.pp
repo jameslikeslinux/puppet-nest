@@ -119,41 +119,4 @@ class nest::role::workstation::xorg {
   package { 'app-misc/ddcutil':
     ensure => installed,
   }
-
-  # Workaround VMware DPI resets on screen size change
-  if $facts['virtual'] == 'vmware' {
-    file {
-      default:
-        owner => 'root',
-        group => 'root',
-      ;
-
-      '/usr/local/bin/vmware-keep-dpi':
-        mode    => '0755',
-        content => epp('nest/xorg/vmware-keep-dpi.zsh.epp', { dpi => $::nest::dpi }),
-      ;
-
-      '/etc/systemd/user/vmware-keep-dpi.service':
-        mode   => '0644',
-        source => 'puppet:///modules/nest/xorg/vmware-keep-dpi.service',
-      ;
-    }
-    ->
-    exec { 'systemd-enable-vmware-keep-dpi':
-      command => '/bin/systemctl --user --global enable vmware-keep-dpi',
-      creates => '/etc/systemd/user/graphical-session.target.wants/vmware-keep-dpi.service',
-    }
-  } else {
-    exec { 'systemd-disable-vmware-keep-dpi':
-      command => '/bin/systemctl --user --global disable vmware-keep-dpi',
-      onlyif  => '/usr/bin/test -f /etc/systemd/user/graphical-session.target.wants/vmware-keep-dpi.service',
-    }
-    ->
-    file { [
-      '/etc/systemd/user/vmware-keep-dpi.service',
-      '/usr/local/bin/vmware-keep-dpi',
-    ]:
-      ensure => absent,
-    }
-  }
 }
