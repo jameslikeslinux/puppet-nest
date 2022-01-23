@@ -126,9 +126,18 @@ groups:
             uri: facts.fqdn
 
   - name: 'eyrie'
-    targets:
-      - _plugin: puppetdb
-        query: "inventory[certname] { certname ~ '^eyas\\d+' }"
-        target_mapping:
-          name: certname
-          uri: facts.fqdn
+    groups:
+      - name: 'eyrie-control-plane'
+        targets:
+          - _plugin: puppetdb
+            query: "inventory[certname] { certname = 'eagle' }"
+            target_mapping:
+              name: certname
+              uri: facts.fqdn
+      - name: 'eyrie-workers'
+        targets:
+          - _plugin: puppetdb
+            query: "inventory[certname] { certname ~ '^eyas\\d+' }"
+            target_mapping:
+              name: certname
+              uri: facts.fqdn
