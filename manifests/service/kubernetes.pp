@@ -8,6 +8,13 @@ class nest::service::kubernetes {
   ]:
     ensure => installed,
   }
+  ->
+  service { [
+    'crio',
+    'kubelet',
+  ]:
+    enable => true,
+  }
 
   firewall { '100 vxlan':
     source => "${facts['networking']['network']}/${facts['networking']['netmask']}",
@@ -16,8 +23,8 @@ class nest::service::kubernetes {
     action => accept,
   }
 
-  service { 'kubelet':
-    enable  => true,
-    require => Package['sys-cluster/kubelet'],
+  sysctl { 'net.ipv4.ip_forward':
+    ensure => present,
+    value  => '1',
   }
 }
