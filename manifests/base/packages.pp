@@ -12,6 +12,7 @@ class nest::base::packages {
         'net-analyzer/openbsd-netcat',
         'net-dns/bind-tools',
         'net-misc/whois',
+        'sys-apps/ethtool',
         'sys-apps/pv',
         'sys-apps/usbutils',
         'sys-block/parted',

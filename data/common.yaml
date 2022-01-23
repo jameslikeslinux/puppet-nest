@@ -71,6 +71,9 @@ nest::package_keywords:
   sys-firmware/sgabios:
     version: '~0.1_pre10'
 
+  # For Kubernetes
+  app-emulation/cri-o: {}
+
 nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
