@@ -16,7 +16,7 @@ if (getenv("XDG_SESSION_TYPE") == "x11") {
 }
 
 // For userChrome.css
-pref("nest.contextMenuOffsetTweak", getenv("KDEWM") == "/usr/bin/xmonad");
+pref("nest.contextMenuOffsetTweak", getenv("KDEWM").match(/xmonad/) != null);
 
 /*
  * Enable DNS over TLS
