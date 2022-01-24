@@ -79,6 +79,7 @@ class nest::service::puppet (
       '/srv/puppet/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
       '/srv/puppet/puppetserver/ca:/etc/puppetlabs/puppetserver/ca',
+      '/srv/puppet/r10k/cache:/var/cache/r10k:ro',
     ],
     require => Nest::Lib::Srv['puppet/code'],
   }
