@@ -8,11 +8,11 @@
 # See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/tool/bolt.pp
 #
 
-exec sudo podman run --rm -it -e TERM \
+exec podman run --rm -it -e TERM \
     --net=host --dns=127.0.0.53 \
     -v "$(pwd):/Boltdir" \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
-    -v /etc/puppetlabs/puppet/ssl:/etc/puppetlabs/puppet/ssl:ro \
+    -v /etc/puppetlabs/puppet:/etc/puppetlabs/puppet:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
     nest/tools/bolt:<%= $facts['profile']['cpu'] %> \
