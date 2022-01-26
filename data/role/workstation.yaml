@@ -1,4 +1,8 @@
 ---
+classes:
+  - 'nest::tool::bolt'
+  - 'nest::tool::pdk'
+
 nest::package_keywords:
   # I always want the latest of these
   app-misc/ddcutil: {}
