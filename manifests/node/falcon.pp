@@ -38,6 +38,14 @@ class nest::node::falcon {
       action  => accept,
     ;
 
+    '100 podman to ssh':
+      iniface => 'cni-podman0',
+      proto   => udp,
+      dport   => 22,
+      state   => 'NEW',
+      action  => accept,
+    ;
+
     '100 plex':
       proto  => tcp,
       dport  => 32400,
