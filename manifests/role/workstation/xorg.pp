@@ -83,9 +83,9 @@ class nest::role::workstation::xorg {
   }
 
   file { '/etc/X11/Xresources':
-    mode  => '0644',
-    owner => 'root',
-    group => 'root',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
     content => "Xcursor.size: ${::nest::cursor_size}\nXft.dpi: ${::nest::dpi}\n",
   }
 

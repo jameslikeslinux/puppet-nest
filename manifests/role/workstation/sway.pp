@@ -29,7 +29,12 @@ class nest::role::workstation::sway {
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     # Workaround https://github.com/swaywm/sway/issues/3109
-    exec "\$SHELL" -c "env GDK_DPI_SCALE=${dpi_scale} QT_FONT_DPI=${dpi} WLR_NO_HARDWARE_CURSORS=${sw_cursors} XDG_CURRENT_DESKTOP=sway /usr/bin/sway \${*@Q}"
+    exec "\$SHELL" -c "env \
+        GDK_DPI_SCALE=${dpi_scale} \
+        QT_FONT_DPI=${dpi} \
+        WLR_NO_HARDWARE_CURSORS=${sw_cursors} \
+        XDG_CURRENT_DESKTOP=sway \
+        /usr/bin/sway \${*@Q}"
     | END_WRAPPER
 
   file { '/usr/local/bin/sway':
@@ -40,7 +45,7 @@ class nest::role::workstation::sway {
   }
 
   $xresources_content = @("XRESOURCES")
-    Xft.dpi: $dpi
+    Xft.dpi: ${dpi}
     | XRESOURCES
 
   file { '/etc/sway/Xresources':
@@ -57,8 +62,8 @@ class nest::role::workstation::sway {
   }
 
   $xkb_options = $::nest::swap_alt_win ? {
-    true    => "input type:keyboard xkb_options ctrl:nocaps,altwin:swap_alt_win",
-    default => "input type:keyboard xkb_options ctrl:nocaps",
+    true    => 'input type:keyboard xkb_options ctrl:nocaps,altwin:swap_alt_win',
+    default => 'input type:keyboard xkb_options ctrl:nocaps',
   }
 
   $cursor_conf = @("CURSOR_CONF"/$)
@@ -74,7 +79,7 @@ class nest::role::workstation::sway {
     | INPUT_CONF
 
   # XXX: According to sway-output(5), this needs to account for scaling
-  $monitors_conf = $::nest::monitor_layout.reduce("") |$memo, $monitor| {
+  $monitors_conf = $::nest::monitor_layout.reduce('') |$memo, $monitor| {
     if $monitor =~ /([^@]+)@(\d+)$/ {
       "${memo}output ${1} position ${2} 0\n"
     } else {
@@ -83,7 +88,7 @@ class nest::role::workstation::sway {
   }
 
   $output_conf = @("OUTPUT_CONF")
-    output * scale $::nest::gui_scaling_factor
+    output * scale ${nest::gui_scaling_factor}
     output * subpixel rgb
     ${monitors_conf}
     | - OUTPUT_CONF
