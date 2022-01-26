@@ -5,8 +5,6 @@ class nest::tool::bolt {
       provider        => gem,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
-    $ssldir = '/etc/puppetlabs/puppet/ssl'
-
     file {
       default:
         mode  => '0644',
@@ -18,14 +16,26 @@ class nest::tool::bolt {
         ensure => directory,
       ;
 
+      '/etc/puppetlabs/bolt/ca.pem':
+        content => file("${settings::ssldir}/certs/ca.pem"),
+      ;
+
+      '/etc/puppetlabs/bolt/cert.pem':
+        content => file("${settings::ssldir}/certs/bolt.pem"),
+      ;
+
+      '/etc/puppetlabs/bolt/key.pem':
+        content => file("${settings::ssldir}/private_keys/bolt.pem"),
+        show_diff => false,
+      ;
+
       '/etc/puppetlabs/bolt/bolt-defaults.yaml':
         content   => epp('nest/puppet/bolt-defaults.yaml.epp', {
           puppetdb_server_url => 'https://puppetdb.nest:8081',
-          puppetdb_cacert     => "${ssldir}/certs/ca.pem",
-          puppetdb_cert       => "${ssldir}/certs/${trusted['certname']}.pem",
-          puppetdb_key        => "${ssldir}/private_keys/${trusted['certname']}.pem",
+          puppetdb_cacert     => '/etc/puppetlabs/bolt/ca.pem',
+          puppetdb_cert       => '/etc/puppetlabs/bolt/cert.pem',
+          puppetdb_key        => '/etc/puppetlabs/bolt/key.pem',
         }),
-        show_diff => false,
       ;
 
       '/usr/local/bin/bolt':

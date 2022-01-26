@@ -1,3 +1,7 @@
+if $trusted['certname'] in ['bolt', 'puppetdb'] {
+  fail("${trusted['certname']} is not allowed to use Puppet")
+}
+
 case $facts['osfamily'] {
   'Gentoo': {
     # Effectively disable firewall and service resources in containers

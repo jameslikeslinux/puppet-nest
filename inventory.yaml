@@ -141,3 +141,11 @@ groups:
             target_mapping:
               name: certname
               uri: facts.fqdn
+
+  - name: 'puppet-server'
+    targets:
+      - _plugin: puppetdb
+        query: "resources[certname] { type = 'Class' and title = 'Nest::Service::Puppet' limit 1 }"
+        target_mapping:
+          name: certname
+          uri: facts.fqdn
