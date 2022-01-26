@@ -73,7 +73,7 @@ class nest::role::workstation::pipewire {
       ;
 
       'alsa-period-size':
-        line  => '      ["api.alsa.period-size"]     = 128,',
+        line  => '      ["api.alsa.period-size"]     = 256,',
         match => '^\s*(--)?\["api\.alsa\.period-size"\]\s*=',
       ;
 
