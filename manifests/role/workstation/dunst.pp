@@ -11,13 +11,14 @@ class nest::role::workstation::dunst {
     '/usr/share/dunst',
     '/usr/share/dunst/icons',
   ]:
-    ensure  => directory,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    recurse => true,
-    purge   => true,
-    force   => true,
+    ensure    => directory,
+    mode      => '0755',
+    owner     => 'root',
+    group     => 'root',
+    recurse   => true,
+    purge     => true,
+    force     => true,
+    max_files => 10000,
   }
 
   $icon_size   = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
