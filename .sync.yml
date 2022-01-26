@@ -11,3 +11,9 @@
     AllCops:
       Exclude:
         - 'lib/puppet/provider/package/cygwin.rb'
+
+Rakefile:
+  extra_disabled_lint_checks:
+    - arrow_on_right_operand_line
+    - case_without_default
+    - documentation

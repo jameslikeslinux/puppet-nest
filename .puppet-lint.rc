@@ -1,1 +1,4 @@
 --relative
+--no-arrow_on_right_operand_line-check
+--no-case_without_default-check
+--no-documentation-check

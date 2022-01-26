@@ -42,6 +42,9 @@ def changelog_future_release
 end
 
 PuppetLint.configuration.send('disable_relative')
+PuppetLint.configuration.send('disable_arrow_on_right_operand_line')
+PuppetLint.configuration.send('disable_case_without_default')
+PuppetLint.configuration.send('disable_documentation')
 
 
 if Bundler.rubygems.find_name('github_changelog_generator').any?

@@ -17,7 +17,12 @@ class nest::role::workstation::dunst {
     group  => 'root',
   }
 
-  $icon_size = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
+  $icon_size   = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
+  $convert_cmd = @("SCRIPT")
+    rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' |
+    sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' &&
+    mv '%.tmp' '%'
+    | SCRIPT
 
   ['actions', 'devices', 'status'].each |$category| {
     file { "/usr/share/dunst/icons/${category}":
@@ -30,7 +35,7 @@ class nest::role::workstation::dunst {
       purge        => true,
       backup       => false,
       show_diff    => false,
-      validate_cmd => "rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' | sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' && mv '%.tmp' '%'",
+      validate_cmd => $convert_cmd,
       checksum     => mtime,
       links        => follow,
       max_files    => 10000,
