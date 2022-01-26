@@ -95,13 +95,13 @@ class nest::role::workstation::sway {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/sway/config.d':
-      ensure => directory,
+      ensure  => directory,
       require => Package['gui-wm/sway'],
     ;
 

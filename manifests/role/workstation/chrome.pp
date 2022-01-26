@@ -22,9 +22,9 @@ class nest::role::workstation::chrome (
             }
           }
 
-          $xdg_session_type = '$XDG_SESSION_TYPE'
           $chromium_flags = @("EOT"/$)
-            [[ $xdg_session_type == 'x11' ]] && CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
+            [[ \$XDG_SESSION_TYPE == 'x11' ]] &&
+                CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"

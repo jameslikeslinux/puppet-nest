@@ -23,10 +23,10 @@ class nest::role::workstation::input {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      notify  => Exec['udev-hwdb-update'],
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      notify => Exec['udev-hwdb-update'],
     ;
 
     '/etc/udev/hwdb.d/61-evdev-local.hwdb':
