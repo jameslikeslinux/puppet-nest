@@ -197,10 +197,10 @@ class nest::base::systemd {
     ;
   }
 
-  $kexec_tools_ensure = "${::nest::bootloader}-${facts['architecture']}" ? {
-    'systemd-aarch64' => installed,
-    'systemd-amd64'   => installed,
-    default           => absent,
+  if $::nest::bootloader == 'systemd' and $facts['profile']['platform'] in ['haswell', 'pinebookpro', 'sopine'] {
+    $kexec_tools_ensure = installed
+  } else {
+    $kexec_tools_ensure = absent
   }
 
   package { 'sys-apps/kexec-tools':
