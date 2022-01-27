@@ -4,3 +4,6 @@ Name=en* eth*
 [Network]
 ConfigureWithoutCarrier=true
 DHCP=yes
+
+[DHCP]
+RouteMetric=10

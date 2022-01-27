@@ -6,4 +6,4 @@ ConfigureWithoutCarrier=true
 DHCP=yes
 
 [DHCP]
-RouteMetric=2048
+RouteMetric=20

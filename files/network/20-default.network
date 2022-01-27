@@ -3,3 +3,6 @@ Name=bond* br*
 
 [Network]
 DHCP=yes
+
+[DHCP]
+RouteMetric=10
