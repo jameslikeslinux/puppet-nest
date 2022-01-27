@@ -7,6 +7,7 @@ class nest::role::workstation::fonts {
     'media-fonts/corefonts',
     'media-fonts/fontawesome',
     'media-fonts/liberation-fonts', # primarily for GitHub, tbh
+    'media-fonts/noto-emoji',
   ]:
     ensure => installed,
   }
