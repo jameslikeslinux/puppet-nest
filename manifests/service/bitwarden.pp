@@ -6,10 +6,10 @@ class nest::service::bitwarden (
   nest::lib::srv { 'bitwarden': }
   ->
   file { '/srv/bitwarden/data':
-    ensure  => directory,
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
   }
   ->
   nest::lib::container { 'bitwarden':

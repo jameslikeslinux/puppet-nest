@@ -155,8 +155,8 @@ class nest::service::puppet (
       '/srv/puppet/r10k/cache',
       '/srv/puppet/r10k/config',
     ]:
-      mode   => '0755',
       ensure => directory,
+      mode   => '0755',
     ;
 
     '/srv/puppet/r10k/config/r10k.yaml':

@@ -7,18 +7,21 @@ class nest::role::workstation::dunst {
     ensure => installed,
   }
 
+  File {
+    mode      => '0644',
+    owner     => 'root',
+    group     => 'root',
+    purge     => true,
+    recurse   => true,
+    force     => true,
+    max_files => 10000,
+  }
+
   file { [
     '/usr/share/dunst',
     '/usr/share/dunst/icons',
   ]:
-    ensure    => directory,
-    mode      => '0755',
-    owner     => 'root',
-    group     => 'root',
-    recurse   => true,
-    purge     => true,
-    force     => true,
-    max_files => 10000,
+    ensure => directory,
   }
 
   $icon_size   = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
@@ -30,12 +33,6 @@ class nest::role::workstation::dunst {
 
   ['actions', 'devices', 'status'].each |$category| {
     file {
-      default:
-        mode  => '0644',
-        owner => 'root',
-        group => 'root',
-      ;
-
       "/usr/share/dunst/icons/${category}":
         ensure => directory,
       ;
@@ -43,20 +40,18 @@ class nest::role::workstation::dunst {
       "/usr/share/dunst/icons/${category}/${icon_size}":
         ensure       => directory,
         source       => "/usr/share/icons/breeze-dark/${category}/22",
-        recurse      => true,
-        purge        => true,
         backup       => false,
         show_diff    => false,
         validate_cmd => $convert_cmd,
         checksum     => mtime,
         links        => follow,
-        max_files    => 10000,
         require      => Package['gnome-base/librsvg'],
       ;
 
       "/usr/share/dunst/icons/${category}/scaled":
-        ensure => link,
-        target => "/usr/share/dunst/icons/${category}/${icon_size}",
+        ensure  => link,
+        target  => "/usr/share/dunst/icons/${category}/${icon_size}",
+        recurse => false,
       ;
     }
   }
