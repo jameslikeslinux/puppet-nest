@@ -31,6 +31,9 @@ nest::cups_servers:
   - 'falcon.nest'
 nest::distcc_hosts:
   falcon.nest: 16
+nest::hosts:
+  unifi.home:
+    ip: '172.22.1.12'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_hostname: 'nest.james.tl'
 
