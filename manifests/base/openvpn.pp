@@ -14,10 +14,7 @@ class nest::base::openvpn {
     dhcp-option DNS 172.22.0.1
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DOMAIN gitlab.james.tl"
-    push "dhcp-option DOMAIN home"
     push "dhcp-option DNS 172.22.0.1"
-    push "route-metric 30"
-    push "route 172.22.1.0 255.255.255.0"
     setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
     ifconfig-pool-persist nest-ipp.txt
