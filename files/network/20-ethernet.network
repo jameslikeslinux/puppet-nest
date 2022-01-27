@@ -1,8 +1,7 @@
 [Match]
-Name=en* eth*
+Name=bond* br* en* eth*
 
 [Network]
-ConfigureWithoutCarrier=true
 DHCP=yes
 
 [DHCP]
