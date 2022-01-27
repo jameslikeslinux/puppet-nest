@@ -56,15 +56,6 @@ nest::service::gitlab_runner::instances:
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
 
-  bolt:
-    default_image: 'nest/tools/bolt:%{facts.profile.platform}'
-    dns: '172.22.0.1'
-    host: 'gitlab.james.tl'
-    tag_list: ['bolt']
-    volumes:
-      - '/etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro'
-      - '/etc/ssh/ssh_known_hosts:/etc/ssh_known_hosts:ro'
-
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
     destination: '127.0.0.1:6789'
