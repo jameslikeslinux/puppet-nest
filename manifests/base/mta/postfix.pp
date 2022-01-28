@@ -41,7 +41,7 @@ class nest::base::mta::postfix (
         $smtp_sasl_auth_enable      = 'yes'
         $smtp_sasl_password_maps    = 'hash:/etc/postfix/saslpass'
         $smtp_sasl_security_options = 'noanonymous'
-        $smtp_tls_CAfile            = '/etc/ssl/certs/ca-certificates.crt'
+        $smtp_tls_cafile            = '/etc/ssl/certs/ca-certificates.crt'
         $smtp_tls_security_level    = 'may'
       } else {
         $relayhost = '[smtp.nest]'
@@ -105,7 +105,7 @@ class nest::base::mta::postfix (
         ;
 
         'smtp_tls_CAfile':
-          value => $smtp_tls_CAfile,
+          value => $smtp_tls_cafile,
         ;
 
         'virtual_alias_maps':

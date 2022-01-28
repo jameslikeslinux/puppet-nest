@@ -147,8 +147,8 @@ class nest::service::puppet (
   ->
   file {
     default:
-      owner  => 'root',
-      group  => 'root',
+      owner => 'root',
+      group => 'root',
     ;
 
     [

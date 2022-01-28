@@ -90,8 +90,8 @@ class nest::base {
       # Portage should be configured before any packages are installed/changed
       Class['::nest::base::portage'] -> Nest::Lib::Package_use <||>
       Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
-                                                   title != 'dev-vcs/git' and
-                                                   title != 'sys-devel/distcc' |>
+                                                    title != 'dev-vcs/git' and
+                                                    title != 'sys-devel/distcc' |>
     }
 
     'windows': {

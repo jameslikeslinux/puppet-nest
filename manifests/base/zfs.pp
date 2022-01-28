@@ -17,9 +17,9 @@ class nest::base::zfs {
 
   file {
     default:
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/systemd/system/zfs-mount.service.d':

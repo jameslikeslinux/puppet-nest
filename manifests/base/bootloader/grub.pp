@@ -49,6 +49,12 @@ class nest::base::bootloader::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     }
 
+    $dracut_script = @(DRACUT_SCRIPT)
+      version=$(ls /lib/modules | sort -V | tail -1) &&
+      dracut --force --kver $version &&
+      chmod 644 /boot/initramfs-${version}.img
+      | DRACUT_SCRIPT
+
     # Install stuff normally handled by kernel-install(8)
     exec {
       default:
@@ -62,7 +68,7 @@ class nest::base::bootloader::grub {
       ;
 
       'dracut':
-        command  => 'version=$(ls /lib/modules | sort -V | tail -1) && dracut --force --kver $version && chmod 644 /boot/initramfs-${version}.img',
+        command  => $dracut_script,
         provider => shell,
       ;
     }

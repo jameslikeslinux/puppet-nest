@@ -13,7 +13,12 @@
         - 'lib/puppet/provider/package/cygwin.rb'
 
 Rakefile:
+  # I have my own style and that is OK
   extra_disabled_lint_checks:
+    - 2sp_soft_tabs
     - arrow_on_right_operand_line
+    - autoloader_layout
     - case_without_default
     - documentation
+    - nested_classes_or_defines
+    - variable_scope

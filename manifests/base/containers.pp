@@ -10,6 +10,13 @@ class nest::base::containers {
     }
   }
 
+  $storage_conf = @("STORAGE_CONF")
+    [storage]
+    driver = "${storage_driver}"
+    graphroot = "/var/lib/containers/storage"
+    runroot = "/run/containers/storage"
+    | STORAGE_CONF
+
   package { 'app-emulation/crun':
     ensure => installed,
   }
@@ -20,9 +27,9 @@ class nest::base::containers {
   ->
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/containers/containers.conf':
@@ -38,7 +45,7 @@ class nest::base::containers {
     ;
 
     '/etc/containers/storage.conf':
-      content => "[storage]\ndriver = \"${storage_driver}\"\ngraphroot = \"/var/lib/containers/storage\"\nrunroot = \"/run/containers/storage\"\n",
+      content => $storage_conf,
     ;
 
     '/etc/systemd/system/podman.service.d':

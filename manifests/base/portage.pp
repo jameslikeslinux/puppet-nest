@@ -123,9 +123,9 @@ class nest::base::portage {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/portage/env/lld.conf':

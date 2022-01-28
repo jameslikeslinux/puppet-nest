@@ -2,7 +2,7 @@ class nest::base::fstab {
   $hostname = regsubst($::trusted['certname'], '\..*', '')
 
   $suffix = $hostname ? {
-    /(\d+)$/ => "$1",
+    /(\d+)$/ => $1,
     default  => '',
   }
 
@@ -30,7 +30,7 @@ class nest::base::fstab {
     'efi'     => [
       "set 2/spec PARTLABEL=${hostname}-efi",
       'set 2/file /efi',
-      "set 2/vfstype vfat",
+      'set 2/vfstype vfat',
       'set 2/opt defaults',
       'set 2/dump 0',
       'set 2/passno 2',
