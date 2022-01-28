@@ -56,6 +56,11 @@ class nest::base::kernel {
     }
   }
 
+  $kernel_make_cmd = @("KERNEL_MAKE")
+    /usr/bin/make ${::nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
+    /usr/bin/tee build.log
+    | KERNEL_MAKE
+
   exec { 'kernel-olddefconfig':
     command     => '/usr/bin/make olddefconfig',
     cwd         => '/usr/src/linux',
@@ -63,7 +68,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 | /usr/bin/tee build.log",
+    command     => $kernel_make_cmd,
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
@@ -73,7 +78,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'module-rebuild':
-    command     => "/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild",
+    command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
     timeout     => 0,
     refreshonly => true,
   }

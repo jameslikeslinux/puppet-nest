@@ -78,9 +78,9 @@ class nest::base::systemd {
 
   file {
     default:
-      mode   => '0644',
-      owner  => 'root',
-      group  => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/dnssec-trust-anchors.d':

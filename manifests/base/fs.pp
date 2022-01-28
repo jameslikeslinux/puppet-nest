@@ -83,7 +83,7 @@ class nest::base::fs {
     service { 'cachefilesd':
       enable  => true,
       require => Nest::Lib::Systemd_reload['cachefilesd'],
-    } 
+    }
   } else {
     service { 'cachefilesd':
       enable => false,

@@ -145,9 +145,19 @@ class nest::base::bootloader::grub {
       $disk = regsubst($partition, 'p?(art)?\d+$', '')
 
       if "${::trusted['certname']}-" in $attributes['partlabel'] {
+        $grub_install_command_efi = @("GRUB_EFI")
+          /bin/mkdir /boot/efi &&
+          /bin/mount ${partition} /boot/efi &&
+          /usr/sbin/grub-install --target=x86_64-efi --removable --modules=part_gpt &&
+          /bin/umount /boot/efi &&
+          /bin/rm -rf /boot/efi
+          | GRUB_EFI
+
+        $grub_install_command_bios = "/usr/sbin/grub-install --target=i386-pc --modules=part_gpt ${disk}"
+
         $grub_install_command = $attributes['partlabel'] ? {
-          /-efi/  => "/bin/mkdir /boot/efi && /bin/mount ${partition} /boot/efi && /usr/sbin/grub-install --target=x86_64-efi --removable --modules=part_gpt && /bin/umount /boot/efi && /bin/rm -rf /boot/efi",
-          /-bios/ => "/usr/sbin/grub-install --target=i386-pc --modules=part_gpt ${disk}",
+          /-efi/  => $grub_install_command_efi,
+          /-bios/ => $grub_install_command_bios,
           default => undef,
         }
 

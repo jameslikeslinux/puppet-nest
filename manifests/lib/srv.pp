@@ -24,9 +24,9 @@ define nest::lib::srv (
   }
 
   file { "/srv/${name}":
-    ensure  => directory,
-    mode    => $mode,
-    owner   => $owner,
-    group   => $group,
+    ensure => directory,
+    mode   => $mode,
+    owner  => $owner,
+    group  => $group,
   }
 }

@@ -12,8 +12,8 @@ define nest::lib::gitlab_runner (
 ) {
   if $ensure == absent {
     nest::lib::container { "gitlab-runner-${name}":
-      image  => 'gitlab/gitlab-runner',
       ensure => absent,
+      image  => 'gitlab/gitlab-runner',
     }
     ->
     file { "/srv/gitlab-runner/${name}":

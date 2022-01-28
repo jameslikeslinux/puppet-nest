@@ -15,7 +15,7 @@ define nest::lib::repo (
       [${name}]
       location = /var/db/repos/${name}
       sync-type = git
-      sync-uri = $url
+      sync-uri = ${url}
       sync-depth = 1
       auto-sync = yes
       | END_REPO

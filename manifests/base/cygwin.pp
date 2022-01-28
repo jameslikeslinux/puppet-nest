@@ -57,7 +57,7 @@ class nest::base::cygwin {
   }
 
   exec { 'cygserver-config':
-    command     => shellquote(
+    command => shellquote(
       'C:/tools/cygwin/bin/bash.exe', '-c',
       'source /etc/profile && /usr/bin/cygserver-config --yes'
     ),

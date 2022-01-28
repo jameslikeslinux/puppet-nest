@@ -25,7 +25,7 @@ class nest::tool::bolt {
       ;
 
       '/etc/puppetlabs/bolt/key.pem':
-        content => file("${settings::ssldir}/private_keys/bolt.pem"),
+        content   => file("${settings::ssldir}/private_keys/bolt.pem"),
         show_diff => false,
       ;
 
