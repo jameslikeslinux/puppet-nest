@@ -21,6 +21,7 @@
       r10k:
         stage: 'deploy'
         tags: ['r10k']
+        before_script: []
         script: 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
     ruby_versions:
       2.6.8:
