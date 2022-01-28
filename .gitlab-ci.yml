@@ -2,6 +2,7 @@
 stages:
   - syntax
   - unit
+  - deploy
 
 default:
   cache:
@@ -50,4 +51,10 @@ parallel_spec-Ruby 2.7.2-Puppet ~> 7:
     - bundle exec rake parallel_spec
   variables:
     PUPPET_GEM_VERSION: '~> 7'
+
+r10k:
+  stage: deploy
+  tags:
+  - r10k
+  script: r10k deploy environment -pv "$CI_COMMIT_BRANCH"
 

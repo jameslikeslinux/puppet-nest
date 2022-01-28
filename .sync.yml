@@ -6,6 +6,16 @@
     - '/.rerun.json'
     - 'private'
 
+.gitlab-ci.yml:
+  custom:
+    custom_stages:
+      - 'deploy'
+    custom_jobs:
+      r10k:
+        stage: 'deploy'
+        tags: ['r10k']
+        script: 'r10k deploy environment -pv "$CI_COMMIT_BRANCH"'
+
 .rubocop.yml:
   default_configs:
     AllCops:
