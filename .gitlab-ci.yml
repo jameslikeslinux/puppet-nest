@@ -40,5 +40,5 @@ r10k:
   stage: deploy
   tags:
   - r10k
-  script: r10k deploy environment -pv "$CI_COMMIT_BRANCH"
+  script: r10k deploy environment "$CI_COMMIT_BRANCH" -pv
 
