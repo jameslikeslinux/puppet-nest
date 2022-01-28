@@ -7,14 +7,27 @@
     - 'private'
 
 .gitlab-ci.yml:
+  override: true
   custom:
+    bundler_args: '--without system_tests --path vendor/bundle --jobs $(nproc)'
+    cache:
+      paths:
+        - 'vendor/bundle'
     custom_stages:
+      - 'syntax'
+      - 'unit'
       - 'deploy'
     custom_jobs:
       r10k:
         stage: 'deploy'
         tags: ['r10k']
         script: 'r10k deploy environment -pv "$CI_COMMIT_BRANCH"'
+    ruby_versions:
+      2.7.2:
+        checks:
+          - 'validate lint rubocop' # same as default minus 'check'
+          - 'parallel_spec'
+        puppet_version: '~> 7'
 
 .rubocop.yml:
   default_configs:

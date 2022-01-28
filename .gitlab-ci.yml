@@ -20,27 +20,11 @@ default:
     - bundle -v
     - bundle install --without system_tests --path vendor/bundle --jobs $(nproc)
 
-validate lint check rubocop-Ruby 2.5.7-Puppet ~> 6:
-  stage: syntax
-  image: ruby:2.5.7
-  script:
-    - bundle exec rake validate lint check rubocop
-  variables:
-    PUPPET_GEM_VERSION: '~> 6'
-
-parallel_spec-Ruby 2.5.7-Puppet ~> 6:
-  stage: unit
-  image: ruby:2.5.7
-  script:
-    - bundle exec rake parallel_spec
-  variables:
-    PUPPET_GEM_VERSION: '~> 6'
-
-validate lint check rubocop-Ruby 2.7.2-Puppet ~> 7:
+validate lint rubocop-Ruby 2.7.2-Puppet ~> 7:
   stage: syntax
   image: ruby:2.7.2
   script:
-    - bundle exec rake validate lint check rubocop
+    - bundle exec rake validate lint rubocop
   variables:
     PUPPET_GEM_VERSION: '~> 7'
 
