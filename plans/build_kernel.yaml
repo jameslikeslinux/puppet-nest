@@ -1,0 +1,19 @@
+---
+description: 'Build kernel with Puppet'
+
+parameters:
+  targets:
+    type: TargetSpec
+    description: 'A list of targets to build the kernel on'
+
+steps:
+  - description: 'Clear existing kernel config'
+    command: rm -f /usr/src/linux/.config
+    run_as: root
+    targets: $targets
+
+  - description: 'Run Puppet with build=kernel'
+    plan: nest::run_puppet
+    parameters:
+      build: kernel
+    targets: $targets

@@ -42,7 +42,6 @@ def changelog_future_release
 end
 
 PuppetLint.configuration.send('disable_relative')
-PuppetLint.configuration.send('disable_2sp_soft_tabs')
 PuppetLint.configuration.send('disable_arrow_on_right_operand_line')
 PuppetLint.configuration.send('disable_autoloader_layout')
 PuppetLint.configuration.send('disable_case_without_default')
