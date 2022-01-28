@@ -56,6 +56,15 @@ nest::service::gitlab_runner::instances:
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
 
+  r10k:
+    default_image: 'nest/tools/r10k:haswell'
+    host: 'gitlab.james.tl'
+    tag_list: ['r10k']
+    volumes:
+      - '/srv/puppet/code:/etc/puppetlabs/code'
+      - '/srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro'
+      - '/srv/puppet/r10k/cache:/var/cache/r10k'
+
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
     destination: '127.0.0.1:6789'

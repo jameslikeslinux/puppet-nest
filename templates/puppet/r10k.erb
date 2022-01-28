@@ -1,8 +1,18 @@
 #!/bin/bash
+#
+# r10k container wrapper
+#
+# Run a custom r10k container image that supports all of the Nest platforms.
+#
+# See: https://gitlab.james.tl/nest/tools/r10k
+# See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/service/puppet.pp
+#
 
-podman run --rm \
-           -v /srv/puppet/code:/etc/puppetlabs/code \
-           -v /srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro \
-           -v /srv/puppet/r10k/cache:/var/cache/r10k \
-           nest/tools/r10k:<%= @facts['profile']['cpu'] %> \
-           r10k "$@"
+exec podman run --rm \
+    -v /srv/puppet/code:/etc/puppetlabs/code \
+    -v /srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro \
+    -v /srv/puppet/r10k/cache:/var/cache/r10k \
+    nest/tools/r10k:<%= @facts['profile']['cpu'] %> \
+    r10k "$@"
+
+# vim: filetype=bash
