@@ -1,2 +1,3 @@
 ---
 name: 'nest'
+modules: [] # use Puppetfile

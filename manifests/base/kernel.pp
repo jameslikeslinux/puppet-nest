@@ -11,12 +11,13 @@ class nest::base::kernel {
     default       => 'sys-kernel/gentoo-sources',
   }
 
-  nest::lib::package_use { $sources_package:
-    use => 'symlink',
+  package_mask { $sources_package:
+    version => ">${nest::kernel_version.keys[0]}"
   }
-
-  package { $sources_package:
+  ->
+  nest::lib::package { $sources_package:
     ensure => installed,
+    use    => 'symlink',
   }
 
   $defconfig = $facts['profile']['platform'] ? {

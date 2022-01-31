@@ -37,6 +37,8 @@ nest::hosts:
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_hostname: 'nest.james.tl'
 
+nest::kernel_version: { '5.15.4': '5.15.4-gentoo' }
+
 nest::package_keywords:
   # I always want the latest of these
   app-emulation/qemu: {}

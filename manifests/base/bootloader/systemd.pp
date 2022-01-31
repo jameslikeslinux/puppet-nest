@@ -48,6 +48,7 @@ class nest::base::bootloader::systemd {
       ;
     }
 
+    $kernel_version = $nest::kernel_version.values[0]
     $image = $facts['os']['architecture'] ? {
       'amd64'   => '/usr/src/linux/arch/x86/boot/bzImage',
       'armv7l'  => '/usr/src/linux/arch/arm/boot/zImage',
@@ -55,7 +56,7 @@ class nest::base::bootloader::systemd {
     }
 
     exec { 'kernel-install':
-      command     => "version=\$(ls /lib/modules | sort -V | tail -1) && kernel-install add \$version ${image}",
+      command     => "kernel-install add ${kernel_version} ${image}",
       provider    => shell,
       refreshonly => true,
       timeout     => 0,

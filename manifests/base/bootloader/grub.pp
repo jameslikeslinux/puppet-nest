@@ -49,10 +49,10 @@ class nest::base::bootloader::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     }
 
-    $dracut_script = @(DRACUT_SCRIPT)
-      version=$(ls /lib/modules | sort -V | tail -1) &&
-      dracut --force --kver $version &&
-      chmod 644 /boot/initramfs-${version}.img
+    $kernel_version = $nest::kernel_version.values[0]
+    $dracut_script = @("DRACUT_SCRIPT")
+      dracut --force --kver ${kernel_version} &&
+      chmod 644 /boot/initramfs-${kernel_version}.img
       | DRACUT_SCRIPT
 
     # Install stuff normally handled by kernel-install(8)
