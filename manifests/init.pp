@@ -26,6 +26,7 @@ class nest (
   Boolean                       $isolate_smt    = false,
   Hash[String, Nest::Kconfig]   $kernel_config  = {},
   Array[String]                 $kernel_cmdline = [],
+  Boolean                       $kexec          = false,
   Boolean                       $wifi           = false,
   Optional[Sensitive[Hash]]     $wlans          = undef,
 

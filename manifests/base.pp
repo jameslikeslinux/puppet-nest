@@ -65,9 +65,11 @@ class nest::base {
         # Bootloaders are host-specific
         if $facts['build'] in [undef, 'stage3', 'kernel'] {
           contain '::nest::base::bootloader'
+          contain '::nest::base::kexec'
 
           Class['::nest::base::dracut']
           ~> Class['::nest::base::bootloader']
+          ~> Class['::nest::base::kexec']
         }
       }
 

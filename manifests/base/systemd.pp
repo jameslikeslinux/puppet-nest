@@ -196,14 +196,4 @@ class nest::base::systemd {
       ensure => file,
     ;
   }
-
-  if $::nest::bootloader == 'systemd' and $facts['profile']['platform'] in ['haswell', 'pinebookpro', 'sopine'] {
-    $kexec_tools_ensure = installed
-  } else {
-    $kexec_tools_ensure = absent
-  }
-
-  package { 'sys-apps/kexec-tools':
-    ensure => $kexec_tools_ensure,
-  }
 }

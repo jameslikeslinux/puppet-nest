@@ -1,0 +1,15 @@
+[Unit]
+Description=Preload kexec
+DefaultDependencies=no
+After=local-fs.target
+Before=basic.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/kexec-load
+ExecStart=/usr/sbin/kexec -l ${IMAGE} --append=${KERNEL_CMDLINE} --initrd=${INITRD}
+ExecStop=/usr/sbin/kexec -u
+RemainAfterExit=yes
+
+[Install]
+WantedBy=basic.target
