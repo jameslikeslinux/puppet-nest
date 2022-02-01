@@ -58,11 +58,6 @@ class nest::service::puppet (
     '/srv/puppet/puppetserver/config':
       ensure => directory,
     ;
-
-    '/srv/puppet/puppetserver/config/hiera.yaml':
-      source => 'puppet:///modules/nest/puppet/hiera.yaml',
-      notify => Service['container-puppetserver'],
-    ;
   }
   ->
   nest::lib::container { 'puppetserver':

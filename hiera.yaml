@@ -2,7 +2,7 @@
 version: 5
 
 defaults:
-  datadir: "/etc/puppetlabs/code/environments/%{server_facts.environment}/data"
+  datadir: data
   lookup_key: eyaml_lookup_key
   options:
     pkcs7_private_key: '/etc/puppetlabs/puppetserver/ca/ca_key.pem'
