@@ -37,4 +37,13 @@ class nest::service::gitlab (
       '/srv/gitlab/data:/var/opt/gitlab',
     ],
   }
+
+  # Export SSH keys for collecting on other hosts
+  if $facts['gitlab_ssh'] {
+    $facts['gitlab_ssh'].each |$key, $value| {
+      @@sshkey { "gitlab.james.tl@${value['type']}":
+        key => $value['key'],
+      }
+    }
+  }
 }
