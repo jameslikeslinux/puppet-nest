@@ -1,3 +1,5 @@
+moduledir '.modules'
+
 # Required by everything
 mod 'puppetlabs-stdlib', '5.2.0'
 mod 'puppetlabs-concat', '5.2.0'
@@ -13,8 +15,8 @@ mod 'puppetlabs-zfs_core', '1.3.0'
 mod 'puppetlabs-reboot', '4.1.0'
 
 # My modules
-mod 'self', :git => 'git@gitlab.james.tl:nest/self.git', :branch => 'main', :install_path => '.'
-mod 'private',:git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main', :install_path => '.'
+mod 'nest', :git => 'git@gitlab.james.tl:nest/puppet.git', :branch => :control_branch, :default_branch => 'main'
+mod 'private', :git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main'
 
 # Required by nest
 mod 'dalen-dnsquery', '3.0.0'
