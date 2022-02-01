@@ -29,9 +29,9 @@
 !/inventory.yaml
 /bolt-debug.log
 /.modules
+/.nest
 /.plan_cache.json
 /.rerun.json
 /.resource_types
 /.task_cache.json
-/self
 private
