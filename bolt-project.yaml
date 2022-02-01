@@ -1,6 +1,9 @@
 ---
 name: nest
 
+disable-warnings:
+  - project_shadows_module
+
 modules:
   - puppetlabs-reboot
 
