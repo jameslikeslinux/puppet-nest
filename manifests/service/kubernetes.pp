@@ -1,19 +1,36 @@
 class nest::service::kubernetes {
-  package { [
-    'app-emulation/cri-o',
-    'app-emulation/cri-tools',
-    'sys-cluster/kubeadm',
-    'sys-cluster/kubectl',
-    'sys-cluster/kubelet',
-  ]:
+  # Install and enable container runtime
+  package { 'app-emulation/cri-o':
     ensure => installed,
   }
   ->
-  service { [
-    'crio',
-    'kubelet',
-  ]:
+  service { 'crio':
     enable => true,
+  }
+
+  # Install and enable kubelet, fixing dependency on container runtime
+  package { 'sys-cluster/kubelet':
+    ensure => installed,
+  }
+  ->
+  exec { 'kubelet-requires-crio-not-docker':
+    command => '/bin/sed -i "s/docker.service/crio.service/g" /lib/systemd/system/kubelet.service',
+    onlyif  => '/bin/grep docker.service /lib/systemd/system/kubelet.service',
+  }
+  ~>
+  nest::lib::systemd_reload { 'kubernetes': }
+  ->
+  service { 'kubelet':
+    enable => true,
+  }
+
+  # Install management tools
+  package { [
+    'app-emulation/cri-tools',
+    'sys-cluster/kubeadm',
+    'sys-cluster/kubectl',
+  ]:
+    ensure => installed,
   }
 
   firewall { '100 vxlan':
