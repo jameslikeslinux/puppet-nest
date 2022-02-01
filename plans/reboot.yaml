@@ -1,0 +1,18 @@
+---
+description: 'Reboot and wait for hosts'
+
+parameters:
+  targets:
+    type: TargetSpec
+    description: 'A list of targets to reboot'
+
+steps:
+  - description: 'Reboot and wait for hosts'
+    plan: reboot
+    parameters:
+      message: 'Reboot triggered by Bolt'
+      reboot_delay: 60 # must be >= 60 and % 60 = 0 to display message and avoid being killed by systemd
+      disconnect_wait: 30
+      retry_interval: 5
+    run_as: root
+    targets: $targets

@@ -1,4 +1,8 @@
 ---
-name: 'nest'
+name: nest
+
 modules:
-  - 'puppetlabs-reboot'
+  - puppetlabs-reboot
+
+plans:
+  - nest::*
