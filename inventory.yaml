@@ -1,4 +1,7 @@
 ---
+features:
+  - puppet-agent
+
 groups:
   - name: 'servers'
     targets:

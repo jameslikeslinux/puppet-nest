@@ -91,6 +91,28 @@ class nest::base::puppet {
         'publicdir' => '/var/lib/puppet/public',
       },
     }
+
+    # For compatibility with Bolt 'puppet-agent' feature
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      [
+        '/opt/puppetlabs',
+        '/opt/puppetlabs/puppet',
+        '/opt/puppetlabs/puppet/bin',
+      ]:
+        ensure => directory,
+      ;
+
+      '/opt/puppetlabs/puppet/bin/ruby':
+        ensure => link,
+        target => '/usr/bin/ruby',
+      ;
+    }
   } else {
     class { 'puppet':
       dns_alt_names => $dns_alt_names,
