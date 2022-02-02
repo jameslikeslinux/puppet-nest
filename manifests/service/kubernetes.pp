@@ -8,14 +8,25 @@ class nest::service::kubernetes {
     enable => true,
   }
 
-  # Install and enable kubelet, fixing dependency on container runtime
+  # Install and enable kubelet with a service that works with CRI-O and kubeadm
   package { 'sys-cluster/kubelet':
     ensure => installed,
   }
   ->
-  exec { 'kubelet-requires-crio-not-docker':
-    command => '/bin/sed -i "s/docker.service/crio.service/g" /lib/systemd/system/kubelet.service',
-    onlyif  => '/bin/grep docker.service /lib/systemd/system/kubelet.service',
+  file { '/etc/kubernetes/kubelet.env':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "KUBELET_ARGS='--fail-swap-on=false'\n",
+    notify  => Service['kubelet'],
+  }
+
+
+  file { '/etc/systemd/system/kubelet.service':
+    mode   => '0644',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/kubernetes/kubelet.service'
   }
   ~>
   nest::lib::systemd_reload { 'kubernetes': }
