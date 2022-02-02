@@ -18,6 +18,14 @@ class nest::service::kubernetes {
     enable => true,
   }
 
+  # Provide initial CNI config so CoreDNS doesn't deploy to Podman network.
+  # CRI-O picks this up dynamically if it's running.
+  file { '/etc/cni/net.d/10-flannel.conflist':
+    replace => false,
+    source  => 'puppet:///modules/nest/kubernetes/cni-conf.json',
+    require => Package['app-emulation/cri-o'],
+  }
+
   # Install and enable kubelet with a service that works with CRI-O and kubeadm
   package { 'sys-cluster/kubelet':
     ensure => installed,
