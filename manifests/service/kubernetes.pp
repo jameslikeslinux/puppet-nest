@@ -1,9 +1,19 @@
 class nest::service::kubernetes {
+  File {
+    mode  => '0644',
+    owner => 'root',
+    group => 'root',
+  }
+
   # Install and enable container runtime
   package { 'app-emulation/cri-o':
     ensure => installed,
   }
   ->
+  file { '/etc/crio/crio.conf.d/10-crun.conf':
+    source => 'puppet:///modules/nest/kubernetes/crio-crun.conf',
+  }
+  ~>
   service { 'crio':
     enable => true,
   }
@@ -14,18 +24,11 @@ class nest::service::kubernetes {
   }
   ->
   file { '/etc/kubernetes/kubelet.env':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => "KUBELET_ARGS='--fail-swap-on=false'\n",
+    content => "KUBELET_ARGS=\"--config=/var/lib/kubelet/config.yaml --kubeconfig=/etc/kubernetes/kubelet.conf\"\n",
     notify  => Service['kubelet'],
   }
 
-
   file { '/etc/systemd/system/kubelet.service':
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
     source => 'puppet:///modules/nest/kubernetes/kubelet.service'
   }
   ~>

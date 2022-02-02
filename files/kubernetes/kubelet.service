@@ -6,11 +6,8 @@ After=crio.service
 [Service]
 EnvironmentFile=-/etc/kubernetes/kubelet.env
 EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-ExecStart=/usr/bin/kubelet \
-    --container-runtime=remote \
-    --container-runtime-endpoint=unix:///var/run/crio/crio.sock \
-    $KUBELET_ARGS \
-    $KUBELET_KUBEADM_ARGS
+ExecStart=/usr/bin/kubelet $KUBELET_ARGS $KUBELET_KUBEADM_ARGS
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
