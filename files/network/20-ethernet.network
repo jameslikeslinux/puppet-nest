@@ -6,3 +6,6 @@ DHCP=yes
 
 [DHCP]
 RouteMetric=10
+
+[DHCPv4]
+UseDomains=yes
