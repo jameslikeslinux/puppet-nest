@@ -1,7 +1,5 @@
 [Unit]
 Description=Kubernetes node agent
-Requires=crio.service
-After=crio.service
 
 [Service]
 EnvironmentFile=-/etc/kubernetes/kubelet.env
