@@ -1,5 +1,5 @@
 class nest::base::firewall {
-  $ignore = ['CNI-', 'KUBE-', 'LIBVIRT_', 'f2b-sshd']
+  $ignore = ['CNI-', 'KUBE-', 'LIBVIRT_', 'f2b-sshd', 'flannel']
 
   $first_boot_ruleset = @(FIRST_BOOT)
     *filter
