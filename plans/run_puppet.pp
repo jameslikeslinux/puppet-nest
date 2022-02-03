@@ -13,7 +13,7 @@ plan nest::run_puppet (
   }
 
   run_script('nest/scripts/run_puppet.sh', $targets, 'Run Puppet via systemd', {
-    '_env_vars' => $env,
-    '_run_as'   => 'root',
+    _env_vars => $env,
+    _run_as   => 'root',
   })
 }

@@ -1,0 +1,18 @@
+---
+description: 'Pull Kubernetes images ahead of initialization'
+
+parameters:
+  targets:
+    type: TargetSpec
+    description: 'A list of targets on which to pull images'
+
+steps:
+  - description: 'Start CRI-O'
+    command: systemctl start crio
+    run_as: root
+    targets: $targets
+
+  - description: 'Pull Kubernetes images'
+    command: kubeadm config images pull
+    run_as: root
+    targets: $targets

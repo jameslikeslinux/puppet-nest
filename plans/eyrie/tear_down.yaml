@@ -1,0 +1,9 @@
+---
+description: 'Destroy the eyrie Kubernetes cluster'
+
+steps:
+  - description: 'Destroy the cluster'
+    plan: nest::kubernetes::reset
+    parameters:
+      control_plane: eyrie-control-plane
+      workers: eyrie-workers

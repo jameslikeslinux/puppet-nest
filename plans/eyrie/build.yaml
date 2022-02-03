@@ -1,0 +1,13 @@
+---
+description: 'Build the eyrie Kubernetes cluster'
+
+steps:
+  - description: 'Pull Kubernetes images'
+    plan: nest::kubernetes::pull_images
+    targets: eyrie-control-plane
+
+  - description: 'Initialize control plane'
+    plan: nest::kubernetes::init
+    parameters:
+      target: eyrie-control-plane
+      name: eyrie

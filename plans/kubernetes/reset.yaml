@@ -1,0 +1,24 @@
+---
+description: 'Reset a Kubernetes cluster'
+
+parameters:
+  control_plane:
+    type: TargetSpec
+    description: The control plane to reset
+
+  workers:
+    type: TargetSpec
+    default: []
+    description: A list of workers to reset
+
+steps:
+  - description: 'Reset worker nodes'
+    plan: nest::kubernetes::reset_worker
+    parameters:
+      control_plane: $control_plane
+    targets: $workers
+
+  - description: 'Reset control plane'
+    command: 'kubeadm reset --force'
+    run_as: root
+    targets: $control_plane

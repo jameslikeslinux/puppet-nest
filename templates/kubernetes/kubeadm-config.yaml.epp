@@ -1,0 +1,34 @@
+<%- |
+  String $clusterName,
+  String $controlPlaneEndpoint,
+| -%>
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+
+# Custom name
+clusterName: <%= $clusterName %>
+
+# Use DNS to lookup control plane to route based on client network
+controlPlaneEndpoint: <%= $controlPlaneEndpoint %>
+
+# Use the default Flannel subnet
+networking:
+  podSubnet: 10.244.0.0/16
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+# Swap is compressed memory (zswap) so allow it
+failSwapOn: false
+featureGates:
+  NodeSwap: true
+memorySwap:
+  swapBehavior: UnlimitedSwap
+
+# Recommended on slow hosts for large image pulls
+# See: https://github.com/cri-o/cri-o/blob/main/tutorials/kubernetes.md
+runtimeRequestTimeout: 10m
+
+# vim:ft=yaml
