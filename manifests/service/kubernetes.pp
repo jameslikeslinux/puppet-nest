@@ -54,7 +54,6 @@ class nest::service::kubernetes (
   package { [
     'app-emulation/cri-tools',
     'sys-cluster/kubeadm',
-    'sys-cluster/kubectl',
   ]:
     ensure => installed,
   }

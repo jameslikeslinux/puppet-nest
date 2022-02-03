@@ -16,6 +16,7 @@ class nest::base::packages {
         'sys-apps/pv',
         'sys-apps/usbutils',
         'sys-block/parted',
+        'sys-cluster/kubectl',
         'sys-fs/dosfstools',
         'sys-fs/mtools',
         'sys-fs/squashfs-tools',
