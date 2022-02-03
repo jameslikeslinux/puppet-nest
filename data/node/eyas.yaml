@@ -1,0 +1,3 @@
+---
+classes:
+  - 'nest::service::kubernetes'
