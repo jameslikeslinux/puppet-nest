@@ -1,7 +1,8 @@
-<%- | String $puppetdb_server_url,
-      String $puppetdb_cacert,
-      String $puppetdb_cert,
-      String $puppetdb_key,
+<%- |
+  String $puppetdb_server_url,
+  String $puppetdb_cacert,
+  String $puppetdb_cert,
+  String $puppetdb_key,
 | -%>
 ---
 puppetdb:

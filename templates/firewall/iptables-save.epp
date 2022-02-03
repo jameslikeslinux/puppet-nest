@@ -1,5 +1,6 @@
-<%- | String $command,
-      Array[String] $ignore,
+<%- |
+  String        $command,
+  Array[String] $ignore,
 | -%>
 #!/bin/sh
 
