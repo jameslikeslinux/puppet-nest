@@ -57,13 +57,6 @@ class nest::role::workstation::pipewire {
         source  => '/usr/share/pipewire/pipewire.conf',
       ;
     }
-    ->
-    file_line { 'pipewire-default-clock-rate':
-      path  => '/etc/pipewire/pipewire.conf',
-      after => '^\s*vm\.overrides\s*=\s*{',
-      line  => '        default.clock.rate        = 44100',
-      match => '^\s*default\.clock\.rate\s*='
-    }
 
     file_line {
       default:
