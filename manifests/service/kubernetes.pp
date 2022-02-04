@@ -10,7 +10,7 @@ class nest::service::kubernetes (
   }
 
   # Install and enable container runtime
-  package { 'app-emulation/cri-o':
+  package { 'app-containers/cri-o':
     ensure => installed,
   }
   ->
@@ -27,7 +27,7 @@ class nest::service::kubernetes (
   file { '/etc/cni/net.d/10-flannel.conflist':
     replace => false,
     source  => 'puppet:///modules/nest/kubernetes/cni-conf.json',
-    require => Package['app-emulation/cri-o'],
+    require => Package['app-containers/cri-o'],
   }
 
   # Install and enable kubelet with a service that works with CRI-O and kubeadm
@@ -52,7 +52,7 @@ class nest::service::kubernetes (
 
   # Install management tools
   package { [
-    'app-emulation/cri-tools',
+    'app-containers/cri-tools',
     'sys-cluster/kubeadm',
   ]:
     ensure => installed,

@@ -17,11 +17,11 @@ class nest::base::containers {
     runroot = "/run/containers/storage"
     | STORAGE_CONF
 
-  package { 'app-emulation/crun':
+  package { 'app-containers/crun':
     ensure => installed,
   }
   ->
-  package { 'app-emulation/podman':
+  package { 'app-containers/podman':
     ensure => installed,
   }
   ->

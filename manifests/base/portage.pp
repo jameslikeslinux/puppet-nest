@@ -165,8 +165,8 @@ class nest::base::portage {
     }
     ->
     package_env { [
-      'app-emulation/conmon',
-      'app-emulation/podman',
+      'app-containers/conmon',
+      'app-containers/podman',
       'sys-libs/glibc',
     ]:
       env => 'no-sandbox.conf',
