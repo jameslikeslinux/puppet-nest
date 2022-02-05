@@ -88,10 +88,6 @@ class nest::base::portage {
     'makeopts':
       content => $makeopts,
     ;
-
-    'zfs_kernel_compat_override':
-      content => '5.15',
-    ;
   }
 
   # Don't timeout rebuilding packages
