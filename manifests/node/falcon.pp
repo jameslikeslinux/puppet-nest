@@ -44,6 +44,14 @@ class nest::node::falcon {
       state  => 'NEW',
       action => accept,
     ;
+
+    '100 puppet from local network':
+      source => "${facts['networking']['network']}/${facts['networking']['netmask']}",
+      proto  => tcp,
+      dport  => 8140,
+      state  => 'NEW',
+      action => accept,
+    ;
   }
 
   nest::lib::toolchain {
