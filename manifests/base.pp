@@ -5,6 +5,7 @@ class nest::base {
   contain '::nest::base::packages'
   contain '::nest::base::qemu'
   contain '::nest::base::ssh'
+  contain '::nest::base::syslog'
   contain '::nest::base::users'
   contain '::nest::base::vmware'
 
