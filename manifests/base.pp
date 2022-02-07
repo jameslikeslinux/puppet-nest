@@ -1,6 +1,7 @@
 class nest::base {
   contain '::nest::base::puppet'
   contain '::nest::base::git'
+  contain '::nest::base::openvpn'
   contain '::nest::base::packages'
   contain '::nest::base::qemu'
   contain '::nest::base::ssh'
@@ -25,7 +26,6 @@ class nest::base {
       contain '::nest::base::locale'
       contain '::nest::base::mta'
       contain '::nest::base::network'
-      contain '::nest::base::openvpn'
       contain '::nest::base::portage'
       contain '::nest::base::scripts'
       contain '::nest::base::sudo'
