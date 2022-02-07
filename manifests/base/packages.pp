@@ -46,6 +46,7 @@ class nest::base::packages {
       package { [
         'cygutils-extra',
         'nc',
+        'procps-ng',
         'tmux',
         'vim',
       ]:
