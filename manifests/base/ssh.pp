@@ -62,15 +62,6 @@ class nest::base::ssh {
           ;
         }
       }
-
-      # Collect SSH keys exported by other hosts below
-      if $facts['build'] in [undef, 'stage3'] {
-        Sshkey <<||>>
-
-        resources { 'sshkey':
-          purge => true,
-        }
-      }
     }
 
     'windows': {
@@ -91,15 +82,32 @@ class nest::base::ssh {
         ensure  => running,
         enable  => true,
       }
+
+      file { 'C:/tools/cygwin/etc/ssh_known_hosts':
+        mode  => '0644',
+        owner => 'Administrators',
+        group => 'None',
+      }
     }
   }
 
   # Export SSH keys for collecting on other hosts
-  if $facts['ssh'] {
-    $facts['ssh'].each |$key, $value| {
-      @@sshkey { "${trusted['certname']}.nest@${value['type']}":
-        key => $value['key'],
+  ['ssh', 'cygwin_ssh'].each |$ssh_fact| {
+    if $facts[$ssh_fact] {
+      $facts[$ssh_fact].each |$key, $value| {
+        @@sshkey { "${trusted['certname']}.nest@${value['type']}":
+          key => $value['key'],
+        }
       }
+    }
+  }
+
+  # Collect SSH keys exported by other hosts below
+  if $facts['build'] in [undef, 'stage3'] {
+    Sshkey <<||>>
+
+    resources { 'sshkey':
+      purge => true,
     }
   }
 }
