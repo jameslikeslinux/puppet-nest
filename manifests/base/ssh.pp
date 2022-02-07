@@ -77,6 +77,13 @@ class nest::base::ssh {
         ),
         creates => 'C:/tools/cygwin/etc/sshd_config',
       }
+      ->
+      file_line { 'sshd_config-PubkeyAcceptedKeyTypes':
+        path  => 'C:/tools/cygwin/etc/sshd_config',
+        line  => 'PubkeyAcceptedKeyTypes +ssh-rsa',
+        match => '^#?PubkeyAcceptedKeyTypes\s*',
+        after => '^#?PubkeyAuthentication\s*',
+      }
       ~>
       service { 'cygsshd':
         ensure  => running,
