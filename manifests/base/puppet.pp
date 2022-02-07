@@ -125,9 +125,9 @@ class nest::base::puppet {
 
       file {
         default:
-          mode    => '0644',
-          owner   => 'Administrators',
-          group   => 'None',
+          mode  => '0644',
+          owner => 'Administrators',
+          group => 'None',
         ;
 
         'C:/ProgramData/PuppetLabs/facter/etc':

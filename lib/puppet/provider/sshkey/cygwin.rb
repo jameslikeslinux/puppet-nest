@@ -1,8 +1,8 @@
 require 'puppet/provider/sshkey/parsed'
 
 Puppet::Type.type(:sshkey).provide(:cygwin, parent: :parsed) do
-  confine    :operatingsystem => :windows
-  defaultfor :operatingsystem => :windows
+  confine    operatingsystem: :windows
+  defaultfor operatingsystem: :windows
 
   # Copied from https://github.com/puppetlabs/puppetlabs-sshkeys_core/blob/main/lib/puppet/provider/sshkey/parsed.rb
   text_line :comment, match: %r{^#}

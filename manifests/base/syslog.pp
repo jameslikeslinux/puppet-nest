@@ -15,8 +15,8 @@ class nest::base::syslog {
       }
       ~>
       service { 'syslog-ng':
-        ensure  => running,
-        enable  => true,
+        ensure => running,
+        enable => true,
       }
     }
   }

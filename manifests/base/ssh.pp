@@ -86,8 +86,8 @@ class nest::base::ssh {
       }
       ~>
       service { 'cygsshd':
-        ensure  => running,
-        enable  => true,
+        ensure => running,
+        enable => true,
       }
 
       file { 'C:/tools/cygwin/etc/ssh_known_hosts':
