@@ -75,7 +75,21 @@ class nest::base::ssh {
 
     'windows': {
       package { 'openssh':
-        ensure => installed,
+        ensure   => installed,
+        provider => 'cygwin',
+      }
+      ->
+      exec { 'ssh-host-config':
+        command => shellquote(
+          'C:/tools/cygwin/bin/bash.exe', '-c',
+          'source /etc/profile && /usr/bin/ssh-host-config --yes'
+        ),
+        creates => 'C:/tools/cygwin/etc/sshd_config',
+      }
+      ~>
+      service { 'cygsshd':
+        ensure  => running,
+        enable  => true,
       }
     }
   }
