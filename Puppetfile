@@ -33,6 +33,9 @@ mod 'puppet-windows_env', '3.2.0'
 mod 'theforeman-puppet', '11.0.0'
 mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git', :branch => 'main'
 
+# Required by puppetlabs-chocolatey
+mod 'puppetlabs-registry', '2.1.0'
+
 # Required by theforeman-puppet
 mod 'puppet-extlib', '3.1.0'
 
