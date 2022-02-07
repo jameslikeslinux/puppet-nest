@@ -17,15 +17,26 @@ class nest::base::openvpn {
         topology subnet
         client-to-client
         keepalive 10 30
-        dhcp-option DOMAIN nest
+
+        # Sync with pushed options below
         dhcp-option DOMAIN gitlab.james.tl
+        dhcp-option DOMAIN nest
         dhcp-option DNS 172.22.0.1
-        push "dhcp-option DOMAIN nest"
+
+        # Windows only honors the last domain pushed
         push "dhcp-option DOMAIN gitlab.james.tl"
+        push "dhcp-option DOMAIN nest"
         push "dhcp-option DNS 172.22.0.1"
+
+        # Preferred routes are < 100 on Gentoo and Windows
         push "route-metric 100"
+
+        # Windows needs a default route to recognize network
         push "route 0.0.0.0 0.0.0.0"
+
+        # UniFi
         push "route 172.22.1.12"
+
         setenv HOSTS ${hosts_file}
         learn-address /etc/openvpn/learn-address.sh
         ifconfig-pool-persist nest-ipp.txt
