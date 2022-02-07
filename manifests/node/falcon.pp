@@ -46,6 +46,7 @@ class nest::node::falcon {
     ;
 
     '100 puppet from local network':
+      chain  => 'FORWARD',
       source => "${facts['networking']['network']}/${facts['networking']['netmask']}",
       proto  => tcp,
       dport  => 8140,
