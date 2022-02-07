@@ -15,7 +15,8 @@ class nest::base::openvpn {
     push "dhcp-option DOMAIN nest"
     push "dhcp-option DOMAIN gitlab.james.tl"
     push "dhcp-option DNS 172.22.0.1"
-    push "route-metric 30"
+    push "route-metric 100"
+    push "route 0.0.0.0 0.0.0.0"
     push "route 172.22.1.12"
     setenv HOSTS ${hosts_file}
     learn-address /etc/openvpn/learn-address.sh
