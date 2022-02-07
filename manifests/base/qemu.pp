@@ -1,21 +1,22 @@
 class nest::base::qemu {
-  case $facts['osfamily'] {
-    'Gentoo': {
-      if $facts['virtual'] == 'kvm' or $facts['profile']['platform'] == 'live' {
-        $qemu_guest_agent_ensure = installed
-      } else {
-        $qemu_guest_agent_ensure = absent
-      }
+  if $facts['virtual'] == 'kvm' or
+    $facts['profile']['platform'] == 'live' or
+    $facts['dmi']['manufacturer'] =~ /OVMF/
+  {
+    $qemu_guest_agent_ensure = installed
+  } else {
+    $qemu_guest_agent_ensure = absent
+  }
 
-      package { 'app-emulation/qemu-guest-agent':
-        ensure => $qemu_guest_agent_ensure,
-      }
-    }
+  $package_name = $facts['os']['family'] ? {
+    'Gentoo'  => 'app-emulation/qemu-guest-agent',
+    'windows' => 'virtio-drivers',
+    default   => undef,
+  }
 
-    'windows': {
-      package { 'virtio-drivers':
-        ensure => installed,
-      }
+  if $package_name {
+    package { $package_name:
+      ensure => $qemu_guest_agent_ensure,
     }
   }
 }
