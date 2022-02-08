@@ -13,6 +13,7 @@ class nest::base::packages {
         'net-dns/bind-tools',
         'net-misc/whois',
         'sys-apps/ethtool',
+        'sys-apps/ipmitool',
         'sys-apps/pv',
         'sys-apps/usbutils',
         'sys-block/parted',
