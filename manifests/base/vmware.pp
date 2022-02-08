@@ -17,7 +17,7 @@ class nest::base::vmware {
           mode   => '0644',
           owner  => 'root',
           group  => 'root',
-          source => 'puppet:///modules/nest/vmware/run-vmblock\x2dfuse.mount',
+          source => 'puppet:///modules/nest/vmware/run-vmblock-fuse.mount',
         }
         ~>
         nest::lib::systemd_reload { 'vmware': }
