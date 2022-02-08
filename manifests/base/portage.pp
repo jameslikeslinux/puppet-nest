@@ -163,6 +163,7 @@ class nest::base::portage {
     package_env { [
       'app-containers/conmon',
       'app-containers/podman',
+      'sys-cluster/kubectl',
       'sys-libs/glibc',
     ]:
       env => 'no-sandbox.conf',
