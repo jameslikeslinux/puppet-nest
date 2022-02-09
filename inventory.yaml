@@ -3,20 +3,22 @@ features:
   - puppet-agent
 
 groups:
-  - name: 'servers'
-    targets:
-      - _plugin: puppetdb
-        query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.role = 'server' and certname != 'builder' }"
-        target_mapping:
-          name: certname
-          uri: facts.fqdn
-  - name: 'workstations'
-    targets:
-      - _plugin: puppetdb
-        query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.role = 'workstation' and certname != 'builder' }"
-        target_mapping:
-          name: certname
-          uri: facts.fqdn
+  - name: 'gentoo'
+    groups:
+    - name: 'servers'
+      targets:
+        - _plugin: puppetdb
+          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.role = 'server' and certname != 'builder' }"
+          target_mapping:
+            name: certname
+            uri: facts.fqdn
+    - name: 'workstations'
+      targets:
+        - _plugin: puppetdb
+          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.role = 'workstation' and certname != 'builder' }"
+          target_mapping:
+            name: certname
+            uri: facts.fqdn
 
   - name: 'amd64'
     groups:
