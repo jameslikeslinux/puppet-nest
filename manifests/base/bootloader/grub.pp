@@ -50,10 +50,6 @@ class nest::base::bootloader::grub {
     }
 
     $kernel_version = $nest::kernel_version.values[0]
-    $dracut_script = @("DRACUT_SCRIPT")
-      dracut --force --kver ${kernel_version} &&
-      chmod 644 /boot/initramfs-${kernel_version}.img
-      | DRACUT_SCRIPT
 
     # Install stuff normally handled by kernel-install(8)
     exec {
@@ -68,8 +64,7 @@ class nest::base::bootloader::grub {
       ;
 
       'dracut':
-        command  => $dracut_script,
-        provider => shell,
+        command => "/usr/bin/dracut --force --kver ${kernel_version}",
       ;
     }
     ~>
@@ -84,6 +79,14 @@ class nest::base::bootloader::grub {
         command     => '/bin/sed -i -r "/insmod ext2/,/search/d" /boot/grub/grub.cfg',
         refreshonly => true,
         subscribe   => Exec['grub-mkconfig'],
+      }
+
+      # Make initramfs user readable for unprivileged live CD creation
+      file { "/boot/initramfs-${kernel_version}.img":
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        require => Exec['dracut'],
       }
     }
 
