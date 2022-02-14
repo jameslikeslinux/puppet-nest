@@ -3,23 +3,30 @@
 # https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-config-template/gitlab.rb.template
 #
 
-external_url 'https://gitlab.james.tl'
+external_url '<%= @external_url %>'
 
 # For proxied SSL
 # See: https://docs.gitlab.com/omnibus/settings/nginx.html#supporting-proxied-ssl
-nginx['listen_port'] = 80
+nginx['listen_port'] = <%= @http_port %>
 nginx['listen_https'] = false
 nginx['real_ip_trusted_addresses'] = ['172.22.0.0/24']
 nginx['real_ip_header'] = 'X-Forwarded-For'
 
+<% if @registry_url -%>
 # Enable and expose internal registry service for proxying
-registry_external_url 'https://registry.gitlab.james.tl'
-registry_nginx['listen_port'] = 5050
+registry_external_url '<%= @registry_url %>'
+registry_nginx['listen_port'] = <%= @registry_port %>
 registry_nginx['listen_https'] = false
 
-# Use dark theme by default
-gitlab_rails['gitlab_default_theme'] = 2
+<% end -%>
+# SSH Configuration
+gitlab_rails['gitlab_shell_ssh_port'] = <%= @ssh_port %>
 
+<% if @default_theme -%>
+# Use alternate theme by default
+gitlab_rails['gitlab_default_theme'] = <%= @default_theme %>
+
+<% end -%>
 # Let projects opt-in to DevOps features
 gitlab_rails['gitlab_default_projects_features_issues'] = false
 gitlab_rails['gitlab_default_projects_features_merge_requests'] = false
@@ -28,6 +35,7 @@ gitlab_rails['gitlab_default_projects_features_snippets'] = false
 gitlab_rails['gitlab_default_projects_features_builds'] = false
 gitlab_rails['gitlab_default_projects_features_container_registry'] = false
 
+<% if @gmail_password -%>
 # Gmail outbound
 # See: https://docs.gitlab.com/omnibus/settings/smtp.html#gmail
 gitlab_rails['smtp_enable'] = true
@@ -55,5 +63,6 @@ gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
 gitlab_rails['incoming_email_idle_timeout'] = 60
 gitlab_rails['incoming_email_expunge_deleted'] = true
 
+<% end -%>
 # Tune performance and memory usage
 puma['worker_processes'] = <%= @puma_workers %>

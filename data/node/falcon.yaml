@@ -41,6 +41,11 @@ nest::mta: postfix
 nest::openvpn_server: true
 nest::public_ssh: true
 
+nest::service::gitlab::external_name: 'gitlab.james.tl'
+nest::service::gitlab::registry_external_name: 'registry.gitlab.james.tl'
+nest::service::gitlab::https: true
+nest::service::gitlab::default_theme: 2
+
 nest::service::gitlab_runner::instances:
   shared:
     dns: '172.22.0.1'
