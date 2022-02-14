@@ -3,7 +3,7 @@ class nest::service::gitlab (
   Optional[String]  $registry_external_name = undef,
   Boolean           $https                  = false,
   Stdlib::Port      $ssh_port               = 22,
-  Stdlib::Port      $http_port              = 80,
+  Stdlib::Port      $web_port               = 80,
   Stdlib::Port      $registry_port          = 5050,
   Optional[Integer] $default_theme          = undef,
   Optional[String]  $gmail_password         = undef,
@@ -11,33 +11,30 @@ class nest::service::gitlab (
 ) inherits nest {
   if $https {
     $external_url = "https://${external_name}"
+
     if $registry_external_name {
       $registry_url = "https://${registry_external_name}"
     }
   } else {
-    if $http_port == '80' {
-      $external_url = "http://${external_name}"
-    } else {
-      $external_url = "http://${external_name}:${http_port}"
+    $external_url = $web_port ? {
+      80      => "http://${external_name}",
+      default => "http://${external_name}:${http_port}",
     }
+
     if $registry_external_name {
-      if $registry_port == '5050' {
-        $registry_url = "http://${registry_external_name}"
-      } else {
-        $registry_url = "http://${registry_external_name}:${registry_port}"
+      $registry_url = $registry_port ? {
+        5050    => "http://${registry_external_name}",
+        default => "http://${registry_external_name}:${registry_port}",
       }
     }
   }
 
   $publish = [
+    "${web_port}:${web_port}",
+
     $ssh_port ? {
       22      => '2222:22',
       default => "${ssh_port}:22",
-    },
-
-    $http_port ? {
-      80      => '8000:80',
-      default => "${http_port}:${http_port}",
     },
 
     $registry_external_url ? {

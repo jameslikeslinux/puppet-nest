@@ -8,6 +8,5 @@ nest::gui_scaling_factor: 2.0
 nest::role::workstation::chrome::chromium: false
 
 nest::service::gitlab::external_name: 'gitlab.localhost'
-nest::service::gitlab::http_port: 8000
 nest::service::gitlab::ssh_port: 2222
 nest::service::gitlab::gmail_password: ~
