@@ -6,6 +6,6 @@ class nest::base::hosts {
   }
 
   resources { 'host':
-    purge => true,
+    purge => !$facts['is_container'],
   }
 }
