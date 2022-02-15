@@ -37,7 +37,7 @@ class nest::service::gitlab (
       default => "${ssh_port}:22",
     },
 
-    $registry_external_url ? {
+    $registry_external_name ? {
       undef   => [],
       default => "${registry_port}:${registry_port}",
     },
