@@ -19,7 +19,7 @@ registry_nginx['listen_port'] = <%= @registry_port %>
 registry_nginx['listen_https'] = false
 
 <% end -%>
-# SSH Configuration
+# Show the exposed SSH port in the UI
 gitlab_rails['gitlab_shell_ssh_port'] = <%= @ssh_port %>
 
 <% if @default_theme -%>
