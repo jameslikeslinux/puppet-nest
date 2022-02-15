@@ -1,10 +1,12 @@
---- linux/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts.orig	2021-03-05 23:50:13.040078964 -0500
-+++ linux/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts	2021-03-05 23:50:42.100467453 -0500
-@@ -77,6 +77,7 @@
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts b/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts
+index 5e66ce1a334f..0f43ec784550 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dts
+@@ -77,6 +77,7 @@ &ehci1 {
  };
  
  &emac {
-+        allwinner,tx-delay-ps = <500>;
++	allwinner,tx-delay-ps = <500>;
  	pinctrl-names = "default";
  	pinctrl-0 = <&rgmii_pins>;
- 	phy-mode = "rgmii-id";
+ 	phy-mode = "rgmii-txid";
