@@ -12,7 +12,7 @@ class nest::base::kernel {
   }
 
   package_mask { $sources_package:
-    version => ">${nest::kernel_version.keys[0]}"
+    version => ">${nest::kernel_package_version.keys[0]}"
   }
   ->
   nest::lib::package { $sources_package:

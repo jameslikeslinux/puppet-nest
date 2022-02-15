@@ -7,17 +7,15 @@ class nest::base::kexec {
       ensure => installed,
     }
 
-    $kernel_version = $nest::kernel_version.values[0]
-
     case $nest::bootloader {
       'grub': {
-        $image  = "/boot/vmlinuz-${kernel_version}"
-        $initrd = "/boot/initramfs-${kernel_version}.img"
+        $image  = "/boot/vmlinuz-${nest::kernel_version}"
+        $initrd = "/boot/initramfs-${nest::kernel_version}.img"
       }
 
       'systemd': {
-        $image  = "/boot/${facts['machine_id']}/${kernel_version}/linux"
-        $initrd = "/boot/${facts['machine_id']}/${kernel_version}/initrd"
+        $image  = "/boot/${facts['machine_id']}/${nest::kernel_version}/linux"
+        $initrd = "/boot/${facts['machine_id']}/${nest::kernel_version}/initrd"
       }
 
       default: {

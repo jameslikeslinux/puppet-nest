@@ -49,8 +49,6 @@ class nest::base::bootloader::grub {
       source => 'puppet:///modules/nest/keymaps/dvorak.gkb',
     }
 
-    $kernel_version = $nest::kernel_version.values[0]
-
     # Install stuff normally handled by kernel-install(8)
     exec {
       default:
@@ -64,7 +62,7 @@ class nest::base::bootloader::grub {
       ;
 
       'dracut':
-        command => "/usr/bin/dracut --force --kver ${kernel_version}",
+        command => "/usr/bin/dracut --force --kver ${nest::kernel_version}",
       ;
     }
     ~>
@@ -82,7 +80,7 @@ class nest::base::bootloader::grub {
       }
 
       # Make initramfs user readable for unprivileged live CD creation
-      file { "/boot/initramfs-${kernel_version}.img":
+      file { "/boot/initramfs-${nest::kernel_version}.img":
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
