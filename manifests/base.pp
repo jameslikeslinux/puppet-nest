@@ -95,6 +95,10 @@ class nest::base {
       Class['::nest::base::portage'] -> Package <| (provider == 'portage' or provider == undef) and
                                                     title != 'dev-vcs/git' and
                                                     title != 'sys-devel/distcc' |>
+
+      # Package installation can result in unread news
+      Package <| provider == 'portage' or provider == undef |>
+      -> Class['::nest::base::gentoo']
     }
 
     'windows': {
