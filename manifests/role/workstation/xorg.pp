@@ -96,6 +96,7 @@ class nest::role::workstation::xorg {
   package { [
     'x11-apps/mesa-progs',
     'x11-apps/xev',
+    'x11-apps/xhost',
     'x11-apps/xinput',
     'x11-apps/xkill',
     'x11-apps/xlogo',
