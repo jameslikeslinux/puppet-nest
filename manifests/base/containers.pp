@@ -56,11 +56,19 @@ class nest::base::containers {
       content => "[Service]\nDelegate=yes\n",
       notify  => Nest::Lib::Systemd_reload['containers'],
     ;
+
+    '/etc/systemd/system/podman-firewalld-reload.service':
+      source => 'puppet:///modules/nest/containers/podman-firewalld-reload.service',
+      notify  => Nest::Lib::Systemd_reload['containers'],
+    ;
   }
   ->
   nest::lib::systemd_reload { 'containers': }
   ->
-  service { 'podman.socket':
+  service { [
+    'podman.socket',
+    'podman-firewalld-reload',
+  ]:
     enable => true,
   }
 
