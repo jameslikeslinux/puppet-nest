@@ -12,11 +12,11 @@ nest::service::apache::manage_firewall: true
 
 nest::service::gateway::port_forwards:
   'gitlab ssh':
+    dest: '104.156.227.40'
+    port: 22
     proto: tcp
-    from_port: 22
+    to_addr: '172.22.0.1'
     to_port: 2222
-    from_ip4: '104.156.227.40'
-    to_ip4: '172.22.0.1'
 
 nest::service::reverse_proxy::hosts:
   gitlab.james.tl:
