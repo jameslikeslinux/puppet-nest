@@ -1,8 +1,6 @@
 class nest::base::firewall {
   class { 'firewalld':
-    default_zone         => 'drop',
-    default_service_zone => 'drop',
-    default_port_zone    => 'drop',
+    default_zone => 'drop',
   }
 
   Service <| title == firewalld |> {

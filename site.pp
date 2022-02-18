@@ -4,6 +4,14 @@ if $trusted['certname'] in ['bolt', 'puppetdb'] {
 
 case $facts['osfamily'] {
   'Gentoo': {
+    Firewalld_service {
+      zone => 'drop',
+    }
+
+    Firewalld_port {
+      zone => 'drop',
+    }
+
     # Effectively disable service resources in containers
     if $facts['is_container'] {
       Service <||> {
