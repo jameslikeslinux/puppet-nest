@@ -59,7 +59,7 @@ class nest::base::containers {
 
     '/etc/systemd/system/podman-firewalld-reload.service':
       source => 'puppet:///modules/nest/containers/podman-firewalld-reload.service',
-      notify  => Nest::Lib::Systemd_reload['containers'],
+      notify => Nest::Lib::Systemd_reload['containers'],
     ;
   }
   ->
