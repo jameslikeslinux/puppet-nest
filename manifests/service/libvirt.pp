@@ -90,13 +90,16 @@ class nest::service::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
-  $fileserver_service_ensure = $::nest::fileserver ? {
-    true    => present,
-    default => absent,
+  firewalld_zone { 'libvirt':
+    purge_rich_rules => true,
+    purge_services   => true,
+    purge_ports      => true,
+    require          => Package['app-emulation/libvirt'],
   }
 
-  firewalld_service { ['nfs', 'samba']:
-    ensure => $fileserver_service_ensure,
-    zone   => 'libvirt',
+  if $::nest::fileserver {
+    firewalld_service { ['nfs', 'samba']:
+      zone => 'libvirt',
+    }
   }
 }

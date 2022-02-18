@@ -27,6 +27,10 @@ class nest::base::firewall {
     'trusted':
       interfaces => ['tun0'],
     ;
+
+    ['block', 'dmz', 'external', 'home', 'internal', 'public', 'work']:
+      # Purge other built-in zones
+    ;
   }
 
 
