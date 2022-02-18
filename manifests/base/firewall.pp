@@ -33,4 +33,11 @@ class nest::base::firewall {
   ]:
     enable => false,
   }
+
+  file { [
+    '/var/lib/iptables/rules-save',
+    '/var/lib/ip6tables/rules-save',
+  ]:
+    ensure => absent,
+  }
 }
