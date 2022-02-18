@@ -5,6 +5,10 @@ class nest::base::firewall {
     default_port_zone    => 'drop',
   }
 
+  Service <| title == firewalld |> {
+    ensure => undef,
+  }
+
   firewalld_zone {
     default:
       purge_rich_rules => true,
