@@ -8,6 +8,7 @@ class nest::base::firewall {
     ensure => undef,
   }
 
+  # Configure and purge the zones that this module uses
   firewalld_zone {
     default:
       purge_rich_rules => true,
@@ -23,14 +24,10 @@ class nest::base::firewall {
       interfaces => ['tun0'],
       masquerade => true,
     ;
-
-    ['block', 'dmz', 'external', 'home', 'internal', 'public', 'work']:
-      # Purge other built-in zones
-    ;
   }
 
   # Purge direct rules
-  firewalld_direct_purge { ['chain', 'passthrough', 'rule']: }
+  firewalld_direct_purge { 'rule': }
 
 
   #
