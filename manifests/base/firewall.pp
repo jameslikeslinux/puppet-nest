@@ -26,6 +26,7 @@ class nest::base::firewall {
 
     'trusted':
       interfaces => ['tun0'],
+      masquerade => true,
     ;
 
     ['block', 'dmz', 'external', 'home', 'internal', 'public', 'work']:
