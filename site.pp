@@ -12,6 +12,10 @@ case $facts['osfamily'] {
       zone => 'drop',
     }
 
+    Firewalld_rich_rule {
+      zone => 'drop',
+    }
+
     # Effectively disable service resources in containers
     if $facts['is_container'] {
       Service <||> {
