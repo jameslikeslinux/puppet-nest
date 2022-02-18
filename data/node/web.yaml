@@ -15,8 +15,8 @@ nest::service::gateway::port_forwards:
     proto: tcp
     from_port: 22
     to_port: 2222
-    source_ip4: '104.156.227.40'
-    destination_ip4: '172.22.0.1'
+    from_ip4: '104.156.227.40'
+    to_ip4: '172.22.0.1'
 
 nest::service::reverse_proxy::hosts:
   gitlab.james.tl:

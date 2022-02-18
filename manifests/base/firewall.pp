@@ -34,6 +34,9 @@ class nest::base::firewall {
     ;
   }
 
+  # Purge direct rules
+  firewalld_direct_purge { ['chain', 'passthrough', 'rule']: }
+
 
   #
   # Cleanup
