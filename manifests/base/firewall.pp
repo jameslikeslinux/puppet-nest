@@ -8,11 +8,6 @@ class nest::base::firewall {
     ensure => undef,
   }
 
-  # Firewalld doesn't have to be running
-  Exec <| title == 'firewalld::set_default_zone' |> {
-    returns +> 252, # NOT_RUNNING see: firewall-cmd(1)
-  }
-
   firewalld_zone {
     default:
       purge_rich_rules => true,
