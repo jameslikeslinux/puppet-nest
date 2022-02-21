@@ -58,35 +58,19 @@ class nest::service::kubernetes (
     ensure => installed,
   }
 
-  # firewall { '100 vxlan':
-  #   source => "${facts['networking']['network']}/${facts['networking']['netmask']}",
-  #   dport  => 8472,
-  #   proto  => udp,
-  #   state  => 'NEW',
-  #   action => accept,
-  # }
+  firewalld_port { 'vxlan':
+    port     => 8472,
+    protocol => udp,
+  }
 
   sysctl { 'net.ipv4.ip_forward':
     ensure => present,
     value  => '1',
   }
 
-  # if $control_plane {
-  #   firewall {
-  #     default:
-  #       dport  => 6443,
-  #       proto  => tcp,
-  #       state  => 'NEW',
-  #       action => accept,
-  #     ;
-
-  #     '100 kubernetes from local network':
-  #       source => "${facts['networking']['network']}/${facts['networking']['netmask']}",
-  #     ;
-
-  #     '100 kubernetes from pod network':
-  #       iniface => 'cni0',
-  #     ;
-  #   }
-  # }
+  if $control_plane {
+    firewalld_service { 'kube-apiserver':
+      ensure => present,
+    }
+  }
 }

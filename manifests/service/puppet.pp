@@ -32,6 +32,10 @@ class nest::service::puppet (
     ],
   }
 
+  firewalld_service { 'puppetmaster':
+    ensure => present,
+  }
+
 
   #
   # Puppet Server
