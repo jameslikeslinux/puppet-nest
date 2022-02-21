@@ -1,5 +1,6 @@
 ---
 classes:
+  - 'nest::service::barrier'
   - 'nest::service::gitlab'
   - 'nest::service::libvirt'
 
