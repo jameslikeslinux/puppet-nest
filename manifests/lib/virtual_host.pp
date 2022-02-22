@@ -26,21 +26,9 @@ define nest::lib::virtual_host (
   }
 
   if $port and $::nest::service::apache::manage_firewall {
-    firewall {
-      default:
-        proto  => tcp,
-        dport  => $port,
-        state  => 'NEW',
-        action => accept,
-      ;
-
-      "100 ${name} (v4)":
-        provider => iptables,
-      ;
-
-      "100 ${name} (v6)":
-        provider => ip6tables,
-      ;
+    firewalld_port { $name:
+      port     => $port,
+      protocol => tcp,
     }
   }
 

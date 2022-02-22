@@ -1,77 +1,33 @@
 define nest::lib::port_forward (
+  Stdlib::Port                      $port,
   Enum['tcp', 'udp']                $proto,
-  Stdlib::Port                      $from_port,
+  Stdlib::IP::Address::V4           $to_addr,
   Stdlib::Port                      $to_port,
-  Optional[Stdlib::IP::Address::V4] $source_ip4      = undef,
-  Optional[Stdlib::IP::Address::V4] $destination_ip4 = undef,
-  Optional[Stdlib::IP::Address::V6] $source_ip6      = undef,
-  Optional[Stdlib::IP::Address::V6] $destination_ip6 = undef,
+  Optional[Stdlib::IP::Address::V4] $dest     = undef,
+  Boolean                           $loopback = true,
 ) {
-  $combined_spec = {
-    'v4' => {
-      'source'      => $source_ip4,
-      'destination' => $destination_ip4,
-      'provider'    => iptables,
-    },
-
-    'v6' => {
-      'source'      => $source_ip6,
-      'destination' => $destination_ip6,
-      'provider'    => ip6tables,
+  firewalld_rich_rule { $name:
+    family       => ipv4,
+    dest         => $dest,
+    forward_port => {
+      port     => $port,
+      protocol => $proto,
+      to_addr  => $to_addr,
+      to_port  => $to_port,
     },
   }
 
-  $combined_spec.each |$comment, $spec| {
-    if $spec['source'] and $spec['destination'] {
-      firewall {
-        default:
-          provider => $spec['provider'],
-        ;
+  if $loopback {
+    if $dest {
+      $dest_args = "-d ${dest} "
+    }
 
-        "100 ${name} (${comment}): modify destination on incoming packets":
-          table       => nat,
-          chain       => 'PREROUTING',
-          destination => $spec['source'],
-          proto       => $proto,
-          dport       => $from_port,
-          jump        => 'DNAT',
-          todest      => "${spec['destination']}:${to_port}",
-        ;
-
-        "100 ${name} (${comment}): modify destination on generated packets":
-          table       => nat,
-          chain       => 'OUTPUT',
-          destination => $spec['source'],
-          proto       => $proto,
-          dport       => $from_port,
-          jump        => 'DNAT',
-          todest      => "${spec['destination']}:${to_port}",
-        ;
-
-        "100 ${name} (${comment}): allow forwarding":
-          chain       => 'FORWARD',
-          destination => $spec['destination'],
-          proto       => $proto,
-          dport       => $to_port,
-          action      => accept,
-        ;
-
-        "100 ${name} (${comment}): allow return packets":
-          chain   => 'FORWARD',
-          source  => $spec['destination'],
-          ctstate => ['RELATED', 'ESTABLISHED'],
-          action  => accept,
-        ;
-
-        "100 ${name} (${comment}): modify source for return routing":
-          table       => nat,
-          chain       => 'POSTROUTING',
-          destination => $spec['destination'],
-          proto       => $proto,
-          dport       => $to_port,
-          jump        => 'MASQUERADE',
-        ;
-      }
+    firewalld_direct_rule { "${name} loopback":
+      inet_protocol => ipv4,
+      table         => nat,
+      chain         => 'OUTPUT',
+      priority      => 10,
+      args          => "${dest_args}-p tcp --dport ${port} -j DNAT --to-destination ${to_addr}:${to_port}",
     }
   }
 }

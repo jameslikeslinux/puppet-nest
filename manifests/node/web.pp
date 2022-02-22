@@ -8,13 +8,4 @@ class nest::node::web {
     host     => '%',
     before   => Class['nest::service::bitwarden'],
   }
-
-  firewall { '100 podman to mysql':
-    iniface => 'cni-podman0',
-    proto   => tcp,
-    dport   => 3306,
-    state   => 'NEW',
-    action  => accept,
-    before  => Class['nest::service::bitwarden'],
-  }
 }

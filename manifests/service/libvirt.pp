@@ -1,6 +1,10 @@
 class nest::service::libvirt {
   include 'nest'
 
+  nest::lib::package_use { 'app-emulation/libvirt':
+    use => 'firewalld',
+  }
+
   package { 'app-emulation/libvirt':
     ensure => installed,
   }
@@ -86,13 +90,16 @@ class nest::service::libvirt {
 
   ::nest::lib::systemd_reload { 'libvirt': }
 
+  firewalld_zone { 'libvirt':
+    purge_rich_rules => true,
+    purge_services   => true,
+    purge_ports      => true,
+    require          => Package['app-emulation/libvirt'],
+  }
+
   if $::nest::fileserver {
-    firewall { '100 fileserver':
-      proto   => tcp,
-      dport   => [139, 445, 2049],
-      iniface => 'virbr0',
-      state   => 'NEW',
-      action  => accept,
+    firewalld_service { ['nfs', 'samba']:
+      zone => 'libvirt',
     }
   }
 }

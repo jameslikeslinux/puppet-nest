@@ -10,7 +10,7 @@ class nest::base::fail2ban {
       backend = systemd
       | SSHD_JAIL
 
-    file { '/etc/fail2ban/jail.d/sshd.local':
+    file { '/etc/fail2ban/jail.d/sshd.conf':
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
@@ -27,7 +27,7 @@ class nest::base::fail2ban {
       enable => false,
     }
 
-    file { '/etc/fail2ban/jail.d/sshd.local':
+    file { '/etc/fail2ban/jail.d/sshd.conf':
       ensure  => absent,
     }
 
@@ -35,7 +35,7 @@ class nest::base::fail2ban {
       ensure  => absent,
       require => [
         Service['fail2ban'],
-        File['/etc/fail2ban/jail.d/sshd.local'],
+        File['/etc/fail2ban/jail.d/sshd.conf'],
       ]
     }
   }
