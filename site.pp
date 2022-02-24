@@ -16,10 +16,14 @@ case $facts['osfamily'] {
       zone => 'drop',
     }
 
-    # Effectively disable service resources in containers
+    # Effectively disable resources that can't be managed in containers
     if $facts['is_container'] {
       Service <||> {
         ensure => undef,
+      }
+
+      Sysctl <||> {
+        apply => false,
       }
     }
   }
