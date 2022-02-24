@@ -6,8 +6,9 @@ define nest::lib::srv (
 ) {
   unless $facts['is_container'] {
     ensure_resource('zfs', 'srv', {
-      'name'       => "${facts['rpool']}/srv",
-      'mountpoint' => '/srv',
+      name       => "${facts['rpool']}/srv",
+      mountpoint => '/srv',
+      before     => File['/srv'],
     })
 
     if $zfs {
@@ -18,10 +19,14 @@ define nest::lib::srv (
         before     => File["/srv/${name}"],
       }
     }
-
-    Zfs['srv']
-    -> File["/srv/${name}"]
   }
+
+  ensure_resource('file', '/srv', {
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  })
 
   file { "/srv/${name}":
     ensure => directory,
