@@ -132,6 +132,7 @@ define nest::lib::container (
 
     exec { "stop-container-${name}":
       command => "/bin/systemctl stop container-${name}",
+      noop    => $facts['is_container'],
       returns => [0, 5],
       unless  => "/usr/bin/test ${podman_create_str.shellquote} = \"`${podman_inspect_create_command.shellquote}`\"",
       require => Class['nest::base::containers'],
