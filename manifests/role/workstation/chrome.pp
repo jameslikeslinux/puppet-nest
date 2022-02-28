@@ -6,6 +6,11 @@ class nest::role::workstation::chrome (
 ) {
   case $facts['osfamily'] {
     'Gentoo': {
+      $gpu_rasterization = $facts['virtual'] ? {
+        'vmware' => 'disable',
+        default  => 'enable',
+      }
+
       if $chromium {
         nest::lib::package_use { 'www-client/chromium':
           use => 'widevine',
@@ -25,7 +30,7 @@ class nest::role::workstation::chrome (
           $chromium_flags = @("EOT"/$)
             [[ \$XDG_SESSION_TYPE == 'x11' ]] &&
                 CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
-            CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-gpu-rasterization"
+            CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --${gpu_rasterization}-gpu-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"
 
@@ -63,7 +68,7 @@ class nest::role::workstation::chrome (
           # Force picom to restart to workaround transparent window borders
           pgrep -u \$USER -x chrome || pkill picom
 
-          exec /opt/google/chrome/google-chrome --enable-gpu-rasterization --force-dark-mode --enable-features=WebUIDarkMode "$@"
+          exec /opt/google/chrome/google-chrome --${gpu_rasterization}-gpu-rasterization --force-dark-mode --enable-features=WebUIDarkMode "$@"
           | WRAPPER
 
         package { 'www-client/google-chrome':
