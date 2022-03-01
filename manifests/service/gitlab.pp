@@ -79,11 +79,17 @@ class nest::service::gitlab (
     ],
   }
 
-  # Export SSH keys for collecting on other hosts
-  if $facts['gitlab_ssh'] and $external_name != 'localhost' {
+  # Export or manage SSH keys based on ability to access
+  if $facts['gitlab_ssh'] {
     $facts['gitlab_ssh'].each |$key, $value| {
-      @@sshkey { "${external_name}@${value['type']}":
-        key => $value['key'],
+      if $external_name =~ /localhost$/ {
+        sshkey { "${external_name}@${value['type']}":
+          key => $value['key'],
+        }
+      } else {
+        @@sshkey { "${external_name}@${value['type']}":
+          key => $value['key'],
+        }
       }
     }
   }
