@@ -128,6 +128,7 @@ nest::kernel_config:
   # Device drivers
   CONFIG_BLK_DEV_NVME: m
   CONFIG_HW_RANDOM_VIRTIO: m
+  CONFIG_DRM_NOUVEAU: n           # unused and too big
   CONFIG_USB_SERIAL: m
   CONFIG_USB_SERIAL_CH341: m      # for Pinebook Pro adapter
   CONFIG_USB_SERIAL_CP210X: m     # for Raspberry Pi adapter
