@@ -4,7 +4,7 @@ class nest (
   Stdlib::Host               $nestfs_hostname,
   Stdlib::Host               $openvpn_hostname,
   String                     $pw_hash,
-  String                     $ssh_private_key,
+  Hash[String, String]       $ssh_private_keys,
 
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn] $cnames       = {},
