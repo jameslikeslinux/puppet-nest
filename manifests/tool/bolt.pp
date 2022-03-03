@@ -1,6 +1,10 @@
 class nest::tool::bolt {
   if $facts['build'] == 'bolt' {
-    package { 'bolt':
+    package { [
+      'bolt',
+      'ed25519',
+      'bcrypt_pbkdf',
+    ]:
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }
