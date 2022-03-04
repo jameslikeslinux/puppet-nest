@@ -93,26 +93,10 @@ class nest::base::puppet {
         },
       }
 
-      # For compatibility with Bolt 'puppet-agent' feature
-      file {
-        default:
-          mode  => '0644',
-          owner => 'root',
-          group => 'root',
-        ;
-
-        [
-          '/opt/puppetlabs',
-          '/opt/puppetlabs/puppet',
-          '/opt/puppetlabs/puppet/bin',
-        ]:
-          ensure => directory,
-        ;
-
-        '/opt/puppetlabs/puppet/bin/ruby':
-          ensure => link,
-          target => '/usr/bin/ruby',
-        ;
+      # XXX: Cleanup bolt 'puppet-agent' compat in favor of 'interpreters' feature
+      file { '/opt/puppetlabs':
+        ensure => absent,
+        force  => true,
       }
     }
 

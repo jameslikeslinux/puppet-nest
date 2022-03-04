@@ -1,4 +1,9 @@
 ---
+config:
+  ssh:
+    interpreters:
+      rb: ['/usr/bin/ruby', '-r', 'puppet']
+
 features:
   - puppet-agent
 
