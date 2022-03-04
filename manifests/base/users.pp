@@ -52,6 +52,7 @@ class nest::base::users {
           shell    => '/bin/zsh',
           require  => File['/bin/zsh'],
           password => $pw_hash,
+          notify   => Class['nest::base::dracut'],
         ;
 
         'james':
