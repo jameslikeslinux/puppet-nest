@@ -24,7 +24,7 @@ class nest::role::workstation::dunst {
     ensure => directory,
   }
 
-  $icon_size   = inline_template("<%= (32 * scope['nest::gui_scaling_factor']).round %>")
+  $icon_size   = 32
   $convert_cmd = @("SCRIPT")
     rsvg-convert -w ${icon_size} -h ${icon_size} -f svg '%' |
     sed 's/${icon_size}pt/${icon_size}px/g' > '%.tmp' &&
