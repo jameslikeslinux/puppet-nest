@@ -63,6 +63,10 @@ class nest::base {
         Class['::nest::base::zfs']
         ~> Class['::nest::base::dracut']
 
+        # Root password hash contained in initramfs needs to be updated
+        User['root']
+        ~> Class['::nest::base::dracut']
+
         # Bootloaders are host-specific
         if $facts['build'] in [undef, 'stage3', 'kernel'] {
           contain '::nest::base::bootloader'
