@@ -12,7 +12,7 @@ mod 'puppetlabs-sshkeys_core', '2.2.0'
 mod 'puppetlabs-zfs_core', '1.3.0'
 
 # Bolt modules
-mod 'puppetlabs-reboot', '4.1.0'
+mod 'reboot', :git => 'git@gitlab.james.tl:nest/forks/puppet-reboot.git', :branch => 'main'
 
 # My modules
 mod 'nest', :git => 'git@gitlab.james.tl:nest/puppet.git', :branch => :control_branch, :default_branch => 'main'
@@ -27,7 +27,7 @@ mod 'puppetlabs-mysql', '10.4.0'
 mod 'puppetlabs-powershell', '2.2.0'
 mod 'puppetlabs-puppetserver_gem', '1.0.0'
 mod 'puppetlabs-vcsrepo', '3.1.1'
-mod 'puppet-firewalld', :git => 'git@gitlab.james.tl:nest/forks/puppet-firewalld.git', :branch => 'fix-offline-exec'
+mod 'puppet-firewalld', :git => 'git@gitlab.james.tl:nest/forks/puppet-firewalld.git', :branch => 'main'
 mod 'puppet-nodejs', '9.0.0'
 mod 'puppet-windows_env', '3.2.0'
 mod 'theforeman-puppet', '11.0.0'

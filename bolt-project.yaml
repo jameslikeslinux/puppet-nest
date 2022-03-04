@@ -5,7 +5,10 @@ disable-warnings:
   - project_shadows_module
 
 modules:
-  - puppetlabs-reboot
+  - name: reboot
+    git: git@gitlab.james.tl:nest/forks/puppet-reboot.git
+    ref: main
+    resolve: false
 
 plans:
   - nest::*
