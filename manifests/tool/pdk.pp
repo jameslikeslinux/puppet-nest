@@ -7,7 +7,6 @@ class nest::tool::pdk {
       ensure          => $pdk_version,
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
-      require         => File['/usr/local/bin/pdk'],  # overwrites wrapper
     }
     ->
     file_line { 'pdk-gem-path':
