@@ -1,10 +1,13 @@
 class nest::tool::bolt {
   if $facts['build'] == 'bolt' {
     package { [
-      'bolt',
-      'ed25519',
-      'bcrypt_pbkdf',
+      'dev-ruby/bcrypt_pbkdf',
+      'dev-ruby/ed25519',
     ]:
+      ensure => installed,
+    }
+    ->
+    package { 'bolt':
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }

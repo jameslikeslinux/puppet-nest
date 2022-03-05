@@ -15,17 +15,21 @@ class nest::tool::pdk {
       match => 'absolute_path.*join.*bundler_basedir',
     }
 
-    # Install PDK runtime dependencies, working around
-    # https://github.com/sickill/rainbow/issues/69 in the process.
-    exec { 'gem-install-rake':
-      command => '/usr/bin/gem install rake --bindir /usr/local/bin',
-      creates => '/usr/local/bin/rake',
+    # Install PDK runtime dependencies
+    package { [
+      'dev-ruby/bcrypt_pbkdf',
+      'dev-ruby/ed25519',
+    ]:
+      ensure => installed,
     }
     ->
     package { [
-      "puppet-module-posix-default-r${ruby_minor_version}",
-      "puppet-module-posix-dev-r${ruby_minor_version}",
-      "puppet-module-posix-system-r${ruby_minor_version}",
+      "puppet-module-posix-default-r2.6",
+      "puppet-module-posix-default-r2.7",
+      "puppet-module-posix-dev-r2.6",
+      "puppet-module-posix-dev-r2.7",
+      "puppet-module-posix-system-r2.6",
+      "puppet-module-posix-system-r2.7",
     ]:
       ensure   => installed,
       provider => gem,
