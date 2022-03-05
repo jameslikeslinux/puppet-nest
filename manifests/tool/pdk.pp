@@ -1,6 +1,6 @@
 class nest::tool::pdk {
   if $facts['build'] == 'pdk' {
-    $pdk_version        = '2.3.0'
+    $pdk_version        = '2.4.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
     package { 'pdk':
@@ -28,11 +28,6 @@ class nest::tool::pdk {
       "puppet-module-posix-system-r${ruby_minor_version}",
     ]:
       ensure   => installed,
-      provider => gem,
-    }
-
-    package { 'json':
-      ensure   => '2.1.0',
       provider => gem,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
