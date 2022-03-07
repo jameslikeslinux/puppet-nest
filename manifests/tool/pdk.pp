@@ -17,19 +17,9 @@ class nest::tool::pdk {
 
     # Install PDK runtime dependencies
     package { [
-      'dev-ruby/bcrypt_pbkdf',
-      'dev-ruby/ed25519',
-    ]:
-      ensure => installed,
-    }
-    ->
-    package { [
-      "puppet-module-posix-default-r2.6",
-      "puppet-module-posix-default-r2.7",
-      "puppet-module-posix-dev-r2.6",
-      "puppet-module-posix-dev-r2.7",
-      "puppet-module-posix-system-r2.6",
-      "puppet-module-posix-system-r2.7",
+      "puppet-module-posix-default-r${ruby_minor_version}",
+      "puppet-module-posix-dev-r${ruby_minor_version}",
+      "puppet-module-posix-system-r${ruby_minor_version}",
     ]:
       ensure   => installed,
       provider => gem,
