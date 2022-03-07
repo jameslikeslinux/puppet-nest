@@ -28,7 +28,7 @@
         before_script: []
         script: 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
     ruby_versions:
-      2.6.8:
+      2.7.5:
         checks:
           - 'validate lint rubocop' # same as default minus 'check'
           - 'parallel_spec'
