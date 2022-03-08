@@ -102,4 +102,12 @@ class nest::service::libvirt {
       zone => 'libvirt',
     }
   }
+
+  # Install and use Vagrant libvirt provider as a container
+  file { '/usr/local/bin/vagrant':
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/scripts/vagrant.sh',
+  }
 }
