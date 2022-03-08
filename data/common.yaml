@@ -1,5 +1,7 @@
 ---
 lookup_options:
+  nest::hosts:
+    merge: 'hash'
   nest::kernel_cmdline:
     merge: 'unique'
   nest::kernel_config:
