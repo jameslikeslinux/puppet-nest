@@ -13,15 +13,24 @@ class nest::base::ssh {
         default:
           path    => '/etc/ssh/sshd_config',
           require => Package['net-misc/openssh'],
-          notify  => Service['sshd'];
+          notify  => Service['sshd'],
+        ;
 
         'sshd_config-ChallengeResponseAuthentication':
           line  => 'ChallengeResponseAuthentication no',
-          match => '^#?ChallengeResponseAuthentication ';
+          match => '^#?ChallengeResponseAuthentication ',
+        ;
 
         'sshd_config-X11Forwarding':
           line  => 'X11Forwarding yes',
-          match => '^#?X11Forwarding ';
+          match => '^#?X11Forwarding ',
+        ;
+
+        'sshd_config-X11UseLocalhost':
+          after => '^#?X11Forwarding ',
+          line  => 'X11UseLocalhost no',
+          match => '^#?X11UseLocalhost ',
+        ;
       }
 
       service { 'sshd':
