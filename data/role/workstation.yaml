@@ -41,6 +41,10 @@ nest::package_keywords:
   dev-cpp/gulrak-filesystem:
     version: '~1.5.10'
 
+  # All stable versions have been masked due to bugs
+  net-wireless/bluez:
+    version: '~5.63'
+
 nest::kernel_config:
   # Networking
   CONFIG_BT: m

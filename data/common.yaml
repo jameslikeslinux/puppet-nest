@@ -56,9 +56,10 @@ nest::package_keywords:
     version: '~0.10.1'
 
   # Podman and dependencies
-  app-containers/crun: {}
   app-containers/podman: {}
+  app-containers/catatonit: {}
   app-containers/conmon: {}
+  app-containers/crun: {}
   app-containers/slirp4netns: {}
   sys-fs/fuse-overlayfs: {}
 
