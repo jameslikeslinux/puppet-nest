@@ -67,7 +67,7 @@ class nest::role::workstation::pipewire {
 
     file_line {
       default:
-        path               => '/usr/share/wireplumber/main.lua.d/50-alsa-config.lua',
+        path               => '/etc/wireplumber/main.lua.d/50-alsa-config.lua',
         append_on_no_match => false,
         require            => Package['media-video/pipewire'],
       ;
