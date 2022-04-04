@@ -73,4 +73,9 @@ class nest::service::kubernetes (
       ensure => present,
     }
   }
+
+  # Trust flannel network (let k8s manage its security)
+  Firewalld_zone <| title == 'trusted' |> {
+    sources +> '10.244.0.0/16',
+  }
 }
