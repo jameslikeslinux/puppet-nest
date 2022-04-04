@@ -36,8 +36,8 @@ class nest::service::kubernetes (
   }
   ->
   file { '/etc/kubernetes/kubelet.env':
-    content => "KUBELET_ARGS=\"--config=/var/lib/kubelet/config.yaml --kubeconfig=/etc/kubernetes/kubelet.conf\"\n",
-    notify  => Service['kubelet'],
+    source => 'puppet:///modules/nest/kubernetes/kubelet.env',
+    notify => Service['kubelet'],
   }
 
   file { '/etc/systemd/system/kubelet.service':
@@ -69,13 +69,12 @@ class nest::service::kubernetes (
   }
 
   if $control_plane {
-    firewalld_service { 'kube-apiserver':
+    firewalld_service { 'kube-control-plane':
       ensure => present,
     }
-  }
-
-  # Trust flannel network (let k8s manage its security)
-  Firewalld_zone <| title == 'trusted' |> {
-    sources +> '10.244.0.0/16',
+  } else {
+    firewalld_service { 'kubelet-worker':
+      ensure => present,
+    }
   }
 }

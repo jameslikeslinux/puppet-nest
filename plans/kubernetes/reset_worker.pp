@@ -29,9 +29,9 @@ plan nest::kubernetes::reset_worker (
     }
   }
 
-  # run_command('kubeadm reset --force', $targets, 'Reset node', {
-  #   _run_as => 'root',
-  # })
+  run_command('kubeadm reset --force', $targets, 'Reset node', {
+    _run_as => 'root',
+  })
 
   $workers.each |$worker, $member| {
     if $member {
