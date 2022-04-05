@@ -1,0 +1,14 @@
+---
+description: 'Delete container network interfaces'
+
+parameters:
+  targets:
+    type: TargetSpec
+    description: 'A list of targets on which to delete the CNI interfaces'
+
+steps:
+  - description: 'Delete CNI interfaces'
+    command: 'ip link delete cni0; ip link delete flannel.1'
+    catch_errors: true
+    run_as: root
+    targets: $targets

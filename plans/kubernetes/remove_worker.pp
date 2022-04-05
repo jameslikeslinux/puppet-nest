@@ -1,10 +1,10 @@
-# Reset Kubernetes worker nodes
+# Remove and reset Kubernetes worker nodes
 #
-# @param targets A list of worker nodes to reset
+# @param targets A list of worker nodes to remove
 # @param control_plane The node that controls the workers
 #
 # @see https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#tear-down
-plan nest::kubernetes::reset_worker (
+plan nest::kubernetes::remove_worker (
   TargetSpec $targets,
   TargetSpec $control_plane,
 ) {
@@ -42,4 +42,6 @@ plan nest::kubernetes::reset_worker (
       })
     }
   }
+
+  run_plan('nest::kubernetes::delete_network', $targets)
 }

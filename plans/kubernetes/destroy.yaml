@@ -1,5 +1,5 @@
 ---
-description: 'Reset a Kubernetes cluster'
+description: 'Tear down a Kubernetes cluster'
 
 parameters:
   control_plane:
@@ -12,8 +12,8 @@ parameters:
     description: A list of workers to reset
 
 steps:
-  - description: 'Reset worker nodes'
-    plan: nest::kubernetes::reset_worker
+  - description: 'Remove worker nodes'
+    plan: nest::kubernetes::remove_worker
     parameters:
       control_plane: $control_plane
     targets: $workers
@@ -21,4 +21,8 @@ steps:
   - description: 'Reset control plane'
     command: 'kubeadm reset --force'
     run_as: root
+    targets: $control_plane
+
+  - description: 'Delete CNI interfaces'
+    plan: nest::kubernetes::delete_network
     targets: $control_plane
