@@ -77,4 +77,9 @@ class nest::service::kubernetes (
       ensure => present,
     }
   }
+
+  # Trust flannel network (let kube-proxy do its thing)
+  Firewalld_zone <| title == 'trusted' |> {
+    sources +> '10.244.0.0/16',
+  }
 }
