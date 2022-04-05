@@ -36,8 +36,8 @@ class nest::service::kubernetes (
   }
   ->
   file { '/etc/kubernetes/kubelet.env':
-    source => 'puppet:///modules/nest/kubernetes/kubelet.env',
-    notify => Service['kubelet'],
+    content => epp('nest/kubernetes/kubelet.env.epp'),
+    notify  => Service['kubelet'],
   }
 
   file { '/etc/systemd/system/kubelet.service':
