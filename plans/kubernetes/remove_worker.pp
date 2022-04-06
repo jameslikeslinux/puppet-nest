@@ -7,6 +7,7 @@
 plan nest::kubernetes::remove_worker (
   TargetSpec $targets,
   TargetSpec $control_plane,
+  Boolean    $drain = true,
 ) {
   $workers = get_targets($targets).reduce({}) |$memo, $worker| {
     $get_node_cmd = "kubectl get node ${worker.name}"
@@ -19,13 +20,15 @@ plan nest::kubernetes::remove_worker (
     $memo + { $worker => $result.first.ok }
   }
 
-  $workers.each |$worker, $member| {
-    if $member {
-      $kubectl_drain_cmd = "kubectl drain ${worker.name} --delete-emptydir-data --force --ignore-daemonsets"
-      run_command($kubectl_drain_cmd, get_targets($control_plane)[0], 'Drain worker node', {
-        _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-        _run_as   => 'root',
-      })
+  if $drain {
+    $workers.each |$worker, $member| {
+      if $member {
+        $kubectl_drain_cmd = "kubectl drain ${worker.name} --delete-emptydir-data --force --ignore-daemonsets"
+        run_command($kubectl_drain_cmd, get_targets($control_plane)[0], 'Drain worker node', {
+          _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
+          _run_as   => 'root',
+        })
+      }
     }
   }
 

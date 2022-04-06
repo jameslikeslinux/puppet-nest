@@ -11,3 +11,16 @@ steps:
     parameters:
       target: eyrie-control-plane
       name: eyrie
+
+  - description: 'Join worker nodes'
+    plan: nest::kubernetes::join_node
+    parameters:
+      control_plane: eyrie-control-plane
+    targets: eyrie-workers
+
+  - description: 'Rebalance CoreDNS'
+    plan: nest::kubernetes::restart_deployment
+    parameters:
+      name: coredns
+      namespace: kube-system
+    targets: eyrie-control-plane

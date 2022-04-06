@@ -16,6 +16,7 @@ steps:
     plan: nest::kubernetes::remove_worker
     parameters:
       control_plane: $control_plane
+      drain: false
     targets: $workers
 
   - description: 'Reset control plane'
