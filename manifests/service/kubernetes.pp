@@ -24,7 +24,7 @@ class nest::service::kubernetes (
 
   # Provide initial CNI config so CoreDNS doesn't deploy to Podman network.
   # CRI-O picks this up dynamically if it's running.
-  file { '/etc/cni/net.d/10-flannel.conflist':
+  file { '/etc/cni/net.d/10-calico.conflist':
     replace => false,
     source  => 'puppet:///modules/nest/kubernetes/cni-conf.json',
     require => Package['app-containers/cri-o'],
@@ -58,11 +58,6 @@ class nest::service::kubernetes (
     ensure => installed,
   }
 
-  firewalld_port { 'vxlan':
-    port     => 8472,
-    protocol => udp,
-  }
-
   sysctl { 'net.ipv4.ip_forward':
     ensure => present,
     value  => '1',
@@ -78,8 +73,13 @@ class nest::service::kubernetes (
     }
   }
 
-  # Trust flannel network (let kube-proxy do its thing)
+  # Allow BGP for Calico
+  firewalld_service { 'bgp':
+    ensure => present,
+  }
+
+  # Trust Calico network (it can be secured with K8s NetworkPolicy)
   Firewalld_zone <| title == 'trusted' |> {
-    sources +> '10.244.0.0/16',
+    sources +> '192.168.0.0/16',
   }
 }

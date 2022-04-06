@@ -12,9 +12,9 @@ clusterName: <%= $clusterName %>
 # Use DNS to lookup control plane to route based on client network
 controlPlaneEndpoint: <%= $controlPlaneEndpoint %>
 
-# Use the default Flannel subnet
+# Use the default Calico subnet
 networking:
-  podSubnet: 10.244.0.0/16
+  podSubnet: 192.168.0.0/16
 
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1

@@ -43,13 +43,19 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
-  $apply_flannel_cmd = 'kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml'
-  run_command($apply_flannel_cmd, $target, 'Deploy Flannel network', {
+  $apply_calico_cmd = 'kubectl apply -f https://gitlab.james.tl/nest/k8s-manifests/-/raw/main/calico.yaml'
+  run_command($apply_calico_cmd, $target, 'Deploy Calico network', {
     _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
     _run_as   => 'root',
   })
 
-  $wait_for_coredns_cmd = 'kubectl wait --for=condition=Available deployment/coredns --namespace=kube-system --timeout=5m'
+  $wait_for_calico_cmd = 'kubectl rollout status daemonset calico-node -n kube-system --timeout=1h'
+  run_command($wait_for_calico_cmd, $target, 'Wait for Calico to be ready', {
+    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
+    _run_as   => 'root',
+  })
+
+  $wait_for_coredns_cmd = 'kubectl wait --for=condition=Available deployment/coredns --namespace=kube-system --timeout=1h'
   run_command($wait_for_coredns_cmd, $target, 'Wait for CoreDNS to be ready', {
     _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
     _run_as   => 'root',
