@@ -18,6 +18,7 @@ class nest::base::firewall {
 
     'drop':
       interfaces => [$facts['networking']['primary']],
+      tag        => 'default',
     ;
 
     'trusted':

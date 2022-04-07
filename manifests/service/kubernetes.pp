@@ -78,8 +78,8 @@ class nest::service::kubernetes (
     ensure => present,
   }
 
-  # Trust Calico network (it can be secured with K8s NetworkPolicy)
-  Firewalld_zone <| title == 'trusted' |> {
+  # Allow forwarding to Calico pod network (it can be secured with K8s NetworkPolicy)
+  Firewalld_zone <| tag == 'default' |> {
     sources +> '192.168.0.0/16',
   }
 }
