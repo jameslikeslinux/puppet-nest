@@ -1,7 +1,7 @@
 # Initialize Kubernetes control plane
 #
-# @param target The host to initialize as the control plane
-# @param name The name of the cluster to configure
+# @param target Host to initialize as the control plane
+# @param name Name of the cluster to configure
 plan nest::kubernetes::init (
   TargetSpec $target,
   String     $name,
@@ -43,7 +43,7 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
-  $apply_calico_cmd = 'kubectl apply -f https://gitlab.james.tl/nest/k8s-manifests/-/raw/main/calico.yaml'
+  $apply_calico_cmd = 'kubectl apply -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico.yaml'
   run_command($apply_calico_cmd, $target, 'Deploy Calico network', {
     _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
     _run_as   => 'root',

@@ -4,7 +4,7 @@ description: 'Pull Kubernetes images ahead of initialization'
 parameters:
   targets:
     type: TargetSpec
-    description: 'A list of targets on which to pull images'
+    description: 'List of targets on which to pull images'
 
 steps:
   - description: 'Start CRI-O'

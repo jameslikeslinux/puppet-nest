@@ -3,7 +3,7 @@ description: 'Generate and sign a new Puppet certificate'
 
 parameters:
   certname:
-    description: 'The name to generate a cert for'
+    description: 'Name for which to generate a cert'
     type: String
 
 steps:

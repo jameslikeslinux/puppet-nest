@@ -1,7 +1,7 @@
 # join nodes to Kubernetes cluster
 #
-# @param targets A list of nodes to join
-# @param control_plane The node that controls the workers
+# @param targets Nodes to join
+# @param control_plane Node that controls the workers
 #
 # @see https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#join-nodes
 plan nest::kubernetes::join_node (

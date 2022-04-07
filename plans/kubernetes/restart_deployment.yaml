@@ -4,13 +4,13 @@ description: 'Restart Kubernetes deployment'
 parameters:
   targets:
     type: TargetSpec
-    description: 'The host on which to run kubectl'
+    description: 'Host on which to run kubectl'
   name:
     type: String
-    description: 'The name of the deployment to restart'
+    description: 'Name of the deployment to restart'
   namespace:
     type: String
-    description: 'The namespace where to find the deployment'
+    description: 'Namespace where to find the deployment'
     default: 'default'
 
 steps:
