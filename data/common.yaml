@@ -231,6 +231,12 @@ nest::kernel_config:
   CONFIG_CRYPTO_USER_API_SKCIPHER: m
   CONFIG_PKCS8_PRIVATE_KEY_PARSER: m
 
+  # For iotop
+  CONFIG_TASKSTATS: y
+  CONFIG_TASK_DELAY_ACCT: y
+  CONFIG_TASK_XACCT: y
+  CONFIG_TASK_IO_ACCOUNTING: y
+
 
 #
 # Other module defaults
