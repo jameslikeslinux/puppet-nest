@@ -3,3 +3,4 @@ classes:
   - 'nest::service::kubernetes'
 
 nest::service::kubernetes::control_plane: true
+nest::journal: volatile

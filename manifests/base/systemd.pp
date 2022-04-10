@@ -196,4 +196,26 @@ class nest::base::systemd {
       ensure => file,
     ;
   }
+
+  case $nest::journal {
+    'persistent': {
+      file { '/var/log/journal':
+        ensure => directory,
+        mode   => '2755',
+        owner  => 'root',
+        group  => 'systemd-journal',
+        notify => Service['systemd-journald'],
+      }
+    }
+
+    'volatile': {
+      file { '/var/log/journal':
+        ensure => absent,
+        force  => true,
+        notify => Service['systemd-journald'],
+      }
+    }
+  }
+
+  service { 'systemd-journald': }
 }
