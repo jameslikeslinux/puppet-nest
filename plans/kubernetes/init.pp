@@ -43,21 +43,19 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
-  $apply_calico_cmd = 'kubectl apply -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico.yaml'
-  run_command($apply_calico_cmd, $target, 'Deploy Calico network', {
-    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-    _run_as   => 'root',
+  run_plan('nest::kubernetes::apply', $target, {
+    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico.yaml',
   })
 
-  $wait_for_calico_cmd = 'kubectl rollout status daemonset calico-node -n kube-system --timeout=1h'
-  run_command($wait_for_calico_cmd, $target, 'Wait for Calico to be ready', {
-    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-    _run_as   => 'root',
+  run_plan('nest::kubernetes::wait', $target, {
+    kind      => daemonset,
+    name      => 'calico-node',
+    namespace => 'kube-system',
   })
 
-  $wait_for_coredns_cmd = 'kubectl wait --for=condition=Available deployment/coredns --namespace=kube-system --timeout=1h'
-  run_command($wait_for_coredns_cmd, $target, 'Wait for CoreDNS to be ready', {
-    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-    _run_as   => 'root',
+  run_plan('nest::kubernetes::wait', $target, {
+    kind      => deployment,
+    name      => 'coredns',
+    namespace => 'kube-system',
   })
 }
