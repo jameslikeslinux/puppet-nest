@@ -6,6 +6,11 @@ parameters:
     type: TargetSpec
     description: 'Targets to build the kernel on'
 
+  skip_module_rebuild:
+    type: Boolean
+    description: 'Avoid rebuilding kernel module packages'
+    default: false
+
 steps:
   - description: 'Clear existing kernel config'
     command: rm -f /usr/src/linux/.config
@@ -16,4 +21,5 @@ steps:
     plan: nest::run_puppet
     parameters:
       build: kernel
+      skip_module_rebuild: $skip_module_rebuild
     targets: $targets

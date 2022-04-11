@@ -82,6 +82,7 @@ class nest::base::kernel {
     command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
     timeout     => 0,
     refreshonly => true,
+    noop        => str2bool($facts['skip_module_rebuild']),
   }
   ->
   nest::lib::package { 'sys-fs/zfs-kmod':
