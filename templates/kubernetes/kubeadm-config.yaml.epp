@@ -30,4 +30,12 @@ featureGates:
 # See: https://github.com/cri-o/cri-o/blob/main/tutorials/kubernetes.md
 runtimeRequestTimeout: 10m
 
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+
+# Use more effecient IPVS mode over iptables
+# See: https://github.com/kubernetes/kubernetes/blob/master/pkg/proxy/ipvs/README.md
+mode: ipvs
+
 # vim:ft=yaml
