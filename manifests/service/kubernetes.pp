@@ -79,15 +79,8 @@ class nest::service::kubernetes (
     ensure => present,
   }
 
-  # Allow Calico pod network to access Kubernetes services
-  firewalld_rich_rule { 'allow-pods-to-services':
-    source => '192.168.0.0/16',
-    dest   => '10.96.0.0/12',
-    action => accept,
-  }
-
-  # Allow forwarding to Calico pod network (it can be secured with K8s NetworkPolicy)
-  Firewalld_zone <| tag == 'default' |> {
+  # Trust Calico pod network (it can be secured with K8s NetworkPolicy)
+  Firewalld_zone <| title == 'trusted' |> {
     sources +> '192.168.0.0/16',
   }
 }
