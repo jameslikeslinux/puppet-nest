@@ -64,23 +64,21 @@ class nest::service::kubernetes (
     value  => '1',
   }
 
-  if $control_plane {
-    firewalld_service { 'kube-control-plane':
-      ensure => present,
-    }
-  } else {
-    firewalld_service { 'kubelet-worker':
-      ensure => present,
-    }
+  # Effectively disable firewalld for all the networks used by Kubernetes
+  firewalld_zone { 'kubernetes':
+    ensure     => present,
+    target     => 'ACCEPT',
+    sources    => [
+      '10.96.0.0/12',   # K8s service network
+      '172.22.0.0/24',  # Nest VPN
+      '192.168.0.0/16', # Calico pod network
+      "${facts['networking']['network']}/${facts['networking']['netmask']}",  # Host pod network
+    ],
   }
-
-  # Allow BGP for Calico
-  firewalld_service { 'bgp':
-    ensure => present,
-  }
-
-  # Trust Calico pod network (it can be secured with K8s NetworkPolicy)
-  Firewalld_zone <| title == 'trusted' |> {
-    sources +> '192.168.0.0/16',
+  ->
+  exec { 'firewalld-kubernetes-add-forward':
+    command => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --add-forward',
+    unless  => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --query-forward',
+    notify  => Class['firewalld::reload'],
   }
 }

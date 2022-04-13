@@ -8,16 +8,11 @@ class nest::base::firewall {
     ensure => undef,
   }
 
-  # Configure and purge the zones that this module uses
+  # Configure the zones that this module uses
   firewalld_zone {
-    default:
-      purge_rich_rules => true,
-      purge_services   => true,
-      purge_ports      => true,
-    ;
-
     'drop':
       interfaces => [$facts['networking']['primary']],
+      masquerade => $nest::openvpn_server,
       tag        => 'default',
     ;
 
@@ -30,23 +25,18 @@ class nest::base::firewall {
   # Purge direct rules
   firewalld_direct_purge { 'rule': }
 
-
-  #
-  # Cleanup
-  #
-  service { [
-    'iptables-store',
-    'iptables-restore',
-    'ip6tables-store',
-    'ip6tables-restore',
-  ]:
-    enable => false,
-  }
-
-  file { [
-    '/var/lib/iptables/rules-save',
-    '/var/lib/ip6tables/rules-save',
-  ]:
-    ensure => absent,
+  # Purge unmanaged zones
+  tidy { '/etc/firewalld/zones':
+    matches => [
+      'block.xml*',
+      'dmz.xml*',
+      'external.xml*',
+      'home.xml*',
+      'internal.xml*',
+      'public.xml*',
+      'work.xml*',
+    ],
+    recurse => 1,
+    notify  => Class['firewalld::reload'],
   }
 }

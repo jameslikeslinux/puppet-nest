@@ -16,6 +16,15 @@ case $facts['osfamily'] {
       zone => 'drop',
     }
 
+    Firewalld_zone {
+      interfaces       => [],
+      sources          => [],
+      masquerade       => false,
+      purge_rich_rules => true,
+      purge_services   => true,
+      purge_ports      => true,
+    }
+
     # Effectively disable resources that can't be managed in containers
     if $facts['is_container'] {
       Service <||> {
