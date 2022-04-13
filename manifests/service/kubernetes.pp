@@ -64,10 +64,10 @@ class nest::service::kubernetes (
     value  => '1',
   }
 
-  # Effectively disable firewalld for all the networks used by Kubernetes
+  # Allow forwarding and control access between networks used by Kubernetes
   firewalld_zone { 'kubernetes':
     ensure     => present,
-    target     => 'ACCEPT',
+    target     => '%%REJECT%%',
     sources    => [
       '10.96.0.0/12',   # K8s service network
       '172.22.0.0/24',  # Nest VPN
@@ -80,5 +80,43 @@ class nest::service::kubernetes (
     command => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --add-forward',
     unless  => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --query-forward',
     notify  => Class['firewalld::reload'],
+  }
+
+  Firewalld_service {
+    zone => 'kubernetes',
+  }
+
+  Firewalld_rich_rule {
+    zone => 'kubernetes',
+  }
+
+  if $control_plane {
+    firewalld_service { 'kube-control-plane':
+      ensure => present,
+    }
+  } else {
+    firewalld_service { 'kubelet-worker':
+      ensure => present,
+    }
+  }
+
+  # Allow BGP for Calico
+  firewalld_service { 'bgp':
+    ensure => present,
+  }
+
+  # Allow pods to access cluster services
+  firewalld_rich_rule { 'calico':
+    ensure => present,
+    source => '192.168.0.0/16',
+    dest   => '10.96.0.0/12',
+    action => accept,
+  }
+
+  # Allow VPN
+  firewalld_rich_rule { 'vpn':
+    ensure => present,
+    source => '172.22.0.0/24',
+    action => accept,
   }
 }
