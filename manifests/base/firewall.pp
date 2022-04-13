@@ -8,45 +8,39 @@ class nest::base::firewall {
     ensure => undef,
   }
 
-  # Configure and purge the zones that this module uses
-  firewalld_zone {
-    default:
-      purge_rich_rules => true,
-      purge_services   => true,
-      purge_ports      => true,
-    ;
+  # Configure the default zone
+  firewalld_zone { 'drop':
+    interfaces       => [$facts['networking']['primary']],
+    sources          => ['172.22.0.0/24'],
+    masquerade       => true,
+    purge_rich_rules => true,
+    purge_services   => true,
+    purge_ports      => true,
+    tag              => 'default',
+  }
 
-    'drop':
-      interfaces => [$facts['networking']['primary']],
-      tag        => 'default',
-    ;
-
-    'trusted':
-      interfaces => ['tun0'],
-      masquerade => true,
-    ;
+  # Allow all VPN traffic
+  firewalld_rich_rule { 'vpn':
+    source => '172.22.0.0/24',
+    action => accept,
   }
 
   # Purge direct rules
   firewalld_direct_purge { 'rule': }
 
-
-  #
-  # Cleanup
-  #
-  service { [
-    'iptables-store',
-    'iptables-restore',
-    'ip6tables-store',
-    'ip6tables-restore',
-  ]:
-    enable => false,
-  }
-
-  file { [
-    '/var/lib/iptables/rules-save',
-    '/var/lib/ip6tables/rules-save',
-  ]:
-    ensure => absent,
+  # Purge unmanaged zones
+  tidy { '/etc/firewalld/zones':
+    matches => [
+      'block.xml*',
+      'dmz.xml*',
+      'external.xml*',
+      'home.xml*',
+      'internal.xml*',
+      'public.xml*',
+      'trusted.xml*',
+      'work.xml*',
+    ],
+    recurse => 1,
+    notify  => Class['firewalld::reload'],
   }
 }
