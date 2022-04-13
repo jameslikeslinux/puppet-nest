@@ -22,7 +22,7 @@ define nest::lib::port_forward (
       $dest_args = "-d ${dest} "
     }
 
-    firewalld_direct_rule { "${name} loopback":
+    firewalld_direct_rule { "${name}-loopback":
       inet_protocol => ipv4,
       table         => nat,
       chain         => 'OUTPUT',

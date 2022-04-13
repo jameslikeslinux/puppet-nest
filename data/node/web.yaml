@@ -11,7 +11,7 @@ nest::dvorak: true
 nest::service::apache::manage_firewall: true
 
 nest::service::gateway::port_forwards:
-  'gitlab ssh':
+  git:
     dest: '104.156.227.40'
     port: 22
     proto: tcp
