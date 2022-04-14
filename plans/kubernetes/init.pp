@@ -43,6 +43,15 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
+  # Configure CoreDNS to forward requests to Nest nameserver. CoreDNS won't
+  # start without the Calico pod network so updating this config before Calico
+  # deploys guarantees CoreDNS will launch with the right config the first time.
+  $replace_coredns_config_cmd = 'kubectl replace -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/coredns-config.yaml'
+  run_command($replace_coredns_config_cmd, $target, 'Replace CoreDNS config', {
+    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
+    _run_as   => 'root',
+  })
+
   run_plan('nest::kubernetes::apply', $target, {
     manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico.yaml',
   })

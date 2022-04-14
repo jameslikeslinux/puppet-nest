@@ -66,9 +66,9 @@ class nest::service::kubernetes (
 
   # Allow forwarding and control access between networks used by Kubernetes
   firewalld_zone { 'kubernetes':
-    ensure     => present,
-    target     => '%%REJECT%%',
-    sources    => [
+    ensure  => present,
+    target  => '%%REJECT%%',
+    sources => [
       '10.96.0.0/12',   # K8s service network
       '172.22.0.0/24',  # Nest VPN
       '192.168.0.0/16', # Calico pod network
