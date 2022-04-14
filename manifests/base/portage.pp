@@ -6,7 +6,6 @@ class nest::base::portage {
   # Remove unused directories created by Class[portage]
   File <|
     title == '/etc/portage/package.keywords' or
-    title == '/etc/portage/package.unmask' or
     title == '/etc/portage/postsync.d'
   |> {
     ensure => absent,
@@ -16,6 +15,7 @@ class nest::base::portage {
   # Purge all other unmanaged configs
   File <|
     title == '/etc/portage/package.mask' or
+    title == '/etc/portage/package.unmask' or
     title == '/etc/portage/package.use'
   |> {
     purge   => true,
@@ -49,6 +49,7 @@ class nest::base::portage {
       '/etc/portage/package.accept_keywords/default',
       '/etc/portage/package.env/default',
       '/etc/portage/package.mask/default',
+      '/etc/portage/package.unmask/default',
       '/etc/portage/package.use/default',
     ]:
       ensure => file,

@@ -11,8 +11,18 @@ class nest::base::kernel {
     default       => 'sys-kernel/gentoo-sources',
   }
 
-  package_mask { $sources_package:
-    version => ">${nest::kernel_package_version.keys[0]}"
+  # XXX: Cleanup old package_mask value; remove this file_line resource
+  file_line { 'package_mask_kernel_cleanup':
+    ensure            => absent,
+    path              => '/etc/portage/package.mask/default',
+    match             => "^>${sources_package}-",
+    match_for_absence => true,
+  }
+  ->
+  package_mask { $sources_package: }
+  ->
+  package_unmask { $sources_package:
+    version => "=${nest::kernel_package_version.keys[0]}"
   }
   ->
   nest::lib::package { $sources_package:

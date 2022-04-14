@@ -77,7 +77,7 @@ nest::package_keywords:
   # For Kubernetes
   app-containers/cri-o: {}
 
-nest::kernel_package_version: { '5.15.19': '5.15.19-gentoo' }
+nest::kernel_package_version: { '5.16.14': '5.16.14-gentoo' }
 
 nest::kernel_config:
   # Preferences
