@@ -64,7 +64,7 @@ nest::service::gitlab_runner::instances:
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
 
   r10k:
-    default_image: 'nest/tools/r10k:haswell'
+    default_image: 'registry.gitlab.james.tl/nest/tools/r10k:haswell'
     host: 'gitlab.james.tl'
     tag_list: ['r10k']
     volumes:
