@@ -77,8 +77,8 @@ class nest::service::kubernetes (
   }
   ->
   exec { 'firewalld-kubernetes-add-forward':
-    command => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --add-forward',
-    unless  => '/usr/bin/firewall-cmd --permanent --zone=kubernetes --query-forward',
+    command => nest::firewall_cmd('--zone=kubernetes --add-forward'),
+    unless  => nest::firewall_cmd('--zone=kubernetes --query-forward'),
     notify  => Class['firewalld::reload'],
   }
 
