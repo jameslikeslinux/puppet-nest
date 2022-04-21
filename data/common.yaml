@@ -81,6 +81,7 @@ nest::kernel_package_version: { '5.16.14': '5.16.14-gentoo' }
 
 nest::kernel_config:
   # Preferences
+  CONFIG_LOCALVERSION: ''
   CONFIG_IKCONFIG: y
   CONFIG_IKCONFIG_PROC: y
 
