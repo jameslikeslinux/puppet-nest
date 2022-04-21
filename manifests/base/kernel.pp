@@ -11,14 +11,6 @@ class nest::base::kernel {
     default       => 'sys-kernel/gentoo-sources',
   }
 
-  # XXX: Cleanup old package_mask value; remove this file_line resource
-  file_line { 'package_mask_kernel_cleanup':
-    ensure            => absent,
-    path              => '/etc/portage/package.mask/default',
-    match             => "^>${sources_package}-",
-    match_for_absence => true,
-  }
-  ->
   package_mask { $sources_package: }
   ->
   package_unmask { $sources_package:
@@ -28,6 +20,15 @@ class nest::base::kernel {
   nest::lib::package { $sources_package:
     ensure => installed,
     use    => 'symlink',
+  }
+  ->
+  file { '/usr/src/linux/.scmversion':
+    # Prevent addition of '+' to kernel version in git-based source trees
+    ensure => present,
+    mode   => '0644',
+    owner  => 'root',
+    group  => 'root',
+    before => Exec['kernel-build'],
   }
 
   $defconfig = $facts['profile']['platform'] ? {
