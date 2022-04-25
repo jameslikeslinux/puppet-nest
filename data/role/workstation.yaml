@@ -24,6 +24,8 @@ nest::package_keywords:
   # For firefox
   dev-libs/nspr: {}
   dev-libs/nss: {}
+  media-libs/dav1d:
+    version: '~1.0.0'
 
   # For pipewire
   dev-util/meson:
