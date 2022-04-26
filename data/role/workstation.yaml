@@ -6,7 +6,6 @@ classes:
 nest::package_keywords:
   # I always want the latest of these
   app-misc/ddcutil: {}
-  app-misc/flirc: {}
   gui-apps/waybar: {}
   gui-apps/wl-clipboard: {}
   gui-apps/ydotool:
