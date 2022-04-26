@@ -13,7 +13,7 @@ class nest::base::bootloader::systemd {
     }
     ~>
     exec { 'bootctl-update':
-      command     => '/usr/bin/bootctl update --no-variables',
+      command     => '/usr/bin/bootctl update --graceful --no-variables',
       refreshonly => true,
     }
 
