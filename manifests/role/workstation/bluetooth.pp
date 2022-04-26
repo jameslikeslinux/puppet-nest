@@ -1,11 +1,14 @@
 class nest::role::workstation::bluetooth {
-  file_line { 'bluetooth-autoenable':
-    path   => '/etc/bluetooth/main.conf',
-    line   => 'AutoEnable=true',
-    match  => '^#?AutoEnable=',
-    notify => Service['bluetooth'],
+  nest::lib::package { 'net-wireless/bluez':
+    ensure => installed,
   }
-
+  ->
+  file_line { 'bluetooth-autoenable':
+    path  => '/etc/bluetooth/main.conf',
+    line  => 'AutoEnable=true',
+    match => '^#?AutoEnable=',
+  }
+  ~>
   service { 'bluetooth':
     enable => true,
   }
@@ -16,14 +19,12 @@ class nest::role::workstation::bluetooth {
       owner  => 'root',
       group  => 'root',
       source => 'puppet:///modules/nest/bluetooth/btattach.service',
-      notify => Nest::Lib::Systemd_reload['bluetooth'],
     }
-
+    ~>
     ::nest::lib::systemd_reload { 'bluetooth': }
-
+    ->
     service { 'btattach':
       enable  => true,
-      require => Nest::Lib::Systemd_reload['bluetooth'],
     }
   }
 }
