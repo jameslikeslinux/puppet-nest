@@ -6,6 +6,7 @@ classes:
 nest::package_keywords:
   # I always want the latest of these
   app-misc/ddcutil: {}
+  gui-apps/foot: {}
   gui-apps/waybar: {}
   gui-apps/wl-clipboard: {}
   gui-libs/wlroots: {}
@@ -23,6 +24,11 @@ nest::package_keywords:
   dev-libs/nss: {}
   media-libs/dav1d:
     version: '~1.0.0'
+
+  # For foot
+  dev-libs/tllist: {}
+  gui-apps/foot-terminfo: {}
+  media-libs/fcft: {}
 
   # For pipewire
   dev-util/meson:
