@@ -1,0 +1,4 @@
+---
+classes: ['nest::service::barrier']
+nest::autologin: xmonad # for using barrier
+nest::service::barrier::server: false
