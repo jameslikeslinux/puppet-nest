@@ -8,8 +8,6 @@ nest::package_keywords:
   app-misc/ddcutil: {}
   gui-apps/waybar: {}
   gui-apps/wl-clipboard: {}
-  gui-apps/ydotool:
-    accept_keywords: '**'
   gui-libs/wlroots: {}
   gui-wm/sway: {}
   media-fonts/fontawesome: {}

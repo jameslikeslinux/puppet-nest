@@ -1,4 +1,0 @@
-[Socket]
-ListenStream=/run/ydotool.sock
-SocketGroup=users
-SocketMode=0660

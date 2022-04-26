@@ -1,9 +1,0 @@
-[Unit]
-Description=ydotool input automation service
-Requires=ydotoold.socket
-
-[Service]
-ExecStart=/usr/bin/ydotoold
-
-[Install]
-WantedBy=multi-user.target

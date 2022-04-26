@@ -75,7 +75,6 @@ class nest::role::workstation::sway {
     input type:keyboard xkb_layout us
     ${xkb_variant}${xkb_options}
     input type:touchpad tap enabled
-    input 9011:26214:ydotoold_virtual_device xkb_variant basic
     | INPUT_CONF
 
   # XXX: According to sway-output(5), this needs to account for scaling
