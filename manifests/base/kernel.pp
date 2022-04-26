@@ -82,6 +82,7 @@ class nest::base::kernel {
     timeout     => 0,
     refreshonly => true,
     noop        => !$facts['build'],
+    notify      => Class['::nest::base::dracut'],
   }
   ~>
   exec { 'module-rebuild':
@@ -89,6 +90,7 @@ class nest::base::kernel {
     timeout     => 0,
     refreshonly => true,
     noop        => str2bool($facts['skip_module_rebuild']),
+    notify      => Class['::nest::base::dracut'],
   }
   ->
   nest::lib::package { 'sys-fs/zfs-kmod':

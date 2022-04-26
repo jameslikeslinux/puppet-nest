@@ -45,10 +45,6 @@ class nest::base {
         Class['::nest::base::console']
         ~> Class['::nest::base::dracut']
 
-        # Rebuild initramfs and reconfigure bootloader after kernel changes
-        Class['::nest::base::kernel']
-        ~> Class['::nest::base::dracut']
-
         # Kernel builds Device Tree files used by firmware,
         # firmware pulls in files to be included in initramfs
         Class['::nest::base::kernel']
