@@ -6,20 +6,16 @@ class nest::base::kernel {
     config => '/usr/src/linux/.config',
   }
 
-  $sources_package = $facts['profile']['platform'] ? {
-    'raspberrypi' => 'sys-kernel/raspberrypi-sources',
-    default       => 'sys-kernel/gentoo-sources',
-  }
-
-  package_mask { $sources_package: }
+  package_mask { $nest::kernel_package['package_name']: }
   ->
-  package_unmask { $sources_package:
-    version => "=${nest::kernel_package_version.keys[0]}"
+  package_unmask { $nest::kernel_package['package_name']:
+    version => "=${nest::kernel_package['package_version']}"
   }
   ->
-  nest::lib::package { $sources_package:
+  nest::lib::package { $nest::kernel_package['package_name']:
     ensure => installed,
     use    => 'symlink',
+    before => Exec['kernel-defconfig'],
   }
   ->
   file { '/usr/src/linux/.scmversion':
@@ -43,7 +39,6 @@ class nest::base::kernel {
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
-    require => Package[$sources_package],
     notify  => Exec['kernel-build'],
   }
 

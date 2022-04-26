@@ -13,7 +13,10 @@ nest::package_keywords:
   sys-kernel/raspberrypi-sources:
     accept_keywords: '**'
 
-nest::kernel_package_version: { '5.15.9999': '5.15.34-raspberrypi' }
+nest::kernel_package:
+  package_name: 'sys-kernel/raspberrypi-sources'
+  package_version: '5.15.9999'
+  kernel_version: '5.15.34-raspberrypi'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot

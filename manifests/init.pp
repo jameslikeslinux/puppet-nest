@@ -1,10 +1,10 @@
 class nest (
   # Required settings
-  Hash[String, String, 1, 1] $kernel_package_version,
-  Stdlib::Host               $nestfs_hostname,
-  Stdlib::Host               $openvpn_hostname,
-  String                     $pw_hash,
-  Hash[String, String]       $ssh_private_keys,
+  Nest::KernelPackage  $kernel_package,
+  Stdlib::Host         $nestfs_hostname,
+  Stdlib::Host         $openvpn_hostname,
+  String               $pw_hash,
+  Hash[String, String] $ssh_private_keys,
 
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn] $cnames       = {},
@@ -50,7 +50,7 @@ class nest (
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
 ) {
-  $kernel_version = pick($facts['kernel_version'], $kernel_package_version.values[0])
+  $kernel_version = pick($facts['kernel_version'], $kernel_package['kernel_version'])
 
   $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')
   $gui_scaling_factor_rounded = 0 + inline_template('<%= @gui_scaling_factor.round %>')
