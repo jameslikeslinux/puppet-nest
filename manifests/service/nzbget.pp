@@ -1,5 +1,5 @@
 class nest::service::nzbget {
-  # Required for nzbget user
+  # Required for media user
   include 'nest'
 
   nest::lib::srv { [
@@ -7,7 +7,7 @@ class nest::service::nzbget {
     'nzbget/downloads',
   ]:
     mode  => '0755',
-    owner => 'nzbget',
+    owner => 'media',
     group => 'media',
   }
   ->
@@ -15,7 +15,7 @@ class nest::service::nzbget {
     default:
       ensure => directory,
       mode   => '0755',
-      owner  => 'nzbget',
+      owner  => 'media',
       group  => 'media',
     ;
 
@@ -30,7 +30,7 @@ class nest::service::nzbget {
   ->
   nest::lib::container { 'nzbget':
     image   => 'linuxserver/nzbget',
-    env     => ['PUID=6789', 'PGID=1001', 'TZ=America/New_York'],
+    env     => ['PUID=1001', 'PGID=1001', 'TZ=America/New_York'],
     publish => ['6789:6789'],
     volumes => [
       '/srv/nzbget/config:/config',

@@ -28,6 +28,7 @@ class nest::base::users {
           gid => '1001',
         ;
 
+        # XXX Cleanup deprecated service group
         'bitwarden':
           ensure => absent,
         ;
@@ -68,60 +69,25 @@ class nest::base::users {
           require  => Package['app-shells/zsh'],
         ;
 
-        'ombi':
-          uid     => '3579',
+        'media':
+          uid     => '1001',
           gid     => 'media',
-          home    => '/srv/ombi',
-          comment => 'Ombi',
+          home    => '/dev/null',
+          comment => 'Media Services',
           shell   => '/sbin/nologin',
         ;
 
-        'couchpotato':
-          uid     => '5050',
-          gid     => 'media',
-          home    => '/srv/couchpotato',
-          comment => 'CouchPotato',
-          shell   => '/sbin/nologin',
-        ;
-
-        'nzbget':
-          uid     => '6789',
-          gid     => 'media',
-          home    => '/srv/nzbget',
-          comment => 'NZBGet',
-          shell   => '/sbin/nologin',
-        ;
-
-        'radarr':
-          uid     => '7878',
-          gid     => 'media',
-          home    => '/srv/radarr',
-          comment => 'Radarr',
-          shell   => '/sbin/nologin',
-        ;
-
-        'sonarr':
-          uid     => '8989',
-          gid     => 'media',
-          home    => '/srv/sonarr',
-          comment => 'Sonarr',
-          shell   => '/sbin/nologin',
-        ;
-
-        'transmission':
-          uid     => '9091',
-          gid     => 'media',
-          home    => '/srv/transmission',
-          comment => 'Transmission',
-          shell   => '/sbin/nologin',
-        ;
-
-        'plex':
-          uid     => '32400',
-          gid     => 'media',
-          home    => '/srv/plex',
-          comment => 'Plex Media Server',
-          shell   => '/sbin/nologin',
+        # XXX Cleanup deprecated service users
+        [
+          'ombi',
+          'couchpotato',
+          'nzbget',
+          'radarr',
+          'sonarr',
+          'transmission',
+          'plex',
+        ]:
+          ensure => absent,
         ;
 
         'bitwarden':
