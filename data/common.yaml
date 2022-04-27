@@ -47,6 +47,7 @@ nest::package_keywords:
   app-editors/vim: {}
   app-editors/vim-core: {}
   media-libs/mesa: {}
+  media-tv/plex-media-server: {}
   net-firewall/firewalld: {}
   sys-fs/zfs: {}
   sys-fs/zfs-kmod: {}
