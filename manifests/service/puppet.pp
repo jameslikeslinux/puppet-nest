@@ -28,7 +28,7 @@ class nest::service::puppet (
       '8140:8140',  # Puppet Server
       '8080:8080',  # PuppetDB dashboard
       '8081:8081',  # PuppetDB API
-      '8082:80',    # Puppetboard
+      '8180:80',    # Puppetboard
     ],
   }
 

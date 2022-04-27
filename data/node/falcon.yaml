@@ -90,7 +90,7 @@ nest::service::reverse_proxy::hosts:
     websockets: true
 
   puppet.nest:
-    destination: '127.0.0.1:8082'
+    destination: '127.0.0.1:8180'
     ip: '172.22.0.1'
     ssl: false
 
