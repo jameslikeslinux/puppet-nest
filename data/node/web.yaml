@@ -35,7 +35,7 @@ nest::service::reverse_proxy::hosts:
     serveraliases: ['requests.heloandnala.net']
 
   vault.thesatelliteoflove.net:
-    destination: '127.0.0.1:1003'
+    destination: '127.0.0.1:8080'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
     websockets: '127.0.0.1:3012'
 

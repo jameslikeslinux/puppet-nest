@@ -21,17 +21,20 @@ class nest::base::users {
       group {
         'users':
           gid     => '1000',
-          require => File_line['useradd-group'];
+          require => File_line['useradd-group'],
+        ;
+
         'media':
-          gid => '1001';
+          gid => '1001',
+        ;
+
         'bitwarden':
-          gid => '1003';
+          ensure => absent,
+        ;
       }
 
-      # This is because I abuse UIDs (I create "system" users like
-      # plex above 1000, so useradd wants to create its home directory
-      # by default).  We can explicitly control this behavior with the
-      # 'managehome' attribute.
+      # Useradd wants to create home directories by default.  We can explicitly
+      # control this behavior with the 'managehome' attribute.
       file_line { 'login.defs-create_home':
         path  => '/etc/login.defs',
         line  => 'CREATE_HOME no',
@@ -122,11 +125,8 @@ class nest::base::users {
         ;
 
         'bitwarden':
-          uid     => '1003',
-          gid     => '1003',
-          home    => '/srv/bitwarden',
-          comment => 'Bitwarden',
-          shell   => '/bin/zsh',
+          ensure => absent,
+          before => Group['bitwarden'],
         ;
       }
 

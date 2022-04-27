@@ -31,7 +31,7 @@ class nest::service::bitwarden (
       "SMTP_PASSWORD=${smtp_password}",
       'WEBSOCKET_ENABLED=true',
     ],
-    publish => ['1003:80', '3012:3012'],
+    publish => ['8080:80', '3012:3012'],
     volumes => ['/srv/bitwarden/data:/data'],
   }
 }
