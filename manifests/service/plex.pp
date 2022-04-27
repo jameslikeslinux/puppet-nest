@@ -1,14 +1,14 @@
 class nest::service::plex {
   nest::lib::container { 'plex':
-    image   => 'mauimauer/spritsail-plex',
-    env     => ['SUID=1001', 'SGID=1001'],
+    ensure  => absent,
+    image   => 'plexinc/pms-docker',
+    env     => ['PLEX_UID=32400', 'PLEX_GID=1001', 'TZ=America/New_York'],
     network => 'host',
     tmpfs   => ['/transcode'],
     volumes => [
       '/srv/plex/config:/config',
-      '/dev/dri:/dev/dri',
-      '/nest/movies:/movies:ro',
-      '/nest/tv:/tv:ro',
+      '/nest/movies:/movies',
+      '/nest/tv:/tv',
     ],
   }
 
