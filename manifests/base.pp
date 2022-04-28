@@ -70,7 +70,11 @@ class nest::base {
 
           Class['::nest::base::dracut']
           ~> Class['::nest::base::bootloader']
-          ~> Class['::nest::base::kexec']
+
+          if $nest::kexec {
+            Class['::nest::base::bootloader']
+            ~> Class['::nest::base::kexec']
+          }
         }
       }
 
