@@ -29,7 +29,7 @@ class nest (
   Array[String]                  $kernel_cmdline = [],
   Boolean                        $kexec          = false,
   Boolean                        $wifi           = false,
-  Optional[Sensitive[Hash]]      $wlans          = undef,
+  Optional[Hash]                 $wlans          = undef,
 
   # Mail settings
   Optional[String] $gmail_username   = undef,

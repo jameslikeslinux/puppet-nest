@@ -54,17 +54,9 @@ class nest::base::network {
     }
 
     if $::nest::wlans {
-      $::nest::wlans.unwrap.each |$wlan, $wlan_params| {
-        $wlan_params_sensitive = $wlan_params.reduce({}) |$memo, $param| {
-          if $param[0] == 'passphrase' {
-            $memo + { $param[0] => Sensitive($param[1]) }
-          } else {
-            $memo + { $param[0] => $param[1] }
-          }
-        }
-
+      $::nest::wlans.each |$wlan, $wlan_params| {
         nest::lib::wlan { $wlan:
-          *       => $wlan_params_sensitive,
+          *       => $wlan_params,
           require => Package['net-wireless/iwd'],
           before  => Service['iwd'],  # iwd monitors state directory changes
         }
