@@ -67,7 +67,7 @@ define nest::lib::gitlab_runner (
       '-v', "/srv/gitlab-runner/${name}:/etc/gitlab-runner",
       'gitlab/gitlab-runner', 'register',
       '--non-interactive',
-      '--output-limit', '262144',
+      '--output-limit', '524288',
       '--executor', 'docker',
       '--docker-image', $default_image,
       '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${::nest::base::portage::emerge_default_opts}",
