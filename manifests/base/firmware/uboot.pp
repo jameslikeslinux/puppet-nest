@@ -42,33 +42,25 @@ class nest::base::firmware::uboot {
     require => Vcsrepo['/usr/src/u-boot'],
   }
 
+  $env_is_in_spi_flash = $facts['profile']['platform'] ? {
+    'raspberrypi' => undef,
+    default       => n,
+  }
+
   nest::lib::kconfig {
     # Always use default environment to avoid divergence
     'CONFIG_ENV_IS_NOWHERE':
       value => y;
     'CONFIG_ENV_IS_IN_FAT':
-      value => n,
+      value => n;
+    'CONFIG_ENV_IS_IN_SPI_FLASH':
+      value => $env_is_in_spi_flash,
     ;
   }
 
   case $facts['profile']['platform'] {
     'pinebookpro': {
       $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
-
-      nest::lib::kconfig {
-        # SPI is used for other things
-        'CONFIG_ENV_IS_IN_SPI_FLASH':
-          value => n,
-        ;
-
-        # Disable unstable USB 1.1 support
-        # See: https://lists.denx.de/pipermail/u-boot/2020-November/433070.html
-        # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
-        # See: https://gitlab.manjaro.org/manjaro-arm/packages/core/uboot-rockpro64/-/issues/4
-        'CONFIG_USB_OHCI_HCD':
-          value => n,
-        ;
-      }
     }
 
     'raspberrypi': {
@@ -80,11 +72,6 @@ class nest::base::firmware::uboot {
 
     'sopine': {
       $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
-
-      # SPI is used for other things
-      nest::lib::kconfig { 'CONFIG_ENV_IS_IN_SPI_FLASH':
-        value => n,
-      }
     }
   }
 
