@@ -13,6 +13,7 @@ class nest::base::firmware::uboot {
 
   $uboot_branch = $facts['profile']['platform'] ? {
     'pinebookpro' => 'pinebookpro',
+    'sopine'      => 'sopine',
     default       => 'main',
   }
 
@@ -55,7 +56,7 @@ class nest::base::firmware::uboot {
       $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
 
       nest::lib::kconfig {
-        # May want to use SPI for other things
+        # SPI is used for other things
         'CONFIG_ENV_IS_IN_SPI_FLASH':
           value => n,
         ;
@@ -79,6 +80,11 @@ class nest::base::firmware::uboot {
 
     'sopine': {
       $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
+
+      # SPI is used for other things
+      nest::lib::kconfig { 'CONFIG_ENV_IS_IN_SPI_FLASH':
+        value => n,
+      }
     }
   }
 
