@@ -20,6 +20,7 @@ nest::kernel_config:
 
   # Framebuffer
   CONFIG_SYSFB_SIMPLEFB: y
+  CONFIG_FB_EFI: y
 
   # Device drivers
   CONFIG_IGB: m
