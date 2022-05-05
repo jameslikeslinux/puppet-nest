@@ -8,6 +8,89 @@ class nest::base::bootloader::grub {
   }
 
   if $facts['mountpoints']['/boot'] or ($facts['profile']['platform'] == 'live' and $facts['is_container'] and !$facts['build']) {
+    $grub_device = $facts['profile']['platform'] == 'live' ? {
+      true    => "live:LABEL=${trusted['certname'].upcase}",
+      default => 'zfs:AUTO',
+    }
+
+    if $facts['profile']['platform'] or $facts['virtual'] == 'kvm' {
+      $gfxmode    = 'GRUB_GFXMODE=1024x768'
+      $gfxpayload = 'GRUB_GFXPAYLOAD_LINUX=keep'
+    } else {
+      $gfxmode    = '#GRUB_GFXMODE=640x480'
+      $gfxpayload = '#GRUB_GFXPAYLOAD_LINUX='
+    }
+
+    $font = "ter-x${::nest::console_font_size}b"
+
+    file_line {
+      default:
+        path    => '/etc/default/grub',
+        require => Package['sys-boot/grub'],
+        notify  => Exec['grub-mkconfig'],
+      ;
+
+      'grub-set-distributor':
+        line  => 'GRUB_DISTRIBUTOR="Nest"',
+        match => '^#?GRUB_DISTRIBUTOR=',
+      ;
+
+      'grub-set-default':
+        line  => "GRUB_DEFAULT=\"gnulinux-${nest::kernel_version}-advanced-${grub_device}\"",
+        match => '^#?GRUB_DEFAULT=',
+      ;
+
+      'grub-set-timeout':
+        line  => "GRUB_TIMEOUT=3",
+        match => '^#?GRUB_TIMEOUT=',
+      ;
+
+      'grub-set-kernel-cmdline':
+        line  => "GRUB_CMDLINE_LINUX=\"${::nest::base::bootloader::kernel_cmdline}\"",
+        match => '^#?GRUB_CMDLINE_LINUX=',
+      ;
+
+      'grub-set-gfxmode':
+        line  => $gfxmode,
+        match => '^#?GRUB_GFXMODE',
+      ;
+
+      'grub-set-gfxpayload':
+        line  => $gfxpayload,
+        match => '^#?GRUB_GFXPAYLOAD_LINUX',
+      ;
+
+      'grub-disable-linux-uuid':
+        line  => 'GRUB_DISABLE_LINUX_UUID=true',
+        match => '^#?GRUB_DISABLE_LINUX_UUID=',
+      ;
+
+      'grub-disable-recovery':
+        line  => 'GRUB_DISABLE_RECOVERY=true',
+        match => '^#?GRUB_DISABLE_RECOVERY=',
+      ;
+
+      'grub-disable-submenu':
+        line  => 'GRUB_DISABLE_SUBMENU=y',
+        match => '^#?GRUB_DISABLE_SUBMENU=',
+      ;
+
+      'grub-set-device':
+        line  => "GRUB_DEVICE=${grub_device}",
+        match => '^#?GRUB_DEVICE=',
+      ;
+
+      'grub-set-fs':
+        line  => 'GRUB_FS=',
+        match => '^#?GRUB_FS=',
+      ;
+
+      'grub-set-font':
+        line  => "GRUB_FONT=/boot/grub/fonts/${font}.pf2",
+        match => '^#?GRUB_FONT=',
+      ;
+    }
+
     file { '/boot/grub':
       ensure => directory,
       mode   => '0755',
@@ -26,8 +109,6 @@ class nest::base::bootloader::grub {
       recurse => true,
       purge   => true,
     }
-
-    $font = "ter-x${::nest::console_font_size}b"
 
     exec { 'grub-mkfont':
       command => "/usr/bin/grub-mkfont -o /boot/grub/fonts/${font}.pf2 /usr/share/fonts/terminus/${font}.pcf.gz",
@@ -86,70 +167,6 @@ class nest::base::bootloader::grub {
         group   => 'root',
         require => Exec['dracut'],
       }
-    }
-
-    File_line {
-      path    => '/etc/default/grub',
-      require => Package['sys-boot/grub'],
-      notify  => Exec['grub-mkconfig'],
-    }
-
-    $grub_device = $facts['profile']['platform'] == 'live' ? {
-      true    => "live:LABEL=${trusted['certname'].upcase}",
-      default => 'zfs:AUTO',
-    }
-
-    file_line { 'grub-set-default':
-      line  => "GRUB_DEFAULT=\"gnulinux-${nest::kernel_version}-advanced-${grub_device}\"",
-      match => '^#?GRUB_DEFAULT=',
-    }
-
-    file_line { 'grub-set-timeout':
-      line  => "GRUB_TIMEOUT=3",
-      match => '^#?GRUB_TIMEOUT=',
-    }
-
-    file_line { 'grub-set-kernel-cmdline':
-      line  => "GRUB_CMDLINE_LINUX=\"${::nest::base::bootloader::kernel_cmdline}\"",
-      match => '^#?GRUB_CMDLINE_LINUX=',
-    }
-
-    if $facts['profile']['platform'] or $facts['virtual'] == 'kvm' {
-      $gfxmode    = 'GRUB_GFXMODE=1024x768'
-      $gfxpayload = 'GRUB_GFXPAYLOAD_LINUX=keep'
-    } else {
-      $gfxmode    = '#GRUB_GFXMODE=640x480'
-      $gfxpayload = '#GRUB_GFXPAYLOAD_LINUX='
-    }
-
-    file_line { 'grub-set-gfxmode':
-      line  => $gfxmode,
-      match => '^#?GRUB_GFXMODE',
-    }
-
-    file_line { 'grub-set-gfxpayload':
-      line  => $gfxpayload,
-      match => '^#?GRUB_GFXPAYLOAD_LINUX',
-    }
-
-    file_line { 'grub-disable-linux-uuid':
-      line  => 'GRUB_DISABLE_LINUX_UUID=true',
-      match => '^#?GRUB_DISABLE_LINUX_UUID=',
-    }
-
-    file_line { 'grub-set-device':
-      line  => "GRUB_DEVICE=${grub_device}",
-      match => '^#?GRUB_DEVICE=',
-    }
-
-    file_line { 'grub-set-fs':
-      line  => 'GRUB_FS=',
-      match => '^#?GRUB_FS=',
-    }
-
-    file_line { 'grub-set-font':
-      line  => "GRUB_FONT=/boot/grub/fonts/${font}.pf2",
-      match => '^#?GRUB_FONT=',
     }
 
     $::partitions.each |$partition, $attributes| {
