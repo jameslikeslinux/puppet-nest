@@ -94,6 +94,21 @@ class nest::base::bootloader::grub {
       notify  => Exec['grub-mkconfig'],
     }
 
+    $grub_device = $facts['profile']['platform'] == 'live' ? {
+      true    => "live:LABEL=${trusted['certname'].upcase}",
+      default => 'zfs:AUTO',
+    }
+
+    file_line { 'grub-set-default':
+      line  => "GRUB_DEFAULT=\"gnulinux-${nest::kernel_version}-advanced-${grub_device}\"",
+      match => '^#?GRUB_DEFAULT=',
+    }
+
+    file_line { 'grub-set-timeout':
+      line  => "GRUB_TIMEOUT=3",
+      match => '^#?GRUB_TIMEOUT=',
+    }
+
     file_line { 'grub-set-kernel-cmdline':
       line  => "GRUB_CMDLINE_LINUX=\"${::nest::base::bootloader::kernel_cmdline}\"",
       match => '^#?GRUB_CMDLINE_LINUX=',
@@ -120,11 +135,6 @@ class nest::base::bootloader::grub {
     file_line { 'grub-disable-linux-uuid':
       line  => 'GRUB_DISABLE_LINUX_UUID=true',
       match => '^#?GRUB_DISABLE_LINUX_UUID=',
-    }
-
-    $grub_device = $facts['profile']['platform'] == 'live' ? {
-      true    => "live:LABEL=${trusted['certname'].upcase}",
-      default => 'zfs:AUTO',
     }
 
     file_line { 'grub-set-device':

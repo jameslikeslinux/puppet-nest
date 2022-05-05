@@ -18,7 +18,8 @@ class nest::base::bootloader::systemd {
     }
 
     $loader_conf = @("LOADER_CONF")
-      default ${facts['machine_id']}-*
+      default ${facts['machine_id']}-${nest::kernel_version}.conf
+      timeout 3
       | LOADER_CONF
 
     file { '/boot/loader/loader.conf':
