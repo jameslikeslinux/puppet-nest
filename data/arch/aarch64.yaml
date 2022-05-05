@@ -1,5 +1,0 @@
----
-nest::kernel_config:
-  # Unset default preempt for ZFS compatibility
-  CONFIG_PREEMPT: n
-  CONFIG_PREEMPT_VOLUNTARY: y
