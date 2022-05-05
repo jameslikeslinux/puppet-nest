@@ -14,6 +14,7 @@ class nest::base {
 
   case $facts['osfamily'] {
     'Gentoo': {
+      contain '::nest::base::branding'
       contain '::nest::base::cli'
       contain '::nest::base::console'
       contain '::nest::base::containers'
@@ -40,6 +41,10 @@ class nest::base {
         contain '::nest::base::fstab'
         contain '::nest::base::kernel'
         contain '::nest::base::plymouth'
+
+        # OS release info is used in the initramfs
+        Class['::nest::base::branding']
+        ~> Class['::nest::base::dracut']
 
         # Dracut depends on console fonts and keymaps
         Class['::nest::base::console']

@@ -1,0 +1,19 @@
+<%- |
+  String           $variant,
+  String           $variant_id,
+  Optional[String] $build_id = undef,
+  Optional[String] $image_id = undef,
+| -%>
+NAME="Nest"
+ID=nest
+ID_LIKE=gentoo
+PRETTY_NAME="Nest"
+VARIANT="<%= $variant %>"
+VARIANT_ID=<%= $variant_id %>
+<% if $build_id and !$build_id.empty { -%>
+BUILD_ID=<%= $build_id %>
+<% } -%>
+<% if $image_id and !$image_id.empty { -%>
+IMAGE_ID=<%= $image_id %>
+<% } -%>
+ANSI_COLOR="1;35"
