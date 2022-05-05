@@ -36,7 +36,7 @@ class nest::base::bootloader::grub {
       ;
 
       'grub-set-default':
-        line  => "GRUB_DEFAULT=\"gnulinux-${nest::kernel_version}-advanced-${grub_device}\"",
+        line  => "GRUB_DEFAULT=\"linux-${nest::kernel_version}-advanced-${grub_device}\"",
         match => '^#?GRUB_DEFAULT=',
       ;
 
