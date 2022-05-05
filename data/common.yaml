@@ -79,8 +79,8 @@ nest::package_keywords:
 
 nest::kernel_package:
   package_name: 'sys-kernel/gentoo-sources'
-  package_version: '5.17.4'
-  kernel_version: '5.17.4-gentoo'
+  package_version: '5.17.5'
+  kernel_version: '5.17.5-gentoo'
 
 nest::kernel_config:
   # Preferences
