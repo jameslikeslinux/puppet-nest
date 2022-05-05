@@ -17,15 +17,6 @@ class nest::base::kernel {
     use    => 'symlink',
     before => Exec['kernel-defconfig'],
   }
-  ->
-  file { '/usr/src/linux/.scmversion':
-    # Prevent addition of '+' to kernel version in git-based source trees
-    ensure => present,
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    before => Exec['kernel-build'],
-  }
 
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'multi_v7_defconfig',
