@@ -85,7 +85,6 @@ nest::kernel_package:
 nest::kernel_config:
   # Preferences
   CONFIG_LOCALVERSION: ''
-  CONFIG_LOCALVERSION_AUTO: n
   CONFIG_IKCONFIG: y
   CONFIG_IKCONFIG_PROC: y
 
