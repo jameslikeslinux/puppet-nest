@@ -27,6 +27,10 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
 
+  # simpledrm is buggy in 5.15
+  CONFIG_DRM_SIMPLEDRM: n
+  CONFIG_FB_SIMPLE: y
+
 # Hold kernel back at longterm version due to HD Audio hang in current stable
 nest::kernel_package:
   package_name: 'sys-kernel/gentoo-sources'
