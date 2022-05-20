@@ -27,6 +27,12 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
 
+# Hold kernel back at longterm version due to HD Audio hang in current stable
+nest::kernel_package:
+  package_name: 'sys-kernel/gentoo-sources'
+  package_version: '5.15.41'
+  kernel_version: '5.15.41-gentoo'
+
 nest::dvorak: true
 nest::monitor_layout: ['DP-2', 'DP-1']
 nest::primary_monitor: 'DP-1'
