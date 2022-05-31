@@ -46,6 +46,7 @@ class nest::base::containers {
 
     '/etc/containers/storage.conf':
       content => $storage_conf,
+      replace => !$facts['is_container'],
     ;
 
     '/etc/systemd/system/podman.service.d':
