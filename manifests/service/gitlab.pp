@@ -55,7 +55,6 @@ class nest::service::gitlab (
       mode      => '0600',
       content   => template('nest/gitlab/gitlab.rb.erb'),
       show_diff => false,
-      notify    => Service['container-gitlab'],
     ;
 
     [
@@ -77,6 +76,11 @@ class nest::service::gitlab (
       '/srv/gitlab/logs:/var/log/gitlab',
       '/srv/gitlab/data:/var/opt/gitlab',
     ],
+  }
+
+  unless $facts['is_container'] {
+    File['/srv/gitlab/gitlab.rb']
+    ~> Service['container-gitlab']
   }
 
   # Export or manage SSH keys based on ability to access
