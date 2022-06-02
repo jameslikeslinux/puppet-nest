@@ -9,6 +9,7 @@ Type=oneshot
 EnvironmentFile=/etc/default/kexec-load
 ExecStart=/usr/sbin/kexec -l ${IMAGE} --append=${KERNEL_CMDLINE} --initrd=${INITRD}
 ExecStop=/usr/sbin/kexec -u
+ExecReload=/usr/sbin/kexec -l ${IMAGE} --append=${KERNEL_CMDLINE} --initrd=${INITRD}
 RemainAfterExit=yes
 
 [Install]
