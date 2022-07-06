@@ -24,6 +24,8 @@ nest::package_keywords:
   dev-libs/nss: {}
   media-libs/dav1d:
     version: '~1.0.0'
+  media-libs/libepoxy:
+    version: '~1.5.10'
 
   # For foot
   dev-libs/tllist: {}
