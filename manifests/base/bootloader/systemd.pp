@@ -50,9 +50,9 @@ class nest::base::bootloader::systemd {
     }
 
     $image = $facts['os']['architecture'] ? {
-      'amd64'   => '/usr/src/linux/arch/x86/boot/bzImage',
-      'armv7l'  => '/usr/src/linux/arch/arm/boot/zImage',
-      'aarch64' => '/usr/src/linux/arch/arm64/boot/Image',
+      /^(amd64|x86_64)$/ => '/usr/src/linux/arch/x86/boot/bzImage',
+      'armv7l'           => '/usr/src/linux/arch/arm/boot/zImage',
+      'aarch64'          => '/usr/src/linux/arch/arm64/boot/Image',
     }
 
     exec { 'kernel-install':
