@@ -25,6 +25,10 @@ case $facts['osfamily'] {
       purge_ports      => true,
     }
 
+    Service {
+      provider => 'systemd',
+    }
+
     # Effectively disable resources that can't be managed in containers
     if $facts['is_container'] {
       Service <||> {
