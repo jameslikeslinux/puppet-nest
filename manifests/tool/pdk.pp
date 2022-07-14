@@ -1,6 +1,6 @@
 class nest::tool::pdk {
   if $facts['build'] == 'pdk' {
-    $pdk_version        = '2.4.0'
+    $pdk_version        = '2.5.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
     package { 'pdk':
