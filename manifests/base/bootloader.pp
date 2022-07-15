@@ -28,6 +28,9 @@ class nest::base::bootloader {
     'zswap.zpool=z3fold',
     'zswap.max_pool_percent=100',
 
+    # For iotop
+    'delayacct',
+
     $::nest::kernel_cmdline,
   ].flatten.join(' ').strip
 

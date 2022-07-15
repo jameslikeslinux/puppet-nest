@@ -23,6 +23,7 @@ class nest::base::packages {
         'sys-fs/squashfs-tools',
         'sys-libs/nss_wrapper',
         'sys-process/htop',
+        'sys-process/iotop',
         'sys-process/lsof',
         'www-client/elinks',
         'x11-misc/xsel',
