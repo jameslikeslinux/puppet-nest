@@ -48,27 +48,27 @@ define nest::lib::container (
       }
 
       case $ensure {
-        running: {
+        'running': {
           $service_ensure = running
           $service_enable = true
         }
 
-        enabled: {
+        'enabled': {
           $service_ensure = undef
           $service_enable = true
         }
 
-        present: {
+        'present': {
           $service_ensure = undef
           $service_enable = undef
         }
 
-        disabled: {
+        'disabled': {
           $service_ensure = undef
           $service_enable = false
         }
 
-        stopped: {
+        'stopped': {
           $service_ensure = stopped
           $service_enable = false
         }

@@ -22,7 +22,7 @@ define nest::lib::reverse_proxy (
   }]
 
   if $websockets {
-    include '::apache::mod::proxy_wstunnel'
+    include 'apache::mod::proxy_wstunnel'
 
     $wsdestination = $websockets ? {
       String  => $websockets,

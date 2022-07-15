@@ -1,5 +1,5 @@
 class nest::role::workstation::cups {
-  $cups_browsed_hosts = $::nest::cups_servers - "${::trusted['certname']}.nest"
+  $cups_browsed_hosts = $nest::cups_servers - "${trusted['certname']}.nest"
 
   package { [
     'net-print/cups',

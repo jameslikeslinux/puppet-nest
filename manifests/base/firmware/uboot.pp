@@ -1,6 +1,6 @@
 class nest::base::firmware::uboot {
   # For nest::base::portage::makeopts
-  include '::nest::base::portage'
+  include 'nest::base::portage'
 
   Nest::Lib::Kconfig {
     config => '/usr/src/u-boot/.config',
@@ -82,7 +82,7 @@ class nest::base::firmware::uboot {
   }
   ~>
   exec { 'uboot-build':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} ${build_options}",
+    command     => "/usr/bin/make ${nest::base::portage::makeopts} ${build_options}",
     cwd         => '/usr/src/u-boot',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc

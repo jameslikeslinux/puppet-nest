@@ -12,10 +12,10 @@ class nest::base::distccd {
   }
 
   ::nest::lib::systemd_reload { 'distccd':
-    notify => Service['distccd']
+    notify => Service['distccd'],
   }
 
   service { 'distccd':
-    enable => $::nest::distcc_server
+    enable => $nest::distcc_server,
   }
 }

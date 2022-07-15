@@ -1,19 +1,19 @@
 class nest::base::bootloader {
   # For nest::base::console::keymap
-  include '::nest::base::console'
+  include 'nest::base::console'
 
   $kernel_cmdline = [
     'init=/lib/systemd/systemd',
     'loglevel=3', # must come after 'quiet', if specified
 
-    $::nest::isolate_smt ? {
-      true    => "nohz_full=${facts['processorcount'] / 2}-${facts['processorcount'] - 1}",
+    $nest::isolate_smt ? {
+      true    => "nohz_full=${facts['processors']['count'] / 2}-${facts['processors']['count'] - 1}",
       default => [],
     },
 
     # Let I/O preferences be configurable at boot time
-    "rd.vconsole.font=ter-v${::nest::console_font_size}b",
-    "rd.vconsole.keymap=${::nest::base::console::keymap}",
+    "rd.vconsole.font=ter-v${nest::console_font_size}b",
+    "rd.vconsole.keymap=${nest::base::console::keymap}",
 
     # Let kernel swap to compressed memory instead of a physical volume, which
     # is slow and, currently, prone to hanging.  max_pool_percent=100 ensures
@@ -31,11 +31,11 @@ class nest::base::bootloader {
     # For iotop
     'delayacct',
 
-    $::nest::kernel_cmdline,
+    $nest::kernel_cmdline,
   ].flatten.join(' ').strip
 
-  case $::nest::bootloader {
-    systemd: {
+  case $nest::bootloader {
+    'systemd': {
       contain 'nest::base::bootloader::systemd'
     }
 

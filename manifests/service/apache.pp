@@ -3,7 +3,7 @@ class nest::service::apache (
 ) {
   nest::lib::srv { 'www': }
 
-  include '::apache'
+  include 'apache'
 
   # I don't use this command, and it doesn't work on systemd systems, but the
   # apache_version fact depends on being able to run this with the `-v`
@@ -11,7 +11,7 @@ class nest::service::apache (
   file { '/usr/sbin/apache2ctl':
     ensure  => link,
     target  => '/usr/sbin/apache2',
-    require => Class['::apache'],
+    require => Class['apache'],
   }
 
   ::apache::mod { 'log_config': }
@@ -25,7 +25,7 @@ class nest::service::apache (
       'apache2_modules_proxy_fcgi',
       'apache2_modules_proxy_http',
       'apache2_modules_proxy_wstunnel',
-      'threads'
+      'threads',
     ],
   }
 
@@ -35,8 +35,8 @@ class nest::service::apache (
     path    => '/etc/conf.d/apache2',
     line    => 'APACHE2_OPTS=',
     match   => '^#?APACHE2_OPTS=',
-    require => Class['::apache'],
-    notify  => Class['::apache::service'],
+    require => Class['apache'],
+    notify  => Class['apache::service'],
   }
 
   if $manage_firewall {

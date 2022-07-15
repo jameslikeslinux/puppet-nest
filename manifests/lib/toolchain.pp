@@ -18,19 +18,24 @@ define nest::lib::toolchain (
         require => Class['nest::lib::crossdev'],
       }
       ->
-      file { [
-        "/etc/portage/env/cross-${name}",
-        "/etc/portage/package.accept_keywords/cross-${name}",
-        "/etc/portage/package.env/cross-${name}",
-        "/etc/portage/package.use/cross-${name}",
-        "/etc/portage/profile/package.use.force/cross-${name}",
-      ]:
-        ensure => present,
+      file {
+        "/etc/portage/env/cross-${name}":
+          ensure => directory,
+        ;
+
+        [
+          "/etc/portage/package.accept_keywords/cross-${name}",
+          "/etc/portage/package.env/cross-${name}",
+          "/etc/portage/package.use/cross-${name}",
+          "/etc/portage/profile/package.use.force/cross-${name}",
+        ]:
+          ensure => file,
+        ;
       }
 
       if $gcc_only {
         file { "/etc/portage/profile/package.use.mask/cross-${name}":
-          ensure => present,
+          ensure => file,
         }
       }
     }

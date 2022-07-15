@@ -18,7 +18,7 @@ class nest::service::libvirt {
   }
 
   file { '/etc/libvirt/libvirt-guests.conf':
-    ensure  => present,
+    ensure  => file,
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -41,7 +41,7 @@ class nest::service::libvirt {
     require => Package['app-emulation/libvirt'],
   }
 
-  if $::nest::fileserver or $::nest::openvpn_server {
+  if $nest::fileserver or $nest::openvpn_server {
     file { '/etc/systemd/system/libvirt-guests.service.d':
       ensure => directory,
       mode   => '0755',
@@ -50,7 +50,7 @@ class nest::service::libvirt {
     }
   }
 
-  $after_fs_servers_ensure = $::nest::fileserver ? {
+  $after_fs_servers_ensure = $nest::fileserver ? {
     true    => 'present',
     default => 'absent',
   }
@@ -69,7 +69,7 @@ class nest::service::libvirt {
     notify  => Nest::Lib::Systemd_reload['libvirt'],
   }
 
-  $after_openvpn_ensure = $::nest::openvpn_server ? {
+  $after_openvpn_ensure = $nest::openvpn_server ? {
     true    => 'present',
     default => 'absent',
   }
@@ -97,7 +97,7 @@ class nest::service::libvirt {
     require          => Package['app-emulation/libvirt'],
   }
 
-  if $::nest::fileserver {
+  if $nest::fileserver {
     firewalld_service { ['nfs', 'samba']:
       zone => 'libvirt',
     }

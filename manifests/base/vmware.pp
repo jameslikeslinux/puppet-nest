@@ -1,5 +1,5 @@
 class nest::base::vmware {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       if $facts['virtual'] == 'vmware' {
         nest::lib::package { 'app-emulation/open-vm-tools':

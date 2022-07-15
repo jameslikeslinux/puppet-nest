@@ -1,8 +1,8 @@
 class nest::base::branding {
   $variant = $facts['profile']['role'] ? {
-    server      => 'Server',
-    workstation => 'Workstation',
-    default     => fail("Unhandled role ${facts['profile']['role']}"),
+    'server'      => 'Server',
+    'workstation' => 'Workstation',
+    default       => fail("Unhandled role ${facts['profile']['role']}"),
   }
 
   $image_id = $facts['build'] ? {

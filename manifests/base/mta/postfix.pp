@@ -18,7 +18,7 @@ class nest::base::mta::postfix (
   }
 
   define setting (
-    Optional[String] $value,
+    Optional[String] $value = undef,
   ) {
     if $value {
       exec { "postconf-set-${name}":
@@ -35,9 +35,9 @@ class nest::base::mta::postfix (
 
   case $ensure {
     'present': {
-      if $::nest::gmail_username and $::nest::gmail_password {
+      if $nest::gmail_username and $nest::gmail_password {
         $relayhost                  = '[smtp.gmail.com]:587'
-        $saslpass                   = "[smtp.gmail.com]:587 ${::nest::gmail_username}:${::nest::gmail_password}\n"
+        $saslpass                   = "[smtp.gmail.com]:587 ${nest::gmail_username}:${nest::gmail_password}\n"
         $smtp_sasl_auth_enable      = 'yes'
         $smtp_sasl_password_maps    = 'hash:/etc/postfix/saslpass'
         $smtp_sasl_security_options = 'noanonymous'

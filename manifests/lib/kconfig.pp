@@ -9,7 +9,7 @@ define nest::lib::kconfig (
 
   $line = $value ? {
     Numeric   => "${name}=${value}",
-    n         => "# ${name} is not set",
+    'n'       => "# ${name} is not set",
     /^(y|m)$/ => "${name}=${value}",
     default   => "${name}=\"${value}\"",
   }

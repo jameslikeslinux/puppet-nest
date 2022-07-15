@@ -1,5 +1,5 @@
 class nest::base::git {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       package { 'dev-vcs/git':
         ensure => installed,

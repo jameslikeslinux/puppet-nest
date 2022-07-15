@@ -15,8 +15,8 @@ class nest::role::workstation::sway {
 
   # Sway will scale the display to our gui_scaling_factor, but we need
   # to change the DPI to effect our text_scaling_factor
-  $gui_scaling_factor  = $::nest::gui_scaling_factor
-  $text_scaling_factor = $::nest::text_scaling_factor
+  $gui_scaling_factor  = $nest::gui_scaling_factor
+  $text_scaling_factor = $nest::text_scaling_factor
   $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
@@ -56,12 +56,12 @@ class nest::role::workstation::sway {
     require => Package['gui-wm/sway'],
   }
 
-  $xkb_variant = $::nest::dvorak ? {
+  $xkb_variant = $nest::dvorak ? {
     true    => "input type:keyboard xkb_variant dvorak\n",
     default => '',
   }
 
-  $xkb_options = $::nest::swap_alt_win ? {
+  $xkb_options = $nest::swap_alt_win ? {
     true    => 'input type:keyboard xkb_options ctrl:nocaps,altwin:swap_alt_win',
     default => 'input type:keyboard xkb_options ctrl:nocaps',
   }
@@ -78,7 +78,7 @@ class nest::role::workstation::sway {
     | INPUT_CONF
 
   # XXX: According to sway-output(5), this needs to account for scaling
-  $monitors_conf = $::nest::monitor_layout.reduce('') |$memo, $monitor| {
+  $monitors_conf = $nest::monitor_layout.reduce('') |$memo, $monitor| {
     if $monitor =~ /([^@]+)@(\d+)$/ {
       "${memo}output ${1} position ${2} 0\n"
     } else {
@@ -117,7 +117,7 @@ class nest::role::workstation::sway {
     ;
 
     '/etc/sway/config.d/10-xwayland':
-      content => epp('nest/sway/xwayland.epp', { 'dvorak' => $::nest::dvorak }),
+      content => epp('nest/sway/xwayland.epp', { 'dvorak' => $nest::dvorak }),
     ;
   }
 }

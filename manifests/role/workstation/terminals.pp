@@ -9,7 +9,7 @@ class nest::role::workstation::terminals {
       'sgrmouse',
       'unicode3',
       '-vanilla',
-      'xft'
+      'xft',
     ],
   }
 

@@ -21,7 +21,7 @@ class nest::base::bootloader::grub {
       $gfxpayload = '#GRUB_GFXPAYLOAD_LINUX='
     }
 
-    $font = "ter-x${::nest::console_font_size}b"
+    $font = "ter-x${nest::console_font_size}b"
 
     file_line {
       default:
@@ -46,7 +46,7 @@ class nest::base::bootloader::grub {
       ;
 
       'grub-set-kernel-cmdline':
-        line  => "GRUB_CMDLINE_LINUX=\"${::nest::base::bootloader::kernel_cmdline}\"",
+        line  => "GRUB_CMDLINE_LINUX=\"${nest::base::bootloader::kernel_cmdline}\"",
         match => '^#?GRUB_CMDLINE_LINUX=',
       ;
 
@@ -169,7 +169,7 @@ class nest::base::bootloader::grub {
       }
     }
 
-    $::partitions.each |$partition, $attributes| {
+    $facts['partitions'].each |$partition, $attributes| {
       $disk = regsubst($partition, 'p?(art)?\d+$', '')
 
       if "${::trusted['certname']}-" in $attributes['partlabel'] {

@@ -7,7 +7,7 @@ class nest::service::gitlab (
   Stdlib::Port      $registry_port          = 5050,
   Optional[Integer] $default_theme          = undef,
   Optional[String]  $gmail_password         = undef,
-  Integer           $puma_workers           = $::nest::concurrency,
+  Integer           $puma_workers           = $nest::concurrency,
 ) inherits nest {
   if $https {
     $external_url = "https://${external_name}"

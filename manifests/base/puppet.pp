@@ -1,6 +1,6 @@
 class nest::base::puppet {
-  $dns_alt_names = $::nest::openvpn_server ? {
-    true    => [$::nest::openvpn_hostname],
+  $dns_alt_names = $nest::openvpn_server ? {
+    true    => [$nest::openvpn_hostname],
     default => [],
   }
 
@@ -32,10 +32,10 @@ class nest::base::puppet {
 
       $outputs_facts = @("OUTPUTS_FACTS")
         ---
-        primary_output: '${::nest::primary_monitor}'
+        primary_output: '${nest::primary_monitor}'
         scaling:
-          gui: ${::nest::gui_scaling_factor}
-          text: ${::nest::text_scaling_factor}
+          gui: ${nest::gui_scaling_factor}
+          text: ${nest::text_scaling_factor}
         | OUTPUTS_FACTS
 
       file { '/etc/puppetlabs/facter/facts.d/outputs.yaml':
@@ -126,8 +126,8 @@ class nest::base::puppet {
       $outputs_facts = @("OUTPUTS_FACTS")
         ---
         scaling:
-          gui: ${::nest::gui_scaling_factor}
-          text: ${::nest::text_scaling_factor}
+          gui: ${nest::gui_scaling_factor}
+          text: ${nest::text_scaling_factor}
         | OUTPUTS_FACTS
 
       file { 'C:/ProgramData/PuppetLabs/facter/facts.d/outputs.yaml':

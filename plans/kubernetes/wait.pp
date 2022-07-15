@@ -13,9 +13,9 @@ plan nest::kubernetes::wait (
   String     $timeout   = '1h',
 ) {
   $wait_cmd = $kind ? {
-    daemonset  => "kubectl rollout status daemonset ${name} -n ${namespace} --timeout=${timeout}",
-    deployment => "kubectl wait --for=condition=Available deployment/${name} -n ${namespace} --timeout=${timeout}",
-    default    => fail("Don't know how to wait for ${kind}"),
+    'daemonset'  => "kubectl rollout status daemonset ${name} -n ${namespace} --timeout=${timeout}",
+    'deployment' => "kubectl wait --for=condition=Available deployment/${name} -n ${namespace} --timeout=${timeout}",
+    default      => fail("Don't know how to wait for ${kind}"),
   }
 
   $result = run_command($wait_cmd, get_targets($targets)[0], "Wait for ${name} to rollout", {

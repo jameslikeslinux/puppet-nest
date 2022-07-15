@@ -1,5 +1,5 @@
 class nest::base::packages {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       package { [
         'app-admin/sysstat',

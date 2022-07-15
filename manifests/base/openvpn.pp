@@ -2,7 +2,7 @@ class nest::base::openvpn {
   $client_config = @("EOT")
     client
     nobind
-    remote ${::nest::openvpn_hostname} 1194
+    remote ${nest::openvpn_hostname} 1194
     | EOT
 
   case $facts['os']['family'] {
@@ -80,7 +80,7 @@ class nest::base::openvpn {
         group => 'root',
       }
 
-      if $::nest::openvpn_server {
+      if $nest::openvpn_server {
         $mode   = 'server'
         $config = $server_config
 
@@ -134,7 +134,7 @@ class nest::base::openvpn {
           notify  => Service['dnsmasq'],
         }
 
-        $dnsmasq_cnames = $::nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
+        $dnsmasq_cnames = $nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
         $dnsmasq_cnames_content = $dnsmasq_cnames.join("\n")
         $dnsmasq_cnames_ensure = $dnsmasq_cnames_content ? {
           ''      => 'absent',
