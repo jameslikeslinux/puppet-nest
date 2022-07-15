@@ -1,4 +1,7 @@
-class nest::tool::bolt {
+class nest::tool::bolt (
+  String            $cert,
+  Sensitive[String] $key,
+) {
   if $facts['build'] == 'bolt' {
     package { [
       'dev-ruby/bcrypt_pbkdf',
@@ -28,11 +31,11 @@ class nest::tool::bolt {
       ;
 
       '/etc/puppetlabs/bolt/cert.pem':
-        content => file("${settings::ssldir}/certs/bolt.pem"),
+        content => $cert,
       ;
 
       '/etc/puppetlabs/bolt/key.pem':
-        content   => file("${settings::ssldir}/private_keys/bolt.pem"),
+        content   => $key,
         show_diff => false,
       ;
 

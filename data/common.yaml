@@ -12,6 +12,8 @@ lookup_options:
     merge: 'hash'
   nest::service::wordpress::sites:
     merge: 'hash'
+  nest::tool::bolt::key:
+    convert_to: 'Sensitive'
   nest::wlans:
     merge: 'hash'
     convert_to: 'Sensitive'
