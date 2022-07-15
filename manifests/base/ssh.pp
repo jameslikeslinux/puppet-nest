@@ -1,5 +1,5 @@
 class nest::base::ssh {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       nest::lib::package_use { 'net-misc/openssh':
         use => 'kerberos',
@@ -53,7 +53,7 @@ class nest::base::ssh {
         require => File['/etc/systemd/user/ssh-agent.service'],
       }
 
-      if $::nest::public_ssh {
+      if $nest::public_ssh {
         firewalld_service { 'ssh':
           ensure => present,
         }

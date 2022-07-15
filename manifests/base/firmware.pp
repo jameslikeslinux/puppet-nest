@@ -1,7 +1,7 @@
 class nest::base::firmware {
   case $facts['profile']['platform'] {
     'beagleboneblack': {
-      contain '::nest::base::firmware::uboot'
+      contain 'nest::base::firmware::uboot'
 
       file { '/boot/am335x-boneblack.dtb':
         source => '/usr/src/linux/arch/arm/boot/dts/am335x-boneblack.dtb',
@@ -9,8 +9,8 @@ class nest::base::firmware {
     }
 
     'pinebookpro': {
-      contain '::nest::base::firmware::arm'
-      contain '::nest::base::firmware::uboot'
+      contain 'nest::base::firmware::arm'
+      contain 'nest::base::firmware::uboot'
 
       Class['nest::base::firmware::arm']
       ~> Class['nest::base::firmware::uboot']
@@ -27,8 +27,8 @@ class nest::base::firmware {
     }
 
     'raspberrypi': {
-      contain '::nest::base::firmware::raspberrypi'
-      contain '::nest::base::firmware::uboot'
+      contain 'nest::base::firmware::raspberrypi'
+      contain 'nest::base::firmware::uboot'
 
       Class['nest::base::firmware::uboot']
       -> Class['nest::base::firmware::raspberrypi']
@@ -50,8 +50,8 @@ class nest::base::firmware {
     }
 
     'sopine': {
-      contain '::nest::base::firmware::arm'
-      contain '::nest::base::firmware::uboot'
+      contain 'nest::base::firmware::arm'
+      contain 'nest::base::firmware::uboot'
 
       Class['nest::base::firmware::arm']
       ~> Class['nest::base::firmware::uboot']

@@ -8,11 +8,11 @@ class nest::role::workstation::xorg {
 
   $keyboard_layout = 'us'
 
-  if $::nest::dvorak {
+  if $nest::dvorak {
     $keyboard_variant = 'dvorak'
   }
 
-  $keyboard_options = $::nest::swap_alt_win ? {
+  $keyboard_options = $nest::swap_alt_win ? {
     true    => 'ctrl:nocaps,terminate:ctrl_alt_bksp,altwin:swap_alt_win',
     default => 'ctrl:nocaps,terminate:ctrl_alt_bksp',
   }
@@ -26,9 +26,9 @@ class nest::role::workstation::xorg {
     content => template('nest/xorg/keyboard.conf.erb'),
   }
 
-  $monitor_layout  = $::nest::monitor_layout
-  $primary_monitor = $::nest::primary_monitor
-  $video_card      = $::nest::video_card
+  $monitor_layout  = $nest::monitor_layout
+  $primary_monitor = $nest::primary_monitor
+  $video_card      = $nest::video_card
 
   # Switch to xf86-video-modesetting DDX
   package { 'x11-drivers/xf86-video-intel':
@@ -67,12 +67,12 @@ class nest::role::workstation::xorg {
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
   $scaling = @("EOT"/$)
     #!/bin/bash
-    export GDK_SCALE=${::nest::gui_scaling_factor_rounded}
+    export GDK_SCALE=${nest::gui_scaling_factor_rounded}
     export GDK_DPI_SCALE=${gdk_dpi_scale}
-    export QT_SCALE_FACTOR=${::nest::gui_scaling_factor}
+    export QT_SCALE_FACTOR=${nest::gui_scaling_factor}
     export QT_FONT_DPI=${qt_font_dpi}
-    export XCURSOR_SIZE=${::nest::cursor_size}
-    kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize ${::nest::cursor_size}
+    export XCURSOR_SIZE=${nest::cursor_size}
+    kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize ${nest::cursor_size}
     | EOT
 
   file { '/etc/X11/xinit/xinitrc.d/10-scaling':
@@ -86,7 +86,7 @@ class nest::role::workstation::xorg {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "Xcursor.size: ${::nest::cursor_size}\nXft.dpi: ${::nest::dpi}\n",
+    content => "Xcursor.size: ${nest::cursor_size}\nXft.dpi: ${nest::dpi}\n",
   }
 
   package { 'x11-misc/vdpauinfo':

@@ -1,6 +1,6 @@
 class nest::base::firmware::arm {
   # For nest::base::portage::makeopts
-  include '::nest::base::portage'
+  include 'nest::base::portage'
 
   case $facts['profile']['platform'] {
     'pinebookpro': {
@@ -25,7 +25,7 @@ class nest::base::firmware::arm {
   }
   ~>
   exec { 'arm-trusted-firmware-build':
-    command     => "/usr/bin/make ${::nest::base::portage::makeopts} PLAT=${plat}",
+    command     => "/usr/bin/make ${nest::base::portage::makeopts} PLAT=${plat}",
     cwd         => '/usr/src/arm-trusted-firmware',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc

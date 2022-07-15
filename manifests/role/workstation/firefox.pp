@@ -1,5 +1,5 @@
 class nest::role::workstation::firefox {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       # clang-11: error: the clang compiler does not support '-mcpu=cortex-a72.cortex-a53+crypto'
       if defined(File['/etc/portage/env/no-big-little.conf']) {

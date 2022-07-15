@@ -5,19 +5,19 @@ define nest::lib::wlan (
   Optional[Sensitive[String]] $passphrase = undef,
 ) {
   $extension = $security ? {
-    eap     => '8021x',
+    'eap'   => '8021x',
     default => $security,
   }
   $file = "/var/lib/iwd/${ssid}.${extension}"
 
   case $ensure {
-    present: {
+    'present': {
       if $security != psk {
         fail("Security method '${security}' not handled yet")
       }
 
       file { $file:
-        ensure => present,
+        ensure => file,
         mode   => '0600',
         owner  => 'root',
         group  => 'root',
@@ -33,7 +33,7 @@ define nest::lib::wlan (
       }
     }
 
-    absent: {
+    'absent': {
       file { $file:
         ensure => absent,
       }

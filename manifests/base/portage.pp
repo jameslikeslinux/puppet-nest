@@ -66,10 +66,10 @@ class nest::base::portage {
   # make.conf
   #
   $makejobs_memory     = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_distcc     = $::nest::distcc_hosts.reduce($::nest::concurrency) |$memo, $host| { $memo + $host[1] }
+  $makejobs_distcc     = $nest::distcc_hosts.reduce($nest::concurrency) |$memo, $host| { $memo + $host[1] }
   $makejobs            = min($makejobs_memory, $makejobs_distcc)
-  $mergejobs           = max($::nest::concurrency / 2, 1)
-  $loadlimit           = $::nest::concurrency + 1
+  $mergejobs           = max($nest::concurrency / 2, 1)
+  $loadlimit           = $nest::concurrency + 1
   $emerge_default_opts = pick($facts['emerge_default_opts'], "--jobs=${mergejobs} --load-average=${loadlimit}")
   $makeopts            = pick($facts['makeopts'], "-j${makejobs} -l${loadlimit}")
 
@@ -154,7 +154,7 @@ class nest::base::portage {
   }
 
   # Workaround https://bugs.gentoo.org/666560
-  if $facts['is_container'] and !$facts['architecture'] in ['amd64', 'x86_64'] {
+  if $facts['is_container'] and !$facts['os']['architecture'] in ['amd64', 'x86_64'] {
     file { '/etc/portage/env/no-sandbox.conf':
       mode    => '0644',
       owner   => 'root',
@@ -208,8 +208,8 @@ class nest::base::portage {
   }
 
   # Create portage package properties rebuild affected packages
-  create_resources(package_accept_keywords, $::nest::package_keywords, { 'before' => Class['::portage'] })
-  create_resources(package_env, $::nest::package_env, { 'before' => Class['::portage'] })
+  create_resources(package_accept_keywords, $nest::package_keywords, { 'before' => Class['portage'] })
+  create_resources(package_env, $nest::package_env, { 'before' => Class['portage'] })
 
   # Purge unmanaged portage package properties
   resources { [
@@ -219,6 +219,6 @@ class nest::base::portage {
     'package_use',
   ]:
     purge  => true,
-    before => Class['::portage'],
+    before => Class['portage'],
   }
 }

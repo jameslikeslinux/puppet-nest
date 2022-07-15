@@ -1,5 +1,5 @@
 class nest::base::fail2ban {
-  if $::nest::public_ssh {
+  if $nest::public_ssh {
     package { 'net-analyzer/fail2ban':
       ensure => installed,
     }
@@ -36,7 +36,7 @@ class nest::base::fail2ban {
       require => [
         Service['fail2ban'],
         File['/etc/fail2ban/jail.d/sshd.conf'],
-      ]
+      ],
     }
   }
 }

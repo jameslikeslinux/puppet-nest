@@ -1,13 +1,13 @@
 class nest::service::mysql {
-  class { '::mysql::client':
+  class { 'mysql::client':
     package_manage => false,
   }
 
-  class { '::mysql::server':
+  class { 'mysql::server':
     override_options => {
       'mysqld' => {
         'bind-address' => ['0.0.0.0', '::'],
-      }
+      },
     },
     service_name     => 'mysqld',
     service_provider => 'systemd',
@@ -17,8 +17,8 @@ class nest::service::mysql {
     exec { 'mysql-tmpfiles-create':
       command => '/usr/bin/systemd-tmpfiles --create /usr/lib/tmpfiles.d/mysql.conf',
       creates => '/run/mysqld',
-      require => Class['::mysql::server::install'],
-      before  => Class['::mysql::server::service'],
+      require => Class['mysql::server::install'],
+      before  => Class['mysql::server::service'],
     }
   }
 }

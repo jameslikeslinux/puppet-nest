@@ -70,8 +70,8 @@ define nest::lib::gitlab_runner (
       '--output-limit', '524288',
       '--executor', 'docker',
       '--docker-image', $default_image,
-      '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${::nest::base::portage::emerge_default_opts}",
-      '--env', "CI_HOST_MAKEOPTS=${::nest::base::portage::makeopts}",
+      '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${nest::base::portage::emerge_default_opts}",
+      '--env', "CI_HOST_MAKEOPTS=${nest::base::portage::makeopts}",
       '--env', "CI_HOST_CPU=${facts['profile']['cpu']}",
       $dns_args,
       $device_args,
@@ -80,7 +80,7 @@ define nest::lib::gitlab_runner (
       $zfs_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
-      '--description', $facts['hostname'],
+      '--description', $facts['networking']['hostname'],
       '--tag-list', $tag_list.join(','),
     ].flatten
 

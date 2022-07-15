@@ -1,5 +1,5 @@
 class nest::base::console {
-  $keymap = $::nest::dvorak ? {
+  $keymap = $nest::dvorak ? {
     true    => 'dvorak-nocaps',
     default => 'us-nocaps',
   }
@@ -22,7 +22,7 @@ class nest::base::console {
   }
 
   $vconsole_conf_content = @("EOT")
-    FONT=ter-v${::nest::console_font_size}b
+    FONT=ter-v${nest::console_font_size}b
     KEYMAP=${keymap}
     | EOT
 

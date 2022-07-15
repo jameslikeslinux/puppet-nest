@@ -41,7 +41,7 @@ class nest::service::kubernetes (
   }
 
   file { '/etc/systemd/system/kubelet.service':
-    source => 'puppet:///modules/nest/kubernetes/kubelet.service'
+    source => 'puppet:///modules/nest/kubernetes/kubelet.service',
   }
   ~>
   nest::lib::systemd_reload { 'kubernetes': }

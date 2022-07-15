@@ -3,7 +3,7 @@ class nest::role::workstation::bitwarden {
 
   # Don't prune USE flags config set by nodejs module
   file { '/etc/portage/package.use/nodejs-flags':
-    ensure  => present,
+    ensure  => file,
     require => Class['nodejs'],
   }
 

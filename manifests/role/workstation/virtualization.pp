@@ -6,4 +6,3 @@ class nest::role::workstation::virtualization {
     ensure => installed,
   }
 }
-

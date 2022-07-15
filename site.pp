@@ -2,7 +2,7 @@ if $trusted['certname'] in ['bolt', 'puppetdb'] {
   fail("${trusted['certname']} is not allowed to use Puppet")
 }
 
-case $facts['osfamily'] {
+case $facts['os']['family'] {
   'Gentoo': {
     Firewalld_service {
       zone => 'drop',

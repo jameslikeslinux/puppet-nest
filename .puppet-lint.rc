@@ -3,5 +3,10 @@
 --no-autoloader_layout-check
 --no-case_without_default-check
 --no-documentation-check
+--no-manifest_whitespace_closing_bracket_after-check
+--no-manifest_whitespace_opening_brace_before-check
+--no-manifest_whitespace_two_empty_lines-check
 --no-nested_classes_or_defines-check
+--no-parameter_documentation-check
+--no-strict_indent-check
 --no-variable_scope-check

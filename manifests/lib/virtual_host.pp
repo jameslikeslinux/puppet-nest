@@ -8,7 +8,7 @@ define nest::lib::virtual_host (
   Boolean                $ssl           = true,
   Boolean                $zfs_docroot   = true,
 ) {
-  include '::nest::service::apache'
+  include 'nest::service::apache'
 
   $http_port = $port ? {
     undef   => 80,
@@ -25,7 +25,7 @@ define nest::lib::virtual_host (
     default => ":${port}",
   }
 
-  if $port and $::nest::service::apache::manage_firewall {
+  if $port and $nest::service::apache::manage_firewall {
     firewalld_port { $name:
       port     => $port,
       protocol => tcp,

@@ -101,8 +101,8 @@ class nest::base::systemd {
     content => "\nThis is \\n (\\s \\m \\r) \\t\n\n",
   }
 
-  if $::nest::isolate_smt {
-    $allowed_cpus = "0-${facts['processorcount'] / 2 - 1}"
+  if $nest::isolate_smt {
+    $allowed_cpus = "0-${facts['processors']['count'] / 2 - 1}"
 
     file {
       default:

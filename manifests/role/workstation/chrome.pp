@@ -4,7 +4,7 @@ class nest::role::workstation::chrome (
   String  $google_oauth_secret,
   Boolean $chromium = true,
 ) {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       $gpu_rasterization_flag = $facts['virtual'] ? {
         'vmware' => 'disable-gpu-rasterization',
@@ -21,7 +21,7 @@ class nest::role::workstation::chrome (
             ensure => installed,
           }
 
-          if $facts['architecture'] in ['amd64', 'x86_64'] {
+          if $facts['os']['architecture'] in ['amd64', 'x86_64'] {
             package { 'www-plugins/chrome-binary-plugins':
               ensure => installed,
             }
@@ -29,7 +29,7 @@ class nest::role::workstation::chrome (
 
           $chromium_flags = @("EOT"/$)
             [[ \$XDG_SESSION_TYPE == 'x11' ]] &&
-                CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${::nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
+                CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --${gpu_rasterization_flag}"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"

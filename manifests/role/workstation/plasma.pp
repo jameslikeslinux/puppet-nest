@@ -1,6 +1,6 @@
 class nest::role::workstation::plasma {
   nest::lib::package_use { 'kde-plasma/plasma-meta':
-    use => ['-firewall', '-networkmanager']
+    use => ['-firewall', '-networkmanager'],
   }
 
   package { 'kde-plasma/plasma-meta':
@@ -13,17 +13,17 @@ class nest::role::workstation::plasma {
     CursorTheme=breeze_cursors
 
     [X11]
-    ServerArguments=-dpi ${::nest::dpi}
+    ServerArguments=-dpi ${nest::dpi}
     EnableHiDPI=false
 
     [Users]
     MaximumUid=1000
     | EOT
 
-  if $::nest::autologin != off {
-    $session = $::nest::autologin ? {
-      xmonad  => 'plasma',
-      default => $::nest::autologin,
+  if $nest::autologin != off {
+    $session = $nest::autologin ? {
+      'xmonad' => 'plasma',
+      default  => $nest::autologin,
     }
 
     $sddm_autologin_conf = @("AUTOLOGIN")

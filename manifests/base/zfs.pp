@@ -1,7 +1,7 @@
 class nest::base::zfs {
   nest::lib::package { 'sys-fs/zfs':
     ensure => installed,
-    use    => 'kernel-builtin'
+    use    => 'kernel-builtin',
   }
 
   $zfs_mount_activate_be_override = @(EOF)
@@ -41,7 +41,7 @@ class nest::base::zfs {
       command => '/sbin/zgenhostid `hostid`',
       creates => '/etc/hostid',
       require => Package['sys-fs/zfs'],
-      notify  => Class['::nest::base::dracut'],
+      notify  => Class['nest::base::dracut'],
     }
   }
 

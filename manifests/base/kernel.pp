@@ -1,6 +1,6 @@
 class nest::base::kernel {
   # For nest::base::portage::makeopts
-  include '::nest::base::portage'
+  include 'nest::base::portage'
 
   Nest::Lib::Kconfig {
     config => '/usr/src/linux/.config',
@@ -9,7 +9,7 @@ class nest::base::kernel {
   package_mask { $nest::kernel_package['package_name']: }
   ->
   package_unmask { $nest::kernel_package['package_name']:
-    version => "=${nest::kernel_package['package_version']}"
+    version => "=${nest::kernel_package['package_version']}",
   }
   ->
   nest::lib::package { $nest::kernel_package['package_name']:
@@ -20,7 +20,7 @@ class nest::base::kernel {
   ->
   file { '/usr/src/linux/.scmversion':
     # Prevent addition of '+' to kernel version in git-based source trees
-    ensure => present,
+    ensure => file,
     mode   => '0644',
     owner  => 'root',
     group  => 'root',
@@ -42,13 +42,13 @@ class nest::base::kernel {
     notify  => Exec['kernel-build'],
   }
 
-  $::nest::kernel_config.each |$config, $value| {
+  $nest::kernel_config.each |$config, $value| {
     nest::lib::kconfig { $config:
       value => $value,
     }
   }
 
-  if $::nest::bootloader == 'systemd' {
+  if $nest::bootloader == 'systemd' {
     nest::lib::kconfig { 'CONFIG_EFI_STUB':
       value => y,
     }
@@ -64,7 +64,7 @@ class nest::base::kernel {
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")
-    /usr/bin/make ${::nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
+    /usr/bin/make ${nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
     /usr/bin/tee build.log
     | KERNEL_MAKE
 
@@ -82,7 +82,7 @@ class nest::base::kernel {
     timeout     => 0,
     refreshonly => true,
     noop        => !$facts['build'],
-    notify      => Class['::nest::base::dracut'],
+    notify      => Class['nest::base::dracut'],
   }
   ~>
   exec { 'module-rebuild':
@@ -90,7 +90,7 @@ class nest::base::kernel {
     timeout     => 0,
     refreshonly => true,
     noop        => str2bool($facts['skip_module_rebuild']),
-    notify      => Class['::nest::base::dracut'],
+    notify      => Class['nest::base::dracut'],
   }
   ->
   nest::lib::package { 'sys-fs/zfs-kmod':

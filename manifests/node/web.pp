@@ -4,7 +4,7 @@ class nest::node::web {
 
   mysql::db { 'bitwarden':
     user     => 'bitwarden',
-    password => $::nest::service::bitwarden::database_password,
+    password => $nest::service::bitwarden::database_password,
     host     => '%',
     before   => Class['nest::service::bitwarden'],
   }

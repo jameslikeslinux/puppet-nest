@@ -3,7 +3,7 @@ class nest::base::fs {
     ensure => installed,
   }
 
-  if $::nest::fileserver {
+  if $nest::fileserver {
     service { 'nfs-server':
       enable => true,
     }
@@ -52,7 +52,7 @@ class nest::base::fs {
     }
   }
 
-  if $::nest::fscache {
+  if $nest::fscache {
     package { 'sys-fs/cachefilesd':
       ensure => installed,
     }

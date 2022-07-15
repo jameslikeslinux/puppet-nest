@@ -1,5 +1,5 @@
 class nest::base::users {
-  case $facts['osfamily'] {
+  case $facts['os']['family'] {
     'Gentoo': {
       file { '/bin/zsh':
         ensure => file,
@@ -43,7 +43,7 @@ class nest::base::users {
       }
 
       if $facts['build'] in [undef, 'stage3'] {
-        $pw_hash = $::nest::pw_hash
+        $pw_hash = $nest::pw_hash
       }
 
       user {
@@ -146,7 +146,7 @@ class nest::base::users {
   }
 
   $homes.each |$user, $dir| {
-    case $facts['osfamily'] {
+    case $facts['os']['family'] {
       'windows': {
         $exec_user   = undef
         $home_dir    = "C:/tools/cygwin${dir}"

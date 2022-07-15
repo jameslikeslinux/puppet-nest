@@ -1,5 +1,5 @@
 class nest::base::mta {
-  case $::nest::mta {
+  case $nest::mta {
     'nullmailer': {
       class { 'nest::base::mta::postfix':
         ensure => absent,

@@ -46,7 +46,12 @@ PuppetLint.configuration.send('disable_arrow_on_right_operand_line')
 PuppetLint.configuration.send('disable_autoloader_layout')
 PuppetLint.configuration.send('disable_case_without_default')
 PuppetLint.configuration.send('disable_documentation')
+PuppetLint.configuration.send('disable_manifest_whitespace_closing_bracket_after')
+PuppetLint.configuration.send('disable_manifest_whitespace_opening_brace_before')
+PuppetLint.configuration.send('disable_manifest_whitespace_two_empty_lines')
 PuppetLint.configuration.send('disable_nested_classes_or_defines')
+PuppetLint.configuration.send('disable_parameter_documentation')
+PuppetLint.configuration.send('disable_strict_indent')
 PuppetLint.configuration.send('disable_variable_scope')
 
 

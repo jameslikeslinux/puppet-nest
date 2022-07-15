@@ -12,7 +12,7 @@ class nest::base::fstab {
     $labelname = $hostname
   }
 
-  $boot_vfstype = $::nest::bootloader ? {
+  $boot_vfstype = $nest::bootloader ? {
     'systemd' => 'vfat',
     default   => 'ext2',
   }
@@ -65,7 +65,7 @@ class nest::base::fstab {
       'set 5/dump 0',
       'set 5/passno 2',
 
-      "set 6/spec ${::nest::nestfs_hostname}:/nest",
+      "set 6/spec ${nest::nestfs_hostname}:/nest",
       'set 6/file /nest',
       'set 6/vfstype nfs',
       'set 6/opt[1] noauto',
@@ -80,7 +80,7 @@ class nest::base::fstab {
     ],
 
     'nest-nocache' => [
-      "set 6/spec ${::nest::nestfs_hostname}:/nest",
+      "set 6/spec ${nest::nestfs_hostname}:/nest",
       'set 6/file /nest',
       'set 6/vfstype nfs',
       'set 6/opt[1] noauto',
@@ -92,14 +92,14 @@ class nest::base::fstab {
     ],
   }
 
-  $nest_spec = $::nest::fscache ? {
+  $nest_spec = $nest::fscache ? {
     false   => 'nest-nocache',
     default => 'nest-fscache',
   }
 
   if $facts['profile']['platform'] == 'live' {
     $fstab = $specs['nest-nocache']
-  } elsif $::nest::nestfs_hostname == "${hostname}.nest" {
+  } elsif $nest::nestfs_hostname == "${hostname}.nest" {
     $fstab = $specs['boot'] + $specs['swap'] + $specs['var']
   } elsif $facts['mountpoints']['/efi'] {
     $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
@@ -109,7 +109,7 @@ class nest::base::fstab {
 
   augeas { 'fstab':
     context => '/files/etc/fstab',
-    changes => ['rm *[spec]'] + $fstab
+    changes => ['rm *[spec]'] + $fstab,
   }
 
   # XXX: Hide harmless error at shutdown when trying to unmount /var due to
