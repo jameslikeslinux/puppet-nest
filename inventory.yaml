@@ -46,14 +46,14 @@ groups:
     - name: 'amd64-servers'
       targets:
         - _plugin: puppetdb
-          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.architecture in ['amd64', 'x86_64'] and facts.profile.role = 'server' and certname != 'builder' }"
+          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.architecture ~ '^(amd64|x86_64)$' and facts.profile.role = 'server' and certname != 'builder' }"
           target_mapping:
             name: certname
             uri: facts.fqdn
     - name: 'amd64-workstations'
       targets:
         - _plugin: puppetdb
-          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.architecture in ['amd64', 'x86_64'] and facts.profile.role = 'workstation' and certname != 'builder' }"
+          query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.architecture ~ '^(amd64|x86_64)$' and facts.profile.role = 'workstation' and certname != 'builder' }"
           target_mapping:
             name: certname
             uri: facts.fqdn
