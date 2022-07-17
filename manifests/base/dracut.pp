@@ -32,13 +32,17 @@ class nest::base::dracut {
     require => Package['sys-kernel/dracut'],
   }
 
-  # During boot, systemd-udev-trigger -> systemd-udev-settle ->
-  # zfs-import-cache, but for some reason, persistent device labels aren't
-  # processed in time by the trigger-settle loop.  Triggering changes seems to
-  # fix the problem.
+  # Add delay to ensure all devices are enumerated at boot before the ZFS import
+  # See: https://github.com/openzfs/zfs/issues/8885#issuecomment-774503341
+  file_line { 'systemd-udev-settle-sleep':
+    path => '/lib/systemd/system/systemd-udev-settle.service',
+    line => 'ExecStartPre=/bin/sleep 5',
+  }
+
+  # XXX: Cleanup
   file_line { 'systemd-udev-trigger-changes':
-    path  => '/lib/systemd/system/systemd-udev-trigger.service',
-    after => 'ExecStart=/bin/udevadm trigger --type=devices --action=add',
-    line  => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
+    ensure => absent,
+    path   => '/lib/systemd/system/systemd-udev-trigger.service',
+    line   => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
   }
 }
