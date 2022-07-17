@@ -45,10 +45,6 @@ class nest::base::puppet {
         content => $outputs_facts,
       }
 
-      file { '/etc/puppetlabs/facter/facts.d/scaling.yaml':
-        ensure => absent,
-      };
-
       # My hosts take on the domain name of the network to which they're attached.
       # Provide a stable, canonical value for Puppet.
       file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
