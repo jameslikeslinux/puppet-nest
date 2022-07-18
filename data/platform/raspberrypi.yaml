@@ -39,3 +39,8 @@ nest::kernel_config:
 
   # Not available in raspberrypi-sources
   CONFIG_GENTOO_LINUX_INIT_SYSTEMD: null
+
+  # Try firmware framebuffer
+  CONFIG_SYSFB_SIMPLEFB: y
+  CONFIG_FB_EFI: y
+  CONFIG_DRM_SIMPLEDRM: y
