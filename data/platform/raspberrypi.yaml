@@ -16,7 +16,7 @@ nest::package_keywords:
 nest::kernel_package:
   package_name: 'sys-kernel/raspberrypi-sources'
   package_version: '5.15.9999'
-  kernel_version: '5.15.34-raspberrypi'
+  kernel_version: '5.15.53-raspberrypi'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot
@@ -27,9 +27,11 @@ nest::kernel_cmdline:
 nest::kernel_config:
   # Device drivers ('y' for early boot)
   CONFIG_DRM: y
+  CONFIG_DRM_V3D: y
   CONFIG_DRM_VC4: y
   CONFIG_SND: y
   CONFIG_SND_SOC: y
+  CONFIG_LEDS_TRIGGER_DISK: y
 
   # Enable frequency scaling based on scheduler data
   CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE: n
