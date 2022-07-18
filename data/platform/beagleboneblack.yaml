@@ -11,8 +11,11 @@ nest::packages_env:
     env: 'light-debug.conf'
 
 nest::kernel_config:
-  # Device drivers ('y' for early boot)
-  CONFIG_DRM: y
-  CONFIG_DRM_I2C_NXP_TDA998X: y
-  CONFIG_DRM_TILCDC: y
+  # Enable frequency scaling based on scheduler data
+  CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND: n
+  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL: y
+
+  # Device drivers
+  CONFIG_DRM_I2C_NXP_TDA998X: m
+  CONFIG_DRM_TILCDC: m
   CONFIG_SND_SOC_DAVINCI_MCASP: m

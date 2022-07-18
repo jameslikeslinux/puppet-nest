@@ -18,10 +18,6 @@ nest::kernel_config:
   CONFIG_VFIO_PCI: m
   CONFIG_IRQ_REMAP: y
 
-  # Framebuffer
-  CONFIG_SYSFB_SIMPLEFB: y
-  CONFIG_FB_EFI: y
-
   # Device drivers
   CONFIG_IGB: m
   CONFIG_IWLWIFI: m
@@ -30,7 +26,6 @@ nest::kernel_config:
   CONFIG_IPMI_DEVICE_INTERFACE: m
   CONFIG_IPMI_SI: m
   CONFIG_I2C_CHARDEV: m
-  CONFIG_DRM: y
   CONFIG_DRM_AMDGPU: m
   CONFIG_DRM_AMD_DC_HDCP: y
   CONFIG_DRM_SIMPLEDRM: y

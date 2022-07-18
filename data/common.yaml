@@ -97,12 +97,6 @@ nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
 
-  # Rely on filesystem compression
-  CONFIG_MODULE_COMPRESS_NONE: y
-  CONFIG_MODULE_COMPRESS_GZIP: n
-  CONFIG_MODULE_COMPRESS_XZ: n
-  CONFIG_MODULE_COMPRESS_ZSTD: n
-
   # Networking
   CONFIG_IPV6: y
   CONFIG_NETFILTER: y
@@ -146,6 +140,9 @@ nest::kernel_config:
   CONFIG_TUN: m
 
   # Framebuffer
+  CONFIG_SYSFB_SIMPLEFB: y
+  CONFIG_DRM: y
+  CONFIG_DRM_SIMPLEDRM: y
   CONFIG_FB: y
   CONFIG_LOGO: n
 

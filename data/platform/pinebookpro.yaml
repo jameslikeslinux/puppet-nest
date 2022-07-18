@@ -17,18 +17,7 @@ nest::kernel_cmdline:
   - 'noefi'   # u-boot doesn't provide EFI services
 
 nest::kernel_config:
-  # Device drivers ('y' for early boot)
+  # Device drivers
   CONFIG_BATTERY_CW2015: m
   CONFIG_CHARGER_GPIO: m
-  CONFIG_DRM: y
-  CONFIG_DRM_ROCKCHIP: y
   CONFIG_SND_SOC_ES8316: m
-  CONFIG_SND_SOC_SIMPLE_AMPLIFIER: m
-  CONFIG_HID_MULTITOUCH: m
-  CONFIG_TYPEC: y
-  CONFIG_TYPEC_TCPM: y
-  CONFIG_TYPEC_FUSB302: y
-
-  # Workaround bug in 5.9
-  # See: https://lists.infradead.org/pipermail/linux-rockchip/2020-September/022352.html
-  CONFIG_ROCKCHIP_CDN_DP: n
