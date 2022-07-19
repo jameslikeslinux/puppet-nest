@@ -14,7 +14,7 @@ nest::package_keywords:
 nest::kernel_package:
   package_name: 'sys-kernel/raspberrypi-sources'
   package_version: '5.15.32_p20220331-r1'
-  kernel_version: '5.15.32-raspberrypi'
+  kernel_version: '5.15.32'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot
@@ -32,4 +32,5 @@ nest::kernel_config:
   CONFIG_MODULE_COMPRESS_XZ: n
 
   # Not available in raspberrypi-sources
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: null
+  # (it is in snapshot releases)
+  #CONFIG_GENTOO_LINUX_INIT_SYSTEMD: null
