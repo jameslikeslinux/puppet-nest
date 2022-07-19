@@ -10,6 +10,8 @@ lookup_options:
     merge: 'hash'
   nest::package_keywords:
     merge: 'hash'
+  nest::reset_filter_rules:
+    merge: 'unique'
   nest::service::wordpress::sites:
     merge: 'hash'
   nest::tool::bolt::key:

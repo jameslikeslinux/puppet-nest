@@ -1,0 +1,18 @@
+#
+# Nest CLI Reset Test Rsync Filter Rules
+#
+# These special rules are read by rsync(1) when the `--test` option is passed
+# to `nest reset`. It speeds up the checksum-based dry-run by skipping safe
+# system files.
+#
+# Managed by Puppet
+#
+
+- /opt/bitwarden/
+- /usr/bin/
+- /usr/debug/
+- /usr/include/
+- /usr/lib*/
+- /usr/sbin/
+- /usr/share/
+- /var/db/

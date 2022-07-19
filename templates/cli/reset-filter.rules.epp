@@ -1,0 +1,35 @@
+<%- |
+  Array[String] $rules,
+| -%>
+#
+# Nest CLI Reset Rsync Filter Rules
+#
+# These rules are sourced by rsync(1) in the `nest reset` sync step to
+# prevent files from being updated or deleted.
+#
+# Managed by Puppet
+#
+
+# Global rules
+- /etc/cups/printers.conf
+- /etc/cups/ppd/
+- /etc/libvirt/secrets/
+- /etc/libvirt/storage/
+- /etc/libvirt/qemu/
+- /etc/zfs/zpool.cache
+- /home/
+- /root/
+- /srv/
+P /var/log/**
+P /var/tmp/**
+
+# Kernel rules (kernel update managed in another step)
+- /lib/modules/
+- /usr/src/linux*
+<% unless $rules.empty { -%>
+
+# Host-specific rules
+<% $rules.each |$rule| { -%>
+<%= $rule %>
+<% } -%>
+<% } -%>
