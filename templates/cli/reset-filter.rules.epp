@@ -11,6 +11,7 @@
 #
 
 # Global rules
+- /boot/
 - /etc/cups/printers.conf
 - /etc/cups/ppd/
 - /etc/libvirt/secrets/
@@ -23,7 +24,7 @@
 P /var/log/**
 P /var/tmp/**
 
-# Kernel rules (kernel update managed in another step)
+# Kernel rules (updates managed in another step)
 - /lib/modules/
 - /usr/src/linux*
 <% unless $rules.empty { -%>
