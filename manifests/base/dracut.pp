@@ -44,9 +44,9 @@ class nest::base::dracut {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/systemd/system/systemd-udev-settle.service.d':
@@ -72,13 +72,13 @@ class nest::base::dracut {
     ;
 
     'systemd-udev-settle-sleep':
-      path   => '/lib/systemd/system/systemd-udev-settle.service',
-      line   => 'ExecStartPre=/bin/sleep 5',
+      path => '/lib/systemd/system/systemd-udev-settle.service',
+      line => 'ExecStartPre=/bin/sleep 5',
     ;
 
     'systemd-udev-trigger-changes':
-      path   => '/lib/systemd/system/systemd-udev-trigger.service',
-      line   => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
+      path => '/lib/systemd/system/systemd-udev-trigger.service',
+      line => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
     ;
   }
 }
