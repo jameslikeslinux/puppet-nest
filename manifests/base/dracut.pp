@@ -1,4 +1,8 @@
 class nest::base::dracut {
+  if $facts['force_kernel_install'] {
+    notify { 'forcing-kernel-install': }
+  }
+
   package { 'sys-kernel/dracut':
     ensure => installed,
   }
