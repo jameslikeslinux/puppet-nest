@@ -12,11 +12,17 @@
 
 # Global rules
 - /boot/
-- /etc/cups/printers.conf
-- /etc/cups/ppd/
-- /etc/libvirt/secrets/
-- /etc/libvirt/storage/
-- /etc/libvirt/qemu/
+- /etc/hostid
+- /etc/mtab
+- /etc/printcap
+- /etc/resolv.conf
+- /etc/containers/storage.conf
+- /etc/cups/
+- /etc/dracut.conf.d/
+- /etc/firewalld/
+- /etc/kernel/cmdline
+- /etc/nest/
+- /etc/portage/make.conf
 - /etc/zfs/zpool.cache
 - /home/
 - /root/
