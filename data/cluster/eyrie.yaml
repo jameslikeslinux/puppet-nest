@@ -3,3 +3,7 @@ classes:
   - 'nest::service::kubernetes'
 
 nest::journal: volatile
+
+nest::reset_filter_rules:
+  - '- /etc/kubernetes/'
+  - 'P /opt/cni/**'
