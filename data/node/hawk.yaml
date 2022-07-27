@@ -25,3 +25,5 @@ nest::hosts:
       - 'comply.puppet'
   client.puppet:
     ip: '10.81.40.12'
+  elclient.puppet:
+    ip: '10.81.40.13'
