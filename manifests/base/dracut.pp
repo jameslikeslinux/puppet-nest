@@ -7,6 +7,13 @@ class nest::base::dracut {
     ensure => installed,
   }
 
+  File {
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    require => Package['sys-kernel/dracut'],
+  }
+
   if $facts['os']['architecture'] in ['amd64', 'x86_64'] {
     package { 'sys-firmware/intel-microcode':
       ensure => installed,
@@ -29,11 +36,22 @@ class nest::base::dracut {
   }
 
   file { '/etc/dracut.conf.d/00-base.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
     content => $base_config_content,
-    require => Package['sys-kernel/dracut'],
+  }
+
+  $force_drivers = $facts['profile']['platform'] ? {
+    'raspberrypi' => ['vc4'],
+    default       => undef,
+  }
+
+  if $force_drivers {
+    file { '/etc/dracut.conf.d/10-drivers.conf':
+      content => "force_drivers+=\" ${force_drivers.join(' ')} \"\n",
+    }
+  } else {
+    file { '/etc/dracut.conf.d/10-drivers.conf':
+      ensure => absent,
+    }
   }
 
   # Add delay to ensure all devices are enumerated at boot before the ZFS import
@@ -47,12 +65,6 @@ class nest::base::dracut {
     | END_CONF
 
   file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
     '/etc/systemd/system/systemd-udev-settle.service.d':
       ensure => directory,
     ;
