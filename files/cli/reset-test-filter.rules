@@ -8,12 +8,11 @@
 # Managed by Puppet
 #
 
+- /bin/
+- /lib*/
+- /sbin/
 - /opt/bitwarden/
-- /usr/bin/
-- /usr/debug/
-- /usr/include/
-- /usr/lib*/
-- /usr/sbin/
-- /usr/share/
-- /usr/src/
+- /usr/
 - /var/db/
+- /var/lib/puppet/
+- /var/tmp/
