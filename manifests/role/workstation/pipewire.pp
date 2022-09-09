@@ -1,7 +1,7 @@
 class nest::role::workstation::pipewire {
   nest::lib::package { 'media-video/pipewire':
     ensure => installed,
-    use    => ['aptx', 'ldac'],
+    use    => 'sound-server',
   }
   ->
   exec {
