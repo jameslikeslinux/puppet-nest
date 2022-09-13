@@ -14,3 +14,10 @@ nest::kernel_config:
 # flexibility comes at the cost of not being able to allocate more than 2G for
 # a user process, a compromise I am willing to make.
 nest::kernel_cmdline: ['vmalloc=1G']
+
+nest::package_keywords:
+  # Stable version 1.18 hangs under qemu-arm
+  dev-lang/go-bootstrap:
+    version: '~1.19'
+  dev-lang/go:
+    version: '~1.19'
