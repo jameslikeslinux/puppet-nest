@@ -28,12 +28,20 @@ class nest::base::dracut {
       | EOT
   }
 
-  file { '/etc/dracut.conf.d/00-base.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => $base_config_content,
-    require => Package['sys-kernel/dracut'],
+  file {
+    default:
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+    ;
+
+    '/etc/dracut.conf.d':
+      ensure => directory,
+    ;
+
+    '/etc/dracut.conf.d/00-base.conf':
+      content => $base_config_content,
+    ;
   }
 
   # Add delay to ensure all devices are enumerated at boot before the ZFS import
@@ -68,21 +76,4 @@ class nest::base::dracut {
   }
 
   nest::lib::systemd_reload { 'dracut': }
-
-  # XXX: Cleanup
-  file_line {
-    default:
-      ensure => absent,
-    ;
-
-    'systemd-udev-settle-sleep':
-      path => '/lib/systemd/system/systemd-udev-settle.service',
-      line => 'ExecStartPre=/bin/sleep 5',
-    ;
-
-    'systemd-udev-trigger-changes':
-      path => '/lib/systemd/system/systemd-udev-trigger.service',
-      line => 'ExecStart=/bin/udevadm trigger --type=devices --action=change',
-    ;
-  }
 }
