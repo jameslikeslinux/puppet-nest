@@ -1,11 +1,10 @@
 class nest::role::workstation::sway {
   nest::lib::package_use { 'gui-wm/sway':
-    use => ['-swaybar'],
+    use => ['-swaybar', 'wallpapers'],
   }
 
   package { [
     'gui-wm/sway',
-    'gui-apps/swaybg',
     'gui-apps/waybar',
     'app-misc/jq',            # for interacting with swaymsg
     'gui-apps/wl-clipboard',  # for tmux-yank
