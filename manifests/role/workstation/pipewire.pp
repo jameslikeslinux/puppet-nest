@@ -64,23 +64,5 @@ class nest::role::workstation::pipewire {
       line  => '        default.clock.rate        = 44100',
       match => '^\s*default\.clock\.rate\s*=',
     }
-
-    file_line {
-      default:
-        path               => '/etc/wireplumber/main.lua.d/50-alsa-config.lua',
-        append_on_no_match => false,
-        require            => Package['media-video/pipewire'],
-      ;
-
-      'alsa-period-size':
-        line  => '      ["api.alsa.period-size"]     = 256,',
-        match => '^\s*(--)?\["api\.alsa\.period-size"\]\s*=',
-      ;
-
-      'alsa-headroom':
-        line  => '      ["api.alsa.headroom"]        = 8192,',
-        match => '^\s*(--)?\["api\.alsa\.headroom"\]\s*=',
-      ;
-    }
   }
 }
