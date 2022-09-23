@@ -38,6 +38,10 @@ case $facts['os']['family'] {
       Sysctl <||> {
         apply => false,
       }
+
+      Mysql::Db <||> {
+        noop => true,
+      }
     }
   }
 
