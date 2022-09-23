@@ -14,9 +14,11 @@ define nest::lib::wordpress (
   include 'apache::mod::rewrite'
   ensure_resource('apache::mod', 'proxy_fcgi', { 'package' => 'www-servers/apache' })
 
-  mysql::db { $name:
-    user     => $name,
-    password => $database_password,
+  unless $facts['is_container'] {
+    mysql::db { $name:
+      user     => $name,
+      password => $database_password,
+    }
   }
 
   # See: https://wiki.apache.org/httpd/PHP-FPM#Proxy_via_handler
