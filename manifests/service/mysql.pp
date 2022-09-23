@@ -9,6 +9,7 @@ class nest::service::mysql {
         'bind-address' => ['0.0.0.0', '::'],
       },
     },
+    service_enabled  => !$facts['is_container'],
     service_name     => 'mysqld',
     service_provider => 'systemd',
   }
