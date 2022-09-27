@@ -1,4 +1,7 @@
 ---
+nest::kernel_cmdline:
+  - 'zfs.zfs_txg_timeout=30'
+
 nest::package_keywords:
   # For PHP 7.4 support
   dev-php/pecl-ssh2:
