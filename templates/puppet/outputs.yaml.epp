@@ -1,0 +1,10 @@
+---
+<% if $nest::monitor_layout { -%>
+monitor_layout: <%= $nest::monitor_layout.map |$m| { $m.regsubst('@.*$', '') } %>
+<% } -%>
+<% if $nest::primary_monitor { -%>
+primary_output: '<%= $nest::primary_monitor %>'
+<% } -%>
+scaling:
+  gui: <%= $nest::gui_scaling_factor %>
+  text: <%= $nest::text_scaling_factor %>

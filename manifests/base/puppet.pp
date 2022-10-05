@@ -30,19 +30,11 @@ class nest::base::puppet {
         content => $facter_conf,
       }
 
-      $outputs_facts = @("OUTPUTS_FACTS")
-        ---
-        primary_output: '${nest::primary_monitor}'
-        scaling:
-          gui: ${nest::gui_scaling_factor}
-          text: ${nest::text_scaling_factor}
-        | OUTPUTS_FACTS
-
       file { '/etc/puppetlabs/facter/facts.d/outputs.yaml':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => $outputs_facts,
+        content => epp('nest/puppet/outputs.yaml.epp'),
       }
 
       # My hosts take on the domain name of the network to which they're attached.
