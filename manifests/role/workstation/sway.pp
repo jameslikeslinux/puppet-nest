@@ -20,19 +20,12 @@ class nest::role::workstation::sway {
   $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
-  # Let Sway work under VMware
-  $sw_cursors = $facts['virtual'] ? {
-    'vmware' => 1,
-    default  => true,
-  }
-
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     # Workaround https://github.com/swaywm/sway/issues/3109
     exec "\$SHELL" -c "env \
         GDK_DPI_SCALE=${dpi_scale} \
         QT_FONT_DPI=${dpi} \
-        WLR_NO_HARDWARE_CURSORS=${sw_cursors} \
         XDG_CURRENT_DESKTOP=sway \
         /usr/bin/sway \${*@Q}"
     | END_WRAPPER
