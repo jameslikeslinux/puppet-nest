@@ -2,26 +2,23 @@
 # Transforms ['a@0', 'b@1920', 'c@3840'] -> ['a', 'b', 'c']
 monitor_layout = @monitor_layout.map { |monitor| monitor.sub(/@\d+$/, '') }
 
-# Transforms ['a', 'b', 'c'] -> [['a', 'b'], ['b', 'c'], ['c', nil]]
-monitor_pairs = monitor_layout.zip(monitor_layout.drop(1))
-
 after_primary = false
-monitor_pairs.each do |monitor, relative_monitor|
+monitor_layout.each_with_index do |monitor, i|
   if monitor == @primary_monitor
     option = "\"Primary\" \"yes\""
     after_primary = true
   elsif after_primary
-    option = "\"RightOf\" \"#{relative_monitor}\""
+    option = "\"RightOf\" \"#{monitor_layout[i - 1]}\""
   else
-    option = "\"LeftOf\" \"#{relative_monitor}\""
+    option = "\"LeftOf\" \"#{monitor_layout[i + 1]}\""
   end
 -%>
 Section "Monitor"
     Identifier "<%= monitor %>"
     Option     <%= option %>
 EndSection
-<% if relative_monitor -%>
+<% if i < monitor_layout.length - 1 -%>
 
-<% end 
+<% end
 end
 -%>
