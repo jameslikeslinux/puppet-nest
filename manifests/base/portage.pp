@@ -221,6 +221,7 @@ class nest::base::portage {
     'package_accept_keywords',
     'package_env',
     'package_mask',
+    'package_unmask',
     'package_use',
   ]:
     purge  => true,
