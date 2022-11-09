@@ -51,6 +51,7 @@ class nest::base::portage {
       '/etc/portage/package.mask/default',
       '/etc/portage/package.unmask/default',
       '/etc/portage/package.use/default',
+      '/etc/portage/profile/package.provided',
     ]:
       ensure => file,
     ;

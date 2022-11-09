@@ -24,7 +24,8 @@ class nest::base::firmware::uboot {
     revision => $uboot_branch,
   }
   ~>
-  exec { '/bin/rm -f /usr/src/u-boot/.config':
+  exec { 'uboot-reset-config':
+    command     => '/bin/rm -f /usr/src/u-boot/.config',
     refreshonly => true,
   }
 
@@ -39,7 +40,7 @@ class nest::base::firmware::uboot {
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/u-boot',
     creates => '/usr/src/u-boot/.config',
-    require => Vcsrepo['/usr/src/u-boot'],
+    require => Exec['uboot-reset-config'],
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {

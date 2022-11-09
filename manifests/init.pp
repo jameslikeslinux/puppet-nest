@@ -1,6 +1,6 @@
 class nest (
   # Required settings
-  Nest::KernelPackage  $kernel_package,
+  String               $kernel_tag,
   Stdlib::Host         $nestfs_hostname,
   Stdlib::Host         $openvpn_hostname,
   String               $pw_hash,
@@ -51,7 +51,11 @@ class nest (
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
 ) {
-  $kernel_version = pick($facts['kernel_version'], $kernel_package['kernel_version'])
+  if $kernel_tag =~ /v([\d.]+)/ {
+    $kernel_version = $1
+  } else {
+    fail("Failed to determine kernel version from the tag '${kernel_tag}'")
+  }
 
   $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')
   $gui_scaling_factor_rounded = 0 + inline_template('<%= @gui_scaling_factor.round %>')

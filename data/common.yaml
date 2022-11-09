@@ -86,10 +86,7 @@ nest::package_keywords:
   dev-util/ninja:
     version: '~1.11.0'
 
-nest::kernel_package:
-  package_name: 'sys-kernel/gentoo-sources'
-  package_version: '5.19.4'
-  kernel_version: '5.19.4-gentoo'
+nest::kernel_tag: 'stable/v5.19.17'
 
 nest::kernel_config:
   # Preferences
@@ -182,7 +179,6 @@ nest::kernel_config:
   CONFIG_CHECKPOINT_RESTORE: y
   CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: y
   CONFIG_FANOTIFY: y
-  CONFIG_GENTOO_LINUX_INIT_SYSTEMD: y
 
   # For containers
   CONFIG_POSIX_MQUEUE: y

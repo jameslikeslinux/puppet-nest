@@ -9,12 +9,8 @@ nest::wifi: true
 nest::package_keywords:
   # Still not fully open-source or mainlined...
   sys-boot/raspberrypi-firmware: {}
-  sys-kernel/raspberrypi-sources: {}
 
-nest::kernel_package:
-  package_name: 'sys-kernel/raspberrypi-sources'
-  package_version: '5.15.32_p20220331-r1'
-  kernel_version: '5.15.32'
+nest::kernel_tag: 'raspberrypi/v5.19.17'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot
@@ -36,7 +32,3 @@ nest::kernel_config:
   # Rely on filesystem compression
   CONFIG_MODULE_COMPRESS_NONE: y
   CONFIG_MODULE_COMPRESS_XZ: n
-
-  # Not available in raspberrypi-sources
-  # (it is in snapshot releases)
-  #CONFIG_GENTOO_LINUX_INIT_SYSTEMD: null

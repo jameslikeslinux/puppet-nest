@@ -6,25 +6,33 @@ class nest::base::kernel {
     config => '/usr/src/linux/.config',
   }
 
-  package_mask { $nest::kernel_package['package_name']: }
-  ->
-  package_unmask { $nest::kernel_package['package_name']:
-    version => "=${nest::kernel_package['package_version']}",
+  vcsrepo { '/usr/src/linux':
+    ensure   => latest,
+    provider => git,
+    source   => 'https://gitlab.james.tl/nest/forks/linux.git',
+    revision => $nest::kernel_tag,
+    depth    => 1,
   }
-  ->
-  nest::lib::package { $nest::kernel_package['package_name']:
-    ensure => installed,
-    use    => 'symlink',
-    before => Exec['kernel-defconfig'],
+  ~>
+  exec { 'kernel-reset-config':
+    command     => '/bin/rm -f /usr/src/linux/.config',
+    refreshonly => true,
   }
-  ->
+  ->  # sources w/o config, just like a provided package
+  file_line { 'package.provided-kernel':
+    path  => '/etc/portage/profile/package.provided',
+    line  => "sys-kernel/vanilla-sources-${nest::kernel_version}",
+    match => '^sys-kernel/vanilla-sources-',
+  }
+
   file { '/usr/src/linux/.scmversion':
     # Prevent addition of '+' to kernel version in git-based source trees
-    ensure => file,
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    before => Exec['kernel-build'],
+    ensure  => file,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    require => Vcsrepo['/usr/src/linux'],
+    before  => Exec['kernel-build'],
   }
 
   $defconfig = $facts['profile']['platform'] ? {
@@ -39,6 +47,7 @@ class nest::base::kernel {
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
+    require => Exec['kernel-reset-config'],
     notify  => Exec['kernel-build'],
   }
 
@@ -101,4 +110,25 @@ class nest::base::kernel {
   Exec['kernel-defconfig']
   -> Nest::Lib::Kconfig <| config == '/usr/src/linux/.config' |>
   ~> Exec['kernel-olddefconfig']
+
+
+  #
+  # XXX Cleanup
+  #
+  ['gentoo-sources', 'raspberrypi-sources'].each |$package| {
+    exec { "remove-${package}":
+      command => "/usr/bin/emerge --depclean '${package}'",
+      onlyif  => "/usr/bin/eix --quiet --installed --exact '${package}'",
+      require => File_line['package.provided-kernel'],
+    }
+  }
+
+  # Replace old symlink
+  file { '/usr/src/linux':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+    before => Vcsrepo['/usr/src/linux'],
+  }
 }
