@@ -8,6 +8,7 @@ define nest::lib::reverse_proxy (
   String                   $servername      = $name,
   Array[String]            $serveraliases   = [],
   Boolean                  $ssl             = true,
+  Optional[Integer]        $timeout         = undef,
   Variant[Boolean, String] $websockets      = false,
 ) {
   if $encoded_slashes {
@@ -15,10 +16,15 @@ define nest::lib::reverse_proxy (
     $allow_encoded_slashes = on
   }
 
+  if $timeout {
+    $proxy_params = { 'timeout' => $timeout }
+  }
+
   $proxy_pass = [{
     'path'     => '/',
     'url'      => "http://${destination}/",
     'keywords' => $proxy_pass_keywords,
+    'params'   => $proxy_params,
   }]
 
   if $websockets {
