@@ -94,6 +94,10 @@ nest::kernel_config:
   CONFIG_IKCONFIG: y
   CONFIG_IKCONFIG_PROC: y
 
+  # For systemd
+  CONFIG_BPF_SYSCALL: y
+  CONFIG_CRYPTO_USER_API_HASH: m
+
   # Support distcc
   CONFIG_GCC_PLUGINS: n
 
