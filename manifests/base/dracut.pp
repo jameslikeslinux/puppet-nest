@@ -30,9 +30,9 @@ class nest::base::dracut {
 
   file {
     default:
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
     ;
 
     '/etc/dracut.conf.d':
