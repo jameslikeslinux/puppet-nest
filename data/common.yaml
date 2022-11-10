@@ -33,6 +33,7 @@ nest::cnames:
   radarr.nest: 'falcon.nest'
   smtp.nest: 'falcon.nest'
   sonarr.nest: 'falcon.nest'
+  gitlab.james.tl: 'falcon.nest'
   registry.gitlab.james.tl: 'falcon.nest'
 nest::cups_servers:
   - 'falcon.nest'

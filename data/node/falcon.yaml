@@ -109,6 +109,13 @@ nest::service::reverse_proxy::hosts:
     ip: '172.22.0.1'
     ssl: false
 
+  gitlab.james.tl:
+    destination: '127.0.0.1:8000'
+    ip: '172.22.0.1'
+    encoded_slashes: true
+    timeout: 300
+    websockets: true
+
   registry.gitlab.james.tl:
     destination: '127.0.0.1:5050'
     ip: '172.22.0.1'
