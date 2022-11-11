@@ -1,6 +1,6 @@
 class nest::tool::r10k {
   package_accept_keywords { 'dev-libs/libgit2':
-    version => '~1.1.0',
+    version => '~1.5.0',
   }
   ->
   package { 'dev-libs/libgit2':
