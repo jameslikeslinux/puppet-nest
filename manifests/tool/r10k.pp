@@ -12,6 +12,7 @@ class nest::tool::r10k {
     'dev-ruby/faraday',
     'dev-ruby/faraday_middleware',
     'dev-ruby/hashie',
+    'dev-ruby/jwt',
     'dev-ruby/minitar',
     'dev-ruby/multipart-post',
     'dev-ruby/puppet_forge',
