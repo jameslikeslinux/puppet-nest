@@ -1,17 +1,4 @@
 class nest::tool::r10k {
-  package_accept_keywords { 'dev-libs/libgit2':
-    version => '~1.5.0',
-  }
-  ->
-  package { 'dev-libs/libgit2':
-    ensure => installed,
-  }
-  ->
-  exec { 'gem-install-rugged':
-    command => '/usr/bin/gem install rugged -- --use-system-libraries',
-    unless  => '/usr/bin/gem which rugged',
-  }
-  ->
   package { 'rugged':
     ensure   => installed,
     provider => gem,
