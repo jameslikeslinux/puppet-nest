@@ -11,4 +11,13 @@ class nest::node::falcon {
       gcc_only => true,
     ;
   }
+
+  # Export GitLab SSH key hosted on this node
+  if $facts['gitlab_ssh'] {
+    $facts['gitlab_ssh'].each |$key, $value| {
+      @@sshkey { "[falcon.nest]:2222@${value['type']}":
+        key => $value['key'],
+      }
+    }
+  }
 }
