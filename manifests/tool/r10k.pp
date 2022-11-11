@@ -1,4 +1,13 @@
 class nest::tool::r10k {
+  package { 'net-libs/libssh2':
+    ensure => installed,
+  }
+  ->
+  exec { 'gem-install-rugged':
+    command => '/usr/bin/gem install rugged -- --with-ssh',
+    unless  => '/usr/bin/gem which rugged',
+  }
+  ->
   package { 'rugged':
     ensure   => installed,
     provider => gem,
