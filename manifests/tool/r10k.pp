@@ -10,6 +10,7 @@ class nest::tool::r10k {
     'dev-ruby/colored2',
     'dev-ruby/cri',
     'dev-ruby/faraday',
+    'dev-ruby/faraday-net_http',
     'dev-ruby/faraday_middleware',
     'dev-ruby/hashie',
     'dev-ruby/jwt',
