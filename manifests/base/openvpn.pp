@@ -19,12 +19,12 @@ class nest::base::openvpn {
         keepalive 10 30
 
         # Sync with pushed options below
-        dhcp-option DOMAIN james.tl
+        dhcp-option DOMAIN gitlab.james.tl
         dhcp-option DOMAIN nest
         dhcp-option DNS 172.22.0.1
 
         # Windows only honors the last domain pushed
-        push "dhcp-option DOMAIN james.tl"
+        push "dhcp-option DOMAIN gitlab.james.tl"
         push "dhcp-option DOMAIN nest"
         push "dhcp-option DNS 172.22.0.1"
 
