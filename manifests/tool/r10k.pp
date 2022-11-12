@@ -24,4 +24,7 @@ class nest::tool::r10k {
     path => '/etc/ssh/ssh_config',
     line => 'IdentityFile /etc/puppetlabs/r10k/id_rsa',
   }
+
+  # Collect trusted SSH host keys
+  Sshkey <<||>>
 }
