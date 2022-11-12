@@ -1,18 +1,4 @@
 class nest::tool::r10k {
-  package { 'net-libs/libssh2':
-    ensure => installed,
-  }
-  ->
-  exec { 'gem-install-rugged':
-    command => '/usr/bin/gem install rugged -- --with-ssh',
-    unless  => '/usr/bin/gem which rugged',
-  }
-  ->
-  package { 'rugged':
-    ensure   => installed,
-    provider => gem,
-  }
-
   package_accept_keywords { [
     'app-admin/r10k',
     'dev-ruby/colored',
@@ -32,5 +18,10 @@ class nest::tool::r10k {
   ->
   package { 'app-admin/r10k':
     ensure => installed,
+  }
+
+  file_line { 'ssh_config-r10k_key':
+    path => '/etc/ssh/ssh_config',
+    line => 'IdentityFile /etc/puppetlabs/r10k/id_rsa',
   }
 }
