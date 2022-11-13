@@ -53,6 +53,7 @@ nest::package_keywords:
   app-editors/vim-core: {}
   media-libs/mesa: {}
   net-firewall/firewalld: {}
+  sys-apps/systemd: {}
   sys-fs/zfs: {}
   sys-fs/zfs-kmod: {}
   sys-kernel/gentoo-sources: {}
@@ -70,12 +71,12 @@ nest::package_keywords:
   sys-fs/fuse-overlayfs: {}
 
   # For qemu
-  sys-firmware/edk2-ovmf:
-    version: '~202105'
+  sys-firmware/edk2-ovmf-bin:
+    version: '~202202'
   sys-firmware/ipxe:
     version: '~1.21.1'
-  sys-firmware/seabios:
-    version: '~1.14.0'
+  sys-firmware/seabios-bin:
+    version: '~1.16.0'
   sys-firmware/sgabios:
     version: '~0.1_pre10'
 
