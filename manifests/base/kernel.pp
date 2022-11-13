@@ -11,7 +11,6 @@ class nest::base::kernel {
     provider => git,
     source   => 'https://gitlab.james.tl/nest/forks/linux.git',
     revision => $nest::kernel_tag,
-    depth    => 1,
   }
   ~>
   exec { 'kernel-reset-config':
