@@ -176,7 +176,7 @@ class nest::base::users {
       user        => $exec_user,
       onlyif      => $test_cmd,
       refreshonly => true,
-      subscribe   => File['/etc/puppetlabs/facter/facts.d/outputs.yaml'],
+      subscribe   => Class['nest::base::puppet'],
     }
 
     if $facts['build'] in [undef, 'stage3'] {

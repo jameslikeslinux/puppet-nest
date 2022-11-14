@@ -111,18 +111,11 @@ class nest::base::puppet {
         ;
       }
 
-      $outputs_facts = @("OUTPUTS_FACTS")
-        ---
-        scaling:
-          gui: ${nest::gui_scaling_factor}
-          text: ${nest::text_scaling_factor}
-        | OUTPUTS_FACTS
-
       file { 'C:/ProgramData/PuppetLabs/facter/facts.d/outputs.yaml':
         mode    => '0644',
         owner   => 'Administrators',
         group   => 'None',
-        content => $outputs_facts,
+        content => epp('nest/puppet/outputs.yaml.epp'),
       }
 
       class { 'puppet':
