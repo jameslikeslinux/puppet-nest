@@ -53,6 +53,34 @@ class nest::base::network {
       ensure => installed,
     }
 
+    # Workaround reassociation instability on Raspberry Pi
+    $iwd_main_conf_content = @(IWD_MAIN_CONF)
+      [General]
+      ControlPortOverNL80211=false
+      | IWD_MAIN_CONF
+    $iwd_main_conf_ensure = $facts['profile']['platform'] ? {
+      'raspberrypi' => present,
+      default       => absent,
+    }
+    file {
+      default:
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        require => Package['net-wireless/iwd'],
+      ;
+
+      '/etc/iwd':
+        ensure => directory,
+      ;
+
+      '/etc/iwd/main.conf':
+        ensure  => $iwd_main_conf_ensure,
+        content => $iwd_main_conf_content,
+        notify  => Service['iwd'],
+      ;
+    }
+
     if $nest::wlans {
       $nest::wlans.unwrap.each |$wlan, $wlan_params| {
         $wlan_params_sensitive = $wlan_params.reduce({}) |$memo, $param| {
@@ -110,6 +138,7 @@ class nest::base::network {
     }
     ->
     file { [
+      '/etc/iwd',
       '/etc/systemd/system/iwd.service.d',
       '/var/lib/iwd',
     ]:
