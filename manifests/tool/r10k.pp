@@ -25,6 +25,6 @@ class nest::tool::r10k {
     line => 'IdentityFile /etc/puppetlabs/r10k/id_rsa',
   }
 
-  # Collect trusted SSH host keys
-  Sshkey <<||>>
+  # Collect trusted GitLab host keys
+  Sshkey <<| tag == 'gitlab' |>>
 }

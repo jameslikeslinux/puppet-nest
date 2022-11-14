@@ -93,6 +93,7 @@ class nest::service::gitlab (
       } else {
         @@sshkey { "${external_name}@${value['type']}":
           key => $value['key'],
+          tag => 'gitlab',
         }
       }
     }
