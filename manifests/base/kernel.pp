@@ -6,6 +6,11 @@ class nest::base::kernel {
     config => '/usr/src/linux/.config',
   }
 
+  nest::lib::package { 'sys-devel/bc':
+    ensure => installed,
+    before => Exec['kernel-build'],
+  }
+
   vcsrepo { '/usr/src/linux':
     ensure   => latest,
     provider => git,
@@ -83,7 +88,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => $kernel_make_cmd,
+    command     => shellquote('/bin/zsh', '-o', 'pipefail', '-c', $kernel_make_cmd),
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc

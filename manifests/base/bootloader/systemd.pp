@@ -56,8 +56,7 @@ class nest::base::bootloader::systemd {
     }
 
     exec { 'kernel-install':
-      command     => "kernel-install add ${nest::kernel_version} ${image}",
-      provider    => shell,
+      command     => "/usr/bin/kernel-install add ${nest::kernel_version} ${image}",
       refreshonly => true,
       timeout     => 0,
     }
