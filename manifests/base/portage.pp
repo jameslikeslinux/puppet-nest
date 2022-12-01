@@ -130,10 +130,6 @@ class nest::base::portage {
       group => 'root',
     ;
 
-    '/etc/portage/env/lld.conf':
-      content => "LD=\"ld.lld\"\nEXTRA_EMAKE=\"LD=ld.lld\"\n",
-    ;
-
     '/etc/portage/env/no-buildpkg.conf':
       content => "FEATURES=\"-buildpkg\"\n",
     ;
