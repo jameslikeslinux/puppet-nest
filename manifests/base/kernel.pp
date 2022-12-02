@@ -71,11 +71,6 @@ class nest::base::kernel {
   case $facts['profile']['platform'] {
     'raspberrypi': {
       # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
-      nest::lib::package { 'sys-devel/lld':
-        ensure => installed,
-        before => Exec['kernel-build'],
-      }
-
       $lld_override = 'LD=ld.lld'
 
       Package_env <| title == 'sys-fs/zfs-kmod' |> {
@@ -107,7 +102,7 @@ class nest::base::kernel {
   exec { 'kernel-build':
     command     => $kernel_make_cmd,
     cwd         => '/usr/src/linux',
-    path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
+    path        => ['/usr/lib/distcc/bin', '/usr/lib/llvm/15/bin', '/usr/lib/llvm/14/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
     timeout     => 0,
     refreshonly => true,
