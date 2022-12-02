@@ -68,8 +68,9 @@ class nest::base::kernel {
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")
-    /usr/bin/make ${nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
-    /usr/bin/tee build.log
+    set -o pipefail
+    make ${nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
+    tee build.log
     | KERNEL_MAKE
 
   exec { 'kernel-olddefconfig':
@@ -79,7 +80,7 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => shellquote('/bin/zsh', '-o', 'pipefail', '-c', $kernel_make_cmd),
+    command     => $kernel_make_cmd,
     cwd         => '/usr/src/linux',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => 'HOME=/root',  # for distcc
@@ -87,6 +88,7 @@ class nest::base::kernel {
     refreshonly => true,
     noop        => !$facts['build'],
     notify      => Class['nest::base::dracut'],
+    provider    => shell,
   }
   ~>
   exec { 'module-rebuild':
