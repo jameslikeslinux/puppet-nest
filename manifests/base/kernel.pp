@@ -67,6 +67,20 @@ class nest::base::kernel {
     }
   }
 
+  # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
+  if $facts['profile']['platform'] == 'raspberrypi' {
+    nest::lib::package { 'sys-devel/lld':
+      ensure => installed,
+      before => Exec['kernel-build'],
+    }
+
+    $lld_override = 'LD=ld.lld'
+
+    Package_env <| title == 'sys-fs/zfs-kmod' |> {
+      env +> 'lld.conf',
+    }
+  }
+
   $kernel_make_cmd = @("KERNEL_MAKE")
     set -o pipefail
     make ${nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
