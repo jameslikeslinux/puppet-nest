@@ -65,6 +65,7 @@ nest::service::gitlab_runner::instances:
     zfs: true
 
   r10k:
+    dns: '172.22.0.1'
     default_image: 'registry.gitlab.james.tl/nest/tools/r10k:haswell'
     host: 'gitlab.james.tl'
     tag_list: ['r10k']
