@@ -1,0 +1,3 @@
+---
+nest::bootloader: systemd
+nest::kernel_tag: 'rock5/v5.10.66'
