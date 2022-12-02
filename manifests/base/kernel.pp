@@ -68,22 +68,25 @@ class nest::base::kernel {
     }
   }
 
-  case $facts['profile']['platform'] {
-    'raspberrypi': {
-      # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
-      $lld_override = 'LD=ld.lld'
-
-      Package_env <| title == 'sys-fs/zfs-kmod' |> {
-        env +> 'lld.conf',
-      }
+  # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
+  if $nest::kernel_tag =~ /^(raspberrypi|radxa)\// {
+    nest::lib::package { 'sys-devel/lld':
+      ensure => installed,
+      before => Exec['kernel-build'],
     }
 
-    'rock5': {
-      # Required for mkimage(1)
-      nest::lib::package { 'dev-embedded/u-boot-tools':
-        ensure => installed,
-        before => Exec['kernel-build'],
-      }
+    $lld_override = 'LD=ld.lld'
+
+    Package_env <| title == 'sys-fs/zfs-kmod' |> {
+      env +> 'lld.conf',
+    }
+  }
+
+  # Required for mkimage(1)
+  if $nest::kernel_tag =~ /^radxa\// {
+    nest::lib::package { 'dev-embedded/u-boot-tools':
+      ensure => installed,
+      before => Exec['kernel-build'],
     }
   }
 
