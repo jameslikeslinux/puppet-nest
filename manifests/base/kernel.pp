@@ -90,7 +90,7 @@ class nest::base::kernel {
     }
 
     # Ignore warning on newer GCC
-    $cflags_override = 'KCFLAGS=-Wno-implicit-fallthrough'
+    $cflags_override = 'KCFLAGS="-Wno-implicit-fallthrough -Wno-tautological-compare -Wno-int-in-bool-context"'
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")

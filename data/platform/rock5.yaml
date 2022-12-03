@@ -1,3 +1,8 @@
 ---
 nest::bootloader: systemd
 nest::kernel_tag: 'radxa/v5.10.66'
+nest::kernel_config:
+  CONFIG_GCC_PLUGINS: null
+  CONFIG_SYSFB_SIMPLEFB: null
+  CONFIG_DRM_SIMPLEDRM: null
+  CONFIG_CRYPTO_DES: y  # match defconfig
