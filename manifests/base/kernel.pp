@@ -82,17 +82,20 @@ class nest::base::kernel {
     }
   }
 
-  # Required for mkimage(1)
   if $nest::kernel_tag =~ /^radxa\// {
+    # Required for mkimage(1)
     nest::lib::package { 'dev-embedded/u-boot-tools':
       ensure => installed,
       before => Exec['kernel-build'],
     }
+
+    # Ignore warning on newer GCC
+    $cflags_override = 'KCFLAGS=-Wno-implicit-fallthrough'
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")
     set -o pipefail
-    make ${nest::base::portage::makeopts} ${lld_override} olddefconfig all modules_install 2>&1 |
+    make ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
     tee build.log
     | KERNEL_MAKE
 
