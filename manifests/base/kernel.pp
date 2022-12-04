@@ -77,6 +77,13 @@ class nest::base::kernel {
 
     $lld_override = 'LD=ld.lld'
 
+    file { '/etc/portage/env/lld.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "${lld_override}\nEXTRA_EMAKE=\"${lld_override}\"\n",
+    }
+
     Package_env <| title == 'sys-fs/zfs-kmod' |> {
       env +> 'lld.conf',
     }
@@ -91,6 +98,17 @@ class nest::base::kernel {
 
     # Ignore warning on newer GCC
     $cflags_override = 'KCFLAGS="-Wno-implicit-fallthrough -Wno-tautological-compare -Wno-int-in-bool-context"'
+
+    file { '/etc/portage/env/kcflags.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "${cflags_override}\n",
+    }
+
+    Package_env <| title == 'sys-fs/zfs-kmod' |> {
+      env +> 'kcflags.conf',
+    }
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")

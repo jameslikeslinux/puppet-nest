@@ -123,20 +123,11 @@ class nest::base::portage {
   # Package environments and properties
   #
 
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
-    '/etc/portage/env/lld.conf':
-      content => "LD=\"ld.lld\"\nEXTRA_EMAKE=\"LD=ld.lld\"\n",
-    ;
-
-    '/etc/portage/env/no-buildpkg.conf':
-      content => "FEATURES=\"-buildpkg\"\n",
-    ;
+  file { '/etc/portage/env/no-buildpkg.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "FEATURES=\"-buildpkg\"\n",
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
