@@ -147,7 +147,7 @@ groups:
       - name: 'eyrie-workers'
         targets:
           - _plugin: puppetdb
-            query: "inventory[certname] { certname ~ '^eyas\\d+' }"
+            query: "inventory[certname] { certname ~ '^eaglet\\d+' }"
             target_mapping:
               name: certname
               uri: facts.fqdn
