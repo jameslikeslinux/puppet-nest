@@ -1,5 +1,6 @@
 ---
 nest::bootloader: systemd
+nest::uboot_tag: 'radxa/v2017.09'
 nest::kernel_tag: 'radxa/v5.10.66'
 nest::kernel_config:
   CONFIG_GCC_PLUGINS: null

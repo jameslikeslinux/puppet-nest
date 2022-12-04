@@ -1,5 +1,6 @@
 class nest (
   # Required settings
+  String               $uboot_tag,
   String               $kernel_tag,
   Stdlib::Host         $nestfs_hostname,
   Stdlib::Host         $openvpn_hostname,

@@ -49,6 +49,28 @@ class nest::base::firmware {
       }
     }
 
+    'rock5': {
+      class { 'nest::base::firmware::rockchip':
+        git_branch => 'radxa',
+      }
+
+      contain 'nest::base::firmware::rockchip'
+      contain 'nest::base::firmware::uboot'
+
+      Class['nest::base::firmware::rockchip']
+      ~> Class['nest::base::firmware::uboot']
+
+      file {
+        '/boot/rockchip':
+          ensure => directory,
+        ;
+
+        '/boot/rockchip/rk3588-rock-5b.dtb':
+          source => '/usr/src/linux/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dtb',
+        ;
+      }
+    }
+
     'sopine': {
       contain 'nest::base::firmware::arm'
       contain 'nest::base::firmware::uboot'

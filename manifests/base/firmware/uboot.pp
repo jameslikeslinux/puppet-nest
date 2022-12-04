@@ -11,17 +11,11 @@ class nest::base::firmware::uboot {
     before => Exec['uboot-build'],
   }
 
-  $uboot_branch = $facts['profile']['platform'] ? {
-    'pinebookpro' => 'pinebookpro',
-    'sopine'      => 'sopine',
-    default       => 'main',
-  }
-
   vcsrepo { '/usr/src/u-boot':
     ensure   => latest,
     provider => git,
     source   => 'https://gitlab.james.tl/nest/forks/u-boot.git',
-    revision => $uboot_branch,
+    revision => $nest::uboot_tag,
   }
   ~>
   exec { 'uboot-reset-config':
@@ -33,6 +27,7 @@ class nest::base::firmware::uboot {
     'beagleboneblack' => 'am335x_evm_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi'     => 'rpi_arm64_defconfig',
+    'rock5'           => 'rock-5b-rk3588_defconfig',
     'sopine'          => 'sopine_baseboard_defconfig',
   }
 
@@ -41,6 +36,7 @@ class nest::base::firmware::uboot {
     cwd     => '/usr/src/u-boot',
     creates => '/usr/src/u-boot/.config',
     require => Exec['uboot-reset-config'],
+    notify  => Exec['uboot-build'],
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
@@ -61,7 +57,7 @@ class nest::base::firmware::uboot {
 
   case $facts['profile']['platform'] {
     'pinebookpro': {
-      $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
+      $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
     }
 
     'raspberrypi': {
@@ -71,8 +67,20 @@ class nest::base::firmware::uboot {
       }
     }
 
+    'rock5': {
+      $build_options = 'BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf'
+
+      # See https://github.com/radxa/build/blob/debian/mk-uboot.sh
+      exec { 'uboot-mkimage':
+        command     => '/usr/bin/mkimage -n rk3568 -T rksd -d ../rkbin/bin/rk35/rk3568_ddr_1056MHz_v1.10.bin:spl/u-boot-spl.bin idbloader.img',
+        cwd         => '/usr/src/u-boot',
+        refreshonly => true,
+        subscribe   => Exec['uboot-build'],
+      }
+    }
+
     'sopine': {
-      $build_options = 'BL31=/usr/src/arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
+      $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
     }
   }
 

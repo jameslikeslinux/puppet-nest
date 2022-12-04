@@ -87,6 +87,7 @@ nest::package_keywords:
   dev-util/ninja:
     version: '~1.11.0'
 
+nest::uboot_tag: 'u-boot/v2023.01-rc2'
 nest::kernel_tag: 'stable/v5.19.17'
 
 nest::kernel_config:
