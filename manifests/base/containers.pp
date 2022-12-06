@@ -4,9 +4,11 @@ class nest::base::containers {
   } else {
     $storage_driver = 'zfs'
 
-    zfs { 'containers':
-      name       => "${facts['rpool']}/containers",
-      mountpoint => '/var/lib/containers',
+    unless $facts['mountpoints']['/var/lib/containers'] {
+      zfs { 'containers':
+        name       => "${facts['rpool']}/containers",
+        mountpoint => '/var/lib/containers',
+      }
     }
   }
 

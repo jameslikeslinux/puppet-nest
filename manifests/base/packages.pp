@@ -42,6 +42,12 @@ class nest::base::packages {
           ensure => installed,
         }
       }
+
+      if $facts['profile']['platform'] in ['haswell', 'rock5'] {
+        package { 'sys-apps/nvme-cli':
+          ensure => installed,
+        }
+      }
     }
 
     'windows': {
