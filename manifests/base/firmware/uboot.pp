@@ -88,7 +88,7 @@ class nest::base::firmware::uboot {
 
     'rock5': {
       $build_options = 'BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf spl/u-boot-spl.bin u-boot.dtb u-boot.itb'
-      $mkimage = '/usr/bin/mkimage -n rk3568 -T rksd -d ../rkbin/bin/rk35/rk3568_ddr_1056MHz_v1.10.bin:spl/u-boot-spl.bin idbloader.img'
+      $mkimage = '/usr/src/u-boot/tools/mkimage -n rk3588 -T rksd -d ../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin:spl/u-boot-spl.bin idbloader.img'
 
       # See https://github.com/radxa/build/blob/debian/mk-uboot.sh
       exec { 'uboot-mkimage':
