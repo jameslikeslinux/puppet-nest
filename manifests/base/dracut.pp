@@ -7,7 +7,7 @@ class nest::base::dracut {
     ensure => installed,
   }
 
-  if $facts['os']['architecture'] in ['amd64', 'x86_64'] {
+  if $facts['profile']['architecture'] == 'amd64' {
     package { 'sys-firmware/intel-microcode':
       ensure => installed,
     }

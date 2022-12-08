@@ -27,8 +27,8 @@ hierarchy:
       - "platform/%{facts.profile.platform}.yaml"
   - name: 'Architectures'
     paths:
-      - "private/arch/%{facts.os.architecture}.yaml"
-      - "arch/%{facts.os.architecture}.yaml"
+      - "private/arch/%{facts.profile.architecture}.yaml"
+      - "arch/%{facts.profile.architecture}.yaml"
   - name: 'Operating Systems'
     paths:
       - "private/os/%{facts.os.family}.yaml"

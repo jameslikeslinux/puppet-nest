@@ -1,5 +1,5 @@
 class nest::role::workstation::zoom {
-  if $facts['os']['architecture'] in ['amd64', 'x86_64'] {
+  if $facts['profile']['architecture'] == 'amd64' {
     nest::lib::package_use { 'net-im/zoom':
       use => ['bundled-libjpeg-turbo'],
     }

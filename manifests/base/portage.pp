@@ -146,7 +146,7 @@ class nest::base::portage {
   }
 
   # Workaround https://bugs.gentoo.org/666560
-  if $facts['is_container'] and !$facts['os']['architecture'] in ['amd64', 'x86_64'] {
+  if $facts['is_container'] and !$facts['profile']['architecture'] == 'amd64' {
     file { '/etc/portage/env/no-sandbox.conf':
       mode    => '0644',
       owner   => 'root',

@@ -21,7 +21,7 @@ class nest::role::workstation::chrome (
             ensure => installed,
           }
 
-          if $facts['os']['architecture'] in ['amd64', 'x86_64'] {
+          if $facts['profile']['architecture'] == 'amd64' {
             package { 'www-plugins/chrome-binary-plugins':
               ensure => installed,
             }
