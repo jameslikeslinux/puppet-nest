@@ -56,7 +56,7 @@ nest::service::gitlab_runner::instances:
     dns: '172.22.0.1'
     host: 'gitlab.james.tl'
     security_options: ['seccomp=unconfined']
-    tag_list: ['nest', 'amd64']
+    tag_list: ['nest', 'amd64', 'falcon']
     volumes:
       - '/nest:/nest'
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
