@@ -1,0 +1,9 @@
+diff -ur chromium-107.0.5304.87.orig/build/linux/unbundle/remove_bundled_libraries.py chromium-107.0.5304.87/build/linux/unbundle/remove_bundled_libraries.py
+--- chromium-107.0.5304.87.orig/build/linux/unbundle/remove_bundled_libraries.py	2022-10-27 19:32:31.010019800 -0400
++++ chromium-107.0.5304.87/build/linux/unbundle/remove_bundled_libraries.py	2022-12-09 02:43:12.208161109 -0500
+@@ -102,4 +102,4 @@
+ 
+ 
+ if __name__ == '__main__':
+-  sys.exit(DoMain(sys.argv[1:]))
++  sys.exit(DoMain(['third_party/v4l-utils'] + sys.argv[1:]))
