@@ -11,6 +11,11 @@ class nest::base::bootloader {
       default => [],
     },
 
+    $nest::wifi ? {
+      true    => 'cfg80211.ieee80211_regdom=US',
+      default => [],
+    },
+
     # Let I/O preferences be configurable at boot time
     "rd.vconsole.font=ter-v${nest::console_font_size}b",
     "rd.vconsole.keymap=${nest::base::console::keymap}",
