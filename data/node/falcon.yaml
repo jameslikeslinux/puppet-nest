@@ -28,7 +28,7 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
 
 nest::dvorak: true
-nest::monitor_layout: ['DP-2', 'DP-1']
+nest::monitor_layout: ['DP-2@0', 'DP-1@2560']
 nest::primary_monitor: 'DP-1'
 nest::text_scaling_factor: 1.1
 

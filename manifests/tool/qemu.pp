@@ -1,7 +1,7 @@
 class nest::tool::qemu {
   nest::lib::package { 'app-emulation/qemu':
     ensure => installed,
-    use => [
+    use    => [
       'static-user',
       'qemu_user_targets_arm',
       'qemu_user_targets_aarch64',

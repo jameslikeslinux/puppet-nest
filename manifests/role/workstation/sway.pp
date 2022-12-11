@@ -22,12 +22,12 @@ class nest::role::workstation::sway {
 
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
-    # Workaround https://github.com/swaywm/sway/issues/3109
-    exec "\$SHELL" -c "env \
-        GDK_DPI_SCALE=${dpi_scale} \
-        QT_FONT_DPI=${dpi} \
-        XDG_CURRENT_DESKTOP=sway \
-        /usr/bin/sway \${*@Q}"
+    export GDK_DPI_SCALE=${dpi_scale}
+    export QT_FONT_DPI=${dpi}
+    export XDG_CURRENT_DESKTOP=sway
+    export XDG_SESSION_DESKTOP=sway
+    export XDG_SESSION_TYPE=wayland
+    exec "\$SHELL" -c "systemd-cat --identifier=sway /usr/bin/sway \${*@Q}"
     | END_WRAPPER
 
   file { '/usr/local/bin/sway':
@@ -61,7 +61,6 @@ class nest::role::workstation::sway {
 
   $cursor_conf = @("CURSOR_CONF"/$)
     seat seat0 xcursor_theme breeze_cursors 24
-    exec kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize --delete
     | CURSOR_CONF
 
   $input_conf = @("INPUT_CONF")
@@ -87,14 +86,18 @@ class nest::role::workstation::sway {
 
   file {
     default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      require => Package['gui-wm/sway'],
+    ;
+
+    '/etc/sway/config':
+      content => epp('nest/sway/config.epp', { 'dvorak' => $nest::dvorak }),
     ;
 
     '/etc/sway/config.d':
       ensure  => directory,
-      require => Package['gui-wm/sway'],
     ;
 
     '/etc/sway/config.d/10-cursor':
@@ -109,8 +112,9 @@ class nest::role::workstation::sway {
       content => $output_conf,
     ;
 
+    # XXX cleanup
     '/etc/sway/config.d/10-xwayland':
-      content => epp('nest/sway/xwayland.epp', { 'dvorak' => $nest::dvorak }),
+      ensure  => absent,
     ;
   }
 }

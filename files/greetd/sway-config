@@ -1,0 +1,9 @@
+include /etc/sway/config.d/*
+
+bindsym Mod4+Shift+q exec swaynag \
+    -t warning \
+    -m '' \
+    -b 'Power Off' 'systemctl poweroff' \
+    -b 'Reboot' 'systemctl reboot'
+
+exec 'gtkgreet -l; swaymsg exit'

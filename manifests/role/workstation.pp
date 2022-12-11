@@ -10,6 +10,7 @@ class nest::role::workstation {
       contain 'nest::role::workstation::cursor'
       contain 'nest::role::workstation::dunst'
       contain 'nest::role::workstation::fonts'
+      contain 'nest::role::workstation::greetd'
       contain 'nest::role::workstation::input'
       contain 'nest::role::workstation::media'
       contain 'nest::role::workstation::packages'
@@ -30,10 +31,6 @@ class nest::role::workstation {
       # Plasma installs default cursors which we want to replace
       Class['nest::role::workstation::plasma']
       -> Class['nest::role::workstation::cursor']
-
-      # Plasma installs icons which we want to copy and transform for dunst
-      Class['nest::role::workstation::plasma']
-      -> Class['nest::role::workstation::dunst']
 
       # Manage input settings after xorg
       Class['nest::role::workstation::xorg']

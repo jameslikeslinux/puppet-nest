@@ -3,3 +3,4 @@ exec xrdb /etc/sway/Xresources
 <% if $dvorak { -%>
 exec setxkbmap -variant dvorak
 <% } -%>
+include /etc/sway/config.d/*

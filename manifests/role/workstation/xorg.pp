@@ -26,23 +26,9 @@ class nest::role::workstation::xorg {
     content => template('nest/xorg/keyboard.conf.erb'),
   }
 
-  $monitor_layout  = $nest::monitor_layout
-  $primary_monitor = $nest::primary_monitor
-  $video_card      = $nest::video_card
-
-  # Switch to xf86-video-modesetting DDX
-  package { 'x11-drivers/xf86-video-intel':
-    ensure => 'absent',
-  }
-
-  file { '/etc/X11/xorg.conf.d/10-intel.conf':
-    ensure => 'absent',
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/xorg/intel.conf',
-  }
-
+  $monitor_layout       = $nest::monitor_layout
+  $primary_monitor      = $nest::primary_monitor
+  $video_card           = $nest::video_card
   $monitors_conf_ensure = $monitor_layout ? {
     []      => 'absent',
     default => 'present',
@@ -63,34 +49,11 @@ class nest::role::workstation::xorg {
     content => template('nest/xorg/libinput.conf.erb'),
   }
 
-  $gdk_dpi_scale = inline_template('<%= (1.0 / scope.lookupvar("nest::gui_scaling_factor_rounded")).round(3) %>')
-  $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
-  $scaling = @("EOT"/$)
-    #!/bin/bash
-    export GDK_SCALE=${nest::gui_scaling_factor_rounded}
-    export GDK_DPI_SCALE=${gdk_dpi_scale}
-    export QT_SCALE_FACTOR=${nest::gui_scaling_factor}
-    export QT_FONT_DPI=${qt_font_dpi}
-    export XCURSOR_SIZE=${nest::cursor_size}
-    kwriteconfig5 --file \$HOME/.config/kcminputrc --group Mouse --key cursorSize ${nest::cursor_size}
-    | EOT
-
-  file { '/etc/X11/xinit/xinitrc.d/10-scaling':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => $scaling,
-  }
-
   file { '/etc/X11/Xresources':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "Xcursor.size: ${nest::cursor_size}\nXft.dpi: ${nest::dpi}\n",
-  }
-
-  package { 'x11-misc/vdpauinfo':
-    ensure => absent,
+    content => "Xcursor.theme: breeze_cursors\nXcursor.size: ${nest::cursor_size}\nXft.dpi: ${nest::dpi}\n",
   }
 
   package { [
@@ -108,14 +71,6 @@ class nest::role::workstation::xorg {
     ensure => installed,
   }
 
-  # Workaround xdotool layout issue
-  # See: https://github.com/jordansissel/xdotool/issues/211
-  file { '/etc/X11/xinit/xinitrc.d/99-setxkbmap':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => "#!/bin/sh\nsetxkbmap -synch\n",
-  }
 
   # Load i2c-dev for controlling monitors
   file { '/etc/modules-load.d/i2c-dev.conf':
@@ -127,5 +82,14 @@ class nest::role::workstation::xorg {
 
   package { 'app-misc/ddcutil':
     ensure => installed,
+  }
+
+
+  # XXX cleanup
+  file { [
+    '/etc/X11/xinit/xinitrc.d/99-setxkbmap',
+    '/etc/X11/xinit/xinitrc.d/10-scaling',
+  ]:
+    ensure => absent,
   }
 }
