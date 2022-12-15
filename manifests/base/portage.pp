@@ -173,22 +173,21 @@ class nest::base::portage {
     }
   }
 
-  # GHC 8.10 or LLVM 9 hangs or crashes with big.LITTLE flags under qemu-user
-  $cflags_no_big_little = regsubst($facts['portage_cflags'], '\.cortex-\w+', '')
-  if $cflags_no_big_little != $facts['portage_cflags'] {
+  # Force GHC to use a compatible version of LLVM on ARM
+  if $facts['profile']['architecture'] == 'arm64' {
     $haskell_env = @(HASKELL_ENV)
-      dev-haskell/* no-big-little.conf
-      dev-lang/ghc no-big-little.conf
-      x11-misc/taffybar no-big-little.conf
-      x11-wm/xmonad no-big-little.conf
-      x11-wm/xmonad-contrib no-big-little.conf
+      dev-haskell/* llvm.conf
+      dev-lang/ghc llvm.conf
+      x11-misc/taffybar llvm.conf
+      x11-wm/xmonad llvm.conf
+      x11-wm/xmonad-contrib llvm.conf
       | HASKELL_ENV
 
-    file { '/etc/portage/env/no-big-little.conf':
+    file { '/etc/portage/env/llvm.conf':
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      content => "CFLAGS=\"${cflags_no_big_little}\"\nCXXFLAGS=\"\${CFLAGS}\"\n",
+      content => "PATH=\"/usr/lib/llvm/13/bin:\${PATH}\"\n",
     }
     ->
     file { '/etc/portage/package.env/haskell':
