@@ -173,31 +173,6 @@ class nest::base::portage {
     }
   }
 
-  # Force GHC to use a compatible version of LLVM on ARM
-  if $facts['profile']['architecture'] == 'arm64' {
-    $haskell_env = @(HASKELL_ENV)
-      dev-haskell/* llvm.conf
-      dev-lang/ghc llvm.conf
-      x11-misc/taffybar llvm.conf
-      x11-wm/xmonad llvm.conf
-      x11-wm/xmonad-contrib llvm.conf
-      | HASKELL_ENV
-
-    file { '/etc/portage/env/llvm.conf':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => "PATH=\"/usr/lib/llvm/13/bin:\${PATH}\"\n",
-    }
-    ->
-    file { '/etc/portage/package.env/haskell':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => $haskell_env,
-    }
-  }
-
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $nest::package_keywords, {
     'accept_keywords' => '~*',
