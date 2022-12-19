@@ -24,10 +24,6 @@ class nest::role::workstation {
       contain 'nest::role::workstation::xorg'
       contain 'nest::role::workstation::zoom'
 
-      # Plasma installs xorg-server, so we don't need to manage it separately
-      Class['nest::role::workstation::plasma']
-      -> Class['nest::role::workstation::xorg']
-
       # Plasma installs default cursors which we want to replace
       Class['nest::role::workstation::plasma']
       -> Class['nest::role::workstation::cursor']

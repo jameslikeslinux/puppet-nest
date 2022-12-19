@@ -1,9 +1,17 @@
 class nest::role::workstation::xorg {
-  file { '/etc/X11/xorg.conf.d':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
+  nest::lib::package { 'x11-base/xorg-server':
+    ensure => installed,
+  }
+
+  file { [
+    '/etc/X11',
+    '/etc/X11/xorg.conf.d',
+  ]:
+    ensure  => directory,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    require => Nest::Lib::Package['x11-base/xorg-server'],
   }
 
   $keyboard_layout = 'us'
