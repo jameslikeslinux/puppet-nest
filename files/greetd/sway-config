@@ -6,4 +6,7 @@ bindsym Mod4+Shift+q exec swaynag \
     -b 'Power Off' 'systemctl poweroff' \
     -b 'Reboot' 'systemctl reboot'
 
+# Overwrite settings managed by Plasma
+exec 'gsettings set org.gnome.desktop.interface cursor-size $XCURSOR_SIZE'
+
 exec 'gtkgreet -l; swaymsg exit'
