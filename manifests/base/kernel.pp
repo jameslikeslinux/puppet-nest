@@ -39,6 +39,11 @@ class nest::base::kernel {
     before  => Exec['kernel-build'],
   }
 
+  $arch = $facts['profile']['architecture'] ? {
+    'amd64' => 'x86_64',
+    default => $facts['profile']['architecture'],
+  }
+
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'multi_v7_defconfig',
     'pinebookpro'     => 'defconfig',
@@ -49,7 +54,7 @@ class nest::base::kernel {
   }
 
   exec { 'kernel-defconfig':
-    command => "/usr/bin/make ${defconfig}",
+    command => "/usr/bin/make ARCH=${arch} ${defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
     require => Exec['kernel-reset-config'],
