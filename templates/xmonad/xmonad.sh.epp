@@ -19,7 +19,7 @@ else
     export XDG_SESSION_DESKTOP=xmonad
     export XDG_SESSION_TYPE=x11
     export XMONAD_INIT=1
-    exec "$SHELL" -c "systemd-cat --identifier=xmonad startx xmonad ${*@Q}"
+    exec "$SHELL" -c "systemd-cat --identifier=xmonad startx /usr/local/bin/xmonad ${*@Q}"
 fi
 
 # vim: filetype=bash
