@@ -32,7 +32,7 @@ P /var/tmp/**
 
 # Kernel rules (updates managed in another step)
 - /lib/modules/
-- /usr/src/linux*
+- /usr/src/linux/
 <% unless $rules.empty { -%>
 
 # Host-specific rules
