@@ -35,17 +35,10 @@ class nest::role::workstation::xmonad {
 
   $gdk_dpi_scale = inline_template('<%= (1.0 / scope.lookupvar("nest::gui_scaling_factor_rounded")).round(3) %>')
   $qt_font_dpi = inline_template('<%= (scope.lookupvar("nest::text_scaling_factor_percent_of_gui") * 96).round %>')
-  $xmonad_wrapper_content = @("END_WRAPPER"/$)
-    #!/bin/bash
-    export GDK_SCALE=${nest::gui_scaling_factor_rounded}
-    export GDK_DPI_SCALE=${gdk_dpi_scale}
-    export QT_SCALE_FACTOR=${nest::gui_scaling_factor}
-    export QT_FONT_DPI=${qt_font_dpi}
-    export XDG_CURRENT_DESKTOP=xmonad
-    export XDG_SESSION_DESKTOP=xmonad
-    export XDG_SESSION_TYPE=x11
-    exec "\$SHELL" -c "systemd-cat --identifier=xmonad startx /usr/bin/xmonad \${*@Q}"
-    | END_WRAPPER
+  $xmonad_wrapper_content = epp('nest/xmonad/xmonad.sh.epp', {
+    'gdk_dpi_scale' => $gdk_dpi_scale,
+    'qt_font_dpi'   => $qt_font_dpi,
+  })
 
   $taffybar_wrapper_content = @("END_WRAPPER")
     #!/bin/bash

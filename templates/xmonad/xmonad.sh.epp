@@ -1,0 +1,25 @@
+<% |
+  $gdk_dpi_scale,
+  $qt_font_dpi,
+| -%>
+#!/bin/bash
+
+if [[ $DISPLAY ]]; then
+    if [[ $XMONAD_INIT ]]; then
+        xrdb /etc/X11/Xresources
+        unset XMONAD_INIT
+    fi
+    exec /usr/bin/xmonad "$@"
+else
+    export GDK_SCALE=<%= $nest::gui_scaling_factor_rounded %>
+    export GDK_DPI_SCALE=<%= $gdk_dpi_scale %>
+    export QT_SCALE_FACTOR=<%= $nest::gui_scaling_factor %>
+    export QT_FONT_DPI=<%= $qt_font_dpi %>
+    export XDG_CURRENT_DESKTOP=xmonad
+    export XDG_SESSION_DESKTOP=xmonad
+    export XDG_SESSION_TYPE=x11
+    export XMONAD_INIT=1
+    exec "$SHELL" -c "systemd-cat --identifier=xmonad startx xmonad ${*@Q}"
+fi
+
+# vim: filetype=bash
