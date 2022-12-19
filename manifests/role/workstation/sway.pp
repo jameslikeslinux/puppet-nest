@@ -20,10 +20,17 @@ class nest::role::workstation::sway {
   $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
   $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
 
+  # HW cursor doesn't work on VMware
+  $no_hardware_cursors = $facts['virtual'] ? {
+    'vmware' => 1,
+    default  => 0,
+  }
+
   $sway_wrapper_content = @("END_WRAPPER"/$)
     #!/bin/bash
     export GDK_DPI_SCALE=${dpi_scale}
     export QT_FONT_DPI=${dpi}
+    export WLR_NO_HARDWARE_CURSORS=${no_hardware_cursors}
     export XDG_CURRENT_DESKTOP=sway
     export XDG_SESSION_DESKTOP=sway
     export XDG_SESSION_TYPE=wayland
