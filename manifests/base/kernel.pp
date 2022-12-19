@@ -118,12 +118,12 @@ class nest::base::kernel {
 
   $kernel_make_cmd = @("KERNEL_MAKE")
     set -o pipefail
-    make ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
+    make ARCH=${arch} ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
     tee build.log
     | KERNEL_MAKE
 
   exec { 'kernel-olddefconfig':
-    command     => '/usr/bin/make olddefconfig',
+    command     => "/usr/bin/make ARCH=${arch} olddefconfig",
     cwd         => '/usr/src/linux',
     refreshonly => true,
   }
