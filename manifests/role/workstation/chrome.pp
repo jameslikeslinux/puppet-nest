@@ -44,9 +44,6 @@ class nest::role::workstation::chrome (
             export GOOGLE_API_KEY='${google_api_key}'
             export GOOGLE_DEFAULT_CLIENT_ID='${google_oauth_id}'
             export GOOGLE_DEFAULT_CLIENT_SECRET='${google_oauth_secret}'
-
-            # Force picom to restart to workaround transparent window borders
-            pgrep -u \$USER -x chrome || pkill picom
             | EOT
 
           file { '/etc/chromium/nest':
@@ -62,12 +59,8 @@ class nest::role::workstation::chrome (
           ensure => absent,
         }
       } else {
-        $chrome_wrapper = @("WRAPPER"/$)
+        $chrome_wrapper = @("WRAPPER")
           #!/bin/bash
-
-          # Force picom to restart to workaround transparent window borders
-          pgrep -u \$USER -x chrome || pkill picom
-
           exec /opt/google/chrome/google-chrome --${gpu_rasterization_flag} --force-dark-mode --enable-features=WebUIDarkMode "$@"
           | WRAPPER
 
