@@ -4,6 +4,7 @@ classes:
   - 'nest::service::barrier'
   - 'nest::service::gitlab'
   - 'nest::service::libvirt'
+  - 'nest::tool::qemu'
 
 nest::dvorak: true
 nest::gui_scaling_factor: 2.0
