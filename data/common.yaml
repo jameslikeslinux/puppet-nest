@@ -86,7 +86,7 @@ nest::package_keywords:
   sys-kernel/linux-headers:
     version: '~5.19'
 
-nest::uboot_tag: 'u-boot/v2023.01-rc2'
+nest::uboot_tag: 'u-boot/v2023.01-rc4'
 nest::kernel_tag: 'stable/v5.19.17'
 
 nest::kernel_config:
