@@ -3,6 +3,7 @@ class nest::base::openvpn {
     client
     nobind
     remote ${nest::openvpn_hostname} 1194
+    #remote ${nest::openvpn_hostname} 1194 tcp
     | EOT
 
   case $facts['os']['family'] {
@@ -10,40 +11,62 @@ class nest::base::openvpn {
       $device     = 'tun0'
       $hosts_file = '/etc/hosts.nest'
 
-      $server_config = @("EOT")
-        ncp-ciphers AES-128-GCM
-        dh /etc/openvpn/dh4096.pem
-        server 172.22.0.0 255.255.255.0
-        topology subnet
-        client-to-client
-        keepalive 10 30
+      $servers = {
+        'udp' => '172.22.0.0',
+        'tcp' => '172.22.0.128',
+      }
 
-        # Sync with pushed options below
-        dhcp-option DOMAIN gitlab.james.tl
-        dhcp-option DOMAIN nest
-        dhcp-option DNS 172.22.0.1
+      $server_configs = $servers.reduce({}) |$configs, $server| {
+        $proto   = $server[0]
+        $network = $server[1]
 
-        # Windows only honors the last domain pushed
-        push "dhcp-option DOMAIN gitlab.james.tl"
-        push "dhcp-option DOMAIN nest"
-        push "dhcp-option DNS 172.22.0.1"
+        if $proto == 'tcp' {
+          $other_network = $servers['udp']
+          $ipp_file      = 'nest-tcp-ipp.txt'
+        } else {
+          $other_network = $servers['tcp']
+          $ipp_file      = 'nest-ipp.txt'
+        }
 
-        # Preferred routes are < 100 on Gentoo and Windows
-        push "route-metric 100"
+        $config = @("EOT")
+          ncp-ciphers AES-128-GCM
+          dh /etc/openvpn/dh4096.pem
+          server ${network} 255.255.255.128
+          topology subnet
+          client-to-client
+          keepalive 10 30
 
-        # Windows needs a default route to recognize network
-        push "route 0.0.0.0 0.0.0.0"
+          # Sync with pushed options below
+          dhcp-option DOMAIN gitlab.james.tl
+          dhcp-option DOMAIN nest
+          dhcp-option DNS 172.22.0.1
 
-        # UniFi
-        push "route 172.22.1.12"
+          # Windows only honors the last domain pushed
+          push "dhcp-option DOMAIN gitlab.james.tl"
+          push "dhcp-option DOMAIN nest"
+          push "dhcp-option DNS 172.22.0.1"
 
-        setenv HOSTS ${hosts_file}
-        learn-address /etc/openvpn/learn-address.sh
-        ifconfig-pool-persist nest-ipp.txt
-        | EOT
+          # Preferred routes are < 100 on Gentoo and Windows
+          push "route-metric 100"
 
-      $common_config = @("EOT")
-        dev ${device}
+          # Windows needs a default route to recognize network
+          push "route 0.0.0.0 0.0.0.0"
+
+          # Join to other half of Nest network
+          push "route ${other_network} 255.255.255.128"
+
+          # UniFi
+          push "route 172.22.1.12"
+
+          setenv HOSTS ${hosts_file}
+          learn-address /etc/openvpn/learn-address.sh
+          ifconfig-pool-persist ${ipp_file}
+          | EOT
+
+        $configs + { $proto => $config }
+      }
+
+      $base_common_config = @("EOT")
         persist-tun
         txqueuelen 1000
         ca /etc/puppetlabs/puppet/ssl/certs/ca.pem
@@ -56,6 +79,7 @@ class nest::base::openvpn {
         down-pre
         verb 3
         | EOT
+      $common_config = "dev ${device}\n${base_common_config}"
 
       $dnsmasq_config = @("EOT")
         resolv-file=/run/systemd/resolve/resolv.conf
@@ -82,7 +106,7 @@ class nest::base::openvpn {
 
       if $nest::openvpn_server {
         $mode   = 'server'
-        $config = $server_config
+        $config = $server_configs['udp']
 
         exec { 'openvpn-create-dh-parameters':
           command => '/usr/bin/openssl dhparam -out /etc/openvpn/dh4096.pem 4096',
@@ -172,6 +196,33 @@ class nest::base::openvpn {
 
         firewalld_service { 'openvpn':
           ensure => present,
+        }
+
+        #
+        # Manage TCP service
+        #
+        file { '/etc/openvpn/server/nest-tcp.conf':
+          mode    => '0644',
+          content => "proto tcp\ndev tun1\n${base_common_config}${server_configs['tcp']}",
+          require => Package[$openvpn_package_name],
+        }
+        ~>
+        service { 'openvpn-server@nest-tcp':
+          enable => true,
+        }
+
+        # Override built-in openvpn service to add TCP port
+        firewalld_custom_service { 'openvpn':
+          ensure => present,
+          ports  => [
+            { 'port' => '1194', 'protocol' => 'udp' },
+            { 'port' => '1194', 'protocol' => 'tcp' },
+          ],
+          # autobefore Firewalld_service['openvpn']
+        }
+
+        Firewalld_zone <| title == 'trusted' |> {
+          interfaces +> 'tun1'
         }
       } else {
         $mode   = 'client'
