@@ -32,7 +32,6 @@ class nest::role::workstation::sway {
     export QT_FONT_DPI=${dpi}
     export WLR_NO_HARDWARE_CURSORS=${no_hardware_cursors}
     export XCURSOR_SIZE=24
-    export XDG_CURRENT_DESKTOP=sway
     export XDG_SESSION_DESKTOP=sway
     export XDG_SESSION_TYPE=wayland
     exec "\$SHELL" -c "systemd-cat --identifier=sway /usr/bin/sway \${*@Q}"

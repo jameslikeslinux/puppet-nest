@@ -16,7 +16,6 @@ else
     export QT_SCALE_FACTOR=<%= $nest::gui_scaling_factor %>
     export QT_FONT_DPI=<%= $qt_font_dpi %>
     export XCURSOR_SIZE=<%= $nest::cursor_size %>
-    export XDG_CURRENT_DESKTOP=xmonad
     export XDG_SESSION_DESKTOP=xmonad
     export XDG_SESSION_TYPE=x11
     export XMONAD_INIT=1
