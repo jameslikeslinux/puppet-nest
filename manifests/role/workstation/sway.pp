@@ -101,7 +101,7 @@ class nest::role::workstation::sway {
     ;
 
     '/etc/sway/config':
-      content => epp('nest/sway/config.epp', { 'dvorak' => $nest::dvorak }),
+      content => "include /etc/sway/config.d/*\n",
     ;
 
     '/etc/sway/config.d':
