@@ -90,6 +90,18 @@ class nest::base::fstab {
       'set 6/dump 0',
       'set 6/passno 0',
     ],
+
+    'falcon' => [
+      'set 7/spec falcon.nest:/falcon',
+      'set 7/file /falcon',
+      'set 7/vfstype nfs',
+      'set 7/opt[1] noauto',
+      'set 7/opt[2] x-systemd.automount',
+      'set 7/opt[3] x-systemd.requires',
+      'set 7/opt[3]/value openvpn-client@nest.service',
+      'set 7/dump 0',
+      'set 7/passno 0',
+    ],
   }
 
   $nest_spec = $nest::fscache ? {
@@ -98,13 +110,13 @@ class nest::base::fstab {
   }
 
   if $facts['profile']['platform'] == 'live' {
-    $fstab = $specs['nest-nocache']
+    $fstab = $specs['nest-nocache'] + $specs['falcon']
   } elsif $nest::nestfs_hostname == "${hostname}.nest" {
     $fstab = $specs['boot'] + $specs['swap'] + $specs['var']
   } elsif $facts['mountpoints']['/efi'] {
-    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
+    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs['falcon']
   } else {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec]
+    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs['falcon']
   }
 
   augeas { 'fstab':
