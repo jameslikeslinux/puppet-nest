@@ -162,14 +162,16 @@ class nest::base::openvpn {
 
     'windows': {
       $openvpn_package_name = 'openvpn'
-      $openvpn_config_file  = 'C:/Program Files/OpenVPN/config/nest.ovpn'
+      $openvpn_package_opts = ['--package-parameters', '"', '/Service', '/TapDriver', '"']
+      $openvpn_config_file  = 'C:/Program Files/OpenVPN/config-auto/nest.ovpn'
       $openvpn_config       = epp('nest/openvpn/config.epp')
       $openvpn_service      = 'OpenVPNService'
     }
   }
 
   package { $openvpn_package_name:
-    ensure => installed,
+    ensure          => installed,
+    install_options => $openvpn_package_opts,
   }
   ->
   file { $openvpn_config_file:

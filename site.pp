@@ -2,6 +2,14 @@ if $trusted['certname'] in ['bolt', 'puppetdb'] {
   fail("${trusted['certname']} is not allowed to use Puppet")
 }
 
+class choco {
+  include chocolatey
+
+  chocolateyfeature { 'useRememberedArgumentsForUpgrades':
+    ensure => enabled,
+  }
+}
+
 case $facts['os']['family'] {
   'Gentoo': {
     Firewalld_service {
@@ -52,7 +60,7 @@ case $facts['os']['family'] {
       before => Stage['main'],
     }
 
-    class { 'chocolatey':
+    class { 'choco':
       stage => 'first',
     }
 
