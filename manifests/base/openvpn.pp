@@ -165,6 +165,16 @@ class nest::base::openvpn {
       $openvpn_config_file  = 'C:/Program Files/OpenVPN/config/nest.ovpn'
       $openvpn_config       = epp('nest/openvpn/config.epp')
       $openvpn_service      = 'OpenVPNService'
+
+      file { 'C:/Program Files/OpenVPN/config/ssl':
+        ensure  => directory,
+        source  => 'C:/ProgramData/PuppetLabs/puppet/etc/ssl',
+        recurse => true,
+        purge   => true,
+        force   => true,
+        require => Package[$openvpn_package_name],
+        before  => Service[$openvpn_service],
+      }
     }
   }
 
