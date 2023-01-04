@@ -25,10 +25,10 @@ case $server {
 <% if $facts['os']['family'] == 'windows' { -%>
 dev tun
 persist-tun
-ca "C:/Program Files/OpenVPN/config/ssl/certs/ca.pem"
-cert "C:/Program Files/OpenVPN/config/ssl/certs/<%= $trusted['certname'] %>.pem"
-key "C:/Program Files/OpenVPN/config/ssl/private_keys/<%= $trusted['certname'] %>.pem"
-crl-verify "C:/Program Files/OpenVPN/config/ssl/crl.pem"
+ca C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/ca.pem
+cert C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/<%= $trusted['certname'] %>.pem
+key C:/ProgramData/PuppetLabs/puppet/etc/ssl/private_keys/<%= $trusted['certname'] %>.pem
+crl-verify C:/ProgramData/PuppetLabs/puppet/etc/ssl/crl.pem
 down-pre
 verb 3
 <% } else { -%>
