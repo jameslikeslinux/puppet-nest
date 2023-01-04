@@ -1,0 +1,92 @@
+<%- |
+  Optional[Enum['udp', 'tcp']] $server = undef,
+| -%>
+<%
+case $server {
+  udp: {
+    $device        = 'tun0'
+    $network       = '172.22.0.0'
+    $other_network = '172.22.0.128'
+    $ipp_file      = 'nest-ipp.txt'
+  }
+
+  tcp: {
+    $device        = 'tun1'
+    $network       = '172.22.0.128'
+    $other_network = '172.22.0.0'
+    $ipp_file      = 'nest-tcp-ipp.txt'
+  }
+
+  default: {
+    $device = 'tun0'
+  }
+}
+-%>
+<% if $facts['os']['family'] == 'windows' { -%>
+dev tun
+persist-tun
+ca "C:/Program Files/OpenVPN/config/ssl/certs/ca.pem"
+cert "C:/Program Files/OpenVPN/config/ssl/certs/<%= $trusted['certname'] %>.pem"
+key "C:/Program Files/OpenVPN/config/ssl/private_keys/<%= $trusted['certname'] %>.pem"
+crl-verify "C:/Program Files/OpenVPN/config/ssl/crl.pem"
+down-pre
+verb 3
+<% } else { -%>
+<% if $server == 'tcp' { -%>
+proto tcp
+<% } -%>
+dev <%= $device %>
+persist-tun
+txqueuelen 1000
+ca /etc/puppetlabs/puppet/ssl/certs/ca.pem
+cert /etc/puppetlabs/puppet/ssl/certs/<%= $trusted['certname'] %>.pem
+key /etc/puppetlabs/puppet/ssl/private_keys/<%= $trusted['certname'] %>.pem
+crl-verify /etc/puppetlabs/puppet/ssl/crl.pem
+script-security 2
+up /etc/openvpn/up.sh
+down /etc/openvpn/down.sh
+down-pre
+verb 3
+<% if $server { -%>
+ncp-ciphers AES-128-GCM
+dh /etc/openvpn/dh4096.pem
+server <%= $network %> 255.255.255.128
+topology subnet
+client-to-client
+keepalive 10 30
+
+<% if $server == 'udp' { -%>
+# Sync with pushed options below
+dhcp-option DOMAIN gitlab.james.tl
+dhcp-option DOMAIN nest
+dhcp-option DNS 172.22.0.1
+
+<% } -%>
+# Windows only honors the last domain pushed
+push "dhcp-option DOMAIN gitlab.james.tl"
+push "dhcp-option DOMAIN nest"
+push "dhcp-option DNS 172.22.0.1"
+
+# Preferred routes are < 100 on Gentoo and Windows
+push "route-metric 100"
+
+# Windows needs a default route to recognize network
+push "route 0.0.0.0 0.0.0.0"
+
+# Join to other half of Nest network
+push "route <%= $other_network %> 255.255.255.128"
+
+# UniFi
+push "route 172.22.1.12"
+
+setenv HOSTS /etc/hosts.nest
+learn-address /etc/openvpn/learn-address.sh
+ifconfig-pool-persist <%= $ipp_file %>
+<% } -%>
+<% } -%>
+<% unless $server { -%>
+client
+nobind
+remote <%= $nest::openvpn_hostname %> 1194
+#remote <%= $nest::openvpn_hostname %> 1194 tcp
+<% } -%>

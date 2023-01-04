@@ -1,93 +1,13 @@
 class nest::base::openvpn {
-  $client_config = @("EOT")
-    client
-    nobind
-    remote ${nest::openvpn_hostname} 1194
-    #remote ${nest::openvpn_hostname} 1194 tcp
-    | EOT
-
   case $facts['os']['family'] {
     'Gentoo': {
-      $device     = 'tun0'
-      $hosts_file = '/etc/hosts.nest'
-
-      $servers = {
-        'udp' => '172.22.0.0',
-        'tcp' => '172.22.0.128',
-      }
-
-      $server_configs = $servers.reduce({}) |$configs, $server| {
-        $proto   = $server[0]
-        $network = $server[1]
-
-        if $proto == 'tcp' {
-          $other_network = $servers['udp']
-          $ipp_file      = 'nest-tcp-ipp.txt'
-        } else {
-          $other_network = $servers['tcp']
-          $ipp_file      = 'nest-ipp.txt'
-        }
-
-        $config = @("EOT")
-          ncp-ciphers AES-128-GCM
-          dh /etc/openvpn/dh4096.pem
-          server ${network} 255.255.255.128
-          topology subnet
-          client-to-client
-          keepalive 10 30
-
-          # Sync with pushed options below
-          dhcp-option DOMAIN gitlab.james.tl
-          dhcp-option DOMAIN nest
-          dhcp-option DNS 172.22.0.1
-
-          # Windows only honors the last domain pushed
-          push "dhcp-option DOMAIN gitlab.james.tl"
-          push "dhcp-option DOMAIN nest"
-          push "dhcp-option DNS 172.22.0.1"
-
-          # Preferred routes are < 100 on Gentoo and Windows
-          push "route-metric 100"
-
-          # Windows needs a default route to recognize network
-          push "route 0.0.0.0 0.0.0.0"
-
-          # Join to other half of Nest network
-          push "route ${other_network} 255.255.255.128"
-
-          # UniFi
-          push "route 172.22.1.12"
-
-          setenv HOSTS ${hosts_file}
-          learn-address /etc/openvpn/learn-address.sh
-          ifconfig-pool-persist ${ipp_file}
-          | EOT
-
-        $configs + { $proto => $config }
-      }
-
-      $base_common_config = @("EOT")
-        persist-tun
-        txqueuelen 1000
-        ca /etc/puppetlabs/puppet/ssl/certs/ca.pem
-        cert /etc/puppetlabs/puppet/ssl/certs/${::trusted['certname']}.pem
-        key /etc/puppetlabs/puppet/ssl/private_keys/${::trusted['certname']}.pem
-        crl-verify /etc/puppetlabs/puppet/ssl/crl.pem
-        script-security 2
-        up /etc/openvpn/up.sh
-        down /etc/openvpn/down.sh
-        down-pre
-        verb 3
-        | EOT
-      $common_config = "dev ${device}\n${base_common_config}"
-
       $dnsmasq_config = @("EOT")
         resolv-file=/run/systemd/resolve/resolv.conf
         interface=lo
-        interface=${device}
+        interface=tun0
         bind-interfaces
         no-hosts
-        addn-hosts=${hosts_file}
+        addn-hosts=/etc/hosts.nest
         expand-hosts
         domain=nest
         enable-dbus
@@ -95,8 +15,8 @@ class nest::base::openvpn {
 
       $dnsmasq_systemd_dropin_unit = @("EOT")
         [Unit]
-        Requires=sys-subsystem-net-devices-${device}.device
-        After=sys-subsystem-net-devices-${device}.device
+        Requires=sys-subsystem-net-devices-tun0.device
+        After=sys-subsystem-net-devices-tun0.device
         | EOT
 
       File {
@@ -105,8 +25,8 @@ class nest::base::openvpn {
       }
 
       if $nest::openvpn_server {
-        $mode   = 'server'
-        $config = $server_configs['udp']
+        $mode = 'server'
+        $openvpn_config = epp('nest/openvpn/config.epp', { 'server' => udp })
 
         exec { 'openvpn-create-dh-parameters':
           command => '/usr/bin/openssl dhparam -out /etc/openvpn/dh4096.pem 4096',
@@ -123,15 +43,15 @@ class nest::base::openvpn {
           before  => Service["openvpn-${mode}@nest"],
         }
 
-        file { $hosts_file:
+        file { '/etc/hosts.nest':
           ensure => file,
           mode   => '0644',
         }
 
         host { $::trusted['certname']:
           ip      => '172.22.0.1',
-          target  => $hosts_file,
-          require => File[$hosts_file],
+          target  => '/etc/hosts.nest',
+          require => File['/etc/hosts.nest'],
           notify  => Service['dnsmasq'],
         }
 
@@ -203,7 +123,7 @@ class nest::base::openvpn {
         #
         file { '/etc/openvpn/server/nest-tcp.conf':
           mode    => '0644',
-          content => "proto tcp\ndev tun1\n${base_common_config}${server_configs['tcp']}",
+          content => epp('nest/openvpn/config.epp', { 'server' => tcp }),
           require => Package[$openvpn_package_name],
         }
         ~>
@@ -225,8 +145,8 @@ class nest::base::openvpn {
           interfaces +> 'tun1'
         }
       } else {
-        $mode   = 'client'
-        $config = $client_config
+        $mode = 'client'
+        $openvpn_config = epp('nest/openvpn/config.epp')
       }
 
       $openvpn_package_name = 'net-vpn/openvpn'
@@ -241,21 +161,9 @@ class nest::base::openvpn {
     }
 
     'windows': {
-      $common_config = @("EOT")
-        dev tun
-        persist-tun
-        ca C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/ca.pem
-        cert C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/${::trusted['certname']}.pem
-        key C:/ProgramData/PuppetLabs/puppet/etc/ssl/private_keys/${::trusted['certname']}.pem
-        crl-verify C:/ProgramData/PuppetLabs/puppet/etc/ssl/crl.pem
-        down-pre
-        verb 3
-        | EOT
-
-      $config = $client_config
-
       $openvpn_package_name = 'openvpn'
       $openvpn_config_file  = 'C:/Program Files/OpenVPN/config/nest.ovpn'
+      $openvpn_config       = epp('nest/openvpn/config.epp')
       $openvpn_service      = 'OpenVPNService'
     }
   }
@@ -266,7 +174,7 @@ class nest::base::openvpn {
   ->
   file { $openvpn_config_file:
     mode    => '0644',
-    content => "${common_config}${config}",
+    content => $openvpn_config,
   }
   ~>
   service { $openvpn_service:
