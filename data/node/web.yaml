@@ -17,12 +17,6 @@ nest::service::gateway::port_forwards:
     proto: tcp
     to_addr: '172.22.0.1'
     to_port: 2222
-  rtmp:
-    dest: '104.156.227.40'
-    port: 1935
-    proto: tcp
-    to_addr: '172.22.0.1'
-    to_port: 1935
   streamlabs:
     dest: '104.156.227.40'
     port: 59650
