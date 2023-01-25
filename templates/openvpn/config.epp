@@ -25,7 +25,6 @@ case $server {
 <% if $facts['os']['family'] == 'windows' { -%>
 dev tun
 persist-tun
-txqueuelen 1000
 ca C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/ca.pem
 cert C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/<%= $trusted['certname'] %>.pem
 key C:/ProgramData/PuppetLabs/puppet/etc/ssl/private_keys/<%= $trusted['certname'] %>.pem
