@@ -17,12 +17,12 @@ nest::service::gateway::port_forwards:
     proto: tcp
     to_addr: '172.22.0.1'
     to_port: 2222
-  streamlabs:
-    dest: '104.156.227.40'
-    port: 59650
-    proto: tcp
-    to_addr: '172.22.0.9'
-    to_port: 59650
+  # streamlabs:
+  #   dest: '104.156.227.40'
+  #   port: 59650
+  #   proto: tcp
+  #   to_addr: '172.22.0.9'
+  #   to_port: 59650
 
 nest::service::reverse_proxy::hosts:
   gitlab.james.tl:
