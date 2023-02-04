@@ -35,6 +35,7 @@ nest::cnames:
   sonarr.nest: 'falcon.nest'
   gitlab.james.tl: 'falcon.nest'
   registry.gitlab.james.tl: 'falcon.nest'
+  cursivemoves.nest: 'falcon.nest'
 nest::cups_servers:
   - 'falcon.nest'
 nest::distcc_hosts:
