@@ -123,6 +123,6 @@ nest::service::reverse_proxy::hosts:
     ip: '172.22.0.1'
 
   cursivemoves.nest:
-    destination: 'pixel5a.nest:8000'
+    destination: ['pixel5a.nest:8000 timeout=5', 'pixel7pro.nest:8000 status=+R timeout=5']
     ip: '172.22.0.1'
     ssl: false
