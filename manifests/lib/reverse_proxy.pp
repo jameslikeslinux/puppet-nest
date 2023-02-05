@@ -1,5 +1,5 @@
 define nest::lib::reverse_proxy (
-  Variant[String, Array[String]] $destination,
+  String                   $destination,
   Boolean                  $encoded_slashes = false,
   Hash[String, Any]        $extra_params    = {},
   Optional[Nest::IPList]   $ip              = undef,
@@ -11,18 +11,6 @@ define nest::lib::reverse_proxy (
   Optional[Integer]        $timeout         = undef,
   Variant[Boolean, String] $websockets      = false,
 ) {
-  if $destination =~ String {
-    $url      = "http://${destination}/"
-  } else {
-    $url      = "balancer://${name}/"
-    $members  = $destination.map |$d| { "  BalancerMember http://${d}" }
-    $balancer = @("BALANCER")
-      <Proxy balancer://${name}>
-      ${members.join("\n")}
-      </Proxy>
-      | BALANCER
-  }
-
   if $encoded_slashes {
     $proxy_pass_keywords = ['nocanon']
     $allow_encoded_slashes = on
@@ -34,7 +22,7 @@ define nest::lib::reverse_proxy (
 
   $proxy_pass = [{
     'path'     => '/',
-    'url'      => $url,
+    'url'      => "http://${destination}/",
     'keywords' => $proxy_pass_keywords,
     'params'   => $proxy_params,
   }]
@@ -55,10 +43,10 @@ define nest::lib::reverse_proxy (
 
   $certbot_exception = @(EOT)
     <Location "/.well-known">
-      AllowOverride None
-      Require all granted
-      ProxyPass !
-    </Location>
+        AllowOverride None
+        Require all granted
+        ProxyPass !
+      </Location>
     | EOT
 
   nest::lib::virtual_host { $name:
@@ -73,7 +61,7 @@ define nest::lib::reverse_proxy (
       'proxy_pass'            => $proxy_pass,
       'proxy_preserve_host'   => $preserve_host,
       'rewrites'              => $websocket_rewrites,
-      'custom_fragment'       => "${balancer}${certbot_exception}",
+      'custom_fragment'       => $certbot_exception,
     } + $extra_params,
   }
 }

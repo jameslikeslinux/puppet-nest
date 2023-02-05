@@ -14,23 +14,17 @@ class nest::service::apache (
     require => Class['apache'],
   }
 
-  apache::mod { 'log_config': }
-  apache::mod { 'lbmethod_byrequests': }
-  apache::mod { 'proxy_balancer': }
-  apache::mod { 'slotmem_shm': }
-  apache::mod { 'unixd': }
+  ::apache::mod { 'log_config': }
+  ::apache::mod { 'unixd': }
 
   nest::lib::package_use { 'httpd':
     package => 'www-servers/apache',
     use     => [
       'apache2_modules_access_compat',
-      'apache2_modules_lbmethod_byrequests',
       'apache2_modules_proxy',
-      'apache2_modules_proxy_balancer',
       'apache2_modules_proxy_fcgi',
       'apache2_modules_proxy_http',
       'apache2_modules_proxy_wstunnel',
-      'apache2_modules_slotmem_shm', # for proxy_balancer
       'threads',
     ],
   }
