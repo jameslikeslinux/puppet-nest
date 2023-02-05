@@ -1,5 +1,5 @@
 define nest::lib::reverse_proxy (
-  String                   $destination,
+  Variant[String, Hash]    $destination,
   Boolean                  $encoded_slashes = false,
   Hash[String, Any]        $extra_params    = {},
   Optional[Nest::IPList]   $ip              = undef,
@@ -20,12 +20,19 @@ define nest::lib::reverse_proxy (
     $proxy_params = { 'timeout' => $timeout }
   }
 
-  $proxy_pass = [{
-    'path'     => '/',
-    'url'      => "http://${destination}/",
-    'keywords' => $proxy_pass_keywords,
-    'params'   => $proxy_params,
-  }]
+  $mappings = $destination ? {
+    String  => { '/' => $destination },
+    default => $destination,
+  }
+
+  $proxy_pass = $mappings.map |$path, $dest| {
+    {
+      'path'     => $path,
+      'url'      => "http://${dest}/",
+      'keywords' => $proxy_pass_keywords,
+      'params'   => $proxy_params,
+    }
+  }
 
   if $websockets {
     include 'apache::mod::proxy_wstunnel'
