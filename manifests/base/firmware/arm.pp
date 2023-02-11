@@ -12,7 +12,7 @@ class nest::base::firmware::arm {
       $plat = 'rk3399'
     }
 
-    'sopine': {
+    /^(pine64|sopine)$/: {
       $plat = 'sun50i_a64'
     }
   }

@@ -25,6 +25,7 @@ class nest::base::firmware::uboot {
 
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'am335x_evm_defconfig',
+    'pine64'          => 'pine64-lts_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi'     => 'rpi_arm64_defconfig',
     'rock5'           => 'rock-5b-rk3588_defconfig',
@@ -102,7 +103,7 @@ class nest::base::firmware::uboot {
       }
     }
 
-    'sopine': {
+    /^(pine64|sopine)$/: {
       $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
     }
   }

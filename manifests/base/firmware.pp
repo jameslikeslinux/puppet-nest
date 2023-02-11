@@ -8,6 +8,24 @@ class nest::base::firmware {
       }
     }
 
+    'pine64': {
+      contain 'nest::base::firmware::arm'
+      contain 'nest::base::firmware::uboot'
+
+      Class['nest::base::firmware::arm']
+      ~> Class['nest::base::firmware::uboot']
+
+      file {
+        '/boot/allwinner':
+          ensure => directory,
+        ;
+
+        '/boot/allwinner/sun50i-a64-pine64-lts.dtb':
+          source => '/usr/src/linux/arch/arm64/boot/dts/allwinner/sun50i-a64-pine64-lts.dtb',
+        ;
+      }
+    }
+
     'pinebookpro': {
       contain 'nest::base::firmware::arm'
       contain 'nest::base::firmware::uboot'

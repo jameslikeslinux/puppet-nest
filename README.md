@@ -20,8 +20,10 @@ environment understands the following roles and platforms:
 |-----------------|-------------|
 | generic         | server      |
 | beagleboneblack | workstation |
+| pine64          |             |
 | pinebookpro     |             |
 | raspberrypi     |             |
+| rock5           |             |
 | sopine          |             |
 
 So you can build a "raspberrypi workstation" or a "beagleboneblack server" or

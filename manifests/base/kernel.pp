@@ -46,6 +46,7 @@ class nest::base::kernel {
 
   $defconfig = $facts['profile']['platform'] ? {
     'beagleboneblack' => 'multi_v7_defconfig',
+    'pine64'          => 'defconfig',
     'pinebookpro'     => 'defconfig',
     'raspberrypi'     => 'bcm2711_defconfig',
     'rock5'           => 'rockchip_linux_defconfig',

@@ -155,13 +155,13 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_BLK_DEV_NVME: m
+  CONFIG_USB_NET_RNDIS_HOST: m    # for Pixel 5a USB tethering
   CONFIG_HW_RANDOM_VIRTIO: m
   CONFIG_DRM_NOUVEAU: n           # unused and too big
   CONFIG_USB_SERIAL: m
   CONFIG_USB_SERIAL_CH341: m      # for Pinebook Pro adapter
   CONFIG_USB_SERIAL_CP210X: m     # for Raspberry Pi adapter
   CONFIG_USB_SERIAL_FTDI_SIO: m   # for BeagleBone Black adapter
-  CONFIG_USB_ETH: m               # for Pixel 5a USB tethering
   CONFIG_VIRTIO_PCI: y
   CONFIG_VIRTIO_BALLOON: m
 
