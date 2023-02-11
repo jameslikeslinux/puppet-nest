@@ -1,0 +1,4 @@
+---
+nest::kexec: true
+nest::kernel_config:
+  CONFIG_RTL8723BS: m
