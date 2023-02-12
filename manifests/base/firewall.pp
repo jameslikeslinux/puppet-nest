@@ -31,6 +31,7 @@ class nest::base::firewall {
     ensure        => present,
     ingress_zones => 'internal',
     egress_zones  => 'external',
+    target        => 'ACCEPT',
   }
 
   # Purge direct rules
