@@ -15,13 +15,14 @@ class nest::base::firewall {
   firewalld_zone {
     'external':
       interfaces => $external_interfaces,
-      masquerade => true,
+      masquerade => true, # for NAT
       target     => 'DROP',
     ;
 
     'internal':
-      sources => '172.22.0.0/24',
-      target  => 'ACCEPT',
+      sources    => '172.22.0.0/24',
+      masquerade => true, # for port forwarding into VPN
+      target     => 'ACCEPT',
     ;
 
     'home':
