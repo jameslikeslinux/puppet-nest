@@ -53,7 +53,7 @@ dh /etc/openvpn/dh4096.pem
 server <%= $network %> 255.255.255.128
 topology subnet
 client-to-client
-keepalive 10 30
+keepalive 5 15
 
 <% if $server == 'udp' { -%>
 # Sync with pushed options below
@@ -87,7 +87,7 @@ ifconfig-pool-persist <%= $ipp_file %>
 <% unless $server { -%>
 client
 nobind
-connect-retry 2
+connect-retry 2 30
 connect-timeout 2
 <% $nest::openvpn_servers.each |$server| { -%>
 remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
