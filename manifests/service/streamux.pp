@@ -3,9 +3,22 @@ class nest::service::streamux (
   Sensitive $password,
 ) {
   #
+  # Firewall
+  #
+  firewalld_zone { 'streamux':
+    ensure     => present,
+    target     => '%%REJECT%%',
+    interfaces => 'wlan0',
+  }
+
+  Firewalld_service {
+    zone => 'streamux',
+  }
+
+  #
   # Hostapd
   #
-  nest::lib::package { 'net-wireless/hostapd':
+  package { 'net-wireless/hostapd':
     ensure => installed,
   }
   ->
@@ -25,11 +38,21 @@ class nest::service::streamux (
   #
   include nest::service::dnsmasq
 
+  $dnsmasq_conf = @(DNSMASQ)
+    interface=wlan0
+    bind-interfaces
+    dhcp-range=172.22.100.100,172.22.100.100,infinite
+    | DNSMASQ
+
   file { '/etc/dnsmasq.d/streamux.conf':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "interface=wlan0\ndhcp-range=172.22.100.100,172.22.100.100,infinite\n",
+    content => $dnsmasq_conf,
     notify  => Service['dnsmasq'],
+  }
+
+  firewalld_service { 'dhcp':
+    ensure => present,
   }
 }
