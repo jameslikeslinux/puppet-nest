@@ -7,7 +7,6 @@ class nest::service::streamux (
   #
   firewalld_zone { 'streamux':
     ensure     => present,
-    target     => '%%REJECT%%',
     interfaces => 'wlan0',
   }
 
@@ -56,7 +55,7 @@ class nest::service::streamux (
     notify  => Service['dnsmasq'],
   }
 
-  firewalld_service { 'dhcp':
+  firewalld_service { ['dhcp', 'dns']:
     ensure => present,
   }
 
@@ -91,5 +90,9 @@ class nest::service::streamux (
     source   => 'https://gitlab.james.tl/james/streamux.git',
     revision => 'main',
     user     => 'james',
+  }
+
+  package { 'media-gfx/qrencode':
+    ensure => installed,
   }
 }

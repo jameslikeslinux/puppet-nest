@@ -13,15 +13,15 @@ class choco {
 case $facts['os']['family'] {
   'Gentoo': {
     Firewalld_service {
-      zone => 'drop',
+      zone => 'external',
     }
 
     Firewalld_port {
-      zone => 'drop',
+      zone => 'external',
     }
 
     Firewalld_rich_rule {
-      zone => 'drop',
+      zone => 'external',
     }
 
     Firewalld_zone {

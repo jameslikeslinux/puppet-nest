@@ -9,16 +9,16 @@ class nest::base::firewall {
   }
 
   # Configure the zones that this module uses
+  # See https://www.linuxjournal.com/content/understanding-firewalld-multi-zone-configurations
   firewalld_zone {
-    'drop':
+    'external':
       interfaces => [$facts['networking']['primary']],
-      masquerade => $nest::openvpn_server,
-      tag        => 'default',
+      target     => 'DROP',
     ;
 
-    'trusted':
+    'internal':
       interfaces => ['tun0'],
-      masquerade => true,
+      target     => 'ACCEPT',
     ;
   }
 
@@ -30,10 +30,10 @@ class nest::base::firewall {
     matches => [
       'block.xml*',
       'dmz.xml*',
-      'external.xml*',
+      'drop.xml*',
       'home.xml*',
-      'internal.xml*',
       'public.xml*',
+      'trusted.xml*',
       'work.xml*',
     ],
     recurse => 1,
