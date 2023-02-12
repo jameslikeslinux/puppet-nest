@@ -159,6 +159,7 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_BLK_DEV_NVME: m
+  CONFIG_USB_USBNET: m            # for USB tethering
   CONFIG_USB_NET_RNDIS_HOST: m    # for Pixel 5a USB tethering
   CONFIG_HW_RANDOM_VIRTIO: m
   CONFIG_DRM_NOUVEAU: n           # unused and too big
