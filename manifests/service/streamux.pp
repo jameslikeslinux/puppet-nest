@@ -11,6 +11,10 @@ class nest::service::streamux (
     interfaces => 'wlan0',
   }
 
+  Firewalld_port {
+    zone => 'streamux',
+  }
+
   Firewalld_service {
     zone => 'streamux',
   }
@@ -41,7 +45,7 @@ class nest::service::streamux (
   $dnsmasq_conf = @(DNSMASQ)
     interface=wlan0
     bind-interfaces
-    dhcp-range=172.22.100.100,172.22.100.100,infinite
+    dhcp-range=172.22.100.100,172.22.100.199,1d
     | DNSMASQ
 
   file { '/etc/dnsmasq.d/streamux.conf':
@@ -54,5 +58,27 @@ class nest::service::streamux (
 
   firewalld_service { 'dhcp':
     ensure => present,
+  }
+
+  #
+  # Nginx
+  #
+  nest::lib::package { 'www-servers/nginx':
+    ensure => installed,
+    use    => 'rtmp',
+  }
+
+  firewalld_port { 'rtmp':
+    ensure   => present,
+    port     => 1935,
+    protocol => 'tcp',
+  }
+
+  #
+  # ffmpeg
+  #
+  nest::lib::package { 'media-video/ffmpeg':
+    ensure => installed,
+    use    => 'x264',
   }
 }
