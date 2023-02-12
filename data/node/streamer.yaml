@@ -1,2 +1,5 @@
 ---
+classes:
+  - 'nest::service::streamux'
+
 nest::vpn_transport: tcp
