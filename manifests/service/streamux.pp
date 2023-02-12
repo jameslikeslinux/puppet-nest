@@ -81,4 +81,15 @@ class nest::service::streamux (
     ensure => installed,
     use    => 'x264',
   }
+
+  #
+  # Streamux
+  #
+  vcsrepo { '/home/james/streamux':
+    ensure   => latest,
+    provider => git,
+    source   => 'https://gitlab.james.tl/james/streamux.git',
+    revision => 'main',
+    user     => 'james',
+  }
 }
