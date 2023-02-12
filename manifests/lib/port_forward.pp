@@ -7,6 +7,7 @@ define nest::lib::port_forward (
   Boolean                           $loopback = true,
 ) {
   firewalld_rich_rule { $name:
+    zone         => 'external',
     family       => ipv4,
     dest         => $dest,
     forward_port => {

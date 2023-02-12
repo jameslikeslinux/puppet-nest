@@ -99,7 +99,8 @@ class nest::service::libvirt {
 
   if $nest::fileserver {
     firewalld_service { ['nfs', 'samba']:
-      zone => 'libvirt',
+      ensure => present,
+      zone   => 'libvirt',
     }
   }
 
