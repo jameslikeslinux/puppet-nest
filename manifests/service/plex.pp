@@ -11,7 +11,5 @@ class nest::service::plex {
     ],
   }
 
-  firewalld_service { 'plex':
-    ensure => present,
-  }
+  nest::lib::external_service { 'plex': }
 }

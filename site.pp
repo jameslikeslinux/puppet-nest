@@ -12,18 +12,6 @@ class choco {
 
 case $facts['os']['family'] {
   'Gentoo': {
-    Firewalld_service {
-      zone => 'home',
-    }
-
-    Firewalld_port {
-      zone => 'home',
-    }
-
-    Firewalld_rich_rule {
-      zone => 'home',
-    }
-
     Firewalld_zone {
       interfaces       => [],
       sources          => [],

@@ -54,9 +54,7 @@ class nest::base::ssh {
       }
 
       if $nest::public_ssh {
-        firewalld_service { 'ssh':
-          ensure => present,
-        }
+        nest::lib::external_service { 'ssh': }
       }
     }
 

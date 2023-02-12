@@ -40,7 +40,7 @@ class nest::service::apache (
   }
 
   if $manage_firewall {
-    firewalld_service { ['http', 'https']:
+    nest::lib::external_service { ['http', 'https']:
       ensure => present,
     }
   }

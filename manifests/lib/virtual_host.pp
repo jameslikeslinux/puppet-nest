@@ -26,7 +26,7 @@ define nest::lib::virtual_host (
   }
 
   if $port and $nest::service::apache::manage_firewall {
-    firewalld_port { $name:
+    nest::lib::external_port { $name:
       port     => $port,
       protocol => tcp,
     }

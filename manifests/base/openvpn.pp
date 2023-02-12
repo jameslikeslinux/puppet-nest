@@ -98,9 +98,7 @@ class nest::base::openvpn {
           ],
         }
 
-        firewalld_service { 'openvpn':
-          ensure => present,
-        }
+        nest::lib::external_service { 'openvpn': }
 
         #
         # Manage TCP service

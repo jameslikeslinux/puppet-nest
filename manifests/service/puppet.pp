@@ -32,9 +32,7 @@ class nest::service::puppet (
     ],
   }
 
-  firewalld_service { 'puppetmaster':
-    ensure => present,
-  }
+  nest::lib::external_service { 'puppetmaster': }
 
 
   #
