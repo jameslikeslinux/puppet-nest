@@ -5,9 +5,20 @@ class nest::service::streamux (
   #
   # Firewall
   #
+  Firewalld_zone <| title == 'external' |> {
+    interfaces +> 'wlan0',
+  }
+
+  firewalld_rich_rule { 'streamux-nat':
+    source     => '172.22.100.0/24',
+    masquerade => true,
+    zone       => 'external',
+  }
+
   firewalld_zone { 'streamux':
-    ensure     => present,
-    interfaces => 'wlan0',
+    ensure  => present,
+    sources => '172.22.100.0/24',
+    target  => 'default',
   }
 
   Firewalld_port {

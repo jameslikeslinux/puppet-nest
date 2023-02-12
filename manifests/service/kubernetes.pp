@@ -72,6 +72,7 @@ class nest::service::kubernetes (
       '192.168.0.0/16', # Calico pod network
       "${facts['networking']['network']}/${facts['networking']['netmask']}",  # Host pod network
     ],
+    target  => 'default',
   }
   ->
   exec { 'firewalld-kubernetes-add-forward':

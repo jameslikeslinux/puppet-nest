@@ -125,7 +125,7 @@ class nest::base::openvpn {
           # autobefore Firewalld_service['openvpn']
         }
 
-        Firewalld_zone <| title == 'internal' |> {
+        Firewalld_zone <| title == 'external' |> {
           interfaces +> 'tun1'
         }
       } else {
