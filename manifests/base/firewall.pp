@@ -11,7 +11,7 @@ class nest::base::firewall {
   # Configure the zones that this module uses
   firewalld_zone {
     'external':
-      interfaces => [$facts['networking']['primary'], 'tun0'],
+      interfaces => $facts['networking']['primary'],
       target     => 'DROP',
     ;
 
@@ -24,6 +24,13 @@ class nest::base::firewall {
       sources => '172.22.1.0/24',
       target  => 'default',
     ;
+  }
+
+  firewalld_policy { 'nat':
+    ensure        => present,
+    ingress_zones => 'ANY',
+    egress_zones  => 'external',
+    masquerade    => true,
   }
 
   # Purge direct rules

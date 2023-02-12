@@ -124,10 +124,6 @@ class nest::base::openvpn {
           ],
           # autobefore Firewalld_service['openvpn']
         }
-
-        Firewalld_zone <| title == 'external' |> {
-          interfaces +> 'tun1'
-        }
       } else {
         $mode = 'client'
         $openvpn_config = epp('nest/openvpn/config.epp')
