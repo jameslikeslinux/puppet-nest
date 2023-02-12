@@ -3,7 +3,7 @@ class nest (
   String               $uboot_tag,
   String               $kernel_tag,
   Stdlib::Host         $nestfs_hostname,
-  Stdlib::Host         $openvpn_hostname,
+  Array[Stdlib::Host]  $openvpn_servers,
   String               $pw_hash,
   Hash[String, String] $ssh_private_keys,
 
@@ -17,7 +17,7 @@ class nest (
   Boolean $distcc_server  = false,
   Boolean $fileserver     = false,
   Boolean $fscache        = true,
-  Boolean $openvpn_server = false,
+  Boolean $openvpn        = false,
   Boolean $public_ssh     = false,
 
   # System settings
@@ -30,6 +30,7 @@ class nest (
   Array[String]                  $kernel_cmdline     = [],
   Boolean                        $kexec              = false,
   Array[String]                  $reset_filter_rules = [],
+  Enum['tcp', 'udp']             $vpn_transport      = udp,
   Boolean                        $wifi               = false,
   Optional[Sensitive[Hash]]      $wlans              = undef,
 

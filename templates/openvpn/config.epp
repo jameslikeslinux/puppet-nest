@@ -87,6 +87,9 @@ ifconfig-pool-persist <%= $ipp_file %>
 <% unless $server { -%>
 client
 nobind
-remote <%= $nest::openvpn_hostname %> 1194
-#remote <%= $nest::openvpn_hostname %> 1194 tcp
+connect-retry 2
+connect-timeout 2
+<% $nest::openvpn_servers.each |$server| { -%>
+remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
+<% } -%>
 <% } -%>

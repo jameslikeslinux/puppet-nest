@@ -45,7 +45,9 @@ nest::hosts:
   unifi.home:
     ip: '172.22.1.12'
 nest::nestfs_hostname: 'falcon.nest'
-nest::openvpn_hostname: 'nest.james.tl'
+nest::openvpn_servers:
+  - '172.22.1.10'
+  - 'nest.james.tl'
 
 nest::package_keywords:
   # I always want the latest of these

@@ -24,7 +24,7 @@ class nest::base::openvpn {
         group => 'root',
       }
 
-      if $nest::openvpn_server {
+      if $nest::openvpn {
         $mode = 'server'
         $openvpn_config = epp('nest/openvpn/config.epp', { 'server' => udp })
 

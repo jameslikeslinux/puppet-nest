@@ -38,7 +38,7 @@ nest::fileserver: true
 nest::fscache: false
 nest::kexec: true
 nest::mta: postfix
-nest::openvpn_server: true
+nest::openvpn: true
 nest::public_ssh: true
 
 nest::service::gitlab::external_name: 'gitlab.james.tl'
