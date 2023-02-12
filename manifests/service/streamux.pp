@@ -11,6 +11,10 @@ class nest::service::streamux (
     target  => 'default',
   }
 
+  Firewalld_policy <| title == 'nat' |> {
+    ingress_zones +> 'streamux',
+  }
+
   Firewalld_port {
     zone => 'streamux',
   }

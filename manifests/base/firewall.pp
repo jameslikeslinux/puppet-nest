@@ -12,6 +12,7 @@ class nest::base::firewall {
   firewalld_zone {
     'external':
       interfaces => $facts['networking']['primary'],
+      masquerade => true,
       target     => 'DROP',
     ;
 
@@ -28,9 +29,8 @@ class nest::base::firewall {
 
   firewalld_policy { 'nat':
     ensure        => present,
-    ingress_zones => 'ANY',
+    ingress_zones => 'internal',
     egress_zones  => 'external',
-    masquerade    => true,
   }
 
   # Purge direct rules
