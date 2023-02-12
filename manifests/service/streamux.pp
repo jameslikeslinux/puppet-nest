@@ -2,6 +2,9 @@ class nest::service::streamux (
   String $ssid,
   Sensitive $password,
 ) {
+  #
+  # Hostapd
+  #
   nest::lib::package { 'net-wireless/hostapd':
     ensure => installed,
   }
@@ -17,18 +20,16 @@ class nest::service::streamux (
     enable => true,
   }
 
-  nest::lib::package { 'net-dns/dnsmasq':
-    ensure => installed,
-  }
-  ->
+  #
+  # Dnsmasq
+  #
+  include nest::service::dnsmasq
+
   file { '/etc/dnsmasq.d/streamux.conf':
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
     content => "interface=wlan0\ndhcp-range=172.22.100.100,172.22.100.100,infinite\n",
-  }
-  ~>
-  service { 'dnsmasq':
-    enable => true,
+    notify  => Service['dnsmasq'],
   }
 }

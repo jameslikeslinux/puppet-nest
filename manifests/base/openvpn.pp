@@ -55,22 +55,7 @@ class nest::base::openvpn {
           notify  => Service['dnsmasq'],
         }
 
-        package { 'net-dns/dnsmasq':
-          ensure => installed,
-        }
-
-        file_line { 'dnsmasq.conf-conf-dir':
-          path    => '/etc/dnsmasq.conf',
-          line    => 'conf-dir=/etc/dnsmasq.d/,*.conf',
-          match   => '^#?conf-dir=/etc/dnsmasq.d/,\*.conf',
-          require => Package['net-dns/dnsmasq'],
-        }
-
-        file { '/etc/dnsmasq.d':
-          ensure  => directory,
-          mode    => '0755',
-          require => File_line['dnsmasq.conf-conf-dir'],
-        }
+        include nest::service::dnsmasq
 
         file { '/etc/dnsmasq.d/nest.conf':
           mode    => '0644',
@@ -106,9 +91,8 @@ class nest::base::openvpn {
           subscribe => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
         }
 
-        service { 'dnsmasq':
-          enable  => true,
-          require => [
+        Service <| title == 'dnsmasq' |> {
+          require +> [
             Nest::Lib::Systemd_reload['dnsmasq'],
             Service["openvpn-${mode}@nest"],
           ],
