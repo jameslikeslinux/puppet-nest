@@ -22,7 +22,7 @@ case $server {
   }
 }
 -%>
-<% if $facts['os']['family'] == 'windows' { -%>
+<%- if $facts['os']['family'] == 'windows' { -%>
 dev tun
 persist-tun
 ca C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/ca.pem
@@ -31,10 +31,10 @@ key C:/ProgramData/PuppetLabs/puppet/etc/ssl/private_keys/<%= $trusted['certname
 crl-verify C:/ProgramData/PuppetLabs/puppet/etc/ssl/crl.pem
 down-pre
 verb 3
-<% } else { -%>
-<% if $server == 'tcp' { -%>
+<%- } else { -%>
+  <%- if $server == 'tcp' { -%>
 proto tcp
-<% } -%>
+  <%- } -%>
 dev <%= $device %>
 persist-tun
 txqueuelen 1000
@@ -47,7 +47,7 @@ up /etc/openvpn/up.sh
 down /etc/openvpn/down.sh
 down-pre
 verb 3
-<% if $server { -%>
+  <%- if $server { -%>
 ncp-ciphers AES-128-GCM
 dh /etc/openvpn/dh4096.pem
 server <%= $network %> 255.255.255.128
@@ -55,13 +55,13 @@ topology subnet
 client-to-client
 keepalive 5 15
 
-<% if $server == 'udp' { -%>
+    <%- if $server == 'udp' { -%>
 # Sync with pushed options below
 dhcp-option DOMAIN gitlab.james.tl
 dhcp-option DOMAIN nest
 dhcp-option DNS 172.22.0.1
 
-<% } -%>
+    <%- } -%>
 # Windows only honors the last domain pushed
 push "dhcp-option DOMAIN gitlab.james.tl"
 push "dhcp-option DOMAIN nest"
@@ -82,14 +82,21 @@ push "route 172.22.1.12"
 setenv HOSTS /etc/hosts.nest
 learn-address /etc/openvpn/learn-address.sh
 ifconfig-pool-persist <%= $ipp_file %>
-<% } -%>
-<% } -%>
-<% unless $server { -%>
+  <%- } -%>
+<%- } -%>
+<%- unless $server { -%>
 client
 nobind
 connect-retry 2 30
 connect-timeout 2
-<% $nest::openvpn_servers.each |$server| { -%>
+  <%- $nest::openvpn_servers.each |$server| { -%>
+    <%- if $server =~ Stdlib::IP::Address { -%>
 remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
-<% } -%>
-<% } -%>
+    <%- } else { -%>
+#remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
+      <%- dns_lookup($server).each |$ip| { -%>
+remote <%= $ip %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
+      <%- } -%>
+    <%- } -%>
+  <%- } -%>
+<%- } -%>
