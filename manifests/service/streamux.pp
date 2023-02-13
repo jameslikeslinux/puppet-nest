@@ -89,15 +89,20 @@ class nest::service::streamux (
   #
   # Streamux
   #
-  # vcsrepo { '/home/james/streamux':
-  #   ensure   => latest,
-  #   provider => git,
-  #   source   => 'https://gitlab.james.tl/james/streamux.git',
-  #   revision => 'main',
-  #   user     => 'james',
-  # }
+  vcsrepo { '/home/james/streamux':
+    ensure   => latest,
+    provider => git,
+    source   => 'https://gitlab.james.tl/james/streamux.git',
+    revision => 'main',
+    user     => 'james',
+  }
 
   package { 'media-gfx/qrencode':
     ensure => installed,
+  }
+
+  # For access to /dev/video0 hardware acceleration
+  User <| title == 'james' |> {
+    groups +> 'video',
   }
 }
