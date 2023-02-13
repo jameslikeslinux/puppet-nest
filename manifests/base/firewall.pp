@@ -20,9 +20,8 @@ class nest::base::firewall {
     ;
 
     'internal':
-      sources    => '172.22.0.0/24',
-      masquerade => true, # for port forwarding into VPN
-      target     => 'ACCEPT',
+      sources => '172.22.0.0/24',
+      target  => 'ACCEPT',
     ;
 
     'home':
@@ -31,11 +30,20 @@ class nest::base::firewall {
     ;
   }
 
-  firewalld_policy { 'nat':
-    ensure        => present,
-    ingress_zones => 'internal',
-    egress_zones  => 'external',
-    target        => 'ACCEPT',
+  firewalld_policy {
+    'nat':
+      ensure        => present,
+      ingress_zones => 'internal',
+      egress_zones  => 'external',
+      target        => 'ACCEPT',
+    ;
+
+    'port-forwarding':
+      ensure        => present,
+      egress_zones  => 'external',
+      ingress_zones => 'internal',
+      masquerade    => true,
+    ;
   }
 
   # Purge direct rules
