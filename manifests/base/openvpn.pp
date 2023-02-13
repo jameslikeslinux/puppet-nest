@@ -100,15 +100,6 @@ class nest::base::openvpn {
 
         nest::lib::external_service { 'openvpn': }
 
-        # Let home network into VPN (still filtered)
-        # Works in conjunction with a static route configured in UniFi
-        firewalld_policy { 'home-nest-bridge':
-          ensure        => present,
-          ingress_zones => ['home', 'internal'],
-          egress_zones  => ['home', 'internal'],
-          target        => 'ACCEPT',
-        }
-
         #
         # Manage TCP service
         #

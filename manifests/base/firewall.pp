@@ -20,30 +20,23 @@ class nest::base::firewall {
     ;
 
     'internal':
-      sources => '172.22.0.0/24',
-      target  => 'ACCEPT',
+      sources    => '172.22.0.0/24',
+      masquerade => true, # for port forwarding
+      target     => 'ACCEPT',
     ;
 
     'home':
-      sources => '172.22.1.0/24',
-      target  => 'default',
+      sources    => '172.22.1.0/24',
+      masquerade => true, # for VPN access to UniFi
+      target     => 'default',
     ;
   }
 
-  firewalld_policy {
-    'nat':
-      ensure        => present,
-      ingress_zones => 'internal',
-      egress_zones  => 'external',
-      target        => 'ACCEPT',
-    ;
-
-    'port-forwarding':
-      ensure        => present,
-      egress_zones  => 'external',
-      ingress_zones => 'internal',
-      masquerade    => true,
-    ;
+  firewalld_policy { 'nat':
+    ensure        => present,
+    ingress_zones => 'internal',
+    egress_zones  => 'external',
+    target        => 'ACCEPT',
   }
 
   # Purge direct rules
