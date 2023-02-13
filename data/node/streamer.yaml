@@ -2,4 +2,8 @@
 classes:
   - 'nest::service::streamux'
 
+# Configure USB tether interface in firewall statically
+nest::extra_interfaces: 'usb0'
+
+# Maybe better prioritization over cell networks?
 nest::vpn_transport: tcp
