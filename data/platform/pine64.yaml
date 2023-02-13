@@ -10,3 +10,5 @@ nest::kernel_config:
   # Device drivers ('y' for early boot)
   CONFIG_DMA_SUN6I: y
   CONFIG_RTL8723BS: m
+  CONFIG_VIDEO_SUNXI: y
+  CONFIG_VIDEO_SUNXI_CEDRUS: m
