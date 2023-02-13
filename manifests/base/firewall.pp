@@ -22,14 +22,13 @@ class nest::base::firewall {
     ;
 
     'internal':
-      sources    => '172.22.0.0/24',
+      interfaces => 'tun0',
       masquerade => true, # for port forwarding
       target     => 'ACCEPT',
     ;
 
     'home':
       sources    => '172.22.1.0/24',
-      masquerade => true, # for VPN access to UniFi
       target     => 'default',
     ;
   }

@@ -6,9 +6,9 @@ class nest::service::streamux (
   # Firewall
   #
   firewalld_zone { 'streamux':
-    ensure  => present,
-    sources => '172.22.100.0/24',
-    target  => 'default',
+    ensure     => present,
+    interfaces => 'wlan0',
+    target     => 'default',
   }
 
   Firewalld_policy <| title == 'nat' |> {
