@@ -9,7 +9,7 @@ class nest::base::firewall {
       /^-(.*)/ => $memo - $1,
       default  => $memo.union([$i]),
     }
-  }
+  }.sort
 
   class { 'firewalld':
     default_zone => 'drop',

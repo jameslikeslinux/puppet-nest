@@ -1,4 +1,5 @@
 ---
 classes: ['nest::service::barrier']
-nest::autologin: xmonad # for using barrier
+nest::autologin: xmonad
+nest::external_interfaces: ['eth0']
 nest::service::barrier::server: false
