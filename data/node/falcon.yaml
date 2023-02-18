@@ -122,12 +122,7 @@ nest::service::reverse_proxy::hosts:
     destination: '127.0.0.1:5050'
     ip: '172.22.0.1'
 
-  nms-pixel5a.falcon.nest:
-    destination: 'pixel5a.nest:8000'
-    ip: '172.22.0.1'
-    ssl: false
-
-  nms-pixel7pro.falcon.nest:
-    destination: 'pixel7pro.nest:8000'
+  cursivemoves.nest:
+    destination: ['pixel5a.nest:8080 lbset=0', 'streamer.nest:8080 lbset=1']
     ip: '172.22.0.1'
     ssl: false
