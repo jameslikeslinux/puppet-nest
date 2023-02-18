@@ -1,5 +1,6 @@
 class nest::service::dnsmasq (
-  Array[String] $interfaces = [],
+  Array[String] $interfaces      = [],
+  Boolean       $bind_interfaces = false,
 ) {
   File {
     mode  => '0644',
@@ -28,21 +29,22 @@ class nest::service::dnsmasq (
 
   # Ensure dnsmasq can bind to its requested interfaces
   if $interfaces.empty {
+    file { '/etc/dnsmasq.d/interfaces.conf':
+      ensure => absent,
+      notify => Service['dnsmasq'],
+    }
+
     file { '/etc/systemd/system/dnsmasq.service.d':
       ensure => absent,
       force  => true,
       notify => Nest::Lib::Systemd_reload['dnsmasq'],
     }
-
-    file { '/etc/dnsmasq.d/interfaces.conf':
-      ensure => absent,
-      notify => Service['dnsmasq'],
-    }
   } else {
     $dnsmasq_interfaces = $interfaces.map |$i| { "interface=${i}" }.join("\n")
+    $bind = $bind_interfaces ? { true => 'bind-interfaces', default => 'bind-dynamic' }
     $dnsmasq_interfaces_conf = @("END_CONF")
       ${dnsmasq_interfaces}
-      bind-interfaces
+      ${bind}
       | END_CONF
 
     file { '/etc/dnsmasq.d/interfaces.conf':
@@ -50,22 +52,30 @@ class nest::service::dnsmasq (
       notify  => Service['dnsmasq'],
     }
 
-    $systemd_device_units = $interfaces.map |$i| { "sys-subsystem-net-devices-${i}.device" }.join(' ')
-    $dnsmasq_systemd_dropin_unit = @("END_UNIT")
-      [Unit]
-      Requires=${systemd_device_units}
-      After=${systemd_device_units}
-      | END_UNIT
+    if $bind_interfaces {
+      $systemd_device_units = $interfaces.map |$i| { "sys-subsystem-net-devices-${i}.device" }.join(' ')
+      $dnsmasq_systemd_dropin_unit = @("END_UNIT")
+        [Unit]
+        Requires=${systemd_device_units}
+        After=${systemd_device_units}
+        | END_UNIT
 
-    file { '/etc/systemd/system/dnsmasq.service.d':
-      ensure => directory,
-      mode   => '0755',
-    }
+      file { '/etc/systemd/system/dnsmasq.service.d':
+        ensure => directory,
+        mode   => '0755',
+      }
 
-    file { '/etc/systemd/system/dnsmasq.service.d/10-interfaces.conf':
-      mode    => '0644',
-      content => $dnsmasq_systemd_dropin_unit,
-      notify  => Nest::Lib::Systemd_reload['dnsmasq'],
+      file { '/etc/systemd/system/dnsmasq.service.d/10-interfaces.conf':
+        mode    => '0644',
+        content => $dnsmasq_systemd_dropin_unit,
+        notify  => Nest::Lib::Systemd_reload['dnsmasq'],
+      }
+    } else {
+      file { '/etc/systemd/system/dnsmasq.service.d':
+        ensure => absent,
+        force  => true,
+        notify => Nest::Lib::Systemd_reload['dnsmasq'],
+      }
     }
   }
 
