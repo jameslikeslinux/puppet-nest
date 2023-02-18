@@ -75,10 +75,19 @@ class nest::service::streamux (
     use    => 'rtmp',
   }
 
-  firewalld_port { 'rtmp':
-    ensure   => present,
-    port     => 1935,
-    protocol => 'tcp',
+  firewalld_port {
+    'rtmp':
+      ensure   => present,
+      port     => 1935,
+      protocol => 'tcp',
+    ;
+
+    'hls':
+      ensure   => present,
+      port     => 8080,
+      protocol => 'tcp',
+      zone     => 'external',
+    ;
   }
 
   #
