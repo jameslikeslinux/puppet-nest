@@ -3,8 +3,6 @@ class nest::base::openvpn {
     'Gentoo': {
       $dnsmasq_config = @("EOT")
         resolv-file=/run/systemd/resolve/resolv.conf
-        interface=lo
-        bind-interfaces
         no-hosts
         addn-hosts=/etc/hosts.nest
         expand-hosts
