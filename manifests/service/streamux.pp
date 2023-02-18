@@ -93,7 +93,9 @@ class nest::service::streamux (
   #
   # Gstreamer
   #
-  package { [
+  nest::lib::package { [
+    'media-libs/gst-plugins-bad',
+    'media-libs/gst-plugins-good',
     'media-plugins/gst-plugins-rtmp',
     'media-plugins/gst-plugins-v4l2codecs',
     'media-plugins/gst-plugins-x264',
@@ -112,7 +114,10 @@ class nest::service::streamux (
     user     => 'james',
   }
 
-  package { 'media-gfx/qrencode':
+  package { [
+    # Something to monitor the system
+    'media-gfx/qrencode',
+  ]:
     ensure => installed,
   }
 
