@@ -27,7 +27,6 @@ class nest::role::workstation::xmonad {
 
     # For taffybar status
     'dev-ruby/concurrent-ruby',
-    'net-wireless/iw',
     'sys-fs/inotify-tools',
   ]:
     ensure => installed,

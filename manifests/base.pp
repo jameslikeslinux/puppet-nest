@@ -33,6 +33,7 @@ class nest::base {
       contain 'nest::base::sudo'
       contain 'nest::base::systemd'
       contain 'nest::base::timesyncd'
+      contain 'nest::base::wifi'
       contain 'nest::base::zfs'
 
       if $facts['build'] in [undef, 'stage2', 'stage3', 'kernel'] {

@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable power management for %i
+Requires=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/iw dev %i set power_save off
+
+[Install]
+WantedBy=multi-user.target
