@@ -4,19 +4,12 @@ class nest::base::openvpn {
       $dnsmasq_config = @("EOT")
         resolv-file=/run/systemd/resolve/resolv.conf
         interface=lo
-        interface=tun0
         bind-interfaces
         no-hosts
         addn-hosts=/etc/hosts.nest
         expand-hosts
         domain=nest
         enable-dbus
-        | EOT
-
-      $dnsmasq_systemd_dropin_unit = @("EOT")
-        [Unit]
-        Requires=sys-subsystem-net-devices-tun0.device
-        After=sys-subsystem-net-devices-tun0.device
         | EOT
 
       File {
@@ -55,7 +48,9 @@ class nest::base::openvpn {
           notify  => Service['dnsmasq'],
         }
 
-        include nest::service::dnsmasq
+        class { 'nest::service::dnsmasq':
+          interfaces => ['tun0'],
+        }
 
         file { '/etc/dnsmasq.d/nest.conf':
           mode    => '0644',
@@ -77,25 +72,8 @@ class nest::base::openvpn {
           notify  => Service['dnsmasq'],
         }
 
-        file { '/etc/systemd/system/dnsmasq.service.d':
-          ensure => directory,
-          mode   => '0755',
-        }
-
-        file { '/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf':
-          mode    => '0644',
-          content => $dnsmasq_systemd_dropin_unit,
-        }
-
-        ::nest::lib::systemd_reload { 'dnsmasq':
-          subscribe => File['/etc/systemd/system/dnsmasq.service.d/10-openvpn.conf'],
-        }
-
         Service <| title == 'dnsmasq' |> {
-          require +> [
-            Nest::Lib::Systemd_reload['dnsmasq'],
-            Service["openvpn-${mode}@nest"],
-          ],
+          require +> Service["openvpn-${mode}@nest"],
         }
 
         nest::lib::external_service { 'openvpn': }

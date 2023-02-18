@@ -44,12 +44,15 @@ class nest::service::streamux (
   #
   # Dnsmasq
   #
-  include nest::service::dnsmasq
+  class { 'nest::service::dnsmasq':
+    interfaces => ['wlan0'],
+  }
 
+  # Hand out IPs in order, but start over every reboot
   $dnsmasq_conf = @(DNSMASQ)
-    interface=wlan0
-    bind-interfaces
-    dhcp-range=172.22.100.100,172.22.100.199,1d
+    dhcp-leasefile=/run/dnsmasq.leases
+    dhcp-range=172.22.100.100,172.22.100.199,infinite
+    dhcp-sequential-ip
     | DNSMASQ
 
   file { '/etc/dnsmasq.d/streamux.conf':
@@ -79,11 +82,14 @@ class nest::service::streamux (
   }
 
   #
-  # ffmpeg
+  # Gstreamer
   #
-  nest::lib::package { 'media-video/ffmpeg':
+  package { [
+    'media-plugins/gst-plugins-rtmp',
+    'media-plugins/gst-plugins-v4l2codecs',
+    'media-plugins/gst-plugins-x264',
+  ]:
     ensure => installed,
-    use    => 'x264',
   }
 
   #

@@ -5,5 +5,8 @@ classes:
 # Configure interfaces for firewall
 nest::external_interfaces: ['usb0', '-wlan0']
 
+# For hardware accelerated decoding of h264@1080p
+nest::kernel_cmdline: ['cma=256M']
+
 # Maybe better prioritization over cell networks?
 nest::vpn_transport: tcp

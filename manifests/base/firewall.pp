@@ -35,8 +35,8 @@ class nest::base::firewall {
     ;
 
     'home':
-      sources    => '172.22.1.0/24',
-      target     => 'default',
+      sources => '172.22.1.0/24',
+      target  => 'default',
     ;
   }
 
