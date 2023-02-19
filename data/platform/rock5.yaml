@@ -7,4 +7,8 @@ nest::kernel_config:
   CONFIG_GCC_PLUGINS: null
   CONFIG_SYSFB_SIMPLEFB: null
   CONFIG_DRM_SIMPLEDRM: null
-  CONFIG_CRYPTO_DES: y  # match defconfig
+
+  # Match defconfig
+  CONFIG_USB_USBNET: y
+  CONFIG_USB_NET_RNDIS_HOST: y
+  CONFIG_CRYPTO_DES: y
