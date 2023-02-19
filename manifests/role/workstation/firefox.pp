@@ -18,8 +18,8 @@ class nest::role::workstation::firefox {
       }
 
       $webrender = $facts['profile']['platform'] ? {
-        'raspberrypi' => 0,
-        default       => 1,
+        'raspberrypi4' => 0,
+        default        => 1,
       }
 
       $autoconfig_content = @(AUTOCONFIG)

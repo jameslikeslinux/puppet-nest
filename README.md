@@ -22,7 +22,7 @@ environment understands the following roles and platforms:
 | beagleboneblack | workstation |
 | pine64          |             |
 | pinebookpro     |             |
-| raspberrypi     |             |
+| raspberrypi4    |             |
 | rock5           |             |
 | sopine          |             |
 

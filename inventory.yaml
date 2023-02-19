@@ -76,19 +76,19 @@ groups:
             target_mapping:
               name: certname
               uri: facts.fqdn
-    - name: 'raspberrypi'
+    - name: 'raspberrypi4'
       groups:
-      - name: 'raspberrypi-servers'
+      - name: 'raspberrypi4-servers'
         targets:
           - _plugin: puppetdb
-            query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.platform = 'raspberrypi' and facts.profile.role = 'server' and certname != 'builder' }"
+            query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.platform = 'raspberrypi4' and facts.profile.role = 'server' and certname != 'builder' }"
             target_mapping:
               name: certname
               uri: facts.fqdn
-      - name: 'raspberrypi-workstations'
+      - name: 'raspberrypi4-workstations'
         targets:
           - _plugin: puppetdb
-            query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.platform = 'raspberrypi' and facts.profile.role = 'workstation' and certname != 'builder' }"
+            query: "inventory[certname] { facts.osfamily = 'Gentoo' and facts.profile.platform = 'raspberrypi4' and facts.profile.role = 'workstation' and certname != 'builder' }"
             target_mapping:
               name: certname
               uri: facts.fqdn

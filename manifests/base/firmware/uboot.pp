@@ -27,7 +27,7 @@ class nest::base::firmware::uboot {
     'beagleboneblack' => 'am335x_evm_defconfig',
     'pine64'          => 'pine64-lts_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
-    'raspberrypi'     => 'rpi_arm64_defconfig',
+    'raspberrypi4'    => 'rpi_arm64_defconfig',
     'rock5'           => 'rock-5b-rk3588_defconfig',
     'sopine'          => 'sopine_baseboard_defconfig',
   }
@@ -41,8 +41,8 @@ class nest::base::firmware::uboot {
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
-    'raspberrypi' => undef,
-    default       => n,
+    'raspberrypi4' => undef,
+    default        => n,
   }
 
   nest::lib::kconfig {
@@ -80,7 +80,7 @@ class nest::base::firmware::uboot {
       $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
     }
 
-    'raspberrypi': {
+    'raspberrypi4': {
       # Fails with "Unknown partition table type 0"
       nest::lib::kconfig { 'CONFIG_MMC_SDHCI_SDMA':
         value => n,
