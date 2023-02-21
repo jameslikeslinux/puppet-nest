@@ -10,3 +10,6 @@ nest::kernel_cmdline: ['cma=256M']
 
 # Maybe better prioritization over cell networks?
 nest::vpn_transport: tcp
+
+# Try updated u-boot to see if eMMC booting is more stable
+nest::uboot_tag: 'u-boot/v2023.04-rc2'
