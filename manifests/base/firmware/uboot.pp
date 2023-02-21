@@ -76,6 +76,14 @@ class nest::base::firmware::uboot {
   }
 
   case $facts['profile']['platform'] {
+    /^(pine64|sopine)$/: {
+      nest::lib::kconfig { 'CONFIG_MMC_IO_VOLTAGE':
+        value => y,
+      }
+
+      $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
+    }
+
     'pinebookpro': {
       $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
     }
@@ -101,10 +109,6 @@ class nest::base::firmware::uboot {
         refreshonly => true,
         subscribe   => Exec['uboot-build'],
       }
-    }
-
-    /^(pine64|sopine)$/: {
-      $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
     }
   }
 
