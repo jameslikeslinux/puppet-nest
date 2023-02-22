@@ -2,11 +2,17 @@
 classes:
   - 'nest::service::streamux'
 
+# Save six seconds at boot
+nest::boot_menu_delay: 0
+
 # Configure interfaces for firewall
 nest::external_interfaces: ['usb0', '-wlan0']
 
 # For hardware accelerated decoding of h264@1080p
 nest::kernel_cmdline: ['cma=256M']
+
+# Prioritize streaming
+nest::puppet: false
 
 # Maybe better prioritization over cell networks?
 nest::vpn_transport: tcp

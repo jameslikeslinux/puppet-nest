@@ -19,7 +19,7 @@ class nest::base::bootloader::systemd {
 
     $loader_conf = @("LOADER_CONF")
       default ${facts['machine_id']}-${nest::kernel_version}.conf
-      timeout 3
+      timeout ${nest::boot_menu_delay}
       | LOADER_CONF
 
     file { '/boot/loader/loader.conf':
@@ -65,7 +65,7 @@ class nest::base::bootloader::systemd {
     if $facts['profile']['platform'] == 'rock5' {
       $extlinux_conf = @("EXTLINUX")
         DEFAULT Nest (${nest::kernel_version})
-        TIMEOUT 3
+        TIMEOUT ${nest::boot_menu_delay}
         INCLUDE /extlinux/entries.conf
         | EXTLINUX
 

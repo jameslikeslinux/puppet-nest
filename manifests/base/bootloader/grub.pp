@@ -41,7 +41,7 @@ class nest::base::bootloader::grub {
       ;
 
       'grub-set-timeout':
-        line  => 'GRUB_TIMEOUT=3',
+        line  => "GRUB_TIMEOUT=${nest::boot_menu_delay}",
         match => '^#?GRUB_TIMEOUT=',
       ;
 

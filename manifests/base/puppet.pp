@@ -46,7 +46,9 @@ class nest::base::puppet {
         content => "---\nfqdn: '${trusted['certname']}.nest'\n",
       }
 
-      if $facts['build'] or $facts['running_live'] {
+      if !$nest::puppet {
+        $puppet_runmode = 'none'
+      } elsif $facts['build'] or $facts['running_live'] {
         $puppet_runmode = 'unmanaged'
       } else {
         $puppet_runmode = 'systemd.timer'
@@ -118,8 +120,15 @@ class nest::base::puppet {
         content => epp('nest/puppet/outputs.yaml.epp'),
       }
 
+      if $nest::puppet {
+        $puppet_runmode = 'service'
+      } else {
+        $puppet_runmode = 'none'
+      }
+
       class { 'puppet':
         dns_alt_names => $dns_alt_names,
+        runmode       => $puppet_runmode,
       }
     }
   }

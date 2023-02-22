@@ -46,6 +46,9 @@ class nest::base::firmware::uboot {
   }
 
   nest::lib::kconfig {
+    'CONFIG_BOOTDELAY':
+      value => $nest::boot_menu_delay;
+
     # Always use default environment to avoid divergence
     'CONFIG_ENV_IS_NOWHERE':
       value => y;
@@ -57,12 +60,8 @@ class nest::base::firmware::uboot {
   }
 
   if $nest::uboot_tag =~ /^radxa\// {
-    nest::lib::kconfig {
-      'CONFIG_BOOTDELAY':
-        value => 3;
-      'CONFIG_DISABLE_CONSOLE':
-        value => n,
-      ;
+    nest::lib::kconfig { 'CONFIG_DISABLE_CONSOLE':
+      value => n,
     }
 
     # nest::lib::packages doesn't play nice with sloted packages

@@ -18,11 +18,13 @@ class nest (
   Boolean $fileserver     = false,
   Boolean $fscache        = true,
   Boolean $openvpn        = false,
+  Boolean $puppet         = true,
   Boolean $public_ssh     = false,
 
   # System settings
   Enum['off', 'sway', 'xmonad']  $autologin           = xmonad,
   Enum['grub', 'systemd']        $bootloader          = grub,
+  Integer[0]                     $boot_menu_delay     = 3,
   Optional[Integer]              $cpus                = undef,
   Array[String]                  $external_interfaces = [],
   Boolean                        $isolate_smt         = false,
