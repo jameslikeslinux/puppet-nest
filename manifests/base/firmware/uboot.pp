@@ -77,6 +77,11 @@ class nest::base::firmware::uboot {
   case $facts['profile']['platform'] {
     'pinebookpro': {
       $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
+
+      package { 'dev-python/pyelftools':
+        ensure => installed,
+        before => Exec['uboot-build'],
+      }
     }
 
     'raspberrypi4': {
