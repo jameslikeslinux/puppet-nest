@@ -49,6 +49,12 @@ class nest::base::packages {
           ensure => installed,
         }
       }
+
+      # Python is part of Gentoo base
+      # Define this resource for compatibility with puppet-python module
+      package { 'python':
+        name => 'dev-lang/python',
+      }
     }
 
     'windows': {

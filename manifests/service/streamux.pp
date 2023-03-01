@@ -108,20 +108,17 @@ class nest::service::streamux (
   #
   # GoPro
   #
-  package { 'dev-python/pip':
-    ensure => installed,
-  }
-  ->
-  file { '/home/james/bin/pip':
-    mode    => '0755',
-    owner   => 'james',
-    group   => 'users',
-    content => "#!/bin/bash\nexec sudo -u james /usr/bin/pip \"$@\"\n",
+  python::pyvenv { '/home/james/python':
+    ensure => present,
+    owner  => 'james',
+    group  => 'users',
   }
   ->
   python::pip { 'open-gopro':
-    command      => '/home/james/bin/pip',
-    install_args => '--user',
+    ensure       => present,
+    virtualenv   => '/home/james/python',
+    owner        => 'james',
+    group        => 'users',
     url          => 'git+https://gitlab.james.tl/james/open-gopro.git@main#subdirectory=demos/python/sdk_wireless_camera_control',
   }
 

@@ -289,3 +289,6 @@ puppet::puppetmaster: 'puppet.nest'
 puppet::runinterval: 21600
 puppet::agent_additional_settings:
   runtimeout: 0
+
+python::manage_python_package: false
+python::manage_venv_package: false
