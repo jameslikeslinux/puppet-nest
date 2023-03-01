@@ -19,6 +19,7 @@ class nest::base::packages {
         'sys-block/parted',
         'sys-cluster/kubectl',
         'sys-fs/dosfstools',
+        'sys-fs/exfatprogs',
         'sys-fs/mtools',
         'sys-fs/squashfs-tools',
         'sys-libs/nss_wrapper',
