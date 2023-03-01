@@ -2,6 +2,8 @@ class nest::service::streamux (
   String $ssid,
   Sensitive $password,
 ) {
+  include nest::service::bluetooth
+
   #
   # Firewall
   #
@@ -112,13 +114,6 @@ class nest::service::streamux (
     source   => 'https://gitlab.james.tl/james/streamux.git',
     revision => 'main',
     user     => 'james',
-  }
-
-  package { [
-    # Something to monitor the system
-    'media-gfx/qrencode',
-  ]:
-    ensure => installed,
   }
 
   # For access to /dev/video0 hardware acceleration

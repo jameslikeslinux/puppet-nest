@@ -23,6 +23,12 @@ class nest::base::firmware {
         '/boot/allwinner/sun50i-a64-pine64-lts.dtb':
           source => '/usr/src/linux/arch/arm64/boot/dts/allwinner/sun50i-a64-pine64-lts.dtb',
         ;
+
+        '/lib/firmware/rtl_bt/rtl8723bs_config.bin':
+          ensure  => link,
+          target  => 'rtl8723bs_config-OBDA8723.bin',
+          require => Package['sys-kernel/linux-firmware'],
+        ;
       }
     }
 

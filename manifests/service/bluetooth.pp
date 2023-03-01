@@ -1,14 +1,8 @@
-class nest::role::workstation::bluetooth {
+class nest::service::bluetooth {
   nest::lib::package { 'net-wireless/bluez':
     ensure => installed,
   }
   ->
-  file_line { 'bluetooth-autoenable':
-    path  => '/etc/bluetooth/main.conf',
-    line  => 'AutoEnable=true',
-    match => '^#?AutoEnable=',
-  }
-  ~>
   service { 'bluetooth':
     enable => true,
   }

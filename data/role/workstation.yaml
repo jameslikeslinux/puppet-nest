@@ -1,5 +1,6 @@
 ---
 classes:
+  - 'nest::service::bluetooth'
   - 'nest::tool::bolt'
   - 'nest::tool::pdk'
 
@@ -48,10 +49,6 @@ nest::package_keywords:
   # For barrier
   dev-cpp/gulrak-filesystem:
     version: '~1.5.10'
-
-  # All stable versions have been masked due to bugs
-  net-wireless/bluez:
-    version: '~5.63'
 
 nest::kernel_config:
   # Networking
