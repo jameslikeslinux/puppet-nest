@@ -106,6 +106,27 @@ class nest::service::streamux (
   }
 
   #
+  # GoPro
+  #
+  package { 'dev-python/pip':
+    ensure => installed,
+  }
+  ->
+  file { '/home/james/bin/pip':
+    mode    => '0755',
+    owner   => 'james',
+    group   => 'users',
+    content => "#!/bin/bash\nexec sudo -u james /usr/bin/pip \"$@\"\n",
+  }
+  ->
+  package { 'open-gopro':
+    provider        => pip,
+    command         => '/home/james/bin/pip',
+    install_options => ['--user'],
+    source          => 'open-gopro @ git+https://gitlab.james.tl/james/open-gopro.git@main#subdirectory=demos/python/sdk_wireless_camera_control&',
+  }
+
+  #
   # Streamux
   #
   vcsrepo { '/home/james/streamux':
@@ -114,6 +135,11 @@ class nest::service::streamux (
     source   => 'https://gitlab.james.tl/james/streamux.git',
     revision => 'main',
     user     => 'james',
+  }
+
+  # For speedometer
+  package { 'dev-python/urwid':
+    ensure => installed,
   }
 
   # For access to /dev/video0 hardware acceleration
