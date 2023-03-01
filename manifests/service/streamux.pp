@@ -119,11 +119,10 @@ class nest::service::streamux (
     content => "#!/bin/bash\nexec sudo -u james /usr/bin/pip \"$@\"\n",
   }
   ->
-  package { 'open-gopro':
-    provider        => pip,
-    command         => '/home/james/bin/pip',
-    install_options => ['--user'],
-    source          => 'open-gopro @ git+https://gitlab.james.tl/james/open-gopro.git@main#subdirectory=demos/python/sdk_wireless_camera_control&',
+  python::pip { 'open-gopro':
+    command      => '/home/james/bin/pip',
+    install_args => '--user',
+    url          => 'git+https://gitlab.james.tl/james/open-gopro.git@main#subdirectory=demos/python/sdk_wireless_camera_control',
   }
 
   #
