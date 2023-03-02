@@ -138,4 +138,26 @@ class nest::service::streamux (
   User <| title == 'james' |> {
     groups +> 'video',
   }
+
+  file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
+    '/etc/systemd/system/mnt-external.automount':
+      source => 'puppet:///modules/nest/streamux/mnt-external.automount',
+    ;
+
+    '/etc/systemd/system/mnt-external.mount':
+      source => 'puppet:///modules/nest/streamux/mnt-external.mount',
+    ;
+  }
+  ~>
+  nest::lib::systemd_reload { 'streamux': }
+  ->
+  service { 'mnt-external.automount':
+    enable => true,
+  }
 }
