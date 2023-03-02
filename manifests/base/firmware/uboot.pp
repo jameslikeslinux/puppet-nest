@@ -29,6 +29,7 @@ class nest::base::firmware::uboot {
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi4'    => 'rpi_arm64_defconfig',
     'rock5'           => 'rock-5b-rk3588_defconfig',
+    'rockpro64'       => 'rockpro64-rk3399_defconfig',
     'sopine'          => 'sopine_baseboard_defconfig',
   }
 
@@ -75,7 +76,7 @@ class nest::base::firmware::uboot {
   }
 
   case $facts['profile']['platform'] {
-    'pinebookpro': {
+    /^(pinebookpro|rockpro64)$/: {
       $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
 
       package { 'dev-python/pyelftools':

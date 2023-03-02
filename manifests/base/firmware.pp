@@ -95,6 +95,24 @@ class nest::base::firmware {
       }
     }
 
+    'rockpro64': {
+      contain 'nest::base::firmware::arm'
+      contain 'nest::base::firmware::uboot'
+
+      Class['nest::base::firmware::arm']
+      ~> Class['nest::base::firmware::uboot']
+
+      file {
+        '/boot/rockchip':
+          ensure => directory,
+        ;
+
+        '/boot/rockchip/rk3399-rockpro64.dtb':
+          source => '/usr/src/linux/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtb',
+        ;
+      }
+    }
+
     'sopine': {
       contain 'nest::base::firmware::arm'
       contain 'nest::base::firmware::uboot'
@@ -119,12 +137,12 @@ class nest::base::firmware {
   }
 
   $files = {
-    'manjaro/brcm/BCM4345C5.hcd'                   => ['pinebookpro'],
+    'manjaro/brcm/BCM4345C5.hcd'                   => ['pinebookpro', 'rockpro64'],
     'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'       => ['haswell'],
     'raspberrypi/brcm/BCM4345C5.hcd'               => ['raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.bin'      => ['pinebookpro', 'raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.clm_blob' => ['pinebookpro', 'raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.txt'      => ['pinebookpro', 'raspberrypi4'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.bin'      => ['pinebookpro', 'raspberrypi4', 'rockpro64'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.clm_blob' => ['pinebookpro', 'raspberrypi4', 'rockpro64'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.txt'      => ['pinebookpro', 'raspberrypi4', 'rockpro64'],
   }
 
   $files_categorized = $files.reduce([{}, {}]) |$memo, $file| {

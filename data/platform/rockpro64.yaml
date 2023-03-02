@@ -1,0 +1,13 @@
+---
+nest::bootloader: systemd
+nest::fscache: false
+
+nest::kernel_cmdline:
+  - 'console=ttyS2,1500000n8'
+  - 'console=tty0'
+  - 'noefi'   # u-boot doesn't provide EFI services
+
+nest::kernel_config:
+  # Device drivers
+  CONFIG_SND_SOC_ES8316: m
+  CONFIG_VIDEO_ROCKCHIP_VDEC: m

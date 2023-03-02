@@ -3,7 +3,7 @@ class nest::base::firmware::arm {
   include 'nest::base::portage'
 
   case $facts['profile']['platform'] {
-    'pinebookpro': {
+    /^(pinebookpro|rockpro64)$/: {
       nest::lib::toolchain { 'arm-none-eabi':
         gcc_only => true,
         before   => Exec['arm-trusted-firmware-build'],

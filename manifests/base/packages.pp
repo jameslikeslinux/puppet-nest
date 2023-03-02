@@ -38,7 +38,7 @@ class nest::base::packages {
         }
       }
 
-      if $facts['profile']['platform'] in ['pine64', 'pinebookpro', 'rock5', 'sopine'] {
+      if $facts['profile']['platform'] in ['pine64', 'pinebookpro', 'rock5', 'rockpro64', 'sopine'] {
         package { 'sys-fs/mtd-utils':
           ensure => installed,
         }

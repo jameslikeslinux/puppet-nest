@@ -50,6 +50,7 @@ class nest::base::kernel {
     'pinebookpro'     => 'defconfig',
     'raspberrypi4'    => 'bcm2711_defconfig',
     'rock5'           => 'rockchip_linux_defconfig',
+    'rockpro64'       => 'defconfig',
     'sopine'          => 'defconfig',
     default           => 'defconfig kvm_guest.config',
   }

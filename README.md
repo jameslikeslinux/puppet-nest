@@ -24,6 +24,7 @@ environment understands the following roles and platforms:
 | pinebookpro     |             |
 | raspberrypi4    |             |
 | rock5           |             |
+| rockpro64       |             |
 | sopine          |             |
 
 So you can build a "raspberrypi workstation" or a "beagleboneblack server" or
