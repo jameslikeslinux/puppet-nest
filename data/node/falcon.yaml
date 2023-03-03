@@ -59,6 +59,7 @@ nest::service::gitlab_runner::instances:
     tag_list: ['nest', 'amd64', 'falcon']
     volumes:
       - '/nest:/nest'
+      - '/falcon:/falcon'
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
