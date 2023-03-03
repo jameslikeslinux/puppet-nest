@@ -83,6 +83,13 @@ class nest::base::puppet {
         },
       }
 
+      # Override failing systemd reload in build containers
+      if $facts['is_container'] {
+        Exec <| title == 'systemctl-daemon-reload-puppet' |> {
+          noop => true,
+        }
+      }
+
       # XXX: Cleanup bolt 'puppet-agent' compat in favor of 'interpreters' feature
       file { '/opt/puppetlabs':
         ensure => absent,
