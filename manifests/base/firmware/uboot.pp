@@ -79,6 +79,11 @@ class nest::base::firmware::uboot {
     /^(pinebookpro|rockpro64)$/: {
       $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
 
+      # RK3399 defaults to uncommon 1.5 Mbps
+      nest::lib::kconfig { 'CONFIG_BAUDRATE':
+        value => 115200,
+      }
+
       package { 'dev-python/pyelftools':
         ensure => installed,
         before => Exec['uboot-build'],
