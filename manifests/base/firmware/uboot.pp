@@ -127,7 +127,7 @@ class nest::base::firmware::uboot {
   exec { 'uboot-build':
     command     => "/usr/bin/make ${nest::base::portage::makeopts} ${build_options}",
     cwd         => '/usr/src/u-boot',
-    path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
+    path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin', '/usr/src/u-boot/scripts/dtc'],
     environment => 'HOME=/root',  # for distcc
     timeout     => 0,
     # just attempt once per config change
