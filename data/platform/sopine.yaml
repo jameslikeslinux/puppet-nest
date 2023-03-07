@@ -1,7 +1,6 @@
 ---
 nest::bootloader: systemd
 nest::fscache: false
-nest::kexec: true
 
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'

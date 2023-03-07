@@ -1,6 +1,8 @@
 ---
 nest::bootloader: systemd
 nest::fscache: false
+
+# Workaround unstable eMMC boot
 nest::kexec: true
 
 nest::kernel_cmdline:

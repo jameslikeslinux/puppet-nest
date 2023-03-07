@@ -8,6 +8,9 @@ nest::boot_menu_delay: 0
 # Configure interfaces for firewall
 nest::external_interfaces: ['usb0', '-wlan0']
 
+# Retain USB tether across reboots
+nest::kexec: true
+
 # Prioritize streaming
 nest::puppet: false
 
