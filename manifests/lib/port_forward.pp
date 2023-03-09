@@ -5,9 +5,10 @@ define nest::lib::port_forward (
   Stdlib::Port                      $to_port,
   Optional[Stdlib::IP::Address::V4] $dest     = undef,
   Boolean                           $loopback = true,
+  String                            $zone     = 'external',
 ) {
   firewalld_rich_rule { $name:
-    zone         => 'external',
+    zone         => $zone,
     family       => ipv4,
     dest         => $dest,
     forward_port => {

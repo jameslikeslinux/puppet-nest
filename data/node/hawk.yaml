@@ -2,6 +2,7 @@
 classes:
   - 'nest::node::hawk'
   - 'nest::service::barrier'
+  - 'nest::service::gateway'
   - 'nest::service::gitlab'
   - 'nest::service::libvirt'
   - 'nest::tool::qemu'
@@ -28,3 +29,12 @@ nest::hosts:
     ip: '10.81.40.12'
   elclient.puppet:
     ip: '10.81.40.13'
+
+nest::service::gateway::port_forwards:
+  puppet:
+    loopback: false
+    port: 8140
+    proto: tcp
+    to_addr: '10.81.40.10'
+    to_port: 8140
+    zone: 'internal'
