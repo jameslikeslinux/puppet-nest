@@ -11,4 +11,8 @@ class nest::node::hawk {
     priority      => 0,
     args          => '-d 10.81.40.11 -p tcp --dport 8000 -j ACCEPT',
   }
+
+  package { 'app-editors/vscode':
+    ensure => installed,
+  }
 }
