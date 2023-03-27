@@ -7,10 +7,20 @@ class nest::role::workstation::policykit {
     });
     | EOT
 
-  file { '/etc/polkit-1/rules.d/10-admin.rules':
-    mode    => '0644',
-    owner   => 'polkitd',
-    group   => 'root',
-    content => $admin_rules_content,
+  file {
+    default:
+      owner   => 'polkitd',
+      group   => 'root',
+    ;
+
+    '/etc/polkit-1/rules.d':
+      mode   => '0700',
+      ensure => directory,
+    ;
+
+    '/etc/polkit-1/rules.d/10-admin.rules':
+      mode    => '0644',
+      content => $admin_rules_content,
+    ;
   }
 }
