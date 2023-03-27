@@ -27,6 +27,10 @@ class nest::role::workstation {
       Class['nest::role::workstation::plasma']
       -> Class['nest::role::workstation::cursor']
 
+      # Plasma pulls in polkit which needs to exist before managing
+      Class['nest::role::workstation::plasma']
+      -> Class['nest::role::workstation::policykit']
+
       # Manage input settings after xorg
       Class['nest::role::workstation::xorg']
       -> Class['nest::role::workstation::input']
