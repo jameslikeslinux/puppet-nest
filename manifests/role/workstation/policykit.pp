@@ -13,9 +13,15 @@ class nest::role::workstation::policykit {
       group   => 'root',
     ;
 
-    '/etc/polkit-1/rules.d':
-      mode   => '0700',
+    '/etc/polkit-1':
       ensure => directory,
+      mode   => '0755',
+      owner  => 'root',
+    ;
+
+    '/etc/polkit-1/rules.d':
+      ensure => directory,
+      mode   => '0700',
     ;
 
     '/etc/polkit-1/rules.d/10-admin.rules':
