@@ -1,0 +1,24 @@
+From 275433d93fab948e8528ed8db71c8890895a30dc Mon Sep 17 00:00:00 2001
+From: James Lee <james@james.tl>
+Date: Tue, 18 Apr 2023 20:13:46 -0400
+Subject: [PATCH 2/3] Enable accelerated video decoding on Linux
+
+Enable the v4l-utils libraries that are used on ChromeOS to experiment
+with accelerated video decoding on Linux.
+---
+ build/linux/unbundle/remove_bundled_libraries.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/linux/unbundle/remove_bundled_libraries.py b/build/linux/unbundle/remove_bundled_libraries.py
+index 43050eee7d6b1..c7bdc58d1cc57 100755
+--- a/build/linux/unbundle/remove_bundled_libraries.py
++++ b/build/linux/unbundle/remove_bundled_libraries.py
+@@ -102,4 +102,4 @@ def DoMain(argv):
+ 
+ 
+ if __name__ == '__main__':
+-  sys.exit(DoMain(sys.argv[1:]))
++  sys.exit(DoMain(['third_party/v4l-utils'] + sys.argv[1:]))
+-- 
+2.37.4
+

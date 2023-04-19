@@ -1,7 +1,19 @@
-diff -ur chromium-107.0.5304.87.orig/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc chromium-107.0.5304.87/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
---- chromium-107.0.5304.87.orig/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc	2022-10-27 19:32:44.090105000 -0400
-+++ chromium-107.0.5304.87/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc	2022-12-10 16:05:54.899658275 -0500
-@@ -273,11 +273,11 @@
+From 9cefa3658bc1a42640f2f2e97e23650e3bb71b61 Mon Sep 17 00:00:00 2001
+From: James Lee <james@james.tl>
+Date: Tue, 18 Apr 2023 20:15:58 -0400
+Subject: [PATCH 3/3] Fix v4l2 compilation bug
+
+GCC doesn't like the anonymous struct initializer used in this v4l2
+code. Just store the struct in a variable.
+---
+ media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc b/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
+index 16db1183e1a28..36095ed8fcbdc 100644
+--- a/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
++++ b/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
+@@ -275,11 +275,11 @@ DecodeStatus V4L2VideoDecoderDelegateVP9::SubmitDecode(
                                  &v4l2_frame_params.quant);
    FillV4L2VP9SegmentationParams(segm_params, &v4l2_frame_params.seg);
  
@@ -16,7 +28,7 @@ diff -ur chromium-107.0.5304.87.orig/media/gpu/v4l2/v4l2_video_decoder_delegate_
  
    struct v4l2_ctrl_vp9_compressed_hdr v4l2_compressed_hdr_probs;
    if (supports_compressed_header_) {
-@@ -285,9 +285,11 @@
+@@ -287,9 +287,11 @@ DecodeStatus V4L2VideoDecoderDelegateVP9::SubmitDecode(
      v4l2_compressed_hdr_probs.tx_mode = frame_hdr->compressed_header.tx_mode;
      FillV4L2VP9ProbsParams(frame_hdr->frame_context,
                             &v4l2_compressed_hdr_probs);
@@ -31,3 +43,6 @@ diff -ur chromium-107.0.5304.87.orig/media/gpu/v4l2/v4l2_video_decoder_delegate_
    }
  
    const __u32 ext_ctrls_size = base::checked_cast<__u32>(ext_ctrls.size());
+-- 
+2.37.4
+
