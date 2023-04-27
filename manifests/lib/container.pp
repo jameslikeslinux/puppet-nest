@@ -1,5 +1,6 @@
 define nest::lib::container (
   String              $image,
+  Array[String]       $cap_add = [],
   Optional[String]    $dns     = undef,
   Nest::ServiceEnsure $ensure  = running,
   Array[String]       $env     = [],
@@ -97,6 +98,10 @@ define nest::lib::container (
         default => ["--pod=${pod}"],
       }
 
+      $cap_add_args = $cap_add.map |$e| {
+        "--cap-add=${e}"
+      }
+
       $publish_args = $publish.map |$e| {
         "--publish=${e}"
       }
@@ -112,6 +117,7 @@ define nest::lib::container (
       $podman_create_cmd = [
         '/usr/bin/podman', 'container', 'create',
         '--replace',
+        $cap_add_args,
         $dns_args,
         $env_args,
         $network_args,
