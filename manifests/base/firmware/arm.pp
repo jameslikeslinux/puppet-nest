@@ -25,10 +25,13 @@ class nest::base::firmware::arm {
   }
   ~>
   exec { 'arm-trusted-firmware-build':
-    command     => "/usr/bin/make ${nest::base::portage::makeopts} PLAT=${plat}",
+    command     => "/usr/bin/make ${nest::base::portage::makeopts} E=0 PLAT=${plat}",
     cwd         => '/usr/src/arm-trusted-firmware',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
-    environment => 'HOME=/root',  # for distcc
+    environment => [
+      'HOME=/root',                   # for distcc
+      'LDFLAGS=-no-warn-rwx-segment'  # GCC 12 workaround
+    ],
     timeout     => 0,
     refreshonly => true,
     noop        => !$facts['build'],
