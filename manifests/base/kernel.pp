@@ -107,7 +107,7 @@ class nest::base::kernel {
     }
 
     # Ignore warning on newer GCC
-    $cflags_override = 'KCFLAGS="-Wno-implicit-fallthrough -Wno-tautological-compare -Wno-int-in-bool-context"'
+    $cflags_override = 'KCFLAGS="-Wno-implicit-fallthrough -Wno-tautological-compare -Wno-int-in-bool-context -Wno-array-compare -Wno-address -Wno-stringop-overread -Wno-dangling-pointer"'
 
     file { '/etc/portage/env/kcflags.conf':
       mode    => '0644',
