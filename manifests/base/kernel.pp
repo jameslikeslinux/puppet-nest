@@ -115,10 +115,6 @@ class nest::base::kernel {
       group   => 'root',
       content => "${cflags_override}\n",
     }
-
-    Package_env <| title == 'sys-fs/zfs-kmod' |> {
-      env +> 'kcflags.conf',
-    }
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")
