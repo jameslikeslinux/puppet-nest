@@ -146,11 +146,12 @@ class nest::base::kernel {
   }
   ~>
   exec { 'module-rebuild':
-    command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
+    command     => '/usr/bin/emerge --buildpkg n --usepkg n sys-fs/zfs-kmod; sleep inf',
     timeout     => 0,
     refreshonly => true,
     noop        => str2bool($facts['skip_module_rebuild']),
     notify      => Class['nest::base::dracut'],
+    provider    => shell,
   }
   ->
   nest::lib::package { 'sys-fs/zfs-kmod':
