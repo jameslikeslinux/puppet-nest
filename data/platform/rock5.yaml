@@ -1,14 +1,15 @@
 ---
 nest::bootloader: systemd
 nest::fscache: false
-nest::uboot_tag: 'radxa/v2017.09'
-nest::kernel_tag: 'radxa/v5.10.66'
+nest::uboot_tag: 'u-boot/v2023.07-rc1'
+nest::kernel_tag: 'stable/v6.3.1'
 nest::kernel_config:
-  CONFIG_GCC_PLUGINS: null
-  CONFIG_SYSFB_SIMPLEFB: null
-  CONFIG_DRM_SIMPLEDRM: null
-
-  # Match defconfig
-  CONFIG_USB_USBNET: y
-  CONFIG_USB_NET_RNDIS_HOST: y
-  CONFIG_CRYPTO_DES: y
+  # For Linux 6.3 compatibility
+  CONFIG_NFT_OBJREF: null
+  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: null
+  CONFIG_MEMCG_SWAP: null
+nest::package_keywords:
+  sys-fs/zfs:
+    accept_keywords: '**'
+  sys-fs/zfs-kmod:
+    accept_keywords: '**'

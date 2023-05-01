@@ -28,7 +28,7 @@ class nest::base::firmware::uboot {
     'pine64'          => 'pine64-lts_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
     'raspberrypi4'    => 'rpi_arm64_defconfig',
-    'rock5'           => 'rock-5b-rk3588_defconfig',
+    'rock5'           => 'rock5b-rk3588_defconfig',
     'rockpro64'       => 'rockpro64-rk3399_defconfig',
     'sopine'          => 'sopine_baseboard_defconfig',
   }
@@ -98,18 +98,11 @@ class nest::base::firmware::uboot {
     }
 
     'rock5': {
-      $build_options = 'BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf spl/u-boot-spl.bin u-boot.dtb u-boot.itb'
-      $mkimage = @(MKIMAGE/L)
-        /usr/src/u-boot/tools/mkimage -n rk3588 -T rksd \
-        -d ../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin:spl/u-boot-spl.bin idbloader.img
-        |-MKIMAGE
+      $build_options = 'BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin'
 
-      # See https://github.com/radxa/build/blob/debian/mk-uboot.sh
-      exec { 'uboot-mkimage':
-        command     => $mkimage,
-        cwd         => '/usr/src/u-boot',
-        refreshonly => true,
-        subscribe   => Exec['uboot-build'],
+      package { 'dev-python/pyelftools':
+        ensure => installed,
+        before => Exec['uboot-build'],
       }
     }
 
