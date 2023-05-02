@@ -55,6 +55,7 @@ nest::service::gitlab_runner::instances:
   nest:
     dns: '172.22.0.1'
     host: 'gitlab.james.tl'
+    cap_add: ['SYS_PTRACE']
     security_options: ['seccomp=unconfined']
     tag_list: ['nest', 'amd64', 'falcon']
     volumes:

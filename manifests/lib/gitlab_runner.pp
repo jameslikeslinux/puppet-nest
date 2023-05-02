@@ -5,6 +5,7 @@ define nest::lib::gitlab_runner (
   Array[String]       $devices          = [],
   Nest::ServiceEnsure $ensure           = running,
   String              $host             = $name,
+  Array[String]       $cap_add          = [],
   Array[String]       $security_options = [],
   Array[String]       $volumes          = [],
   Array[String]       $tag_list         = [],
@@ -44,6 +45,10 @@ define nest::lib::gitlab_runner (
       ['--docker-devices', $device]
     }
 
+    $cap_add_args = $cap_add.map |$c| {
+      ['--docker-cap-add', $c]
+    }
+
     $security_opt_args = $security_options.map |$option| {
       ['--docker-security-opt', $option]
     }
@@ -76,6 +81,7 @@ define nest::lib::gitlab_runner (
       '--env', "CI_HOST_CPU=${facts['profile']['cpu']}",
       $dns_args,
       $device_args,
+      $cap_add_args,
       $security_opt_args,
       $volume_args,
       $zfs_args,
