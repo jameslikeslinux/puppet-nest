@@ -61,6 +61,33 @@ class nest::base::portage {
     ;
   }
 
+  # Workaround https://bugs.gentoo.org/428262
+  # pkg_pretend step makes initial distcc lockfile with wrong permissions
+  file {
+    "${facts['portage_portage_tmpdir']}/portage":
+      ensure => directory,
+      mode   => '0775',
+      owner  => 'portage',
+      group  => 'portage',
+    ;
+
+    [
+      "${facts['portage_portage_tmpdir']}/portage/.distcc",
+      "${facts['portage_portage_tmpdir']}/portage/.distcc/lock",
+    ]:
+      ensure => directory,
+      mode   => '2775',
+      owner  => 'root',
+      group  => 'portage',
+    ;
+
+    "${facts['portage_portage_tmpdir']}/portage/.distcc/lock/cpu_localhost_0":
+      ensure => present,
+      mode   => '0664',
+      owner  => 'portage',
+      group  => 'portage',
+    ;
+  }
 
 
   #
