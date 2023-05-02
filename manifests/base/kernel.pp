@@ -29,16 +29,6 @@ class nest::base::kernel {
     match => '^sys-kernel/vanilla-sources-',
   }
 
-  file { '/usr/src/linux/.scmversion':
-    # Prevent addition of '+' to kernel version in git-based source trees
-    ensure  => file,
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    require => Vcsrepo['/usr/src/linux'],
-    before  => Exec['kernel-build'],
-  }
-
   $arch = $facts['profile']['architecture'] ? {
     'amd64' => 'x86_64',
     default => $facts['profile']['architecture'],
@@ -123,7 +113,7 @@ class nest::base::kernel {
 
   $kernel_make_cmd = @("KERNEL_MAKE")
     set -o pipefail
-    make ARCH=${arch} ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
+    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
     tee build.log
     | KERNEL_MAKE
 
@@ -181,5 +171,10 @@ class nest::base::kernel {
     owner  => 'root',
     group  => 'root',
     before => Vcsrepo['/usr/src/linux'],
+  }
+
+  # Replaced by empty LOCALVERSION build variable
+  file { '/usr/src/linux/.scmversion':
+    ensure => absent,
   }
 }
