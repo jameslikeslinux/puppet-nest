@@ -9,14 +9,6 @@ class nest::service::libvirt {
     ensure => installed,
   }
 
-  # libvirt pulls in LVM so we have to manage it
-  file_line { 'lvm.conf-global_filter-zvol':
-    path    => '/etc/lvm/lvm.conf',
-    line    => "\tglobal_filter = [ \"r|/dev/zd.*|\" ]",
-    match   => 'global_filter = ',
-    require => Package['app-emulation/libvirt'],
-  }
-
   file { '/etc/libvirt/libvirt-guests.conf':
     ensure  => file,
     mode    => '0644',
