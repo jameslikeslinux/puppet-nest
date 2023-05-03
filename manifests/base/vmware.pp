@@ -1,7 +1,7 @@
 class nest::base::vmware {
   case $facts['os']['family'] {
     'Gentoo': {
-      if $facts['virtual'] == 'vmware' {
+      if $facts['profile']['platform'] == 'vmware' {
         nest::lib::package { 'app-emulation/open-vm-tools':
           ensure => installed,
           use    => 'gtkmm',

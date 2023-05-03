@@ -39,7 +39,7 @@ class nest::role::workstation::pipewire {
 
   # Fix stuttering audio in VMware
   # See: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/469
-  if $facts['virtual'] == 'vmware' {
+  if $facts['profile']['platform'] == 'vmware' {
     file {
       default:
         mode    => '0644',
