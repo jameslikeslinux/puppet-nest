@@ -72,6 +72,10 @@ class nest::service::streamux (
   #
   # Nginx
   #
+  nest::lib::package_use { 'app-misc/mime-types':
+    use => 'nginx',
+  }
+  ->
   nest::lib::package { 'www-servers/nginx':
     ensure => installed,
     use    => 'rtmp',
