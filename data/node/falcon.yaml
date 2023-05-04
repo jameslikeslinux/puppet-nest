@@ -51,6 +51,7 @@ nest::service::gitlab_runner::instances:
   shared:
     dns: '172.22.0.1'
     host: 'gitlab.james.tl'
+    cap_add: ['SYS_CHROOT']
 
   nest:
     dns: '172.22.0.1'
