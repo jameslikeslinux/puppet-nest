@@ -82,7 +82,7 @@ class nest::base::portage {
     ;
 
     "${facts['portage_portage_tmpdir']}/portage/.distcc/lock/cpu_localhost_0":
-      ensure => present,
+      ensure => file,
       mode   => '0664',
       owner  => 'portage',
       group  => 'portage',

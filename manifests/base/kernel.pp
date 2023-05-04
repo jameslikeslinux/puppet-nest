@@ -97,7 +97,16 @@ class nest::base::kernel {
     }
 
     # Ignore warning on newer GCC
-    $cflags_override = 'KCFLAGS="-Wno-implicit-fallthrough -Wno-tautological-compare -Wno-int-in-bool-context -Wno-array-compare -Wno-address -Wno-stringop-overread -Wno-dangling-pointer"'
+    $cflags = [
+      '-Wno-implicit-fallthrough',
+      '-Wno-tautological-compare',
+      '-Wno-int-in-bool-context',
+      '-Wno-array-compare',
+      '-Wno-address',
+      '-Wno-stringop-overread',
+      '-Wno-dangling-pointer',
+    ]
+    $cflags_override = "KCFLAGS=\"${cflags.join(' ')}\""
 
     file { '/etc/portage/env/kcflags.conf':
       mode    => '0644',
@@ -113,8 +122,8 @@ class nest::base::kernel {
 
   $kernel_make_cmd = @("KERNEL_MAKE")
     set -o pipefail
-    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} olddefconfig all modules_install 2>&1 |
-    tee build.log
+    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
+        olddefconfig all modules_install 2>&1 | tee build.log
     | KERNEL_MAKE
 
   exec { 'kernel-olddefconfig':

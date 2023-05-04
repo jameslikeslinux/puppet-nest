@@ -9,8 +9,8 @@ class nest::role::workstation::policykit {
 
   file {
     default:
-      owner   => 'polkitd',
-      group   => 'root',
+      owner => 'polkitd',
+      group => 'root',
     ;
 
     '/etc/polkit-1':
