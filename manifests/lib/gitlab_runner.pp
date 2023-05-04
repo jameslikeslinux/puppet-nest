@@ -9,6 +9,7 @@ define nest::lib::gitlab_runner (
   Array[String]       $security_options = [],
   Array[String]       $volumes          = [],
   Array[String]       $tag_list         = [],
+  Boolean             $privileged       = false,
   Boolean             $zfs              = false,
 ) {
   if $ensure == absent {
@@ -57,6 +58,11 @@ define nest::lib::gitlab_runner (
       ['--docker-volumes', $volume]
     }
 
+    $privileged_args = $privileged ? {
+      true    => ['--docker-privileged'],
+      default => [],
+    }
+
     $zfs_args = $zfs ? {
       true    => [
         '--docker-cap-add', 'SYS_ADMIN',
@@ -84,6 +90,7 @@ define nest::lib::gitlab_runner (
       $cap_add_args,
       $security_opt_args,
       $volume_args,
+      $privileged_args,
       $zfs_args,
       '--url', "https://${host}/",
       '--registration-token', $registration_token,
