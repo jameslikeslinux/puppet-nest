@@ -11,6 +11,13 @@ nest::dvorak: true
 nest::gui_scaling_factor: 2.0
 nest::role::workstation::chrome::chromium: false
 
+# Protect containers and virtual machines
+nest::reset_filter_rules:
+  - 'P /etc/cni/**'
+  - 'P /etc/libvirt/**'
+  - 'P /var/lib/cni/**'
+  - 'P /var/lib/libvirt/**'
+
 nest::service::gitlab::external_name: 'gitlab.localhost'
 nest::service::gitlab::ssh_port: 2222
 nest::service::gitlab::gmail_password: ~
