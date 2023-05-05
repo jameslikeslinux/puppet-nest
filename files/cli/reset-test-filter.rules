@@ -12,6 +12,8 @@
 - /lib*/
 - /sbin/
 - /opt/bitwarden/
+- /opt/openjdk-bin-*/
+- /opt/zoom/
 - /usr/
 - /var/db/
 - /var/lib/puppet/
