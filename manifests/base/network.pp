@@ -13,15 +13,19 @@ class nest::base::network {
     ],
     sourceselect => all,
   }
-  ~>
-  exec { 'systemd-networkd-reload':
-    command     => '/bin/networkctl reload',
-    onlyif      => '/bin/systemctl is-active systemd-networkd',
-    refreshonly => true,
-  }
   ->
   service { 'systemd-networkd':
     enable => true,
+  }
+
+  unless $facts['is_container'] {
+    exec { 'systemd-networkd-reload':
+      command     => '/bin/networkctl reload',
+      onlyif      => '/bin/systemctl is-active systemd-networkd',
+      refreshonly => true,
+      subscribe   => File['/etc/systemd/network'],
+      before      => Service['systemd-networkd'],
+    }
   }
 
   $wait_for_any_online = @(WAIT)
