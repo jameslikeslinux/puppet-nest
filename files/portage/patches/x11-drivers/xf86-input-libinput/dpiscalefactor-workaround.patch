@@ -1,8 +1,8 @@
-From 41d20d35c1587f3de35acf47f926c97a30680978 Mon Sep 17 00:00:00 2001
+From cee06fbcc0812947fa359820308fe63b4137ff9f Mon Sep 17 00:00:00 2001
 From: Peter Hutterer <peter.hutterer@who-t.net>
 Date: Thu, 18 May 2017 14:45:18 +1000
-Subject: [PATCH xf86-input-libinput] Add a DPIScaleFactor option as temporary
- solution to the hidpi issue
+Subject: [PATCH] Add a DPIScaleFactor option as temporary solution to the
+ hidpi issue
 
 https://bugzilla.redhat.com/show_bug.cgi?id=1413306
 ---
@@ -11,13 +11,13 @@ https://bugzilla.redhat.com/show_bug.cgi?id=1413306
  2 files changed, 47 insertions(+)
 
 diff --git a/man/libinput.man b/man/libinput.man
-index ec0f439..bdbdb37 100644
+index 7c83ccb..76572f8 100644
 --- a/man/libinput.man
 +++ b/man/libinput.man
-@@ -386,6 +386,27 @@ This driver does not work with \fBOption \*qDevice\*q\fR set to an event
+@@ -454,6 +454,27 @@ This driver does not work with \fBOption \*qDevice\*q\fR set to an event
  node in \fI/dev/input/by-id\fR and \fI/dev/input/by-path\fR. This can be
  usually be worked by using \fBSection \*qInputClass\*q\fR with an
- appropriate \fBMatch*\fR statement in the __xconfigfile__(__filemansuffix__).
+ appropriate \fBMatch*\fR statement in the xorg.conf(5).
 +.PP
 +This driver does not know about the display pixel density and submits motion
 +events assuming an approximate display density of 96dpi. On high-dpi
@@ -43,10 +43,10 @@ index ec0f439..bdbdb37 100644
  .SH AUTHORS
  Peter Hutterer
 diff --git a/src/xf86libinput.c b/src/xf86libinput.c
-index 83ab75d..c1a1ce2 100644
+index 642f95f..cfee922 100644
 --- a/src/xf86libinput.c
 +++ b/src/xf86libinput.c
-@@ -194,6 +194,8 @@ struct xf86libinput {
+@@ -214,6 +214,8 @@ struct xf86libinput {
  	struct scale_factor {
  		double x, y;
  	} area_scale_factor;
@@ -55,7 +55,7 @@ index 83ab75d..c1a1ce2 100644
  };
  
  enum event_handling {
-@@ -1463,6 +1465,11 @@ xf86libinput_handle_motion(InputInfoPtr pInfo, struct libinput_event_pointer *ev
+@@ -1571,6 +1573,11 @@ xf86libinput_handle_motion(InputInfoPtr pInfo, struct libinput_event_pointer *ev
  	x = libinput_event_pointer_get_dx(event);
  	y = libinput_event_pointer_get_dy(event);
  
@@ -66,8 +66,8 @@ index 83ab75d..c1a1ce2 100644
 +
  	valuator_mask_zero(mask);
  
- #if HAVE_VMASK_UNACCEL
-@@ -3421,6 +3428,25 @@ xf86libinput_pre_init(InputDriverPtr drv,
+ 	{
+@@ -3951,6 +3958,25 @@ xf86libinput_pre_init(InputDriverPtr drv,
  
  	xf86libinput_parse_options(pInfo, driver_data, device);
  
@@ -94,5 +94,5 @@ index 83ab75d..c1a1ce2 100644
  	 * this device, create a separate device instead */
  	if (!is_subdevice &&
 -- 
-2.14.3
+2.39.2
 
