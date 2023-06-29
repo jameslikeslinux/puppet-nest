@@ -75,7 +75,7 @@ class nest::base::kernel {
     # XXX Find a way to not hardcode the version
     # Using 'ld.lld' and PATH is not correct because
     # then the build uses other LLVM tools
-    $lld_override = 'LD=/usr/lib/llvm/15/bin/ld.lld'
+    $lld_override = 'LD=/usr/lib/llvm/16/bin/ld.lld'
 
     file { '/etc/portage/env/lld.conf':
       mode    => '0644',
