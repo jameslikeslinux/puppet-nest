@@ -32,6 +32,12 @@ class nest::base::packages {
         ensure => installed,
       }
 
+      unless $facts['profile']['architecture'] == 'arm' {
+        package { 'sys-devel/lld':
+          ensure => installed,
+        }
+      }
+
       unless $facts['profile']['platform'] == 'beagleboneblack' {
         package { 'sys-process/parallel':
           ensure => installed,

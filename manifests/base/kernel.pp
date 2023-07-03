@@ -67,11 +67,6 @@ class nest::base::kernel {
 
   # Workaround https://sourceware.org/bugzilla/show_bug.cgi?id=26256
   if $nest::kernel_tag =~ /^(raspberrypi|radxa)\// {
-    nest::lib::package { 'sys-devel/lld':
-      ensure => installed,
-      before => Exec['kernel-build'],
-    }
-
     $lld_override = "LD=${facts['llvm_ld']}"
 
     file { '/etc/portage/env/lld.conf':
