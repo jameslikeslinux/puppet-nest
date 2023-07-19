@@ -81,4 +81,11 @@ class nest::base::zfs {
       logbias        => 'throughput',
     }
   }
+
+  # Avoid copying incompatible xattrs from NFS4 to ZFS
+  file_line { 'xattr.conf-skip-nfs4_acl':
+    path  => '/etc/xattr.conf',
+    line  => "system.nfs4_acl\t\t\tskip",
+    match => '^system.nfs4_acl\s+',
+  }
 }
