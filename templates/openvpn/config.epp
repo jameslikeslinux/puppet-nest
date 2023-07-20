@@ -47,6 +47,7 @@ up /etc/openvpn/up.sh
 down /etc/openvpn/down.sh
 down-pre
 verb 3
+cipher AES-128-GCM
   <%- if $server { -%>
 ncp-ciphers AES-128-GCM
 dh /etc/openvpn/dh4096.pem
