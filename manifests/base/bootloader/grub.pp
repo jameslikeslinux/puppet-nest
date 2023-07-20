@@ -65,6 +65,11 @@ class nest::base::bootloader::grub {
         match => '^#?GRUB_DISABLE_LINUX_UUID=',
       ;
 
+      'grub-disable-linux-partuuid':
+        line  => 'GRUB_DISABLE_LINUX_PARTUUID=true',
+        match => '^#?GRUB_DISABLE_LINUX_PARTUUID=',
+      ;
+
       'grub-disable-recovery':
         line  => 'GRUB_DISABLE_RECOVERY=true',
         match => '^#?GRUB_DISABLE_RECOVERY=',
