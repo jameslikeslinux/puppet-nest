@@ -36,6 +36,8 @@ nest::hosts:
     ip: '10.81.40.12'
   elclient.puppet:
     ip: '10.81.40.13'
+  cd4pe5.puppet:
+    ip: '10.81.40.14'
 
 nest::service::gateway::port_forwards:
   puppet-external:
