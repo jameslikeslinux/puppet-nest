@@ -91,4 +91,10 @@ class nest::base::containers {
     group   => 'root',
     content => $subuidgid_content,
   }
+
+  # XXX cleanup
+  # Replaced by package-managed 87-podman-bridge.conflist
+  file { '/etc/cni/net.d/87-podman.conflist':
+    ensure => absent,
+  }
 }
