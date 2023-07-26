@@ -8,6 +8,9 @@ class nest::service::mysql {
       override_options => {
         'mysqld' => {
           'bind-address' => ['0.0.0.0', '::'],
+          'ssl-ca'       => undef,
+          'ssl-cert'     => undef,
+          'ssl-key'      => undef,
         },
       },
       service_name     => 'mysqld',

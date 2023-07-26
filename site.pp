@@ -21,6 +21,12 @@ case $facts['os']['family'] {
       purge_ports      => true,
     }
 
+    # MariaDB defaults
+    Mysql::Db {
+      charset => 'utf8mb3',
+      collate => 'utf8mb3_general_ci',
+    }
+
     Service {
       provider => 'systemd',
     }
