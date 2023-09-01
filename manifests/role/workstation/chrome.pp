@@ -61,8 +61,13 @@ class nest::role::workstation::chrome (
       } else {
         $chrome_wrapper = @("WRAPPER")
           #!/bin/bash
-          exec /opt/google/chrome/google-chrome --${gpu_rasterization_flag} --ignore-gpu-blocklist \
-              --force-dark-mode --enable-features=WebUIDarkMode "$@"
+          exec /opt/google/chrome/google-chrome \
+              --${gpu_rasterization_flag} \
+              --ignore-gpu-blocklist \
+              --enable-features=WebUIDarkMode \
+              --force-dark-mode \
+              --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \
+              "$@"
           | WRAPPER
 
         package { 'www-client/google-chrome':
