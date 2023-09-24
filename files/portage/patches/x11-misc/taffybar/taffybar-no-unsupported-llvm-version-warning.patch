@@ -1,13 +1,13 @@
 diff --git a/src/System/Taffybar.hs b/src/System/Taffybar.hs
-index dfa6c4a..7cf8df9 100644
+index 5663b94..9701785 100644
 --- a/src/System/Taffybar.hs
 +++ b/src/System/Taffybar.hs
-@@ -146,7 +146,7 @@ taffybarDyreParams =
-   { Dyre.projectName = "taffybar"
-   , Dyre.realMain = dyreTaffybarMain
-   , Dyre.showError = showError
--  , Dyre.ghcOpts = ["-threaded", "-rtsopts"]
-+  , Dyre.ghcOpts = ["-threaded", "-rtsopts", "-Wno-unsupported-llvm-version"]
+@@ -146,7 +146,7 @@ import           Paths_taffybar ( getDataDir )
+ -- 'dyreTaffybar'.
+ taffybarDyreParams =
+   (Dyre.newParams "taffybar" dyreTaffybarMain showError)
+-  { Dyre.ghcOpts = ["-threaded", "-rtsopts"]
++  { Dyre.ghcOpts = ["-threaded", "-rtsopts", "-Wno-unsupported-llvm-version"]
    , Dyre.rtsOptsHandling = Dyre.RTSAppend ["-I0", "-V0"]
    }
  
