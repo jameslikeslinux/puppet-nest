@@ -150,25 +150,11 @@ class nest::base::portage {
   # Package environments and properties
   #
 
-  $makejobs_huge = $makejobs / 2
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
-    '/etc/portage/env/no-buildpkg.conf':
-      content => "FEATURES=\"-buildpkg\"\n",
-    ;
-
-    '/etc/portage/env/huge.conf':
-      content => "MAKEOPTS=\"-j${makejobs_huge} -l${loadlimit}\"\n",
-    ;
-  }
-  ->
-  package_env { 'www-client/chromium':
-    env => 'huge.conf',
+  file { '/etc/portage/env/no-buildpkg.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "FEATURES=\"-buildpkg\"\n",
   }
 
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
