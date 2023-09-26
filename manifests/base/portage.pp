@@ -150,40 +150,6 @@ class nest::base::portage {
   # Package environments and properties
   #
 
-  $clang_conf = @(CLANG_CONF)
-    # See: https://wiki.gentoo.org/wiki/Clang#Clang_environment
-    CC="clang"
-    CXX="clang++"
-    AR="llvm-ar"
-    NM="llvm-nm"
-    RANLIB="llvm-ranlib"
-    | CLANG_CONF
-
-  $chromium_conf = @(CHROMIUM_CONF)
-    # See: https://wiki.gentoo.org/wiki/Chromium#Clang
-    EXTRA_GN="use_lld=true is_clang=true clang_use_chrome_plugins=false"
-   | CHROMIUM_CONF
-
-  file {
-    default:
-      mode  => '0644',
-      owner => 'root',
-      group => 'root',
-    ;
-
-    '/etc/portage/env/clang.conf':
-      content => $clang_conf,
-    ;
-
-    '/etc/portage/env/chromium.conf':
-      content => $chromium_conf,
-    ;
-  }
-  ->
-  package_env { 'www-client/chromium':
-    env => ['chromium.conf', 'clang.conf'],
-  }
-
   file { '/etc/portage/env/no-buildpkg.conf':
     mode    => '0644',
     owner   => 'root',
