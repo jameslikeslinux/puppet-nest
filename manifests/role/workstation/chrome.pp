@@ -13,7 +13,7 @@ class nest::role::workstation::chrome (
 
       if $chromium {
         nest::lib::package_use { 'www-client/chromium':
-          use => 'widevine',
+          use => ['lto', 'widevine'],
         }
 
         unless $facts['build'] == 'stage1' {
