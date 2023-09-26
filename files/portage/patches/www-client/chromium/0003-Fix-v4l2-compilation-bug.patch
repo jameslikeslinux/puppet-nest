@@ -1,0 +1,48 @@
+From 9cefa3658bc1a42640f2f2e97e23650e3bb71b61 Mon Sep 17 00:00:00 2001
+From: James Lee <james@james.tl>
+Date: Tue, 18 Apr 2023 20:15:58 -0400
+Subject: [PATCH 3/3] Fix v4l2 compilation bug
+
+GCC doesn't like the anonymous struct initializer used in this v4l2
+code. Just store the struct in a variable.
+---
+ media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc b/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
+index 16db1183e1a28..36095ed8fcbdc 100644
+--- a/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
++++ b/media/gpu/v4l2/v4l2_video_decoder_delegate_vp9.cc
+@@ -275,11 +275,11 @@ DecodeStatus V4L2VideoDecoderDelegateVP9::SubmitDecode(
+                                 &v4l2_frame_params.quant);
+   FillV4L2VP9SegmentationParams(segm_params, &v4l2_frame_params.seg);
+ 
+-  std::vector<struct v4l2_ext_control> ext_ctrls = {
++  const struct v4l2_ext_control frame_ctrl =
+       {.id = V4L2_CID_STATELESS_VP9_FRAME,
+        .size = sizeof(v4l2_frame_params),
+-       .ptr = &v4l2_frame_params},
+-  };
++       .ptr = &v4l2_frame_params};
++  std::vector<struct v4l2_ext_control> ext_ctrls = { frame_ctrl };
+ 
+   struct v4l2_ctrl_vp9_compressed_hdr v4l2_compressed_hdr_probs;
+   if (supports_compressed_header_) {
+@@ -287,9 +287,11 @@ DecodeStatus V4L2VideoDecoderDelegateVP9::SubmitDecode(
+     v4l2_compressed_hdr_probs.tx_mode = frame_hdr->compressed_header.tx_mode;
+     FillV4L2VP9ProbsParams(frame_hdr->frame_context,
+                            &v4l2_compressed_hdr_probs);
+-    ext_ctrls.push_back({.id = V4L2_CID_STATELESS_VP9_COMPRESSED_HDR,
+-                         .size = sizeof(v4l2_compressed_hdr_probs),
+-                         .ptr = &v4l2_compressed_hdr_probs});
++    const struct v4l2_ext_control compressed_hdr_ctrl =
++        {.id = V4L2_CID_STATELESS_VP9_COMPRESSED_HDR,
++         .size = sizeof(v4l2_compressed_hdr_probs),
++         .ptr = &v4l2_compressed_hdr_probs};
++    ext_ctrls.push_back(compressed_hdr_ctrl);
+   }
+ 
+   const __u32 ext_ctrls_size = base::checked_cast<__u32>(ext_ctrls.size());
+-- 
+2.37.4
+
