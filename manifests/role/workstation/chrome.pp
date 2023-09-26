@@ -12,10 +12,6 @@ class nest::role::workstation::chrome (
       }
 
       if $chromium {
-        nest::lib::package_use { 'www-client/chromium':
-          use => ['lto', 'widevine'],
-        }
-
         unless $facts['build'] == 'stage1' {
           package { 'www-client/chromium':
             ensure => installed,
