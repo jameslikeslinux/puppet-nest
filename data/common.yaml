@@ -62,6 +62,10 @@ nest::package_keywords:
   sys-fs/zfs: {}
   sys-fs/zfs-kmod: {}
 
+  # For Puppet
+  dev-ruby/sys-filesystem:
+    version: '~1.4.4'
+
   # For Nest CLI
   dev-ruby/tty-command:
     version: '~0.10.1'
