@@ -126,6 +126,6 @@ nest::service::reverse_proxy::hosts:
     ip: '172.22.0.1'
 
   cursivemoves.nest:
-    destination: ['pixel5a.nest:8080 lbset=0', 'streamer.nest:8080 lbset=1']
+    destination: ['pixel7pro.nest:8080 lbset=0', 'streamer.nest:8080 lbset=1']
     ip: '172.22.0.1'
     ssl: false
