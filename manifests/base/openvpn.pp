@@ -103,6 +103,11 @@ class nest::base::openvpn {
         Firewalld_zone <| title == 'internal' |> {
           interfaces +> 'tun1',
         }
+
+        # Disable client service that may have been enabled in early build stage
+        service { 'openvpn-client@nest':
+          enable => false,
+        }
       } else {
         $mode = 'client'
         $openvpn_config = epp('nest/openvpn/config.epp')
