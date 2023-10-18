@@ -41,6 +41,18 @@ nest::mta: postfix
 nest::openvpn: true
 nest::public_ssh: true
 
+# Protect service state
+nest::reset_filter_rules:
+  - 'P /etc/cni/**'
+  - 'P /etc/letsencrypt/**'
+  - 'P /etc/libvirt/**'
+  - 'P /etc/xdg/color.jcnf'
+  - 'P /etc/xdg/color/**'
+  - 'P /etc/xdg/DisplayCAL/**'
+  - 'P /var/lib/cni/**'
+  - 'P /var/lib/libvirt/**'
+  - 'P /var/lib/samba/**'
+
 nest::service::gitlab::external_name: 'gitlab.james.tl'
 nest::service::gitlab::registry_external_name: 'registry.gitlab.james.tl'
 nest::service::gitlab::https: true
