@@ -1,46 +1,16 @@
 ---
 stages:
-  - syntax
-  - unit
+  - test
   - deploy
 
-default:
-  cache:
-    paths:
-      - vendor/bundle
-
-  before_script: &before_script
-    - bundle -v
-    - rm Gemfile.lock || true
-    - "# Update system gems if requested. This is useful to temporarily workaround troubles in the test runner"
-    - "# Set `rubygems_version` in the .sync.yml to set a value"
-    - "# Ignore exit code of SIGPIPE'd yes to not fail with shell's pipefail set"
-    - '[ -z "$RUBYGEMS_VERSION" ] || (yes || true) | gem update --system $RUBYGEMS_VERSION'
-    - gem --version
-    - bundle -v
-    - bundle install --without system_tests --path vendor/bundle --jobs $(nproc)
-
-validate lint rubocop-Ruby 3.1.4-Puppet ~> 8:
-  stage: syntax
-  image: ruby:3.1.4
+validate:
+  image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
+  stage: 'test'
   script:
-    - bundle exec rake validate lint rubocop
-  variables:
-    PUPPET_GEM_VERSION: '~> 8'
-
-parallel_spec-Ruby 3.1.4-Puppet ~> 8:
-  stage: unit
-  image: ruby:3.1.4
-  script:
-    - bundle exec rake parallel_spec
-  variables:
-    PUPPET_GEM_VERSION: '~> 8'
+    - 'pdk validate --puppet-version=8.2.0'
 
 r10k:
-  stage: deploy
-  tags:
-  - r10k
-  cache: []
-  before_script: []
-  script: r10k deploy environment "$CI_COMMIT_BRANCH" -pv
-
+  stage: 'deploy'
+  tags: ['r10k']
+  script:
+    - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
