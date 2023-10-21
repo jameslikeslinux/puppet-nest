@@ -10,4 +10,11 @@ class nest::node::web {
       before   => Class['nest::service::bitwarden'],
     }
   }
+
+  # Allow older PHP SSH2 host key algorithm
+  file { '/etc/ssh/sshd_config.d/allow-php-hostkeyalgorithm.conf':
+    content => "HostKeyAlgorithms +ssh-rsa\n",
+    require => Package['net-misc/openssh'],
+    notify  => Service['sshd'],
+  }
 }
