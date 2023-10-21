@@ -64,7 +64,7 @@ class nest::service::puppet (
   ->
   nest::lib::container { 'puppetserver':
     pod     => 'puppet',
-    image   => 'puppet/puppetserver',
+    image   => 'ghcr.io/voxpupuli/container-puppetserver:7.13.0',
     env     => [
       'PUPPETSERVER_HOSTNAME=puppet',
       'DNS_ALT_NAMES=puppet.nest',
@@ -95,7 +95,7 @@ class nest::service::puppet (
   ->
   nest::lib::container { 'puppet-postgres':
     pod     => 'puppet',
-    image   => 'postgres',
+    image   => 'postgres:16',
     env     => ['POSTGRES_USER=puppetdb', 'POSTGRES_PASSWORD=puppetdb'],
     volumes => ['/srv/puppet/postgres/data:/var/lib/postgresql/data'],
   }
@@ -114,7 +114,7 @@ class nest::service::puppet (
   ->
   nest::lib::container { 'puppetdb':
     pod     => 'puppet',
-    image   => 'ghcr.io/voxpupuli/container-puppetdb',
+    image   => 'ghcr.io/voxpupuli/container-puppetdb:7.14.0',
     env     => ['DNS_ALT_NAMES=puppet,puppetdb.nest', 'PUPPETDB_POSTGRES_HOSTNAME=localhost'],
     volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
   }
@@ -125,7 +125,7 @@ class nest::service::puppet (
   #
   nest::lib::container { 'puppetboard':
     pod   => 'puppet',
-    image => 'ghcr.io/voxpupuli/puppetboard',
+    image => 'ghcr.io/voxpupuli/puppetboard:5.1.0',
     env   => [
       'PUPPETDB_HOST=puppet',
       'ENABLE_CATALOG=True',
