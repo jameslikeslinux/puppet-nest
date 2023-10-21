@@ -1,6 +1,6 @@
 class nest::tool::pdk {
   if $facts['build'] == 'pdk' {
-    $pdk_version        = '2.7.1'
+    $pdk_version        = '3.0.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
     package { 'pdk':
@@ -15,12 +15,8 @@ class nest::tool::pdk {
       match => 'absolute_path.*join.*bundler_basedir',
     }
 
-    # Install PDK runtime dependencies
-    package { [
-      "puppet-module-posix-default-r${ruby_minor_version}",
-      "puppet-module-posix-dev-r${ruby_minor_version}",
-      "puppet-module-posix-system-r${ruby_minor_version}",
-    ]:
+    # Missing dependency in 3.0.0
+    package { 'locale':
       ensure   => installed,
       provider => gem,
     }
