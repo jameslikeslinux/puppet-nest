@@ -1,15 +1,19 @@
 class nest::base::firewall {
-  # Keep this filter list in sync with systemd-networkd's 20-ethernet.network
-  $external_interfaces = $nest::external_interfaces.reduce(
-    $facts['networking']['interfaces'].keys.filter |$i| {
-      $i =~ /^(bond|br|en|eth|usb|wlan)/
-    }
-  ) |$memo, $i| {
-    $i ? {
-      /^-(.*)/ => $memo - $1,
-      default  => $memo.union([$i]),
-    }
-  }.sort
+  if $facts['networking']['interfaces'] {
+    # Keep this filter list in sync with systemd-networkd's 20-ethernet.network
+    $external_interfaces = $nest::external_interfaces.reduce(
+      $facts['networking']['interfaces'].keys.filter |$i| {
+        $i =~ /^(bond|br|en|eth|usb|wlan)/
+      }
+    ) |$memo, $i| {
+      $i ? {
+        /^-(.*)/ => $memo - $1,
+        default  => $memo.union([$i]),
+      }
+    }.sort
+  } else {
+    $external_interfaces = []
+  }
 
   class { 'firewalld':
     default_zone => 'drop',

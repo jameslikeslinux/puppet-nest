@@ -114,6 +114,7 @@ class nest::base::openvpn {
       }
 
       $openvpn_package_name = 'net-vpn/openvpn'
+      $openvpn_package_opts = undef
       $openvpn_config_file  = "/etc/openvpn/${mode}/nest.conf"
       $openvpn_service      = "openvpn-${mode}@nest"
 

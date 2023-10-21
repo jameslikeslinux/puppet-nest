@@ -9,6 +9,12 @@ validate:
   script:
     - 'pdk validate --puppet-version=8.2.0'
 
+unit:
+  image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
+  stage: 'test'
+  script:
+    - 'pdk test unit --puppet-version=8.2.0'
+
 r10k:
   stage: 'deploy'
   tags: ['r10k']

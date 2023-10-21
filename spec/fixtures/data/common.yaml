@@ -1,0 +1,4 @@
+---
+nest::role::workstation::chrome::google_api_key: 'fake-google-api-key'
+nest::role::workstation::chrome::google_oauth_id: 'fake-google-oauth-id'
+nest::role::workstation::chrome::google_oauth_secret: 'fake-google-oauth-secret'

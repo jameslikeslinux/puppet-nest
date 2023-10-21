@@ -36,7 +36,6 @@ class nest::role::workstation::xorg {
 
   $monitor_layout       = $nest::monitor_layout
   $primary_monitor      = $nest::primary_monitor
-  $video_card           = $nest::video_card
   $monitors_conf_ensure = $monitor_layout ? {
     []      => 'absent',
     default => 'present',

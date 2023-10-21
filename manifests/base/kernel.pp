@@ -79,6 +79,8 @@ class nest::base::kernel {
     Package_env <| title == 'sys-fs/zfs-kmod' |> {
       env +> 'lld.conf',
     }
+  } else {
+    $lld_override = ''
   }
 
   if $nest::kernel_tag =~ /^radxa\// {
@@ -110,6 +112,8 @@ class nest::base::kernel {
     Package_env <| title == 'sys-fs/zfs-kmod' |> {
       env +> 'kcflags.conf',
     }
+  } else {
+    $cflags_override = ''
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")

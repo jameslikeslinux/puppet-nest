@@ -293,8 +293,8 @@ nest::kernel_config:
 apache::mpm_module: 'worker'
 apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
 
+puppet::agent_server_hostname: 'puppet.nest'
 puppet::environment: 'main'
-puppet::puppetmaster: 'puppet.nest'
 puppet::runinterval: 21600
 puppet::agent_additional_settings:
   runtimeout: 0

@@ -31,14 +31,15 @@ mod 'puppet-firewalld', :git => 'git@gitlab.james.tl:nest/forks/puppet-firewalld
 mod 'puppet-nodejs', '9.0.0'
 mod 'puppet-python', :git => 'git@gitlab.james.tl:nest/forks/puppet-python.git', :branch => 'fix-gentoo-pip-install'
 mod 'puppet-windows_env', '3.2.0'
-mod 'theforeman-puppet', '11.0.0'
+mod 'theforeman-puppet', '18.0.0'
 mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git', :branch => 'main'
 
 # Required by puppetlabs-chocolatey
 mod 'puppetlabs-registry', '2.1.0'
 
 # Required by theforeman-puppet
-mod 'puppet-extlib', '3.1.0'
+mod 'puppet-extlib', '7.0.0'
+mod 'puppet-systemd', '6.0.0'
 
 # Required by augeasproviders_sysctl
 mod 'herculesteam-augeasproviders_core', '2.6.0'

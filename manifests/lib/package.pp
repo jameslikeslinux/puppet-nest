@@ -5,7 +5,7 @@ define nest::lib::package (
   Optional[Nest::UseFlags] $use     = undef,
   Boolean                  $world   = true,
 ) {
-  unless $binpkg {
+  if !$binpkg {
     package_env { $name:
       name   => $package,
       env    => 'no-buildpkg.conf',
@@ -13,6 +13,8 @@ define nest::lib::package (
     }
 
     $install_options = [{ '--usepkg' => 'n' }]
+  } else {
+    $install_options = undef
   }
 
   $use_ensure = $use ? {

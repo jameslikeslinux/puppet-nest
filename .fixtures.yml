@@ -2,10 +2,21 @@
 fixtures:
   forge_modules:
     stdlib: 'puppetlabs/stdlib'
-    portage: 'gentoo/portage'
+    concat: 'puppetlabs/concat'
+    augeas_core: 'puppetlabs/augeas_core'
+    host_core: 'puppetlabs/host_core'
+    sshkeys_core: 'puppetlabs/sshkeys_core'
+    zfs_core: 'puppetlabs/zfs_core'
+    dnsquery: 'dalen/dnsquery'
     augeasproviders_core: 'herculesteam/augeasproviders_core'
     augeasproviders_sysctl: 'herculesteam/augeasproviders_sysctl'
-    concat: 'puppetlabs/concat'
-    firewall: 'puppetlabs/firewall'
-    vcsrepo: 'puppetlabs/vcsrepo'
+    nodejs: 'puppet/nodejs'
     puppet: 'theforeman/puppet'
+    extlib: 'puppet/extlib'
+    systemd: 'puppet/systemd'
+  repositories:
+    vcsrepo: 'https://gitlab.james.tl/nest/forks/puppet-vcsrepo.git'
+    firewalld:
+      repo: 'https://gitlab.james.tl/nest/forks/puppet-firewalld.git'
+      branch: 'feature-policy-objects'
+    portage: 'https://gitlab.james.tl/nest/forks/puppet-portage.git'
