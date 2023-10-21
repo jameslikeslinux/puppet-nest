@@ -20,21 +20,21 @@ default:
     - bundle -v
     - bundle install --without system_tests --path vendor/bundle --jobs $(nproc)
 
-validate lint rubocop-Ruby 2.7.5-Puppet ~> 7:
+validate lint rubocop-Ruby 3.1.4-Puppet ~> 8:
   stage: syntax
-  image: ruby:2.7.5
+  image: ruby:3.1.4
   script:
     - bundle exec rake validate lint rubocop
   variables:
-    PUPPET_GEM_VERSION: '~> 7'
+    PUPPET_GEM_VERSION: '~> 8'
 
-parallel_spec-Ruby 2.7.5-Puppet ~> 7:
+parallel_spec-Ruby 3.1.4-Puppet ~> 8:
   stage: unit
-  image: ruby:2.7.5
+  image: ruby:3.1.4
   script:
     - bundle exec rake parallel_spec
   variables:
-    PUPPET_GEM_VERSION: '~> 7'
+    PUPPET_GEM_VERSION: '~> 8'
 
 r10k:
   stage: deploy
