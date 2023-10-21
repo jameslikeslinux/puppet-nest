@@ -25,6 +25,7 @@ class nest::service::apache (
     use     => [
       'apache2_modules_access_compat',
       'apache2_modules_lbmethod_byrequests',
+      'apache2_modules_log_forensic',
       'apache2_modules_proxy',
       'apache2_modules_proxy_balancer',
       'apache2_modules_proxy_fcgi',

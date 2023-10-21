@@ -95,7 +95,7 @@ connect-timeout 2
 remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
     <%- } else { -%>
 #remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
-      <%- dns_lookup($server).each |$ip| { -%>
+      <%- dnsquery::lookup($server).each |$ip| { -%>
 remote <%= $ip %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
       <%- } -%>
     <%- } -%>

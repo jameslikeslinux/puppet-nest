@@ -56,7 +56,7 @@ define nest::lib::virtual_host (
         servername      => $servername,
         serveraliases   => $serveraliases,
         ip              => $ip,
-        port            => '80',
+        port            => 80,
         add_listen      => false,
         docroot         => "/srv/www/${servername}",
         docroot_owner   => 'james',
