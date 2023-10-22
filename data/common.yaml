@@ -307,3 +307,6 @@ puppet::agent_additional_settings:
 
 python::manage_python_package: false
 python::manage_venv_package: false
+
+# Managed in nest::base::systemd
+systemd::manage_journald: false

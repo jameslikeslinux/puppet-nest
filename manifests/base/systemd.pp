@@ -216,4 +216,6 @@ class nest::base::systemd {
       }
     }
   }
+
+  service { 'systemd-journald': }
 }
