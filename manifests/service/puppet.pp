@@ -65,7 +65,7 @@ class nest::service::puppet (
   ->
   nest::lib::container { 'puppetserver':
     pod     => 'puppet',
-    image   => 'ghcr.io/voxpupuli/container-puppetserver:7.13.0',
+    image   => 'registry.gitlab.james.tl/nest/forks/container-puppetserver:8.2.3',
     env     => [
       'PUPPETSERVER_HOSTNAME=puppet',
       'DNS_ALT_NAMES=puppet.nest',
