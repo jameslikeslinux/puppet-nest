@@ -302,6 +302,7 @@ puppet::agent_server_hostname: 'puppet.nest'
 puppet::environment: 'main'
 puppet::runinterval: 21600
 puppet::agent_additional_settings:
+  include_legacy_facts: true # XXX remove after Puppetboard supports structured facts
   runtimeout: 0
 
 python::manage_python_package: false
