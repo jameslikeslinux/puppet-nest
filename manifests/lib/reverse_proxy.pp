@@ -13,6 +13,7 @@ define nest::lib::reverse_proxy (
 ) {
   if $destination =~ String {
     $url      = "http://${destination}/"
+    $balancer = ''
   } else {
     $url      = "balancer://${name}/"
     $members  = $destination.map |$d| { "  BalancerMember http://${d}" }
@@ -26,10 +27,15 @@ define nest::lib::reverse_proxy (
   if $encoded_slashes {
     $proxy_pass_keywords = ['nocanon']
     $allow_encoded_slashes = on
+  } else {
+    $proxy_pass_keywords = []
+    $allow_encoded_slashes = off
   }
 
   if $timeout {
     $proxy_params = { 'timeout' => $timeout }
+  } else {
+    $proxy_params = {}
   }
 
   $proxy_pass = [{
@@ -51,6 +57,8 @@ define nest::lib::reverse_proxy (
       'rewrite_cond' => ['%{HTTP:Upgrade} =websocket [NC]'],
       'rewrite_rule' => ["^/(.*)$ ws://${wsdestination}/\$1 [P,L]"],
     }]
+  } else {
+    $websocket_rewrites = []
   }
 
   $certbot_exception = @(EOT)

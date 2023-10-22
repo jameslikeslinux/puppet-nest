@@ -17,8 +17,8 @@ class nest::role::workstation::sway {
   # to change the DPI to effect our text_scaling_factor
   $gui_scaling_factor  = $nest::gui_scaling_factor
   $text_scaling_factor = $nest::text_scaling_factor
-  $dpi       =   0 + inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>')
-  $dpi_scale = 0.0 + inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>')
+  $dpi       = Integer(inline_template('<%= ((@text_scaling_factor / @gui_scaling_factor) * 96.0).round %>'))
+  $dpi_scale = Float(inline_template('<%= (@text_scaling_factor / @gui_scaling_factor).round(3) %>'))
 
   # HW cursor doesn't work on VMware
   $no_hardware_cursors = $facts['virtual'] ? {

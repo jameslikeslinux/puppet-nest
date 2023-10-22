@@ -62,10 +62,10 @@ class nest (
     fail("Failed to determine kernel version from the tag '${kernel_tag}'")
   }
 
-  $dpi = 0 + inline_template('<%= (@text_scaling_factor * 96.0).round %>')
-  $gui_scaling_factor_rounded = 0 + inline_template('<%= @gui_scaling_factor.round %>')
-  $text_scaling_factor_percent_of_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor * 96.0)).round(3) %>')
-  $text_scaling_factor_percent_of_rounded_gui = 0.0 + inline_template('<%= (@dpi / (@gui_scaling_factor_rounded * 96.0)).round(3) %>')
+  $dpi = Integer(inline_template('<%= (@text_scaling_factor * 96.0).round %>'))
+  $gui_scaling_factor_rounded = Integer(inline_template('<%= @gui_scaling_factor.round %>'))
+  $text_scaling_factor_percent_of_gui = Float(inline_template('<%= (@dpi / (@gui_scaling_factor * 96.0)).round(3) %>'))
+  $text_scaling_factor_percent_of_rounded_gui = Float(inline_template('<%= (@dpi / (@gui_scaling_factor_rounded * 96.0)).round(3) %>'))
 
   $console_font_sizes        = [16, 18, 20, 22, 24, 28, 32]
   $console_font_size_ideal   = 16 * $nest::text_scaling_factor

@@ -10,6 +10,9 @@ class nest::base::openvpn {
         enable-dbus
         | EOT
 
+      $openvpn_package_name = 'net-vpn/openvpn'
+      $openvpn_package_opts = undef
+
       File {
         owner => 'root',
         group => 'root',
@@ -113,8 +116,6 @@ class nest::base::openvpn {
         $openvpn_config = epp('nest/openvpn/config.epp')
       }
 
-      $openvpn_package_name = 'net-vpn/openvpn'
-      $openvpn_package_opts = undef
       $openvpn_config_file  = "/etc/openvpn/${mode}/nest.conf"
       $openvpn_service      = "openvpn-${mode}@nest"
 
