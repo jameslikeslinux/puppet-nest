@@ -23,4 +23,9 @@ class nest::base::branding {
     group   => 'root',
     content => $os_release_content,
   }
+
+  # For os.distro facts
+  nest::lib::package { 'sys-apps/lsb-release':
+    ensure => installed,
+  }
 }
