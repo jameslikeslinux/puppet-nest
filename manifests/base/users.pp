@@ -44,6 +44,8 @@ class nest::base::users {
 
       if $facts['build'] in [undef, 'stage3'] {
         $pw_hash = $nest::pw_hash
+      } else {
+        $pw_hash = undef
       }
 
       user {
