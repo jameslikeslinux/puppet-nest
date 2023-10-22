@@ -1,5 +1,6 @@
 class nest::service::puppet (
-  String $r10k_deploy_key,
+  Sensitive $puppetboard_secret_key,
+  Sensitive $r10k_deploy_key,
 ) {
   Nest::Lib::Srv {
     mode  => '0755',
@@ -131,6 +132,7 @@ class nest::service::puppet (
       'ENABLE_CATALOG=True',
       'DEFAULT_ENVIRONMENT=main',
       'UNRESPONSIVE_HOURS=24',
+      "SECRET_KEY=${puppetboard_secret_key.unwrap}",
     ],
   }
 

@@ -12,6 +12,10 @@ lookup_options:
     merge: 'hash'
   nest::reset_filter_rules:
     merge: 'unique'
+  nest::service::puppet::puppetboard_secret_key:
+    convert_to: 'Sensitive'
+  nest::service::puppet::r10k_deploy_key:
+    convert_to: 'Sensitive'
   nest::service::streamux::password:
     convert_to: 'Sensitive'
   nest::service::wordpress::sites:
