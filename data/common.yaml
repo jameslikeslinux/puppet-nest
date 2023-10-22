@@ -56,6 +56,7 @@ nest::openvpn_servers:
 
 nest::package_keywords:
   # I always want the latest of these
+  app-admin/puppet: {}
   app-emulation/qemu: {}
   app-misc/tmux: {}
   app-editors/vim: {}
