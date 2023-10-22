@@ -115,7 +115,7 @@ class nest::service::puppet (
   ->
   nest::lib::container { 'puppetdb':
     pod     => 'puppet',
-    image   => 'ghcr.io/voxpupuli/container-puppetdb:7.14.0',
+    image   => 'registry.gitlab.james.tl/nest/forks/container-puppetdb:8.1.1',
     env     => ['DNS_ALT_NAMES=puppet,puppetdb.nest', 'PUPPETDB_POSTGRES_HOSTNAME=localhost'],
     volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
   }
