@@ -24,7 +24,7 @@ class nest::role::workstation::cups {
 
   file_line { 'cups-files-system-group-wheel':
     path    => '/etc/cups/cups-files.conf',
-    line    => 'SystemGroup wheel',
+    line    => 'SystemGroup root wheel',
     match   => '^SystemGroup',
     require => Package['net-print/cups'],
     notify  => Service['cups'],
