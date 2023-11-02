@@ -1,8 +1,9 @@
 class nest::base {
-  contain 'nest::base::puppet'
+  contain 'nest::base::firewall'
   contain 'nest::base::git'
   contain 'nest::base::openvpn'
   contain 'nest::base::packages'
+  contain 'nest::base::puppet'
   contain 'nest::base::qemu'
   contain 'nest::base::ssh'
   contain 'nest::base::syslog'
@@ -21,7 +22,6 @@ class nest::base {
       contain 'nest::base::distcc'
       contain 'nest::base::distccd'
       contain 'nest::base::fail2ban'
-      contain 'nest::base::firewall'
       contain 'nest::base::fs'
       contain 'nest::base::gentoo'
       contain 'nest::base::hosts'

@@ -95,6 +95,16 @@ class nest::base::ssh {
         owner => 'Administrators',
         group => 'None',
       }
+
+      windows_firewall::exception { 'nest-ssh':
+        ensure       => present,
+        display_name => 'Nest SSH',
+        description  => 'Allow SSH from Nest VPN',
+        protocol     => 'TCP',
+        local_port   => 22,
+        remote_ip    => '172.22.0.0/24',
+        action       => allow,
+      }
     }
   }
 

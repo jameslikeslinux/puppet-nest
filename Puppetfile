@@ -30,10 +30,11 @@ mod 'puppet-firewalld', :git => 'git@gitlab.james.tl:nest/forks/puppet-firewalld
 mod 'puppet-nodejs', '10.0.0'
 mod 'puppet-python', :git => 'git@gitlab.james.tl:nest/forks/puppet-python.git', :branch => 'fix-gentoo-pip-install'
 mod 'puppetlabs-windows_env', '5.0.0'
+mod 'puppet-windows_firewall', '4.1.0'
 mod 'theforeman-puppet', '18.0.0'
 mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git', :branch => 'main'
 
-# Required by puppetlabs-chocolatey
+# Required by puppetlabs-chocolatey and puppet-windows_firewall
 mod 'puppetlabs-registry', '5.0.1'
 
 # Required by puppetlabs-powershell

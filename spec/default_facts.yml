@@ -11,6 +11,7 @@ processors:
   count: 8
 os:
   family: Gentoo
+  name: Nest
 memory:
   system:
     total_bytes: 16484859904
