@@ -1,13 +1,13 @@
 diff --git a/contrib/dracut/90zfs/zfs-load-key.sh.in b/contrib/dracut/90zfs/zfs-load-key.sh.in
-index d916f43b4..a562aab2f 100755
+index 8e6846831..42f5fd71f 100755
 --- a/contrib/dracut/90zfs/zfs-load-key.sh.in
 +++ b/contrib/dracut/90zfs/zfs-load-key.sh.in
 @@ -34,7 +34,7 @@ _load_key_cb() {
      case "${KEYLOCATION%%://*}" in
          prompt)
              for _ in 1 2 3; do
--                systemd-ask-password --no-tty "Encrypted ZFS password for ${dataset}" | zfs load-key "${ENCRYPTIONROOT}" && break
-+                systemd-ask-password --no-tty --timeout=0 "Enter passphrase for ${ENCRYPTIONROOT}:" | zfs load-key "${ENCRYPTIONROOT}" && break
+-                systemd-ask-password --timeout=0 --no-tty "Encrypted ZFS password for ${dataset}" | zfs load-key "${ENCRYPTIONROOT}" && break
++                systemd-ask-password --timeout=0 --no-tty "Enter passphrase for ${ENCRYPTIONROOT}:" | zfs load-key "${ENCRYPTIONROOT}" && break
              done
              ;;
          http*)

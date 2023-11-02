@@ -6,10 +6,17 @@ define nest::lib::package (
   Boolean                  $world   = true,
 ) {
   if !$binpkg {
-    package_env { $name:
-      name   => $package,
-      env    => 'no-buildpkg.conf',
-      before => Package[$name],
+    if defined(Package_env[$name]) {
+      Package_env <| title == $name |> {
+        env    +> 'no-buildpkg.conf',
+        before +> Package[$name],
+      }
+    } else {
+      package_env { $name:
+        name   => $package,
+        env    => 'no-buildpkg.conf',
+        before => Package[$name],
+      }
     }
 
     $install_options = [{ '--usepkg' => 'n' }]

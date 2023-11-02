@@ -2,13 +2,16 @@
 nest::bootloader: systemd
 nest::fscache: false
 nest::uboot_tag: 'radxa/v2017.09'
-nest::kernel_tag: 'radxa/v5.10.66'
-nest::kernel_config:
-  CONFIG_GCC_PLUGINS: null
-  CONFIG_SYSFB_SIMPLEFB: null
-  CONFIG_DRM_SIMPLEDRM: null
+nest::kernel_tag: 'collabora/v6.6.0-rc1'
 
-  # Match defconfig
-  CONFIG_USB_USBNET: y
-  CONFIG_USB_NET_RNDIS_HOST: y
-  CONFIG_CRYPTO_DES: y
+# For Linux 6.6 compatibility
+nest::kernel_config:
+  CONFIG_NFT_OBJREF: null
+  CONFIG_FRONTSWAP: null
+  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: null
+  CONFIG_MEMCG_SWAP: null
+nest::package_keywords:
+  sys-fs/zfs:
+    accept_keywords: '**'
+  sys-fs/zfs-kmod:
+    accept_keywords: '**'
