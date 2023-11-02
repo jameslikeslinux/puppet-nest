@@ -56,7 +56,7 @@ class nest (
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
 ) {
-  if $kernel_tag =~ /v([\d.]+)/ {
+  if $kernel_tag =~ /v([\d.]+(-rc\d+)?)/ {
     $kernel_version = $1
   } else {
     fail("Failed to determine kernel version from the tag '${kernel_tag}'")

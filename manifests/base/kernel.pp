@@ -25,7 +25,7 @@ class nest::base::kernel {
   ->  # sources w/o config, just like a provided package
   file_line { 'package.provided-kernel':
     path  => '/etc/portage/profile/package.provided',
-    line  => "sys-kernel/vanilla-sources-${nest::kernel_version}",
+    line  => "sys-kernel/vanilla-sources-${nest::kernel_version.regsubst('-', '_')}",
     match => '^sys-kernel/vanilla-sources-',
   }
 
