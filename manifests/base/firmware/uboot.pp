@@ -106,6 +106,11 @@ class nest::base::firmware::uboot {
         -d ../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin:spl/u-boot-spl.bin idbloader.img
         |-MKIMAGE
 
+      # RK3588 defaults to uncommon 1.5 Mbps
+      nest::lib::kconfig { 'CONFIG_BAUDRATE':
+        value => 115200,
+      }
+
       # See https://github.com/radxa/build/blob/debian/mk-uboot.sh
       exec { 'uboot-mkimage':
         command     => $mkimage,
