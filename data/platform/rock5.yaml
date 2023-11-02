@@ -3,20 +3,7 @@ nest::bootloader: systemd
 nest::fscache: false
 nest::uboot_tag: 'radxa/v2017.09'
 nest::kernel_tag: 'collabora/v6.6.0-rc1'
-
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
   - 'noefi'   # u-boot doesn't provide EFI services
-
-# For Linux 6.6 compatibility
-nest::kernel_config:
-  CONFIG_NFT_OBJREF: null
-  CONFIG_FRONTSWAP: null
-  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: null
-  CONFIG_MEMCG_SWAP: null
-nest::package_keywords:
-  sys-fs/zfs:
-    accept_keywords: '**'
-  sys-fs/zfs-kmod:
-    accept_keywords: '**'

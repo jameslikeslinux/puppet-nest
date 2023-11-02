@@ -64,8 +64,10 @@ nest::package_keywords:
   media-libs/mesa: {}
   net-firewall/firewalld: {}
   sys-apps/systemd: {}
-  sys-fs/zfs: {}
-  sys-fs/zfs-kmod: {}
+  sys-fs/zfs:
+    accept_keywords: '**'
+  sys-fs/zfs-kmod:
+    accept_keywords: '**'
 
   # For Puppet
   dev-ruby/sys-filesystem:
@@ -105,7 +107,7 @@ nest::package_keywords:
     version: '~0.30'
 
 nest::uboot_tag: 'u-boot/v2023.04-rc2'
-nest::kernel_tag: 'stable/v5.19.17'
+nest::kernel_tag: 'stable/v6.6.0'
 
 nest::kernel_config:
   # Preferences
@@ -134,7 +136,6 @@ nest::kernel_config:
   CONFIG_NFT_LOG: m
   CONFIG_NFT_MASQ: m
   CONFIG_NFT_NAT: m
-  CONFIG_NFT_OBJREF: m
   CONFIG_NFT_REJECT: m
   CONFIG_NFT_FIB: m
   CONFIG_NFT_FIB_INET: m
@@ -198,19 +199,16 @@ nest::kernel_config:
   CONFIG_NFSD_V4: y
 
   # For zswap
-  CONFIG_FRONTSWAP: y
   CONFIG_ZSWAP: y
   CONFIG_Z3FOLD: y
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
-  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: y
   CONFIG_FANOTIFY: y
 
   # For containers
   CONFIG_POSIX_MQUEUE: y
   CONFIG_MEMCG: y
-  CONFIG_MEMCG_SWAP: y
   CONFIG_CGROUP_PIDS: y
   CONFIG_CGROUP_BPF: y
   CONFIG_NAMESPACES: y

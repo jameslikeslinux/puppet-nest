@@ -27,7 +27,6 @@ nest::kernel_config:
   CONFIG_IPMI_SI: m
   CONFIG_I2C_CHARDEV: m
   CONFIG_DRM_AMDGPU: m
-  CONFIG_DRM_AMD_DC_HDCP: y
   CONFIG_DRM_SIMPLEDRM: y
   CONFIG_SND_HDA_INTEL: m
   CONFIG_SND_HDA_CODEC_REALTEK: m
@@ -49,7 +48,6 @@ nest::kernel_config:
   CONFIG_VMXNET3: m
   CONFIG_MOUSE_PS2_VMMOUSE: y
   CONFIG_DRM_VMWGFX: m
-  CONFIG_DRM_VMWGFX_FBCON: y
   CONFIG_SND_ENS1371: m
 
 # Support new multilib layout in Gentoo 17.1 profile
