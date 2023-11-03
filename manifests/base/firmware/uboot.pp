@@ -99,10 +99,8 @@ class nest::base::firmware::uboot {
           value => n,
         ;
 
-        'CONFIG_SPECIFY_CONSOLE_INDEX':
-          value => y;
-        'CONFIG_CONS_INDEX':
-          value => 0,
+        'CONFIG_DEFAULT_DEVICE_TREE':
+          value => 'bcm2711-rpi-400',
         ;
       }
     }
