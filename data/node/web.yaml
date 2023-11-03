@@ -8,6 +8,9 @@ classes:
 
 nest::dvorak: true
 
+nest::kernel_config:
+  CONFIG_DRM_FBDEV_EMULATION: y
+
 nest::service::apache::manage_firewall: true
 
 nest::service::gateway::port_forwards:
