@@ -100,10 +100,6 @@ class nest::base::firmware::uboot {
         ;
 
         # Force serial console to work over the correct port
-        'CONFIG_SPECIFY_CONSOLE_INDEX':
-          value => y;
-        'CONFIG_CONS_INDEX':
-          value => 1;
         'CONFIG_SERIAL_PROBE_ALL':
           value => y,
         ;
