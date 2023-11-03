@@ -11,6 +11,9 @@ nest::dvorak: true
 nest::gui_scaling_factor: 2.0
 nest::role::workstation::chrome::chromium: false
 
+nest::kernel_config:
+  CONFIG_DRM_FBDEV_EMULATION: y
+
 # Protect containers and virtual machines
 nest::reset_filter_rules:
   - 'P /etc/cni/**'
