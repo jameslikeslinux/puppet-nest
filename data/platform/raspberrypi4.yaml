@@ -21,6 +21,7 @@ nest::kernel_cmdline:
 nest::kernel_config:
   # Device drivers ('y' for early boot)
   CONFIG_DRM: y
+  CONFIG_DRM_V3D: y
   CONFIG_DRM_VC4: y
   CONFIG_SND: y
   CONFIG_SND_SOC: y
