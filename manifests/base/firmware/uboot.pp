@@ -99,7 +99,7 @@ class nest::base::firmware::uboot {
           value => n,
         ;
 
-        # Force serial console to work over the correct port
+        # Let the main SOC UART be found instead of just the PL011 chip
         'CONFIG_SERIAL_PROBE_ALL':
           value => y,
         ;
