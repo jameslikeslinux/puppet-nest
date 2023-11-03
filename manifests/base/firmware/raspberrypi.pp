@@ -23,6 +23,7 @@ class nest::base::firmware::raspberrypi {
     dtparam=act_led_trigger=actpwr
     dtoverlay=vc4-kms-v3d
     enable_uart=1
+    uart_2ndstage=1
     kernel=u-boot.bin
     | BOOT_CONFIG
 
