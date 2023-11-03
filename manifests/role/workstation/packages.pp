@@ -1,9 +1,10 @@
 class nest::role::workstation::packages {
-  nest::lib::package_use { 'app-text/texlive':
-    use => ['extra', 'xetex'],
+  nest::lib::package { 'app-text/texlive':
+    ensure => installed,
+    use    => ['extra', 'xetex'],
   }
 
-  package { 'app-text/texlive':
+  nest::lib::package { 'net-dialup/minicom':
     ensure => installed,
   }
 }
