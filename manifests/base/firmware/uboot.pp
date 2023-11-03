@@ -97,6 +97,10 @@ class nest::base::firmware::uboot {
       nest::lib::kconfig { 'CONFIG_MMC_SDHCI_SDMA':
         value => n,
       }
+
+      nest::lib::kconfig { 'CONFIG_SERIAL_PROBE_ALL':
+        value => y,
+      }
     }
 
     'rock5': {
