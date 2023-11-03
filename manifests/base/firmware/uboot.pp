@@ -93,13 +93,20 @@ class nest::base::firmware::uboot {
     'raspberrypi4': {
       $build_options = ''
 
-      # Fails with "Unknown partition table type 0"
-      nest::lib::kconfig { 'CONFIG_MMC_SDHCI_SDMA':
-        value => n,
-      }
+      nest::lib::kconfig {
+        # Fails with "Unknown partition table type 0"
+        'CONFIG_MMC_SDHCI_SDMA':
+          value => n,
+        ;
 
-      nest::lib::kconfig { 'CONFIG_SERIAL_PROBE_ALL':
-        value => y,
+        # Force serial console to work over the correct port
+        'CONFIG_SPECIFY_CONSOLE_INDEX':
+          value => y;
+        'CONFIG_CONS_INDEX':
+          value => 1;
+        'CONFIG_SERIAL_PROBE_ALL':
+          value => y,
+        ;
       }
     }
 
