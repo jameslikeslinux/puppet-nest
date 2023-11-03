@@ -4,7 +4,7 @@ class nest::base::firmware {
       contain 'nest::base::firmware::uboot'
 
       file { '/boot/am335x-boneblack.dtb':
-        source => '/usr/src/linux/arch/arm/boot/dts/am335x-boneblack.dtb',
+        source => '/usr/src/linux/arch/arm/boot/dts/ti/omap/am335x-boneblack.dtb',
       }
     }
 
