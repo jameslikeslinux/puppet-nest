@@ -169,6 +169,7 @@ nest::kernel_config:
   CONFIG_DRM: y
   CONFIG_DRM_SIMPLEDRM: y
   CONFIG_FB: y
+  CONFIG_FRAMEBUFFER_CONSOLE: y
   CONFIG_LOGO: n
 
   # Device drivers
