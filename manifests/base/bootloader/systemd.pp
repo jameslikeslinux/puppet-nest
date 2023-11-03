@@ -61,8 +61,8 @@ class nest::base::bootloader::systemd {
       timeout     => 0,
     }
 
-    # Current U-Boot versions for Rock5 do not support enough EFI for systemd-boot
-    if $facts['profile']['platform'] == 'rock5' {
+    # Legacy extlinux config for platforms that don't run systemd-boot
+    if $facts['profile']['platform'] in [] {
       $extlinux_conf = @("EXTLINUX")
         DEFAULT Nest (${nest::kernel_version})
         TIMEOUT ${nest::boot_menu_delay}
