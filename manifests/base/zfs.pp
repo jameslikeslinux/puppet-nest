@@ -1,6 +1,6 @@
 class nest::base::zfs {
   nest::lib::package { 'sys-fs/zfs':
-    ensure => installed,
+    ensure => latest,
     use    => 'kernel-builtin',
   }
 

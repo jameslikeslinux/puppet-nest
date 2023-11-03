@@ -149,7 +149,7 @@ class nest::base::kernel {
   }
   ->
   nest::lib::package { 'sys-fs/zfs-kmod':
-    ensure => installed,
+    ensure => latest,
     binpkg => false,
   }
 
