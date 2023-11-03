@@ -10,7 +10,7 @@ nest::package_keywords:
   # Still not fully open-source or mainlined...
   sys-boot/raspberrypi-firmware: {}
 
-nest::kernel_tag: 'raspberrypi/v6.6.0'
+nest::kernel_tag: 'raspberrypi/v5.19.17'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1'   # set in DT but not passed by u-boot/systemd-boot
@@ -33,3 +33,9 @@ nest::kernel_config:
   # Rely on filesystem compression
   CONFIG_MODULE_COMPRESS_NONE: y
   CONFIG_MODULE_COMPRESS_XZ: n
+
+  # For Linux 5.19
+  CONFIG_NFT_OBJREF: m
+  CONFIG_FRONTSWAP: y
+  CONFIG_EFI_GENERIC_STUB_INITRD_CMDLINE_LOADER: y
+  CONFIG_MEMCG_SWAP: y
