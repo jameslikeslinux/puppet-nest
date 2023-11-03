@@ -86,12 +86,4 @@ class nest::base::wifi {
       force  => true,
     }
   }
-
-  #
-  # XXX Cleanup
-  #
-  file { '/etc/iwd':
-    ensure => absent,
-    force  => true,
-  }
 }
