@@ -10,7 +10,6 @@ nest::package_keywords:
   # Still not fully open-source or mainlined...
   sys-boot/raspberrypi-firmware: {}
 
-nest::uboot_tag: 'u-boot/v2024.01-rc1'
 nest::kernel_tag: 'raspberrypi/v6.6.0'
 
 nest::kernel_cmdline:

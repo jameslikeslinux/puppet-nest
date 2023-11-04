@@ -106,7 +106,7 @@ nest::package_keywords:
   dev-python/pyelftools:
     version: '~0.30'
 
-nest::uboot_tag: 'u-boot/v2023.04-rc2'
+nest::uboot_tag: 'u-boot/v2024.01-rc1'
 nest::kernel_tag: 'stable/v6.6.0'
 
 nest::kernel_config:

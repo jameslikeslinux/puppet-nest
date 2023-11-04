@@ -2,9 +2,6 @@
 nest::bootloader: systemd
 nest::fscache: false
 
-# U-Boot 2023.04-rc2 hangs at SPL
-nest::uboot_tag: 'u-boot/v2023.01-rc4'
-
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
