@@ -38,6 +38,8 @@ nest::hosts:
     ip: '10.81.40.13'
   cd4pe5.puppet:
     ip: '10.81.40.14'
+  osp.acmeinc:
+    ip: '192.168.100.10'
 
 nest::service::gateway::port_forwards:
   puppet-external:
@@ -61,3 +63,10 @@ nest::service::gateway::port_forwards:
     to_addr: '10.81.40.10'
     to_port: 8140
     zone: 'internal'
+  puppet-libvirt:
+    loopback: false
+    port: 8140
+    proto: tcp
+    to_addr: '10.81.40.10'
+    to_port: 8140
+    zone: 'libvirt'

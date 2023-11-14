@@ -16,6 +16,10 @@ class nest::node::hawk {
       args => '-d 10.81.40.10 -p tcp --dport 8140 -j ACCEPT',
     ;
 
+    'orchestrator':
+      args => '-d 10.81.40.10 -p tcp --dport 8142 -j ACCEPT',
+    ;
+
     'cd4pe':
       args => '-d 10.81.40.11 -p tcp --dport 8000 -j ACCEPT',
     ;
