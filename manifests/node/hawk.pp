@@ -23,6 +23,10 @@ class nest::node::hawk {
     'cd4pe':
       args => '-d 10.81.40.11 -p tcp --dport 8000 -j ACCEPT',
     ;
+
+    'influxdb':
+      args => '-d 10.81.40.13 -p tcp --dport 8086 -j ACCEPT',
+    ;
   }
 
   package { 'app-editors/vscode':
