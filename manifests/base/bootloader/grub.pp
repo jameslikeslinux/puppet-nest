@@ -165,12 +165,21 @@ class nest::base::bootloader::grub {
         subscribe   => Exec['grub-mkconfig'],
       }
 
-      # Make initramfs user readable for unprivileged live CD creation
-      file { "/boot/initramfs-${nest::kernel_version}.img":
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        require => Exec['dracut'],
+      # Make certain files user readable for unprivileged live CD creation
+      file {
+        default:
+          mode    => '0644',
+          owner   => 'root',
+          group   => 'root',
+        ;
+
+        '/boot/grub/grub.cfg':
+          require => Exec['grub-mkconfig'],
+        ;
+
+        "/boot/initramfs-${nest::kernel_version}.img":
+          require => Exec['dracut'],
+        ;
       }
     }
 
