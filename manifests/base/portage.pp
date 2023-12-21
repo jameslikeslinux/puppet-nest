@@ -157,6 +157,18 @@ class nest::base::portage {
     content => "FEATURES=\"-buildpkg\"\n",
   }
 
+  # Workaround systemd-boot build problem when using distcc
+  file { '/etc/portage/env/no-distcc.conf':
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => "FEATURES=\"-distcc\"\n",
+  }
+  ->
+  package_env { 'sys-apps/systemd':
+    env => 'no-distcc.conf',
+  }
+
   # xvid incorrectly passes `-mcpu` as `-mtune` which doesn't accept `+crypto`
   $cflags_no_crypto = regsubst($facts['portage_cflags'], '\+crypto', '')
   if $cflags_no_crypto != $facts['portage_cflags'] {
