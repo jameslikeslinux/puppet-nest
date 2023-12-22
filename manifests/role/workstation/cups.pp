@@ -4,7 +4,7 @@ class nest::role::workstation::cups {
   package { [
     'net-print/cups',
     'net-print/cups-filters',
-    'kde-apps/print-manager',
+    'kde-plasma/print-manager',
   ]:
     ensure => installed,
   }
