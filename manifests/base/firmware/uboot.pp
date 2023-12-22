@@ -107,7 +107,8 @@ class nest::base::firmware::uboot {
     }
 
     'rock5': {
-      $build_options = 'BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin'
+      $build_options = "BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf \
+        ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin"
 
       # RK3588 defaults to uncommon 1.5 Mbps
       nest::lib::kconfig { 'CONFIG_BAUDRATE':

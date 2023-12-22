@@ -168,9 +168,9 @@ class nest::base::bootloader::grub {
       # Make certain files user readable for unprivileged live CD creation
       file {
         default:
-          mode    => '0644',
-          owner   => 'root',
-          group   => 'root',
+          mode  => '0644',
+          owner => 'root',
+          group => 'root',
         ;
 
         '/boot/grub/grub.cfg':
