@@ -19,7 +19,11 @@ class nest::base::containers {
     runroot = "/run/containers/storage"
     | STORAGE_CONF
 
-  package { 'app-containers/crun':
+  # Preselect optional dependencies
+  package { [
+    'app-containers/cni-plugins',
+    'app-containers/crun',
+  ]:,
     ensure => installed,
   }
   ->
