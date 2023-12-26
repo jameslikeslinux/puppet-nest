@@ -46,12 +46,13 @@ class nest::base::dracut {
 
   # Add delay to ensure all devices are enumerated at boot before the ZFS import
   # See: https://github.com/openzfs/zfs/issues/8885#issuecomment-774503341
+  # XXX remove systemd-executor item upon fix upstream
   $systemd_udev_settle_sleep = @(END_DROPIN)
     [Service]
     ExecStartPre=/bin/sleep 5
     | END_DROPIN
   $install_config = @(END_CONF)
-    install_items+=" /etc/systemd/system/systemd-udev-settle.service.d/10-sleep.conf "
+    install_items+=" /etc/systemd/system/systemd-udev-settle.service.d/10-sleep.conf /usr/lib/systemd/systemd-executor "
     | END_CONF
 
   file {
