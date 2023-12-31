@@ -1,5 +1,7 @@
 ---
 lookup_options:
+  nest::distcc_hosts:
+    merge: 'hash'
   nest::hosts:
     merge: 'hash'
   nest::kernel_cmdline:

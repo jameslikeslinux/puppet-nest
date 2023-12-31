@@ -94,7 +94,8 @@ class nest::base::portage {
   # make.conf
   #
   $makejobs_memory     = ceiling($facts['memory']['system']['total_bytes'] / (512.0 * 1024 * 1024))
-  $makejobs_distcc     = $nest::distcc_hosts.reduce($nest::concurrency) |$memo, $host| { $memo + $host[1] }
+  $distcc_hosts        = $nest::distcc_hosts.delete("${trusted['certname']}.nest")
+  $makejobs_distcc     = $distcc_hosts.reduce($nest::concurrency) |$memo, $host| { $memo + $host[1] }
   $makejobs            = min($makejobs_memory, $makejobs_distcc)
   $mergejobs           = $nest::concurrency
   $loadlimit           = $nest::concurrency + 1

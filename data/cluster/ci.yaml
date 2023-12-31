@@ -2,6 +2,8 @@
 classes:
   - 'nest::service::gitlab_runner'
 
+nest::distcc_server: true
+
 nest::service::gitlab_runner::instances:
   nest:
     dns: '172.22.0.1'

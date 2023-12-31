@@ -8,14 +8,17 @@ class nest::base::distccd {
     owner   => 'root',
     group   => 'root',
     content => "[Service]\nEnvironment=\"ALLOWED_SERVERS=0.0.0.0/0\"\n",
-    notify  => Nest::Lib::Systemd_reload['distccd'],
   }
-
-  ::nest::lib::systemd_reload { 'distccd':
-    notify => Service['distccd'],
-  }
-
+  ~>
+  nest::lib::systemd_reload { 'distccd': }
+  ~>
   service { 'distccd':
     enable => $nest::distcc_server,
+  }
+
+  if $nest::distcc_server {
+    package { 'sys-devel/clang':
+      ensure => installed,
+    }
   }
 }

@@ -3,7 +3,7 @@ class nest::base::distcc {
     ensure => installed,
   }
 
-  $distcc_hosts_config = $nest::distcc_hosts.map |$host, $jobs| { "${host}/${jobs}" }
+  $distcc_hosts_config = $nest::distcc_hosts.delete("${trusted['certname']}.nest").map |$host, $jobs| { "${host}/${jobs}" }
   $localhost_config = "localhost/${nest::concurrency}"
   $distcc_hosts_content = $distcc_hosts_config ? {
     []      => "${localhost_config}\n",
