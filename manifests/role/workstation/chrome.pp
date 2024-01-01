@@ -13,8 +13,19 @@ class nest::role::workstation::chrome (
 
       if $chromium {
         unless $facts['build'] == 'stage1' {
-          package { 'www-client/chromium':
+          # Workaround https://bugs.gentoo.org/918897
+          $chromium_env = $facts['profile']['architecture'] ? {
+            'arm64' => {
+              'CFLAGS'   => "${facts['portage_cflags']} -fuse-ld=lld",
+              'CXXFLAGS' => '${CFLAGS}', # lint:ignore:single_quote_string_with_variables
+              'LDFLAGS'  => "${facts['portage_ldflags']} -fuse-ld=lld -Wl,--undefined-version",
+            },
+            default => {},
+          }
+
+          nest::lib::package { 'www-client/chromium':
             ensure => installed,
+            env    => $chromium_env,
           }
 
           if $facts['profile']['architecture'] == 'amd64' {
