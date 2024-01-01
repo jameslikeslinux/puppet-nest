@@ -185,6 +185,17 @@ class nest::base::portage {
     }
   }
 
+  # Workaround https://bugs.gentoo.org/918897
+  if $facts['profile']['architecture'] == 'arm64' {
+    nest::lib::package_env { 'www-client/chromium':
+      env => {
+        'CFLAGS'   => "${facts['portage_cflags']} -fuse-ld=lld",
+        'CXXFLAGS' => '${CFLAGS}', # lint:ignore:single_quote_string_with_variables
+        'LDFLAGS'  => "${facts['portage_ldflags']} -fuse-ld=lld -Wl,--undefined-version",
+      },
+    }
+  }
+
   # Workaround https://bugs.gentoo.org/666560
   if $facts['is_container'] and !$facts['profile']['architecture'] == 'amd64' {
     file { '/etc/portage/env/no-sandbox.conf':
@@ -212,6 +223,7 @@ class nest::base::portage {
       content => "DONT_MOUNT_BOOT=1\n",
     }
   }
+
 
   # Create portage package properties rebuild affected packages
   create_resources(package_accept_keywords, $nest::package_keywords, {
