@@ -1,7 +1,16 @@
 class nest::role::workstation::pipewire {
+  if $facts['profile']['architecture'] == 'arm64' {
+    nest::lib::package_env { 'media-libs/roc-toolkit':
+      env    => {
+        'EXTRA_ESCONS' => '--libdir=/usr/lib64',
+      },
+      before => Nest::Lib::Package['media-video/pipewire'],
+    }
+  }
+
   nest::lib::package { 'media-video/pipewire':
     ensure => installed,
-    use    => 'sound-server',
+    use    => ['roc', 'sound-server'],
   }
   ->
   exec {

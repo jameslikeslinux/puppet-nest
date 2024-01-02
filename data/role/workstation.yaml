@@ -36,10 +36,8 @@ nest::package_keywords:
   media-libs/fcft: {}
 
   # For pipewire
-  dev-util/meson:
-    version: '~0.59.1'
-  media-libs/libopenaptx:
-    version: '~0.2.0'
+  media-libs/roc-toolkit:
+    version: '~0.3.0'
 
   # For waybar
   dev-libs/date:

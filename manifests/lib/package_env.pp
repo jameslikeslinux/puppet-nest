@@ -18,14 +18,12 @@ define nest::lib::package_env (
     if defined(Package_env[$name]) {
       Package_env <| title == $name |> {
         env     +> $env_name,
-        before  +> Package[$name],
         require +> File["/etc/portage/env/${env_name}"],
       }
     } else {
       package_env { $name:
         name    => $package,
         env     => $env_name,
-        before  => Package[$name],
         require => File["/etc/portage/env/${env_name}"],
       }
     }

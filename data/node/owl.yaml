@@ -3,3 +3,16 @@ classes: ['nest::service::barrier']
 nest::autologin: xmonad
 nest::external_interfaces: ['eth0']
 nest::service::barrier::server: false
+
+# Allow Roc audio streaming from home
+firewalld::custom_services:
+  roc:
+    description: 'Roc is real-time audio streaming over the network.'
+    port:
+      - port: '10001:10003'
+        protocol: 'tcp'
+      - port: '10001:10003'
+        protocol: 'udp'
+firewalld::services:
+  roc:
+    zone: 'home'
