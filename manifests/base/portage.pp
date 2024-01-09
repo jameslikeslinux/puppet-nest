@@ -186,10 +186,13 @@ class nest::base::portage {
   }
 
   # Workaround https://bugs.gentoo.org/918897
+  # Also force crypto extensions off (which should be the default)
   if $facts['profile']['architecture'] == 'arm64' {
+    $cflags_disable_crypto = regsubst($facts['portage_cflags'], '(cortex-a72)', '\\1+nocrypto')
+
     nest::lib::package_env { 'www-client/chromium':
       env => {
-        'CFLAGS'   => "${facts['portage_cflags']} -fuse-ld=lld",
+        'CFLAGS'   => "${cflags_disable_crypto} -fuse-ld=lld",
         'CXXFLAGS' => '${CFLAGS}', # lint:ignore:single_quote_string_with_variables
         'LDFLAGS'  => "${facts['portage_ldflags']} -fuse-ld=lld -Wl,--undefined-version",
       },
