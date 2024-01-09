@@ -63,8 +63,10 @@ nest::package_keywords:
   app-misc/tmux: {}
   app-editors/vim: {}
   app-editors/vim-core: {}
+  dev-libs/ell: {} # for iwd
   media-libs/mesa: {}
   net-firewall/firewalld: {}
+  net-wireless/iwd: {}
   sys-apps/systemd: {}
   sys-fs/zfs:
     accept_keywords: '**'
