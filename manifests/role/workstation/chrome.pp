@@ -30,10 +30,11 @@ class nest::role::workstation::chrome (
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"
 
-            # Workaround issue with dark Gtk theme detection
+            # Workaround issue with dark Gtk theme detection and improve scrolling behavior
             # See: https://bugs.chromium.org/p/chromium/issues/detail?id=998903
             # See: https://wiki.archlinux.org/title/chromium#Dark_mode
-            CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-dark-mode --enable-features=WebUIDarkMode"
+            # See: https://bugs.chromium.org/p/chromium/issues/detail?id=1406625
+            CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-dark-mode --enable-features=WebUIDarkMode,WindowsScrollingPersonality"
 
             # For Sync and other Google services
             # See: https://www.gentoo.org/support/news-items/2021-08-11-oauth2-creds-chromium.html
@@ -60,7 +61,7 @@ class nest::role::workstation::chrome (
           exec /opt/google/chrome/google-chrome \
               --${gpu_rasterization_flag} \
               --ignore-gpu-blocklist \
-              --enable-features=WebUIDarkMode \
+              --enable-features=WebUIDarkMode,WindowsScrollingPersonality \
               --force-dark-mode \
               --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \
               "$@"
