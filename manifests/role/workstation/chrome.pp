@@ -6,6 +6,11 @@ class nest::role::workstation::chrome (
 ) {
   case $facts['os']['family'] {
     'Gentoo': {
+      $gpu_compositing_flag = $facts['profile']['platform'] ? {
+        /^(pinebookpro|raspberrypi4)$/ => 'disable-gpu-compositing',
+        default                        => 'enable-gpu-compositing',
+      }
+
       $gpu_rasterization_flag = $facts['virtual'] ? {
         'vmware' => 'disable-gpu-rasterization',
         default  => 'enable-gpu-rasterization',
@@ -26,6 +31,7 @@ class nest::role::workstation::chrome (
           $chromium_flags = @("EOT"/$)
             [[ \$XDG_SESSION_TYPE == 'x11' ]] &&
                 CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --force-device-scale-factor=${nest::gui_scaling_factor} --enable-use-zoom-for-dsf"
+            CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --${gpu_compositing_flag}"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --${gpu_rasterization_flag}"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --enable-oop-rasterization"
             CHROMIUM_FLAGS="\${CHROMIUM_FLAGS} --ignore-gpu-blocklist"
@@ -59,6 +65,7 @@ class nest::role::workstation::chrome (
         $chrome_wrapper = @("WRAPPER")
           #!/bin/bash
           exec /opt/google/chrome/google-chrome \
+              --${gpu_compositing_flag} \
               --${gpu_rasterization_flag} \
               --ignore-gpu-blocklist \
               --enable-features=WebUIDarkMode,WindowsScrollingPersonality \
