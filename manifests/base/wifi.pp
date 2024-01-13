@@ -54,7 +54,8 @@ class nest::base::wifi {
       notify => Service['iwd'],
     }
 
-    if $facts['profile']['platform'] == 'raspberrypi4' {
+    # For better stability and interactivity
+    if $facts['profile']['platform'] =~ /^raspberrypi/ {
       file { '/etc/systemd/system/wifi-power-save-off@.service':
         mode   => '0644',
         owner  => 'root',

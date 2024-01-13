@@ -27,6 +27,7 @@ class nest::base::firmware::uboot {
     'beagleboneblack' => 'am335x_evm_defconfig',
     'pine64'          => 'pine64-lts_defconfig',
     'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
+    'raspberrypi3'    => 'rpi_arm64_defconfig',
     'raspberrypi4'    => 'rpi_arm64_defconfig',
     'rock5'           => 'rock5b-rk3588_defconfig',
     'rockpro64'       => 'rockpro64-rk3399_defconfig',
@@ -42,7 +43,7 @@ class nest::base::firmware::uboot {
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
-    'raspberrypi4' => undef,
+    /^raspberrypi/ => undef,
     default        => n,
   }
 

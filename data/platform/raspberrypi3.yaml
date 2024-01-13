@@ -1,7 +1,7 @@
 ---
 nest::autologin: sway
 nest::bootloader: systemd
-nest::dtb_file: 'bcm2711-rpi-4-b.dtb'
+nest::dtb_file: 'bcm2710-rpi-3-b-plus.dtb'
 nest::dvorak: true
 nest::fscache: false
 nest::swap_alt_win: true
@@ -15,14 +15,12 @@ nest::kernel_tag: 'raspberrypi/v6.6.0'
 
 nest::kernel_cmdline:
   - '8250.nr_uarts=1' # set in DT but not passed by u-boot/systemd-boot
-  - 'console=ttyS0,115200n8'
   - 'console=tty0'
   - 'noefi' # EFI services prevent full shutdown
 
 nest::kernel_config:
   # Device drivers ('y' for early boot)
   CONFIG_DRM: y
-  CONFIG_DRM_V3D: y
   CONFIG_DRM_VC4: y
   CONFIG_SND: y
   CONFIG_SND_SOC: y

@@ -50,26 +50,26 @@ class nest::base::firmware {
       }
     }
 
-    'raspberrypi4': {
+    'raspberrypi3', 'raspberrypi4': {
       contain 'nest::base::firmware::raspberrypi'
       contain 'nest::base::firmware::uboot'
 
       Class['nest::base::firmware::uboot']
       -> Class['nest::base::firmware::raspberrypi']
 
-      file {
-        '/boot/bcm2711-rpi-400.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-400.dtb',
-        ;
+      if $nest::dtb_file {
+        file { "/boot/${nest::dtb_file}":
+          source => "/usr/src/linux/arch/arm64/boot/dts/broadcom/${nest::dtb_file}",
+        }
+      }
 
-        '/boot/overlays':
-          source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
-          links   => follow,
-          recurse => true,
-          purge   => true,
-          force   => true,
-          ignore  => ['.*', '*.dts', 'Makefile'],
-        ;
+      file { '/boot/overlays':
+        source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
+        links   => follow,
+        recurse => true,
+        purge   => true,
+        force   => true,
+        ignore  => ['.*', '*.dts', 'Makefile'],
       }
     }
 
@@ -137,12 +137,12 @@ class nest::base::firmware {
   }
 
   $files = {
-    'linux/brcm/brcmfmac43455-sdio.bin'                       => ['rockpro64'],
-    'linux/brcm/brcmfmac43455-sdio.clm_blob'                  => ['rockpro64'],
+    'linux/brcm/brcmfmac43455-sdio.bin'                       => ['raspberrypi3', 'rockpro64'],
+    'linux/brcm/brcmfmac43455-sdio.clm_blob'                  => ['raspberrypi3', 'rockpro64'],
     'linux/brcm/brcmfmac43455-sdio.pine64,rockpro64-v2.1.txt' => ['rockpro64'],
     'manjaro/brcm/BCM4345C5.hcd'                              => ['pinebookpro'],
     'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'                  => ['haswell'],
-    'raspberrypi/brcm/BCM4345C0.hcd'                          => ['rockpro64'],
+    'raspberrypi/brcm/BCM4345C0.hcd'                          => ['raspberrypi3', 'rockpro64'],
     'raspberrypi/brcm/BCM4345C5.hcd'                          => ['raspberrypi4'],
     'raspberrypi/brcm/brcmfmac43456-sdio.bin'                 => ['pinebookpro', 'raspberrypi4'],
     'raspberrypi/brcm/brcmfmac43456-sdio.clm_blob'            => ['pinebookpro', 'raspberrypi4'],
