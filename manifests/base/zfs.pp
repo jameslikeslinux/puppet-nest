@@ -36,15 +36,6 @@ class nest::base::zfs {
   }
   ~> nest::lib::systemd_reload { 'zfs': }
 
-  unless $facts['is_container'] or $facts['running_live'] {
-    exec { 'zgenhostid':
-      command => '/sbin/zgenhostid `hostid`',
-      creates => '/etc/hostid',
-      require => Package['sys-fs/zfs'],
-      notify  => Class['nest::base::dracut'],
-    }
-  }
-
   # On systems without ZFS root, the zfs module doesn't get loaded by dracut
   file { '/etc/modules-load.d/zfs.conf':
     mode    => '0644',
@@ -66,6 +57,11 @@ class nest::base::zfs {
   }
 
   unless $facts['is_container'] or $facts['running_live'] {
+    exec { 'zgenhostid':
+      command => '/sbin/zgenhostid `hostid`',
+      creates => '/etc/hostid',
+    }
+    ->
     exec { 'generate-zpool-cache':
       command => "/sbin/zpool set cachefile= ${trusted['certname']}",
       creates => '/etc/zfs/zpool.cache',
