@@ -6,6 +6,11 @@ class nest::base::bootloader {
     'init=/lib/systemd/systemd',
     'loglevel=3', # must come after 'quiet', if specified
 
+    $facts['hostid'] ? {
+      undef   => 'zfs_force',
+      default => [],
+    },
+
     $nest::isolate_smt ? {
       true    => "nohz_full=${facts['processors']['count'] / 2}-${facts['processors']['count'] - 1}",
       default => [],

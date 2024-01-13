@@ -61,7 +61,7 @@ class nest::base::zfs {
       command => '/sbin/zgenhostid `hostid`',
       creates => '/etc/hostid',
     }
-    ->
+
     exec { 'generate-zpool-cache':
       command => "/sbin/zpool set cachefile= ${trusted['certname']}",
       creates => '/etc/zfs/zpool.cache',
