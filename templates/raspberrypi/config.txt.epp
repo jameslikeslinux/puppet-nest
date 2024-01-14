@@ -5,7 +5,9 @@ over_voltage=6
 <% } -%>
 disable_overscan=1
 disable_splash=1
-<% if $facts['profile']['platform'] == 'raspberrypi4' { -%>
+<% if $facts['profile']['platform'] == 'raspberrypi3' { -%>
+dtoverlay=miniuart-bt
+<% } elsif $facts['profile']['platform'] == 'raspberrypi4' { -%>
 dtparam=act_led_trigger=actpwr
 dtoverlay=vc4-kms-v3d
 uart_2ndstage=1
