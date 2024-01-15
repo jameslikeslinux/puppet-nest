@@ -4,7 +4,7 @@ Name=en*
 
 [Network]
 DHCP=yes
-DNS=172.22.0.1
+DNS=172.22.4.2
 Domains=gitlab.james.tl eyrie nest home
 
 [Route]
