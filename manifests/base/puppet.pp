@@ -37,13 +37,19 @@ class nest::base::puppet {
         content => epp('nest/puppet/outputs.yaml.epp'),
       }
 
+      if $trusted['extensions']['pp_cluster'] == 'eyrie' {
+        $domain = 'eyrie'
+      } else {
+        $domain = 'nest'
+      }
+
       # My hosts take on the domain name of the network to which they're attached.
       # Provide a stable, canonical value for Puppet.
       file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => "---\nfqdn: '${trusted['certname']}.nest'\n",
+        content => "---\nfqdn: '${trusted['certname']}.${domain}'\n",
       }
 
       if $facts['build'] or $facts['running_live'] {
