@@ -2,6 +2,7 @@ class nest::base::packages {
   case $facts['os']['family'] {
     'Gentoo': {
       package { [
+        'app-admin/helm',
         'app-admin/sysstat',
         'app-editors/vim',
         'app-misc/tmux',
