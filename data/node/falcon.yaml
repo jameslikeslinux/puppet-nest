@@ -2,6 +2,7 @@
 classes:
   - 'nest::node::falcon'
   - 'nest::service::barrier'
+  - 'nest::service::bird'
   - 'nest::service::gitlab'
   - 'nest::service::gitlab_runner'
   - 'nest::service::libvirt'

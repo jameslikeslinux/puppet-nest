@@ -1,0 +1,11 @@
+[Unit]
+Description=BIRD Internet Routing Daemon
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/bird -u bird -g bird
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
