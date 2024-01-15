@@ -60,18 +60,19 @@ class nest::base::openvpn {
           notify  => Service['dnsmasq'],
         }
 
-        $dnsmasq_cnames = $nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}" }
-        $dnsmasq_cnames_content = $dnsmasq_cnames.join("\n")
-        $dnsmasq_cnames_ensure = $dnsmasq_cnames_content ? {
-          ''      => 'absent',
-          default => 'present',
-        }
+        file {
+          default:
+            mode   => '0644',
+            notify => Service['dnsmasq'],
+          ;
 
-        file { '/etc/dnsmasq.d/cnames.conf':
-          ensure  => $dnsmasq_cnames_ensure,
-          mode    => '0644',
-          content => "${dnsmasq_cnames_content}\n",
-          notify  => Service['dnsmasq'],
+          '/etc/dnsmasq.d/cnames.conf':
+            content => $nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}\n" }.join(''),
+          ;
+
+          '/etc/dnsmasq.d/host-records.conf':
+            content => $nest::host_records.map |$name, $ip| { "host-record=${name},${ip}\n" }.join(''),
+          ;
         }
 
         Service <| title == 'dnsmasq' |> {
