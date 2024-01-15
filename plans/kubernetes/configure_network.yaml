@@ -12,7 +12,7 @@ steps:
   - description: 'Deploy calicoctl'
     plan: 'nest::kubernetes::apply'
     parameters:
-      manifest: 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calicoctl.yaml'
+      manifest: 'nest/kubernetes/manifests/calicoctl.yaml'
 
   - description: 'Wait for calicoctl pod'
     plan: 'nest::kubernetes::wait'
@@ -24,21 +24,26 @@ steps:
   - description: 'Configure Calico BGP'
     plan: 'nest::kubernetes::calicoctl_apply'
     parameters:
-      manifest: 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico-config.yaml'
+      manifest: 'nest/kubernetes/manifests/calico-config.yaml'
 
   - description: 'Install MetalLB'
-    plan: 'nest::kubernetes::apply'
+    plan: 'nest::kubernetes::helm_install'
     parameters:
-      manifest: 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/metallb-native.yaml'
+      name: 'metallb'
+      chart: 'metallb'
+      namespace: 'metallb-system'
+      repo_name: 'metallb'
+      repo_url: 'https://metallb.github.io/metallb'
+      version: '0.13.12'
 
   - description: 'Wait for MetalLB controller'
     plan: 'nest::kubernetes::wait'
     parameters:
       kind: deployment
-      name: 'controller'
+      name: 'metallb-controller'
       namespace: 'metallb-system'
 
   - description: 'Configure MetalLB address pool'
-    plan: 'nest::kubernetes::calicoctl_apply'
+    plan: 'nest::kubernetes::apply'
     parameters:
-      manifest: 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/metallb-config.yaml'
+      manifest: 'nest/kubernetes/manifests/metallb-config.yaml'

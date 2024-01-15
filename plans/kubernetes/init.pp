@@ -46,15 +46,17 @@ plan nest::kubernetes::init (
   # Configure CoreDNS to forward requests to Nest nameserver. CoreDNS won't
   # start without the Calico pod network so updating this config before Calico
   # deploys guarantees CoreDNS will launch with the right config the first time.
-  $replace_coredns_config_cmd = 'kubectl replace -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/coredns-config.yaml'
+  $coredns_config = find_file('nest/kubernetes/manifests/coredns-config.yaml')
+  $replace_coredns_config_cmd = "kubectl replace -f ${coredns_config}"
   run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
 
-  run_plan('nest::kubernetes::create', {
-    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico-tigera-operator.yaml',
-  })
-
-  run_plan('nest::kubernetes::create', {
-    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico-custom-resources.yaml',
+  run_plan('nest::kubernetes::helm_install', {
+    name      => 'calico',
+    chart     => 'tigera-operator',
+    namespace => 'tigera-operator',
+    repo_name => 'projectcalico',
+    repo_url  => 'https://docs.tigera.io/calico/charts',
+    version   => '3.27.0',
   })
 
   log::info('Waiting 30 seconds for calico-system initialization')

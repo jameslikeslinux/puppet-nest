@@ -17,5 +17,5 @@ plan nest::kubernetes::wait (
     default      => fail("Don't know how to wait for ${kind}"),
   }
 
-  $result = run_command($wait_cmd, 'localhost', "Wait for ${name} to rollout")
+  run_command($wait_cmd, 'localhost', "Wait for ${name} to rollout")
 }

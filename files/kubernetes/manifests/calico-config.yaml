@@ -1,0 +1,16 @@
+---
+apiVersion: projectcalico.org/v3
+kind: BGPPeer
+metadata:
+  name: falcon-peer
+spec:
+  peerIP: 172.22.4.2
+  asNumber: 65000
+---
+apiVersion: projectcalico.org/v3
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  serviceLoadBalancerIPs:
+  - cidr: 172.21.0.0/16
