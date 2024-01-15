@@ -3,6 +3,11 @@ class nest::cluster::eyrie {
     enable => false,
   }
 
+  file { '/etc/systemd/system/openvpn-client@nest.service':
+    ensure => link,
+    target => '/dev/null',
+  }
+
   firewalld_rich_rule { 'falcon':
     ensure => present,
     zone   => 'kubernetes',
