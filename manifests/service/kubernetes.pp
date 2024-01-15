@@ -81,6 +81,10 @@ class nest::service::kubernetes (
     notify  => Class['firewalld::reload'],
   }
 
+  Firewalld_port {
+    zone => 'kubernetes',
+  }
+
   Firewalld_service {
     zone => 'kubernetes',
   }
@@ -110,5 +114,12 @@ class nest::service::kubernetes (
     source => '192.168.0.0/16',
     dest   => '10.96.0.0/12',
     action => accept,
+  }
+
+  # Allow cluster access to Calico Typha
+  firewalld_port { 'typha':
+    ensure   => present,
+    port     => 5473,
+    protocol => 'tcp',
   }
 }
