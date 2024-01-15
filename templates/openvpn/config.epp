@@ -85,9 +85,6 @@ push "route 172.21.0.0 255.255.0.0"
 # Eyrie Network
 push "route 172.22.4.0 255.255.255.0"
 
-# UniFi
-push "route 172.22.1.12"
-
 setenv HOSTS /etc/hosts.nest
 learn-address /etc/openvpn/learn-address.sh
 ifconfig-pool-persist <%= $ipp_file %>
