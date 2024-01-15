@@ -1,4 +1,5 @@
 class nest::cluster::eyrie {
+  # Disable VPN in favor of secure VLAN
   Service <| title == 'openvpn-client@nest' |> {
     enable => false,
   }
@@ -30,5 +31,22 @@ class nest::cluster::eyrie {
     zone   => 'kubernetes',
     source => '172.22.4.2',
     action => accept,
+  }
+
+  # Configure control plane as NFS fileserver
+  if $trusted['certname'] == 'eagle' {
+    service { 'nfs-server':
+      enable => true,
+    }
+
+    service { 'zfs-share':
+      enable  => true,
+      require => Package['sys-fs/zfs'],
+    }
+
+    firewalld_service { 'nfs':
+      ensure => present,
+      zone   => 'kubernetes',
+    }
   }
 }
