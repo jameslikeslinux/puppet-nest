@@ -47,22 +47,26 @@ plan nest::kubernetes::init (
   # start without the Calico pod network so updating this config before Calico
   # deploys guarantees CoreDNS will launch with the right config the first time.
   $replace_coredns_config_cmd = 'kubectl replace -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/coredns-config.yaml'
-  run_command($replace_coredns_config_cmd, $target, 'Replace CoreDNS config', {
-    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-    _run_as   => 'root',
+  run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
+
+  run_plan('nest::kubernetes::create', {
+    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico-tigera-operator.yaml',
   })
 
-  run_plan('nest::kubernetes::apply', $target, {
-    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico.yaml',
+  run_plan('nest::kubernetes::create', {
+    manifest => 'https://gitlab.james.tl/nest/kubernetes/-/raw/main/calico-custom-resources.yaml',
   })
 
-  run_plan('nest::kubernetes::wait', $target, {
+  log::info('Waiting 30 seconds for calico-system initialization')
+  ctrl::sleep(60)
+
+  run_plan('nest::kubernetes::wait', {
     kind      => daemonset,
     name      => 'calico-node',
-    namespace => 'kube-system',
+    namespace => 'calico-system',
   })
 
-  run_plan('nest::kubernetes::wait', $target, {
+  run_plan('nest::kubernetes::wait', {
     kind      => deployment,
     name      => 'coredns',
     namespace => 'kube-system',

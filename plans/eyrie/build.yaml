@@ -23,8 +23,6 @@ steps:
     parameters:
       name: coredns
       namespace: kube-system
-    targets: eyrie-control-plane
 
-  - description: 'Deploy Kubernetes dashboard'
-    plan: nest::kubernetes::deploy_dashboard
-    targets: eyrie-control-plane
+  - description: 'Configure network'
+    plan: nest::kubernetes::configure_network

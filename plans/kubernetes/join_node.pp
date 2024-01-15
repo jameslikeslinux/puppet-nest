@@ -25,9 +25,9 @@ plan nest::kubernetes::join_node (
     _run_as => 'root',
   })
 
-  $wait_for_calico_cmd = 'kubectl rollout status daemonset calico-node -n kube-system --timeout=1h'
-  run_command($wait_for_calico_cmd, get_targets($control_plane)[0], 'Wait for Calico to be ready', {
-    _env_vars => { 'KUBECONFIG' => '/etc/kubernetes/admin.conf' },
-    _run_as   => 'root',
+  run_plan('nest::kubernetes::wait', {
+    kind      => daemonset,
+    name      => 'calico-node',
+    namespace => 'calico-system',
   })
 }

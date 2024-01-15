@@ -2,9 +2,6 @@
 description: 'Restart Kubernetes deployment'
 
 parameters:
-  targets:
-    type: TargetSpec
-    description: 'Host on which to run kubectl'
   name:
     type: String
     description: 'Name of the deployment to restart'
@@ -16,7 +13,4 @@ parameters:
 steps:
   - description: 'Restart deployment'
     command: "kubectl rollout restart deployment ${name} -n ${namespace}"
-    env_vars:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-    run_as: root
-    targets: $targets
+    targets: 'localhost'

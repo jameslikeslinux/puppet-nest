@@ -1,14 +1,12 @@
 class nest::cluster::eyrie {
   Service <| title == 'openvpn-client@nest' |> {
-    enable  => false,
-    ensure  => stopped,
-    require => Class['nest::base::network'],
+    enable => false,
   }
 
   firewalld_rich_rule { 'falcon':
     ensure => present,
-    zone   => 'home',
-    source => '172.22.1.10',
+    zone   => 'kubernetes',
+    source => '172.22.4.2',
     action => accept,
   }
 }

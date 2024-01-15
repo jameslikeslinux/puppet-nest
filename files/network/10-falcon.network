@@ -1,0 +1,13 @@
+[Match]
+Host=falcon
+Name=bond0
+
+[Network]
+DHCP=yes
+VLAN=eyrie
+
+[DHCP]
+RouteMetric=10
+
+[DHCPv4]
+UseDomains=yes

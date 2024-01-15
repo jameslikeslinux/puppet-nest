@@ -1,0 +1,6 @@
+[NetDev]
+Kind=vlan
+Name=eyrie
+
+[VLAN]
+Id=4

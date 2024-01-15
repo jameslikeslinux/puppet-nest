@@ -2,9 +2,6 @@
 description: 'Create Kubernetes resources from a manifest'
 
 parameters:
-  targets:
-    type: TargetSpec
-    description: 'Host on which to run kubectl'
   manifest:
     type: String
     description: 'Path or URL to the Kubernets manifest to deploy'
@@ -12,7 +9,4 @@ parameters:
 steps:
   - description: "Create Kubernetes resources from ${manifest}"
     command: "kubectl create -f ${manifest}"
-    env_vars:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-    run_as: root
-    targets: $targets
+    targets: localhost
