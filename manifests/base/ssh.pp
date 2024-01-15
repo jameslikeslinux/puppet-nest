@@ -109,11 +109,14 @@ class nest::base::ssh {
   }
 
   # Export SSH keys for collecting on other hosts
-  ['ssh', 'cygwin_ssh'].each |$ssh_fact| {
-    if $facts[$ssh_fact] {
-      $facts[$ssh_fact].each |$key, $value| {
-        @@sshkey { "${facts['fqdn']}@${value['type']}":
-          key => $value['key'],
+  include nest::base::puppet
+  unless $nest::base::puppet::fqdn == 'builder.nest' {
+    ['ssh', 'cygwin_ssh'].each |$ssh_fact| {
+      if $facts[$ssh_fact] {
+        $facts[$ssh_fact].each |$key, $value| {
+          @@sshkey { "${nest::base::puppet::fqdn}@${value['type']}":
+            key => $value['key'],
+          }
         }
       }
     }
