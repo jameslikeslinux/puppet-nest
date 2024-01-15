@@ -32,7 +32,6 @@ classes:
   - 'nest'
 
 nest::cnames:
-  eyrie.nest: 'eagle.nest'
   nzbget.nest: 'falcon.nest'
   ombi.nest: 'falcon.nest'
   plex.nest: 'falcon.nest'
