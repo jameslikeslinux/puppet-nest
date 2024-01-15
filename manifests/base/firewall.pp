@@ -35,9 +35,11 @@ class nest::base::firewall {
         ;
 
         'internal':
-          interfaces => 'tun0',
-          masquerade => true, # for port forwarding
-          target     => 'ACCEPT',
+          sources => [
+            '172.22.0.0/24', # Nest
+            '172.22.4.0/24', # Eyrie
+          ],
+          target  => 'ACCEPT',
         ;
 
         'home':

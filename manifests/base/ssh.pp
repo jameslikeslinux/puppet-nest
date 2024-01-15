@@ -108,11 +108,17 @@ class nest::base::ssh {
     }
   }
 
+  if $trusted['extensions']['pp_cluster'] == 'eyrie' {
+    $domain = 'eyrie'
+  } else {
+    $domain = 'nest'
+  }
+
   # Export SSH keys for collecting on other hosts
   ['ssh', 'cygwin_ssh'].each |$ssh_fact| {
     if $facts[$ssh_fact] {
       $facts[$ssh_fact].each |$key, $value| {
-        @@sshkey { "${trusted['certname']}.nest@${value['type']}":
+        @@sshkey { "${trusted['certname']}.${domain}@${value['type']}":
           key => $value['key'],
         }
       }

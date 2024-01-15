@@ -103,10 +103,6 @@ class nest::base::openvpn {
           # autobefore Firewalld_service['openvpn']
         }
 
-        Firewalld_zone <| title == 'internal' |> {
-          interfaces +> 'tun1',
-        }
-
         # Disable client service that may have been enabled in early build stage
         service { 'openvpn-client@nest':
           enable => false,

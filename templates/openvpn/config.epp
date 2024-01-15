@@ -59,12 +59,14 @@ keepalive 5 15
     <%- if $server == 'udp' { -%>
 # Sync with pushed options below
 dhcp-option DOMAIN gitlab.james.tl
+dhcp-option DOMAIN eyrie
 dhcp-option DOMAIN nest
 dhcp-option DNS 172.22.0.1
 
     <%- } -%>
 # Windows only honors the last domain pushed
 push "dhcp-option DOMAIN gitlab.james.tl"
+push "dhcp-option DOMAIN eyrie"
 push "dhcp-option DOMAIN nest"
 push "dhcp-option DNS 172.22.0.1"
 
@@ -76,6 +78,12 @@ push "route 0.0.0.0 0.0.0.0"
 
 # Join to other half of Nest network
 push "route <%= $other_network %> 255.255.255.128"
+
+# Eyrie Services
+push "route 172.21.0.0 255.255.0.0"
+
+# Eyrie Network
+push "route 172.22.4.0 255.255.255.0"
 
 # UniFi
 push "route 172.22.1.12"

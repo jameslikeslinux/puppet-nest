@@ -1,0 +1,11 @@
+[Match]
+Host=eagle*
+Name=en*
+
+[Network]
+DHCP=yes
+DNS=172.22.0.1
+Domains=gitlab.james.tl eyrie nest home
+
+[DHCP]
+RouteMetric=10

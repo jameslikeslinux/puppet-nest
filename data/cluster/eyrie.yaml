@@ -1,5 +1,6 @@
 ---
 classes:
+  - 'nest::cluster::eyrie'
   - 'nest::service::kubernetes'
 
 # Avoid trashing SD cards
