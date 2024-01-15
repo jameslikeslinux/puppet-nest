@@ -103,6 +103,10 @@ class nest::service::kubernetes (
     }
   }
 
+  firewalld_service { 'kubelet':
+    ensure => present,
+  }
+
   # Allow BGP for Calico
   firewalld_service { 'bgp':
     ensure => present,
