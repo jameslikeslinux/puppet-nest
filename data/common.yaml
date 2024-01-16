@@ -51,7 +51,7 @@ nest::hosts:
   unifi.home:
     ip: '172.22.1.12'
 nest::host_records:
-  eyrie.nest: '172.21.0.0'
+  kubernetes.eyrie: '172.21.0.0'
   falcon.eyrie: '172.22.4.2'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_servers:

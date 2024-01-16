@@ -9,7 +9,7 @@ app:
       resourceAutoRefreshTimeInterval: 30 # default 5
   ingress:
     hosts:
-      - eyrie.nest
+      - kubernetes.eyrie
 api:
   containers:
     args:
