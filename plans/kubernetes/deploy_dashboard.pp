@@ -1,27 +1,38 @@
 # Install and configure Kubernetes Dashboard
-plan nest::kubernetes::deploy_dashboard {
-  # Run once without hooks due to slow deployment on Eyrie
+#
+# @param version Helm chart version to install
+plan nest::kubernetes::deploy_dashboard (
+  String $version = '7.0.0-alpha1',
+) {
+  $check_deployment_cmd = 'helm list -n kubernetes-dashboard | grep -q "^kubernetes-dashboard.*deployed"'
+  $is_deployed = run_command($check_deployment_cmd, 'localhost', 'Check if kubernetes-dashboard is already deployed', {
+    _catch_errors => true,
+  }).first.ok
+
+  unless $is_deployed {
+    # On slow clusters, cert-manager takes about a
+    # minute to initialize, breaking post-install hooks
+    run_plan('nest::kubernetes::helm_deploy', {
+      name      => 'kubernetes-dashboard',
+      chart     => 'kubernetes-dashboard',
+      namespace => 'kubernetes-dashboard',
+      repo_name => 'kubernetes-dashboard',
+      repo_url  => 'https://kubernetes.github.io/dashboard/',
+      version   => $version,
+      hooks     => false,
+    })
+
+    log::info('Waiting 60 seconds for cert-manager initialization')
+    ctrl::sleep(60)
+  }
+
   run_plan('nest::kubernetes::helm_deploy', {
     name      => 'kubernetes-dashboard',
     chart     => 'kubernetes-dashboard',
     namespace => 'kubernetes-dashboard',
     repo_name => 'kubernetes-dashboard',
     repo_url  => 'https://kubernetes.github.io/dashboard/',
-    version   => '7.0.0-alpha1',
-    hooks     => false,
-  })
-
-  log::info('Waiting 60 seconds for cert-manager initialization')
-  ctrl::sleep(60)
-
-  # Run again with post-install hooks working
-  run_plan('nest::kubernetes::helm_deploy', {
-    name      => 'kubernetes-dashboard',
-    chart     => 'kubernetes-dashboard',
-    namespace => 'kubernetes-dashboard',
-    repo_name => 'kubernetes-dashboard',
-    repo_url  => 'https://kubernetes.github.io/dashboard/',
-    version   => '7.0.0-alpha1',
+    version   => $version,
   })
 
   run_plan('nest::kubernetes::apply', {
