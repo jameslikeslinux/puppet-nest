@@ -1,4 +1,4 @@
-# Install a Helm chart
+# Install or upgrade a Helm chart
 #
 # @param name Installation name
 # @param chart Name of the chart to install
@@ -6,13 +6,15 @@
 # @param repo_name Optional name of the Helm repo to add
 # @param repo_name Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
-plan nest::kubernetes::helm_install (
+# @param hooks Enable or disable install hooks
+plan nest::kubernetes::helm_deploy (
   String           $name,
   String           $chart = $name,
   Optional[String] $namespace = undef,
   Optional[String] $repo_name = undef,
   Optional[String] $repo_url  = undef,
   Optional[String] $version   = undef,
+  Boolean          $hooks     = true,
 ) {
   if $repo_name and $repo_url {
     $chart_real = "${repo_name}/${chart}"
@@ -25,8 +27,13 @@ plan nest::kubernetes::helm_install (
 
   $values_file = find_file("nest/kubernetes/helm/${name}/values.yaml")
 
-  $helm_install_cmd = [
-    'helm', 'install', $name, $chart_real,
+  $helm_cmd = [
+    'helm', 'upgrade', '--install', $name, $chart_real,
+
+    $hooks ? {
+      false   => '--no-hooks',
+      default => [],
+    },
 
     $namespace ? {
       undef   => [],
@@ -44,5 +51,5 @@ plan nest::kubernetes::helm_install (
     },
   ].flatten.join(' ')
 
-  $result = run_command($helm_install_cmd, 'localhost', "Install Helm chart ${chart_real} as ${name}")
+  $result = run_command($helm_cmd, 'localhost', "Deploy ${name} from Helm chart ${chart_real}")
 }

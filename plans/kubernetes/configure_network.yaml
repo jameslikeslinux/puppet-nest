@@ -27,7 +27,7 @@ steps:
       manifest: 'nest/kubernetes/manifests/calico-config.yaml'
 
   - description: 'Install MetalLB'
-    plan: 'nest::kubernetes::helm_install'
+    plan: 'nest::kubernetes::helm_deploy'
     parameters:
       name: 'metallb'
       chart: 'metallb'

@@ -1,0 +1,10 @@
+---
+app:
+  ingress:
+    hosts:
+      - eyrie.nest
+
+nginx:
+  controller:
+    service:
+      type: LoadBalancer

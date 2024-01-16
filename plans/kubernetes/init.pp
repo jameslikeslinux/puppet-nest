@@ -50,7 +50,7 @@ plan nest::kubernetes::init (
   $replace_coredns_config_cmd = "kubectl replace -f ${coredns_config}"
   run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
 
-  run_plan('nest::kubernetes::helm_install', {
+  run_plan('nest::kubernetes::helm_deploy', {
     name      => 'calico',
     chart     => 'tigera-operator',
     namespace => 'tigera-operator',
@@ -60,7 +60,7 @@ plan nest::kubernetes::init (
   })
 
   log::info('Waiting 30 seconds for calico-system initialization')
-  ctrl::sleep(60)
+  ctrl::sleep(30)
 
   run_plan('nest::kubernetes::wait', {
     kind      => daemonset,

@@ -32,3 +32,6 @@ steps:
 
   - description: 'Configure network'
     plan: nest::kubernetes::configure_network
+
+  - description: 'Deploy Kubernetes Dashboard'
+    plan: nest::kubernetes::deploy_dashboard
