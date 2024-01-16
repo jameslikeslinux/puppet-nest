@@ -25,7 +25,8 @@ plan nest::kubernetes::helm_deploy (
     $chart_real = $chart
   }
 
-  $values_file = find_file("nest/kubernetes/helm/${name}/values.yaml")
+  $kustomization_file = find_file("nest/kubernetes/helm/${name}/kustomization.yaml")
+  $values_file        = find_file("nest/kubernetes/helm/${name}/values.yaml")
 
   $helm_cmd = [
     'helm', 'upgrade', '--install', $name, $chart_real,
@@ -38,6 +39,14 @@ plan nest::kubernetes::helm_deploy (
     $namespace ? {
       undef   => [],
       default => ['--create-namespace', '--namespace', $namespace],
+    },
+
+    $kustomization_file ? {
+      undef   => [],
+      default => [
+        '--post-renderer', './scripts/kustomize.sh',
+        '--post-renderer-args', dirname($kustomization_file),
+      ],
     },
 
     $values_file ? {
