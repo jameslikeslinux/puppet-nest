@@ -1,0 +1,3 @@
+---
+livenessProbe:
+  initialDelaySeconds: 600

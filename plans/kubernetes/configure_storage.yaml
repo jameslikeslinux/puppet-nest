@@ -1,0 +1,32 @@
+---
+description: 'Configure NFS CSI driver'
+
+steps:
+  - description: 'Install NFS CSI driver'
+    plan: 'nest::kubernetes::helm_deploy'
+    parameters:
+      name: 'csi-driver-nfs'
+      chart: 'csi-driver-nfs'
+      namespace: 'kube-system'
+      repo_name: 'csi-driver-nfs'
+      repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
+      version: '4.5.0'
+
+  - description: 'Wait for NFS node daemonset'
+    plan: 'nest::kubernetes::wait'
+    parameters:
+      kind: daemonset
+      name: 'csi-nfs-node'
+      namespace: 'kube-system'
+
+  - description: 'Wait for NFS controller deployment'
+    plan: 'nest::kubernetes::wait'
+    parameters:
+      kind: deployment
+      name: 'csi-nfs-controller'
+      namespace: 'kube-system'
+
+  - description: 'Configure NFS storage class'
+    plan: 'nest::kubernetes::apply'
+    parameters:
+      manifest: 'nest/kubernetes/manifests/storageclass-nfs.yaml'

@@ -4,7 +4,7 @@
 # @param chart Name of the chart to install
 # @param namespace Namespace to manage
 # @param repo_name Optional name of the Helm repo to add
-# @param repo_name Optional URL of the Helm repo to add
+# @param repo_url Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
 # @param hooks Enable or disable install hooks
 plan nest::kubernetes::helm_deploy (

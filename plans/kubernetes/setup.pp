@@ -18,8 +18,8 @@ plan nest::kubernetes::setup {
     namespace => 'calico-system',
   })
 
-  log::info('Waiting 30 seconds for calico-apiserver initialization')
-  ctrl::sleep(30)
+  log::info('Waiting 60 seconds for calico-apiserver initialization')
+  ctrl::sleep(60)
 
   run_plan('nest::kubernetes::wait', {
     kind      => deployment,
