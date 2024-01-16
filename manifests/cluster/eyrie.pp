@@ -33,7 +33,7 @@ class nest::cluster::eyrie {
     action => accept,
   }
 
-  # Configure control plane as NFS fileserver
+  # Control plane
   if $trusted['certname'] == 'eagle' {
     service { 'nfs-server':
       enable => true,
@@ -47,6 +47,22 @@ class nest::cluster::eyrie {
     firewalld_service { 'nfs':
       ensure => present,
       zone   => 'kubernetes',
+    }
+
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      '/etc/systemd/system/kubelet.service.d':
+        ensure => directory,
+      ;
+
+      '/etc/systemd/system/kubelet.service.d/10-require-etcd-mount.conf':
+        content => "[Service]\nExecCondition=/usr/sbin/mountpoint -q /var/lib/etcd\n",
+      ;
     }
   }
 }
