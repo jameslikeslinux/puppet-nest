@@ -28,7 +28,7 @@ featureGates:
 
 # Recommended on slow hosts for large image pulls
 # See: https://github.com/cri-o/cri-o/blob/main/tutorials/kubernetes.md
-runtimeRequestTimeout: 10m
+runtimeRequestTimeout: 30m
 
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
