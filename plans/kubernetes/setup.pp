@@ -1,5 +1,11 @@
 # Setup container networking
 plan nest::kubernetes::setup {
+  # Configure CoreDNS to forward requests to Nest nameserver. CoreDNS won't
+  # start without the Calico pod network so updating this config before Calico
+  # deploys guarantees CoreDNS will launch with the right config the first time.
+  $replace_coredns_config_cmd = 'kubectl replace -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/coredns-config.yaml'
+  run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
+
   run_plan('nest::kubernetes::helm_deploy', {
     name      => 'calico',
     chart     => 'tigera-operator',
