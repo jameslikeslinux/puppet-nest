@@ -73,6 +73,7 @@ class nest::service::puppet (
       'PUPPETDB_SERVER_URLS=https://puppet:8081',
     ],
     volumes => [
+      '/etc/eyaml:/etc/eyaml:ro',
       '/srv/puppet/puppetserver/init:/docker-custom-entrypoint.d',
       '/srv/puppet/code:/etc/puppetlabs/code:ro',
       '/srv/puppet/puppetserver/config:/etc/puppetlabs/puppet',
@@ -82,6 +83,11 @@ class nest::service::puppet (
     require => Nest::Lib::Srv['puppet/code'],
   }
 
+  exec { 'make-eyaml-key-puppet-readable':
+    command => '/usr/sbin/setfacl -m user:999:r-- /etc/eyaml/keys/private_key.pkcs7.pem',
+    unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:999:r--"',
+    require => File['/etc/eyaml/keys/private_key.pkcs7.pem'],
+  }
 
   #
   # Postgres for PuppetDB

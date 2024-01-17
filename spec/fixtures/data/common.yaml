@@ -1,4 +1,7 @@
 ---
+nest::eyaml_public_key: 'fake-public-key'
+nest::eyaml_private_key: 'fake-private-key'
+
 nest::role::workstation::chrome::google_api_key: 'fake-google-api-key'
 nest::role::workstation::chrome::google_oauth_id: 'fake-google-oauth-id'
 nest::role::workstation::chrome::google_oauth_secret: 'fake-google-oauth-secret'

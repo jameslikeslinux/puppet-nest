@@ -1,4 +1,5 @@
 class nest::base {
+  contain 'nest::base::eyaml'
   contain 'nest::base::firewall'
   contain 'nest::base::git'
   contain 'nest::base::openvpn'

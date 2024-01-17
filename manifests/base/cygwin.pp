@@ -27,7 +27,8 @@ class nest::base::cygwin {
   #
   $fix_perms_content = @(END_FIX_PERMS)
     #!/bin/bash
-    find "$(cygpath -am /)" -not -path "$(cygpath -am /home)/*" -not -path "*/tmp/*" | xargs cygpath | xargs chown -h Administrators:None
+    find "$(cygpath -am /)" -not -path "$(cygpath -am /home)/*" -not -path "*/dev/*" -not -path "*/tmp/*" |
+      xargs cygpath | xargs chown -h Administrators:None
     | END_FIX_PERMS
 
   file { 'C:/tools/cygwin/etc/postinstall/zp_fix-perms.sh':

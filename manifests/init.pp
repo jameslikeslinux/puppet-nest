@@ -7,6 +7,10 @@ class nest (
   String               $pw_hash,
   Hash[String, String] $ssh_private_keys,
 
+  # eyaml keys
+  String    $eyaml_public_key,
+  Sensitive $eyaml_private_key,
+
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn]        $cnames       = {},
   Array[Stdlib::Host]                     $cups_servers = [],

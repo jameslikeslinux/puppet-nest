@@ -2,6 +2,8 @@
 lookup_options:
   nest::distcc_hosts:
     merge: 'hash'
+  nest::eyaml_private_key:
+    convert_to: 'Sensitive'
   nest::hosts:
     merge: 'hash'
   nest::kernel_cmdline:
@@ -66,6 +68,7 @@ nest::package_keywords:
   app-editors/vim: {}
   app-editors/vim-core: {}
   dev-libs/ell: {} # for iwd
+  dev-ruby/hiera-eyaml: {}
   media-libs/mesa: {}
   net-firewall/firewalld: {}
   net-wireless/iwd: {}
@@ -111,6 +114,10 @@ nest::package_keywords:
   # For systemd-boot
   dev-python/pyelftools:
     version: '~0.30'
+
+  # For hiera-eyaml
+  dev-ruby/optimist:
+    version: '~3.1.0'
 
 nest::uboot_tag: 'u-boot/v2024.01-rc1'
 nest::kernel_tag: 'stable/v6.6.0'

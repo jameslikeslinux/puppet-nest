@@ -67,7 +67,7 @@ class nest::base::packages {
     'windows': {
       package { [
         'cygutils-extra',
-        'nc',
+        'netcat',
         'procps-ng',
         'tmux',
         'vim',
