@@ -11,6 +11,7 @@
 exec podman run --rm -it -e TERM \
     --net=host --dns=127.0.0.53 \
     -v "$(pwd):/Boltdir" \
+    -v /etc/eyaml:/etc/eyaml:ro \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \

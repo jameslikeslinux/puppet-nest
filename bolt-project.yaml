@@ -4,6 +4,8 @@ name: nest
 disable-warnings:
   - project_shadows_module
 
+hiera-config: 'hiera-bolt.yaml'
+
 modules:
   - name: reboot
     git: git@gitlab.james.tl:nest/forks/puppet-reboot.git

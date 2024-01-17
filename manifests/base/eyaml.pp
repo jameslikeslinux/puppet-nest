@@ -11,7 +11,13 @@ class nest::base::eyaml {
       File {
         mode  => '0644',
         owner => 'root',
-        group => 'wheel', # sysadmins can use eyaml
+        group => 'root',
+      }
+
+      exec { 'make-eyaml-key-readable':
+        command => '/usr/sbin/setfacl -m user:james:r-- /etc/eyaml/keys/private_key.pkcs7.pem',
+        unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:james:r--"',
+        require => File['/etc/eyaml/keys/private_key.pkcs7.pem'],
       }
     }
 
@@ -57,7 +63,7 @@ class nest::base::eyaml {
     ;
 
     "${conf_dir}/keys/private_key.pkcs7.pem":
-      mode    => '0640',
+      mode    => '0600',
       content => $nest::eyaml_private_key,
     ;
   }
