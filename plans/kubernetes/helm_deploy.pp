@@ -7,14 +7,16 @@
 # @param repo_url Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
 # @param hooks Enable or disable install hooks
+# @param render_to Just save the fully-rendered chart to this yaml file
 plan nest::kubernetes::helm_deploy (
   String           $name,
   String           $chart = $name,
-  Optional[String] $namespace = undef,
-  Optional[String] $repo_name = undef,
-  Optional[String] $repo_url  = undef,
-  Optional[String] $version   = undef,
-  Boolean          $hooks     = true,
+  Optional[String] $namespace   = undef,
+  Optional[String] $repo_name   = undef,
+  Optional[String] $repo_url    = undef,
+  Optional[String] $version     = undef,
+  Boolean          $hooks       = true,
+  Optional[String] $render_to   = undef,
 ) {
   if $repo_name and $repo_url {
     $chart_real = "${repo_name}/${chart}"
@@ -25,11 +27,28 @@ plan nest::kubernetes::helm_deploy (
     $chart_real = $chart
   }
 
+  # Check if this release should be Kustomized
   $kustomization_file = find_file("nest/kubernetes/helm/${name}/kustomization.yaml")
-  $values_file        = find_file("nest/kubernetes/helm/${name}/values.yaml")
+
+  # Read and merge chart values
+  $static_values = loadyaml("files/kubernetes/helm/${name}/values.yaml", {})
+  $values_template = find_template("nest/kubernetes/helm/${name}/values.yaml.epp")
+  if $values_template {
+    $template_values = epp($values_template).parseyaml
+  } else {
+    $template_values = {}
+  }
+  $values = stdlib::to_yaml($static_values + $template_values)
 
   $helm_cmd = [
-    'helm', 'upgrade', '--install', $name, $chart_real,
+    'helm',
+
+    $render_to ? {
+      undef   => ['upgrade', '--install'],
+      default => ['template', '--kube-version', '1.28.2'],
+    },
+
+    $name, $chart_real,
 
     $hooks ? {
       false   => '--no-hooks',
@@ -49,10 +68,7 @@ plan nest::kubernetes::helm_deploy (
       ],
     },
 
-    $values_file ? {
-      undef   => [],
-      default => ['--values', $values_file],
-    },
+    '--values', '-',
 
     $version ? {
       undef   => [],
@@ -60,5 +76,13 @@ plan nest::kubernetes::helm_deploy (
     },
   ].flatten.join(' ')
 
-  $result = run_command($helm_cmd, 'localhost', "Deploy ${name} from Helm chart ${chart_real}")
+  if $render_to {
+    $redirect = " > ${render_to.shellquote}"
+    $cmd_verb = 'Render'
+  } else {
+    $redirect = ''
+    $cmd_verb = 'Deploy'
+  }
+
+  run_command("echo ${values.shellquote} | ${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${name} from Helm chart ${chart_real}")
 }
