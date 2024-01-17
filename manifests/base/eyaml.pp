@@ -63,7 +63,7 @@ class nest::base::eyaml {
     ;
 
     "${conf_dir}/keys/private_key.pkcs7.pem":
-      mode    => '0600',
+      mode    => '0640',
       content => $nest::eyaml_private_key,
     ;
   }
