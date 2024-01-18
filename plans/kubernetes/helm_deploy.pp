@@ -32,6 +32,8 @@ plan nest::kubernetes::helm_deploy (
     $helm_release = $release
     $helm_chart   = $chart.basename
 
+    include nest::bolt
+
     file {
       '/tmp/kustomize':
         ensure => directory,

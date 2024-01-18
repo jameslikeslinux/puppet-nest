@@ -3,11 +3,15 @@ resources:
   - apiVersion: v1
     kind: Secret
     metadata:
-      name: "%{helm_release}-root-secrets"
+      name: "%{nest::bolt::helm_release}-root-secrets"
     data:
-      ssh_host_key: "%{lookup('nest::ssh_private_keys.eyrie')}"
+      ssh_host_key: "%{nest::bolt::eyrie_host_key}"
 
 values:
+  podSecurityContext:
+    fsGroup: 1000
+  containerSecurityContext:
+    runAsUser: 1000
   livenessProbe:
     initialDelaySeconds: 600
   extraVolumes:
@@ -21,7 +25,7 @@ values:
       type: File
   - name: root-secrets
     secret:
-      secretName: "%{helm_release}-root-secrets"
+      secretName: "%{nest::bolt::helm_release}-root-secrets"
   - name: root-ssh-key
     hostPath:
       path: '/root/.ssh/id_ed25519'
@@ -72,7 +76,7 @@ patches:
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: "%{helm_release}-wordpress"
+      name: "%{nest::bolt::helm_release}-wordpress"
     spec:
       template:
         spec:
