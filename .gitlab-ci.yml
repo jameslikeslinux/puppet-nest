@@ -2,6 +2,7 @@
 stages:
   - test
   - deploy
+  - package
 
 validate:
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
@@ -20,3 +21,20 @@ r10k:
   tags: ['r10k']
   script:
     - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
+
+.template: &template
+  image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'
+  stage: 'package'
+  script:
+    - 'mkdir -p debug/usr/lib/debug'
+    - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
+    - 'buildah bud --cap-add SYS_PTRACE --security-opt seccomp=unconfined
+                   --build-arg BOLT_TAG="$CPU"
+                   -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
+    - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
+
+'Package cortex-a53':
+  <<: *template
+  tags: ['arm64']
+  variables:
+    CPU: 'cortex-a53'
