@@ -13,15 +13,6 @@ class nest::base::eyaml {
         owner => 'root',
         group => 'root',
       }
-
-      exec { 'make-eyaml-key-readable':
-        command => '/usr/sbin/setfacl -m user:james:r /etc/eyaml/keys/private_key.pkcs7.pem',
-        unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:james:r--"',
-        require => [
-          File['/etc/eyaml/keys/private_key.pkcs7.pem'],
-          User['james'],
-        ],
-      }
     }
 
     'windows': {
@@ -54,6 +45,15 @@ class nest::base::eyaml {
 
   if $facts['build'] in [undef, 'stage3'] {
     $eyaml_private_key = $nest::eyaml_private_key
+
+    exec { 'make-eyaml-key-readable':
+      command => '/usr/sbin/setfacl -m user:james:r /etc/eyaml/keys/private_key.pkcs7.pem',
+      unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:james:r--"',
+      require => [
+        File['/etc/eyaml/keys/private_key.pkcs7.pem'],
+        User['james'],
+      ],
+    }
   } else {
     $eyaml_private_key = ''
   }
