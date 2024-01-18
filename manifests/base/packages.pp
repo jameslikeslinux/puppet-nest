@@ -33,6 +33,13 @@ class nest::base::packages {
         ensure => installed,
       }
 
+      unless defined(Package['virtual/mysql']) {
+        nest::lib::package { 'virtual/mysql':
+          ensure => installed,
+          use    => '-server',
+        }
+      }
+
       unless $facts['profile']['architecture'] == 'arm' {
         package { 'sys-devel/lld':
           ensure => installed,
