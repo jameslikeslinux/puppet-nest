@@ -2,7 +2,6 @@
 stages:
   - test
   - deploy
-  - package
 
 validate:
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
@@ -24,12 +23,17 @@ r10k:
 
 .template: &template
   image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'
-  stage: 'package'
+  stage: 'deploy'
   script:
+    - 'eval $(ssh-agent -s)'
+    - 'chmod 600 "$SSH_PRIVATE_KEY"'
+    - 'ssh-add "$SSH_PRIVATE_KEY"'
     - 'mkdir -p debug/usr/lib/debug'
     - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
     - 'buildah bud --cap-add SYS_PTRACE --security-opt seccomp=unconfined
                    --build-arg BOLT_TAG="$CPU"
+                   --build-arg SSH_AUTH_SOCK="$SSH_AUTH_SOCK"
+                   -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
 
