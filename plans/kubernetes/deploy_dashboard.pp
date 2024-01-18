@@ -4,36 +4,18 @@
 plan nest::kubernetes::deploy_dashboard (
   String $version = '7.0.0-alpha1',
 ) {
-  $check_deployment_cmd = 'helm list -n kubernetes-dashboard | grep -q "^kubernetes-dashboard.*deployed"'
-  $is_deployed = run_command($check_deployment_cmd, 'localhost', 'Check if kubernetes-dashboard is already deployed', {
-    _catch_errors => true,
-  }).first.ok
-
-  unless $is_deployed {
-    # On slow clusters, cert-manager takes about a
-    # minute to initialize, breaking post-install hooks
+  # Post-install hooks fail on slow cluster so try several times
+  ctrl::do_until(limit => 3) || {
     run_plan('nest::kubernetes::helm_deploy', {
-      name      => 'kubernetes-dashboard',
-      chart     => 'kubernetes-dashboard',
-      namespace => 'kubernetes-dashboard',
-      repo_name => 'kubernetes-dashboard',
-      repo_url  => 'https://kubernetes.github.io/dashboard/',
-      version   => $version,
-      hooks     => false,
-    })
-
-    log::info('Waiting 60 seconds for cert-manager initialization')
-    ctrl::sleep(60)
+      release       => 'kubernetes-dashboard',
+      chart         => 'kubernetes-dashboard',
+      namespace     => 'kubernetes-dashboard',
+      repo_name     => 'kubernetes-dashboard',
+      repo_url      => 'https://kubernetes.github.io/dashboard/',
+      version       => $version,
+      _catch_errors => true,
+    }) !~ Error
   }
-
-  run_plan('nest::kubernetes::helm_deploy', {
-    name      => 'kubernetes-dashboard',
-    chart     => 'kubernetes-dashboard',
-    namespace => 'kubernetes-dashboard',
-    repo_name => 'kubernetes-dashboard',
-    repo_url  => 'https://kubernetes.github.io/dashboard/',
-    version   => $version,
-  })
 
   run_plan('nest::kubernetes::apply', {
     manifest => 'nest/kubernetes/manifests/dashboard-users.yaml',
@@ -42,7 +24,7 @@ plan nest::kubernetes::deploy_dashboard (
   $check_for_token_cmd = 'grep -q token: $KUBECONFIG'
   $has_token = run_command($check_for_token_cmd, 'localhost', 'Check if kubeconfig contains auth token', {
     _catch_errors => true,
-  }).first.ok
+  }).ok
 
   unless $has_token {
     $get_token_cmd = 'kubectl get secret james-token -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d'

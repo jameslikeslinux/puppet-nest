@@ -13,8 +13,8 @@ fi
 
 cd "$1"
 
-cat > resources.yaml
+cat > helm.yaml
 kubectl kustomize; rc=$?
-rm -f resources.yaml
+rm -f helm.yaml
 
 exit $rc

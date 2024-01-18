@@ -7,7 +7,7 @@ plan nest::kubernetes::setup {
   run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
 
   run_plan('nest::kubernetes::helm_deploy', {
-    name      => 'calico',
+    release   => 'calico',
     chart     => 'tigera-operator',
     namespace => 'tigera-operator',
     repo_name => 'projectcalico',
@@ -15,23 +15,23 @@ plan nest::kubernetes::setup {
     version   => '3.27.0',
   })
 
-  log::info('Waiting 30 seconds for calico-system initialization')
-  ctrl::sleep(30)
+  # log::info('Waiting 30 seconds for calico-system initialization')
+  # ctrl::sleep(30)
 
-  run_plan('nest::kubernetes::wait', {
-    kind      => daemonset,
-    name      => 'calico-node',
-    namespace => 'calico-system',
-  })
+  # run_plan('nest::kubernetes::wait', {
+  #   kind      => daemonset,
+  #   name      => 'calico-node',
+  #   namespace => 'calico-system',
+  # })
 
-  log::info('Waiting 60 seconds for calico-apiserver initialization')
-  ctrl::sleep(60)
+  # log::info('Waiting 60 seconds for calico-apiserver initialization')
+  # ctrl::sleep(60)
 
-  run_plan('nest::kubernetes::wait', {
-    kind      => deployment,
-    name      => 'calico-apiserver',
-    namespace => 'calico-apiserver',
-  })
+  # run_plan('nest::kubernetes::wait', {
+  #   kind      => deployment,
+  #   name      => 'calico-apiserver',
+  #   namespace => 'calico-apiserver',
+  # })
 
   run_plan('nest::kubernetes::wait', {
     kind      => deployment,

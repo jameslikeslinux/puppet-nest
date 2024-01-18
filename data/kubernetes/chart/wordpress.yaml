@@ -1,0 +1,62 @@
+---
+values:
+  livenessProbe:
+    initialDelaySeconds: 600
+  extraVolumes:
+  - name: nest
+    hostPath:
+      path: /nest
+      type: Directory
+  - name: james-ssh-key
+    hostPath:
+      path: /home/james/.ssh/id_ed25519
+      type: File
+  - name: root-ssh-key
+    hostPath:
+      path: /root/.ssh/id_ed25519
+      type: File
+  - name: ssh-known-hosts
+    hostPath:
+      path: /etc/ssh/ssh_known_hosts
+      type: File
+  sidecars:
+  - name: nest
+    image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+    command: ['sh', '-c', 'trap : TERM INT; sleep inf & wait']
+    securityContext:
+      capabilities:
+        add:
+        - SYS_CHROOT  # for sshd
+        - SYS_PTRACE
+    volumeMounts:
+    - mountPath: /nest
+      name: nest
+    - mountPath: /home/james/.ssh/id_ed25519
+      name: james-ssh-key
+      readOnly: true
+    - mountPath: /root/.ssh/id_ed25519
+      name: root-ssh-key
+      readOnly: true
+    - mountPath: /etc/ssh/ssh_known_hosts
+      name: ssh-known-hosts
+      readOnly: true
+    - mountPath: /srv/wordpress
+      name: wordpress-data
+      subPath: wordpress
+    ports:
+    - name: ssh
+      containerPort: 22
+  service:
+    extraPorts:
+    - name: ssh
+      port: 22
+
+patches:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: "%{helm_release}-wordpress"
+  spec:
+    template:
+      spec:
+        shareProcessNamespace: true

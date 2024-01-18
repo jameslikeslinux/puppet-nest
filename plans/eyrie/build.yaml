@@ -27,14 +27,17 @@ steps:
       name: coredns
       namespace: kube-system
 
-  - description: 'Rebalance Calico API Server'
-    plan: nest::kubernetes::restart_deployment
-    parameters:
-      name: calico-apiserver
-      namespace: calico-apiserver
+  # - description: 'Rebalance Calico API Server'
+  #   plan: nest::kubernetes::restart_deployment
+  #   parameters:
+  #     name: calico-apiserver
+  #     namespace: calico-apiserver
 
   - description: 'Configure network'
     plan: nest::kubernetes::configure_network
+
+  - description: 'Configure storage'
+    plan: nest::kubernetes::configure_storage
 
   - description: 'Deploy Kubernetes Dashboard'
     plan: nest::kubernetes::deploy_dashboard

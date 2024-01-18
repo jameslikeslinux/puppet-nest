@@ -6,9 +6,9 @@
 # @param timeout How long to wait
 plan nest::kubernetes::wait (
   Enum['daemonset', 'deployment', 'pod'] $kind,
-  String     $name,
-  String     $namespace = 'default',
-  String     $timeout   = '1h',
+  String $name,
+  String $namespace = 'default',
+  String $timeout   = '1h',
 ) {
   $wait_cmd = $kind ? {
     'daemonset'  => "kubectl rollout status daemonset ${name} -n ${namespace} --timeout=${timeout}",
@@ -17,5 +17,10 @@ plan nest::kubernetes::wait (
     default      => fail("Don't know how to wait for ${kind}"),
   }
 
-  run_command($wait_cmd, 'localhost', "Wait for ${name} to rollout")
+  # We can only wait for resources that exist, so keep trying
+  ctrl::do_until(interval => 10, limit => 6) || {
+    run_command($wait_cmd, 'localhost', "Wait for ${name} to rollout", {
+      _catch_errors => true,
+    }).ok
+  }
 }

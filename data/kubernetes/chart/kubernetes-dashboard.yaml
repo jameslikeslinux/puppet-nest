@@ -1,0 +1,34 @@
+---
+values:
+  app:
+    settings:
+      global:
+        clusterName: Eyrie
+        itemsPerPage: 10
+        labelsLimit: 3
+        logsAutoRefreshTimeInterval: 5
+        resourceAutoRefreshTimeInterval: 30 # default 5
+    ingress:
+      hosts:
+        - kubernetes.eyrie
+  api:
+    containers:
+      args:
+        - --enable-skip-login
+        - --token-ttl=0
+  nginx:
+    controller:
+      service:
+        type: LoadBalancer
+
+patches:
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: kubernetes-dashboard
+    namespace: kubernetes-dashboard
+  rules:
+    # Allow full read-only access
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["get", "list", "watch"]

@@ -1,22 +1,23 @@
 # Install or upgrade a Helm chart
 #
-# @param name Installation name
+# @param release Installation name
 # @param chart Name of the chart to install
+# @param hooks Enable or disable install hooks
 # @param namespace Namespace to manage
+# @param render_to Just save the fully-rendered chart to this yaml file
 # @param repo_name Optional name of the Helm repo to add
 # @param repo_url Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
-# @param hooks Enable or disable install hooks
-# @param render_to Just save the fully-rendered chart to this yaml file
 plan nest::kubernetes::helm_deploy (
-  String           $name,
-  String           $chart = $name,
+  String           $release,
+  String           $chart = $release,
+  Boolean          $hooks       = true,
   Optional[String] $namespace   = undef,
+  Optional[String] $render_to   = undef,
   Optional[String] $repo_name   = undef,
   Optional[String] $repo_url    = undef,
   Optional[String] $version     = undef,
-  Boolean          $hooks       = true,
-  Optional[String] $render_to   = undef,
+  Boolean          $wait        = false,
 ) {
   if $repo_name and $repo_url {
     $chart_real = "${repo_name}/${chart}"
@@ -27,18 +28,28 @@ plan nest::kubernetes::helm_deploy (
     $chart_real = $chart
   }
 
-  # Check if this release should be Kustomized
-  $kustomization_file = find_file("nest/kubernetes/helm/${name}/kustomization.yaml")
+  apply('localhost') {
+    $helm_release = $release
+    $helm_chart   = $chart.basename
 
-  # Read and merge chart values
-  $static_values = loadyaml("files/kubernetes/helm/${name}/values.yaml", {})
-  $values_template = find_template("nest/kubernetes/helm/${name}/values.yaml.epp")
-  if $values_template {
-    $template_values = epp($values_template).parseyaml
-  } else {
-    $template_values = {}
+    file {
+      '/tmp/kustomize':
+        ensure => directory,
+      ;
+      '/tmp/kustomize/values.yaml':
+        content => lookup('values', Hash, 'deep', {}).stdlib::to_yaml,
+      ;
+      '/tmp/kustomize/resources.yaml':
+        content => lookup('resources', Array, 'unique', []).join("\n"),
+      ;
+      '/tmp/kustomize/patches.yaml':
+        content => lookup('patches', Hash, 'deep', {}).stdlib::to_yaml,
+      ;
+      '/tmp/kustomize/kustomization.yaml':
+        source => 'puppet:///modules/nest/kubernetes/kustomization.yaml',
+      ;
+    }
   }
-  $values = stdlib::to_yaml($static_values + $template_values)
 
   $helm_cmd = [
     'helm',
@@ -48,7 +59,7 @@ plan nest::kubernetes::helm_deploy (
       default => ['template', '--kube-version', '1.28.2'],
     },
 
-    $name, $chart_real,
+    $release, $chart_real,
 
     $hooks ? {
       false   => '--no-hooks',
@@ -60,21 +71,20 @@ plan nest::kubernetes::helm_deploy (
       default => ['--create-namespace', '--namespace', $namespace],
     },
 
-    $kustomization_file ? {
-      undef   => [],
-      default => [
-        '--post-renderer', './scripts/kustomize.sh',
-        '--post-renderer-args', dirname($kustomization_file),
-      ],
-    },
-
-    '--values', '-',
+    '--post-renderer', './scripts/kustomize.sh',
+    '--post-renderer-args', '/tmp/kustomize',
+    '--values', '/tmp/kustomize/values.yaml',
 
     $version ? {
       undef   => [],
       default => ['--version', $version],
     },
-  ].flatten.join(' ')
+
+    $wait ? {
+      true    => ['--wait', '--timeout', '1h'],
+      default => [],
+    },
+  ].flatten.shellquote
 
   if $render_to {
     $redirect = " > ${render_to.shellquote}"
@@ -84,5 +94,5 @@ plan nest::kubernetes::helm_deploy (
     $cmd_verb = 'Deploy'
   }
 
-  run_command("echo ${values.shellquote} | ${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${name} from Helm chart ${chart_real}")
+  run_command("${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${release} from Helm chart ${chart_real}")
 }

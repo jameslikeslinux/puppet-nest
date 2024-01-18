@@ -9,6 +9,24 @@ defaults:
     pkcs7_public_key: '/etc/eyaml/keys/public_key.pkcs7.pem'
 
 hierarchy:
+  - name: 'Helm Release'
+    paths:
+      - "bolt-private/kubernetes/release/%{helm_release}.yaml"
+      - "kubernetes/release/%{helm_release}.yaml"
+  - name: 'Helm Chart'
+    paths:
+      - "bolt-private/kubernetes/chart/%{helm_chart}.yaml"
+      - "kubernetes/chart/%{helm_chart}.yaml"
+  - name: 'Kubernetes Defaults'
+    paths:
+      - "bolt-private/kubernetes/defaults.yaml"
+      - "kubernetes/defaults.yaml"
+  - name: 'Common'
+    paths:
+      - 'bolt-private/common.yaml'
+      - 'common.yaml'
+
+plan_hierarchy:
   - name: 'Common'
     paths:
       - 'bolt-private/common.yaml'

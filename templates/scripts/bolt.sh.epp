@@ -17,8 +17,8 @@ name=$(ruby -ryaml -e 'puts YAML.load_file("bolt-project.yaml")["name"]')
 
 exec podman run --rm -it -e TERM \
     --net=host --dns=127.0.0.53 \
-    -w "/${name}" \
-    -v "${PWD}:/${name}" \
+    -w "/modules/${name}" \
+    -v "${PWD}:/modules/${name}" \
     -v /etc/eyaml:/etc/eyaml:ro \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \

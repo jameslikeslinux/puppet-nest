@@ -1,0 +1,6 @@
+---
+resources:
+- helm.yaml
+- resources.yaml
+patches:
+- path: patches.yaml

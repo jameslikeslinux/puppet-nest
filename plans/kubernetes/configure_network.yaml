@@ -2,13 +2,6 @@
 description: 'Configure Kubernetes Calico network'
 
 steps:
-  - description: 'Wait for calico-apiserver deployment'
-    plan: 'nest::kubernetes::wait'
-    parameters:
-      kind: deployment
-      name: 'calico-apiserver'
-      namespace: 'calico-apiserver'
-
   - description: 'Deploy calicoctl'
     plan: 'nest::kubernetes::apply'
     parameters:
@@ -21,6 +14,13 @@ steps:
       name: 'calicoctl'
       namespace: 'kube-system'
 
+  - description: 'Wait for calico-apiserver deployment'
+    plan: 'nest::kubernetes::wait'
+    parameters:
+      kind: deployment
+      name: 'calico-apiserver'
+      namespace: 'calico-apiserver'
+
   - description: 'Configure Calico BGP'
     plan: 'nest::kubernetes::calicoctl_apply'
     parameters:
@@ -29,19 +29,20 @@ steps:
   - description: 'Install MetalLB'
     plan: 'nest::kubernetes::helm_deploy'
     parameters:
-      name: 'metallb'
+      release: 'metallb'
       chart: 'metallb'
       namespace: 'metallb-system'
       repo_name: 'metallb'
       repo_url: 'https://metallb.github.io/metallb'
       version: '0.13.12'
+      wait: true # so config below can be validated
 
-  - description: 'Wait for MetalLB controller'
-    plan: 'nest::kubernetes::wait'
-    parameters:
-      kind: deployment
-      name: 'metallb-controller'
-      namespace: 'metallb-system'
+  # - description: 'Wait for MetalLB controller'
+  #   plan: 'nest::kubernetes::wait'
+  #   parameters:
+  #     kind: deployment
+  #     name: 'metallb-controller'
+  #     namespace: 'metallb-system'
 
   - description: 'Configure MetalLB address pool'
     plan: 'nest::kubernetes::apply'

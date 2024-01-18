@@ -13,7 +13,7 @@ plan nest::kubernetes::remove_worker (
       _catch_errors => true,
     })
 
-    $memo + { $worker => $result.first.ok }
+    $memo + { $worker => $result.ok }
   }
 
   if $drain {
