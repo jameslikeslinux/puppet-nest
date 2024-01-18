@@ -3,6 +3,8 @@ class nest::tool::bolt (
   Sensitive[String] $key,
 ) {
   if $facts['build'] == 'bolt' {
+    $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
+
     package { [
       'dev-ruby/bcrypt_pbkdf',
       'dev-ruby/ed25519',
@@ -13,6 +15,11 @@ class nest::tool::bolt (
     package { 'bolt':
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
+    }
+    ->
+    file { "/usr/lib64/ruby/gems/${ruby_minor_version}.0":
+      ensure => absent,
+      force  => true,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file {
