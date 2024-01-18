@@ -126,6 +126,16 @@ class nest::base::ssh {
   if $facts['build'] in [undef, 'stage3'] {
     Sshkey <<||>>
 
+    $nest::ssh_host_keys.each |$host, $line| {
+      $values = $line.split(/\s+/)
+      $type   = $values[0]
+      $key    = $values[1]
+
+      sshkey { "${host}@${type}":
+        key => $key,
+      }
+    }
+
     resources { 'sshkey':
       purge => true,
     }

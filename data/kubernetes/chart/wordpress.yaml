@@ -1,4 +1,12 @@
 ---
+resources:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: root-secrets
+    data:
+      ssh_host_key: "%{lookup('nest::ssh_private_keys.eyrie')}"
+
 values:
   livenessProbe:
     initialDelaySeconds: 600
@@ -9,38 +17,47 @@ values:
       type: Directory
   - name: james-ssh-key
     hostPath:
-      path: /home/james/.ssh/id_ed25519
+      path: '/home/james/.ssh/id_ed25519'
       type: File
+  - name: root-secrets
+    secret:
+      secretName: root-secrets
   - name: root-ssh-key
     hostPath:
-      path: /root/.ssh/id_ed25519
+      path: '/root/.ssh/id_ed25519'
       type: File
   - name: ssh-known-hosts
     hostPath:
-      path: /etc/ssh/ssh_known_hosts
+      path: '/etc/ssh/ssh_known_hosts'
       type: File
   sidecars:
   - name: nest
     image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
-    command: ['sh', '-c', 'trap : TERM INT; sleep inf & wait']
+    command:
+      - '/bin/sh'
+      - '-c'
+      - 'cp /root/.secrets/ssh_host_key /etc/ssh/ssh_host_ed25519_key && chmod 600 /etc/ssh/ssh_host_ed25519_key && /usr/sbin/sshd -D -e'
     securityContext:
       capabilities:
         add:
         - SYS_CHROOT  # for sshd
         - SYS_PTRACE
     volumeMounts:
-    - mountPath: /nest
+    - mountPath: '/nest'
       name: nest
-    - mountPath: /home/james/.ssh/id_ed25519
+    - mountPath: '/home/james/.ssh/id_ed25519'
       name: james-ssh-key
       readOnly: true
-    - mountPath: /root/.ssh/id_ed25519
+    - mountPath: '/root/.ssh/id_ed25519'
       name: root-ssh-key
       readOnly: true
-    - mountPath: /etc/ssh/ssh_known_hosts
+    - mountPath: '/root/.secrets'
+      name: root-secrets
+      readOnly: true
+    - mountPath: '/etc/ssh/ssh_known_hosts'
       name: ssh-known-hosts
       readOnly: true
-    - mountPath: /srv/wordpress
+    - mountPath: '/srv/wordpress'
       name: wordpress-data
       subPath: wordpress
     ports:
@@ -52,11 +69,11 @@ values:
       port: 22
 
 patches:
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: "%{helm_release}-wordpress"
-  spec:
-    template:
-      spec:
-        shareProcessNamespace: true
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: "%{helm_release}-wordpress"
+    spec:
+      template:
+        spec:
+          shareProcessNamespace: true

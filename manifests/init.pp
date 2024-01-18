@@ -5,6 +5,7 @@ class nest (
   Stdlib::Host         $nestfs_hostname,
   Array[Stdlib::Host]  $openvpn_servers,
   String               $pw_hash,
+  Hash[String, String] $ssh_host_keys,
   Hash[String, String] $ssh_private_keys,
 
   # eyaml keys

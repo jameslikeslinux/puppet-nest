@@ -36,14 +36,14 @@ plan nest::kubernetes::helm_deploy (
       '/tmp/kustomize':
         ensure => directory,
       ;
+      '/tmp/kustomize/resources.yaml':
+        content => lookup('resources', Array[Hash], 'unique', [{}]).map |$r| { $r.stdlib::to_yaml }.join,
+      ;
       '/tmp/kustomize/values.yaml':
         content => lookup('values', Hash, 'deep', {}).stdlib::to_yaml,
       ;
-      '/tmp/kustomize/resources.yaml':
-        content => lookup('resources', Array, 'unique', []).join("\n"),
-      ;
       '/tmp/kustomize/patches.yaml':
-        content => lookup('patches', Hash, 'deep', {}).stdlib::to_yaml,
+        content => lookup('patches', Array[Hash], 'unique', [{}]).map |$r| { $r.stdlib::to_yaml }.join,
       ;
       '/tmp/kustomize/kustomization.yaml':
         source => 'puppet:///modules/nest/kubernetes/kustomization.yaml',
