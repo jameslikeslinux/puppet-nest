@@ -84,7 +84,7 @@ class nest::service::puppet (
   }
 
   exec { 'make-eyaml-key-puppet-readable':
-    command => '/usr/sbin/setfacl -m user:999:r-- /etc/eyaml/keys/private_key.pkcs7.pem',
+    command => '/usr/sbin/setfacl -m user:999:r /etc/eyaml/keys/private_key.pkcs7.pem',
     unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:999:r--"',
     require => File['/etc/eyaml/keys/private_key.pkcs7.pem'],
   }

@@ -15,9 +15,12 @@ class nest::base::eyaml {
       }
 
       exec { 'make-eyaml-key-readable':
-        command => '/usr/sbin/setfacl -m user:james:r-- /etc/eyaml/keys/private_key.pkcs7.pem',
+        command => '/usr/sbin/setfacl -m user:james:r /etc/eyaml/keys/private_key.pkcs7.pem',
         unless  => '/usr/sbin/getfacl /etc/eyaml/keys/private_key.pkcs7.pem | /bin/grep "^user:james:r--"',
-        require => File['/etc/eyaml/keys/private_key.pkcs7.pem'],
+        require => [
+          File['/etc/eyaml/keys/private_key.pkcs7.pem'],
+          User['james'],
+        ],
       }
     }
 
@@ -49,6 +52,12 @@ class nest::base::eyaml {
     pkcs7_public_key: '/etc/eyaml/keys/public_key.pkcs7.pem'
     | CONF
 
+  if $facts['build'] in [undef, 'stage3'] {
+    $eyaml_private_key = $nest::eyaml_private_key
+  } else {
+    $eyaml_private_key = ''
+  }
+
   file {
     [$conf_dir, "${conf_dir}/keys"]:
       ensure => directory,
@@ -64,7 +73,7 @@ class nest::base::eyaml {
 
     "${conf_dir}/keys/private_key.pkcs7.pem":
       mode    => '0640',
-      content => $nest::eyaml_private_key,
+      content => $eyaml_private_key,
     ;
   }
 }
