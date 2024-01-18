@@ -3,7 +3,7 @@ resources:
   - apiVersion: v1
     kind: Secret
     metadata:
-      name: root-secrets
+      name: "%{helm_release}-root-secrets"
     data:
       ssh_host_key: "%{lookup('nest::ssh_private_keys.eyrie')}"
 
@@ -21,7 +21,7 @@ values:
       type: File
   - name: root-secrets
     secret:
-      secretName: root-secrets
+      secretName: "%{helm_release}-root-secrets"
   - name: root-ssh-key
     hostPath:
       path: '/root/.ssh/id_ed25519'
