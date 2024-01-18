@@ -123,7 +123,7 @@ class nest::base::ssh {
   }
 
   # Collect SSH keys exported by other hosts below
-  if $facts['build'] in [undef, 'stage3'] {
+  if $facts['build'] in [undef, 'bolt', 'stage3'] {
     Sshkey <<||>>
 
     $nest::ssh_host_keys.each |$host, $line| {
