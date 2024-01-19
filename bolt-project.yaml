@@ -11,6 +11,7 @@ modules:
     git: git@gitlab.james.tl:nest/forks/puppet-reboot.git
     ref: main
     resolve: false
+  - puppetlabs-ruby_task_helper
 
 plans:
   - nest::*

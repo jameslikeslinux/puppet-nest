@@ -82,3 +82,10 @@ patches:
       template:
         spec:
           shareProcessNamespace: true
+  service:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: "%{nest::bolt::helm_release}-wordpress"
+      labels:
+        'james.tl/sidecar': 'Nest'

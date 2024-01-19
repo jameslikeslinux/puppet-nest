@@ -13,6 +13,7 @@ mod 'puppetlabs-zfs_core', '1.4.0'
 
 # Bolt modules
 mod 'reboot', :git => 'git@gitlab.james.tl:nest/forks/puppet-reboot.git', :branch => 'main'
+mod 'puppetlabs-ruby_task_helper', '0.6.1'
 
 # My modules
 mod 'nest', :git => 'git@gitlab.james.tl:nest/puppet.git', :branch => :control_branch, :default_branch => 'main'

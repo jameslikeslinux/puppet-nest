@@ -167,3 +167,8 @@ groups:
         target_mapping:
           name: certname
           uri: facts.fqdn
+
+  - name: 'kubernetes'
+    targets:
+      - _plugin: task
+        task: nest::get_kubernetes_services
