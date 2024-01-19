@@ -41,35 +41,25 @@ plan nest::kubernetes::helm_deploy (
     $helm_release = $release
     $helm_chart   = $chart.basename
 
-    include nest::bolt
+    include nest::bolt # for lookups
 
-    $patches = lookup('patches', Hash, 'deep', {}).map |$patch_name, $patch| {
-      file { "/tmp/kustomize/patches/${patch_name}.yaml":
-        content => $patch.stdlib::to_yaml,
-      }
-      $patch_name
-    }
+    $resources = lookup('resources', Array[Hash], 'unique', []).reverse
+    $values    = lookup('values', Hash, 'deep', {})
+    $patches   = lookup('patches', Array[Hash], 'unique', []).reverse
 
     file {
-      ['/tmp/kustomize', '/tmp/kustomize/patches']:
-        ensure => directory,
-        purge  => true,
-        force  => true,
-      ;
+      '/tmp/kustomize':
+        ensure => directory;
       '/tmp/kustomize/subcharts.yaml':
-        content => {}.stdlib::to_yaml,
-        replace => false,
-      ;
+        ensure => present;
       '/tmp/kustomize/resources.yaml':
-        content => lookup('resources', Array[Hash], 'unique', [{}]).map |$r| { $r.stdlib::to_yaml }.join,
-      ;
+        content => $resources.map |$r| { $r.stdlib::to_yaml }.join;
       '/tmp/kustomize/values.yaml':
-        content => lookup('values', Hash, 'deep', {}).stdlib::to_yaml,
-      ;
+        content => $values.stdlib::to_yaml;
       '/tmp/kustomize/kustomization.yaml':
         content => {
           'resources' => ['subcharts.yaml', 'resources.yaml', 'helm.yaml'],
-          'patches'   => $patches.map |$patch| { { 'path' => "patches/${patch}.yaml" } },
+          'patches'   => $patches,
         }.stdlib::to_yaml,
       ;
     }

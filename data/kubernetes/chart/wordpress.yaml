@@ -50,19 +50,19 @@ values:
       port: 22
 
 patches:
-  processes:
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: "%{nest::bolt::helm_release}-wordpress"
-    spec:
-      template:
-        spec:
-          shareProcessNamespace: true
-  service:
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: "%{nest::bolt::helm_release}-wordpress"
-      labels:
-        'james.tl/nest': 'stage1'
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "%{nest::bolt::helm_release}-wordpress"
+      spec:
+        template:
+          spec:
+            shareProcessNamespace: true
+  - patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "%{nest::bolt::helm_release}-wordpress"
+        labels:
+          'james.tl/nest': 'stage1'
