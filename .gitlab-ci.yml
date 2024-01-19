@@ -37,7 +37,7 @@ r10k:
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
 
-'Package cortex-a53':
+package:
   <<: *template
   tags: ['arm64']
   variables:
