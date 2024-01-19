@@ -5,21 +5,15 @@ class nest::tool::bolt (
   if $facts['build'] == 'bolt' {
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
-    package { [
-      'dev-ruby/bcrypt_pbkdf',
-      'dev-ruby/ed25519',
-    ]:
-      ensure => installed,
-    }
-    ->
-    package { 'bolt':
-      install_options => ['--bindir', '/usr/local/bin'],
-      provider        => gem,
-    }
-    ->
+    # Gem conflicts with system gems who cares
     file { "/usr/lib64/ruby/gems/${ruby_minor_version}.0":
       ensure => absent,
       force  => true,
+    }
+    ->
+    package { ['bolt', 'ed25519', 'bcrypt_pbkdf']:
+      install_options => ['--bindir', '/usr/local/bin'],
+      provider        => gem,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file {
