@@ -182,19 +182,17 @@ class nest::base::users {
     }
 
     if $facts['build'] in [undef, 'stage3'] {
-      ['ecdsa', 'ed25519', 'rsa'].each |$algorithm| {
-        if $nest::ssh_private_keys[$algorithm] {
-          file { "${home_dir}/.ssh/id_${algorithm}":
-            mode      => '0600',
-            owner     => $user,
-            content   => $nest::ssh_private_keys[$algorithm],
-            show_diff => false,
-            require   => Vcsrepo[$home_dir],
-          }
-        } else {
-          file { "${home_dir}/.ssh/id_${algorithm}":
-            ensure => absent,
-          }
+      if $nest::ssh_private_keys[$user] {
+        file { "${home_dir}/.ssh/id_ed25519":
+          mode      => '0600',
+          owner     => $user,
+          content   => $nest::ssh_private_keys[$user],
+          show_diff => false,
+          require   => Vcsrepo[$home_dir],
+        }
+      } else {
+        file { "${home_dir}/.ssh/id_ed25519":
+          ensure => absent,
         }
       }
     }
