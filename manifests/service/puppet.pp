@@ -132,7 +132,7 @@ class nest::service::puppet (
   #
   nest::lib::container { 'puppetboard':
     pod   => 'puppet',
-    image => 'ghcr.io/voxpupuli/puppetboard:5.1.0',
+    image => 'ghcr.io/voxpupuli/puppetboard:5.2.0',
     env   => [
       'PUPPETDB_HOST=puppet',
       'ENABLE_CATALOG=True',
