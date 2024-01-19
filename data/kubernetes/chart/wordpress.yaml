@@ -40,7 +40,9 @@ values:
     command:
       - '/bin/sh'
       - '-c'
-      - 'cp /root/.secrets/ssh_host_key /etc/ssh/ssh_host_ed25519_key && chmod 600 /etc/ssh/ssh_host_ed25519_key && /usr/sbin/sshd -D -e'
+      - 'cp /root/.secrets/ssh_host_key /etc/ssh/ssh_host_ed25519_key &&
+        chmod 600 /etc/ssh/ssh_host_ed25519_key &&
+        /usr/sbin/sshd -D -e'
     securityContext:
       capabilities:
         add:
@@ -88,4 +90,4 @@ patches:
     metadata:
       name: "%{nest::bolt::helm_release}-wordpress"
       labels:
-        'james.tl/sidecar': 'Nest'
+        'james.tl/nest': 'stage1'

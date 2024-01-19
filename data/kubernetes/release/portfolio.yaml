@@ -39,3 +39,10 @@ patches:
                 readOnly: true
           imagePullSecrets:
             - name: "%{nest::bolt::helm_release}-registry-auths"
+  service:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: "%{nest::bolt::helm_release}-wordpress"
+      labels:
+        'james.tl/nest': 'puppet'

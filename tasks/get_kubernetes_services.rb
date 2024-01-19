@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
 
 require 'json'
-
 require_relative '../../ruby_task_helper/files/task_helper.rb'
 
 # Fetch Kubernetes service names and URIs with kubectl
 class GetKubernetesServices < TaskHelper
   def task(_opts)
     internal = system 'grep -q cluster.local /etc/resolv.conf'
-    services = JSON.parse `kubectl get services -A -l james.tl/sidecar=Nest -o json`
+    services = JSON.parse `kubectl get services -A -l james.tl/nest -o json`
 
     {
       value: services['items'].map do |service|
