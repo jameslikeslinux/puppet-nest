@@ -2,6 +2,7 @@
 #
 # @param release Installation name
 # @param chart Name of the chart to install
+# @param append How `render_to` should be written out
 # @param hooks Enable or disable install hooks
 # @param namespace Namespace to manage
 # @param render_to Just save the fully-rendered chart to this yaml file
@@ -10,7 +11,8 @@
 # @param version Optional Helm chart version
 plan nest::kubernetes::helm_deploy (
   String           $release,
-  String           $chart = $release,
+  String           $chart       = $release,
+  Boolean          $append      = false,
   Boolean          $hooks       = true,
   Optional[String] $namespace   = undef,
   Optional[String] $render_to   = undef,
@@ -18,10 +20,17 @@ plan nest::kubernetes::helm_deploy (
   Optional[String] $repo_url    = undef,
   Optional[String] $version     = undef,
   Boolean          $wait        = false,
+  Hash             $subcharts   = {},
 ) {
+  $subcharts.each |$subrelease, $params| {
+    run_plan('nest::kubernetes::helm_deploy', $params + {
+      render_to => '/tmp/kustomize/subcharts.yaml',
+      append    => true,
+    })
+  }
+
   if $repo_name and $repo_url {
     $chart_real = "${repo_name}/${chart}"
-
     $helm_repo_add_cmd = "helm repo add ${repo_name} ${repo_url}"
     run_command($helm_repo_add_cmd, 'localhost', "Add Helm repo ${repo_name} at ${repo_url}")
   } else {
@@ -34,9 +43,22 @@ plan nest::kubernetes::helm_deploy (
 
     include nest::bolt
 
+    $patches = lookup('patches', Hash, 'deep', {}).map |$patch_name, $patch| {
+      file { "/tmp/kustomize/patches/${patch_name}.yaml":
+        content => $patch.stdlib::to_yaml,
+      }
+      $patch_name
+    }
+
     file {
-      '/tmp/kustomize':
+      ['/tmp/kustomize', '/tmp/kustomize/patches']:
         ensure => directory,
+        purge  => true,
+        force  => true,
+      ;
+      '/tmp/kustomize/subcharts.yaml':
+        content => {}.stdlib::to_yaml,
+        replace => false,
       ;
       '/tmp/kustomize/resources.yaml':
         content => lookup('resources', Array[Hash], 'unique', [{}]).map |$r| { $r.stdlib::to_yaml }.join,
@@ -44,11 +66,11 @@ plan nest::kubernetes::helm_deploy (
       '/tmp/kustomize/values.yaml':
         content => lookup('values', Hash, 'deep', {}).stdlib::to_yaml,
       ;
-      '/tmp/kustomize/patches.yaml':
-        content => lookup('patches', Array[Hash], 'unique', [{}]).map |$r| { $r.stdlib::to_yaml }.join,
-      ;
       '/tmp/kustomize/kustomization.yaml':
-        source => 'puppet:///modules/nest/kubernetes/kustomization.yaml',
+        content => {
+          'resources' => ['subcharts.yaml', 'resources.yaml', 'helm.yaml'],
+          'patches'   => $patches.map |$patch| { { 'path' => "patches/${patch}.yaml" } },
+        }.stdlib::to_yaml,
       ;
     }
   }
@@ -89,7 +111,12 @@ plan nest::kubernetes::helm_deploy (
   ].flatten.shellquote
 
   if $render_to {
-    $redirect = " > ${render_to.shellquote}"
+    if $append {
+      $redirect_op = '>>'
+    } else {
+      $redirect_op = '>'
+    }
+    $redirect = " ${redirect_op} ${render_to.shellquote}"
     $cmd_verb = 'Render'
   } else {
     $redirect = ''

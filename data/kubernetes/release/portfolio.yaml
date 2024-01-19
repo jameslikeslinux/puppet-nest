@@ -1,0 +1,32 @@
+---
+resources:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::bolt::helm_release}-registry-auths"
+    data:
+      .dockerconfigjson: "%{nest::bolt::registry_auths}"
+    type: kubernetes.io/dockerconfigjson
+
+values:
+  service:
+    loadBalancerIP: '172.21.0.2'
+  mariadb:
+    auth:
+      password: "%{lookup('nest::service::wordpress::database_passwords.portfolio')}"
+
+patches:
+  image:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: "%{nest::bolt::helm_release}-wordpress"
+    spec:
+      template:
+        spec:
+          containers:
+            - name: nest
+              image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+              imagePullPolicy: Always
+          imagePullSecrets:
+            - name: "%{nest::bolt::helm_release}-registry-auths"

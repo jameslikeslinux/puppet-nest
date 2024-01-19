@@ -73,7 +73,8 @@ values:
       port: 22
 
 patches:
-  - apiVersion: apps/v1
+  processes:
+    apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: "%{nest::bolt::helm_release}-wordpress"

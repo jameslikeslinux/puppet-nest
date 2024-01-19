@@ -22,7 +22,8 @@ values:
         type: LoadBalancer
 
 patches:
-  - apiVersion: rbac.authorization.k8s.io/v1
+  clusterrole:
+    apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
       name: kubernetes-dashboard

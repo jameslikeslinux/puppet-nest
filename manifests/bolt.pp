@@ -10,4 +10,10 @@ class nest::bolt {
   }
 
   $eyrie_host_key = base64('encode', lookup('nest::ssh_private_keys')['eyrie'])
+
+  $registry_auths = base64('encode', stdlib::to_json({
+    'auths' => lookup('nest::registry_tokens').reduce({}) |$result, $token| {
+      $result + { $token[0] => { 'auth' => base64('encode', $token[1]).chomp } }
+    }
+  }))
 }
