@@ -121,32 +121,33 @@ class nest::base::ssh {
     enable => true,
   }
 
-  file { "${sshdir}/ssh_host_ed25519_key":
-    mode      => '0600',
-    content   => $nest::ssh_private_keys['host'],
-    show_diff => false,
-    notify    => Service[$service_name],
+  # Deploy host private key to final stage images
+  if $facts['build'] in [undef, 'stage3'] {
+    file { "${sshdir}/ssh_host_ed25519_key":
+      mode      => '0600',
+      content   => $nest::ssh_private_keys['host'],
+      show_diff => false,
+      notify    => Service[$service_name],
+    }
   }
 
   # Collect SSH keys exported by other hosts below
-  if $facts['build'] in [undef, 'bolt', 'stage3'] {
-    Sshkey <<||>>
+  Sshkey <<||>>
 
-    $nest::ssh_host_keys.each |$host, $line| {
-      $names  = $host.split(/,/)
-      $values = $line.split(/\s+/)
-      $type   = $values[0]
-      $key    = $values[1]
+  $nest::ssh_host_keys.each |$host, $line| {
+    $names  = $host.split(/,/)
+    $values = $line.split(/\s+/)
+    $type   = $values[0]
+    $key    = $values[1]
 
-      sshkey { "${names[0]}@${type}":
-        key          => $key,
-        host_aliases => $names[1, -1],
-      }
+    sshkey { "${names[0]}@${type}":
+      key          => $key,
+      host_aliases => $names[1, -1],
     }
+  }
 
-    resources { 'sshkey':
-      purge => true,
-    }
+  resources { 'sshkey':
+    purge => true,
   }
 
   #
