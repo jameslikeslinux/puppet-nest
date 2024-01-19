@@ -22,6 +22,7 @@ values:
   sidecars:
   - name: nest
     image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+    imagePullPolicy: Always
     command: ['/usr/bin/sshd', '-D', '-e']
     securityContext:
       capabilities:
