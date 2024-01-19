@@ -127,12 +127,14 @@ class nest::base::ssh {
     Sshkey <<||>>
 
     $nest::ssh_host_keys.each |$host, $line| {
+      $names  = $host.split(/,/)
       $values = $line.split(/\s+/)
       $type   = $values[0]
       $key    = $values[1]
 
-      sshkey { "${host}@${type}":
-        key => $key,
+      sshkey { "${names[0]}@${type}":
+        key          => $key,
+        host_aliases => $names[1, -1],
       }
     }
 
