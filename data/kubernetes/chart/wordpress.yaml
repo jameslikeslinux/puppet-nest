@@ -1,12 +1,4 @@
 ---
-resources:
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: "%{nest::bolt::helm_release}-root-secrets"
-    data:
-      ssh_host_key: "%{nest::bolt::eyrie_host_key}"
-
 values:
   podSecurityContext:
     fsGroup: 1000
@@ -19,16 +11,9 @@ values:
     hostPath:
       path: '/nest'
       type: Directory
-  - name: james-ssh-key
+  - name: ssh-host-key
     hostPath:
-      path: '/home/james/.ssh/id_ed25519'
-      type: File
-  - name: root-secrets
-    secret:
-      secretName: "%{nest::bolt::helm_release}-root-secrets"
-  - name: root-ssh-key
-    hostPath:
-      path: '/root/.ssh/id_ed25519'
+      path: '/etc/ssh/ssh_host_ed25519_key'
       type: File
   - name: ssh-known-hosts
     hostPath:
@@ -37,12 +22,7 @@ values:
   sidecars:
   - name: nest
     image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
-    command:
-      - '/bin/sh'
-      - '-c'
-      - 'cp /root/.secrets/ssh_host_key /etc/ssh/ssh_host_ed25519_key &&
-        chmod 600 /etc/ssh/ssh_host_ed25519_key &&
-        /usr/sbin/sshd -D -e'
+    command: ['/usr/bin/sshd', '-D', '-e']
     securityContext:
       capabilities:
         add:
@@ -51,14 +31,8 @@ values:
     volumeMounts:
     - mountPath: '/nest'
       name: nest
-    - mountPath: '/home/james/.ssh/id_ed25519'
-      name: james-ssh-key
-      readOnly: true
-    - mountPath: '/root/.ssh/id_ed25519'
-      name: root-ssh-key
-      readOnly: true
-    - mountPath: '/root/.secrets'
-      name: root-secrets
+    - mountPath: '/etc/ssh/ssh_host_ed25519_key'
+      name: ssh-host-key
       readOnly: true
     - mountPath: '/etc/ssh/ssh_known_hosts'
       name: ssh-known-hosts

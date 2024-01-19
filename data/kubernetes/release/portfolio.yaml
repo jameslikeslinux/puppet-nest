@@ -14,6 +14,10 @@ values:
     hostPath:
       path: '/etc/puppetlabs/bolt'
       type: Directory
+  - name: james-ssh-key
+    hostPath:
+      path: '/home/james/.ssh/id_ed25519'
+      type: File
   service:
     loadBalancerIP: '172.21.0.2'
   mariadb:
@@ -36,6 +40,9 @@ patches:
               volumeMounts:
               - mountPath: '/etc/puppetlabs/bolt'
                 name: bolt-config
+                readOnly: true
+              - mountPath: '/home/james/.ssh/id_ed25519'
+                name: james-ssh-key
                 readOnly: true
           imagePullSecrets:
             - name: "%{nest::bolt::helm_release}-registry-auths"
