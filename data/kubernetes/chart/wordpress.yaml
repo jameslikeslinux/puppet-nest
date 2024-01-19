@@ -17,7 +17,7 @@ values:
   extraVolumes:
   - name: nest
     hostPath:
-      path: /nest
+      path: '/nest'
       type: Directory
   - name: james-ssh-key
     hostPath:

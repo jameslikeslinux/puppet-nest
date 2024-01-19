@@ -9,6 +9,11 @@ resources:
     type: kubernetes.io/dockerconfigjson
 
 values:
+  extraVolumes:
+  - name: bolt-config
+    hostPath:
+      path: '/etc/puppetlabs/bolt'
+      type: Directory
   service:
     loadBalancerIP: '172.21.0.2'
   mariadb:
@@ -28,5 +33,9 @@ patches:
             - name: nest
               image: registry.gitlab.james.tl/nest/puppet:cortex-a53
               imagePullPolicy: Always
+              volumeMounts:
+              - mountPath: '/etc/puppetlabs/bolt'
+                name: bolt-config
+                readOnly: true
           imagePullSecrets:
             - name: "%{nest::bolt::helm_release}-registry-auths"

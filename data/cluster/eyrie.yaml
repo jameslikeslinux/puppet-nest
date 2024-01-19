@@ -2,6 +2,7 @@
 classes:
   - 'nest::cluster::eyrie'
   - 'nest::service::kubernetes'
+  - 'nest::tool::bolt'
 
 # Avoid trashing SD cards
 nest::journal: volatile
