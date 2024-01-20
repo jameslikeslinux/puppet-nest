@@ -35,10 +35,7 @@ class nest::base::firewall {
         ;
 
         'internal':
-          sources => [
-            '172.22.0.0/24', # Nest
-            '172.22.4.0/24', # Eyrie
-          ],
+          sources => '172.16.0.0/12',
           target  => 'ACCEPT',
         ;
 

@@ -62,7 +62,8 @@ class nest::service::kubernetes (
     sources => [
       '10.96.0.0/12',   # K8s service network
       '192.168.0.0/16', # Calico pod network
-      "${facts['networking']['network']}/${facts['networking']['netmask']}",  # Host pod network
+      '172.22.0.0/24',  # Nest VPN
+      "${facts['networking']['network']}/${facts['networking']['netmask']}", # Host pod network
     ],
     target  => 'default',
   }
@@ -104,12 +105,24 @@ class nest::service::kubernetes (
     ensure => present,
   }
 
-  # Allow pods to access cluster services
-  firewalld_rich_rule { 'calico':
-    ensure => present,
-    source => '192.168.0.0/16',
-    dest   => '10.96.0.0/12',
-    action => accept,
+  firewalld_rich_rule {
+    default:
+      ensure => present,
+      action => accept,
+    ;
+
+    # Allow pods to access cluster services
+    'calico':
+      source => '192.168.0.0/16',
+      dest   => '10.96.0.0/12',
+    ;
+
+    # Allow external access
+    'nest':
+      source => '172.22.0.0/24';
+    'falcon':
+      source => '172.22.4.2',
+    ;
   }
 
   # Allow cluster access to Calico Typha
