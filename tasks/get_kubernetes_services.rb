@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'English'
 require 'json'
 require_relative '../../ruby_task_helper/files/task_helper.rb'
 
@@ -11,10 +12,12 @@ class GetKubernetesServices < TaskHelper
     internal = system 'grep -q cluster.local /etc/resolv.conf'
     services = `kubectl get services -A -l 'james.tl/nest in (stage1, puppet)' -o json`
 
-    raise TaskHelper::Error.new('\'kubectl get services\' failed',
-                                'nest::get_kubernetes_services/kubectl-failure') unless $?.success?
+    unless $CHILD_STATUS.success?
+      raise TaskHelper::Error.new('\'kubectl get services\' failed',
+                                  'nest::get_kubernetes_services/kubectl-failure')
+    end
 
-    JSON.parse!(services)
+    services = JSON.parse(services)
 
     {
       value: services['items'].map do |service|

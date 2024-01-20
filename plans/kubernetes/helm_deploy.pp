@@ -52,7 +52,7 @@ plan nest::kubernetes::helm_deploy (
       '/tmp/kustomize':
         ensure => directory;
       '/tmp/kustomize/subcharts.yaml':
-        ensure => present;
+        ensure => file;
       '/tmp/kustomize/resources.yaml':
         content => $resources.map |$r| { $r.stdlib::to_yaml }.join;
       '/tmp/kustomize/values.yaml':
