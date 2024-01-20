@@ -2,6 +2,10 @@
 description: 'Tear down a Kubernetes cluster'
 
 parameters:
+  name:
+    type: String
+    description: 'Name of the cluster'
+
   control_plane:
     type: TargetSpec
     description: 'Control plane to reset'
@@ -22,3 +26,7 @@ steps:
     command: 'kubeadm reset --force'
     run_as: root
     targets: $control_plane
+
+  - description: 'Remove Kubeconfig'
+    command: "rm -f '/nest/home/kubeconfigs/${name}.conf'"
+    targets: localhost
