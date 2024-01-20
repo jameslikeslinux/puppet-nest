@@ -7,7 +7,7 @@ require_relative '../../ruby_task_helper/files/task_helper.rb'
 class GetKubernetesServices < TaskHelper
   def task(_opts)
     internal = system 'grep -q cluster.local /etc/resolv.conf'
-    services = JSON.parse `kubectl get services -A -l james.tl/nest -o json`
+    services = JSON.parse `kubectl get services -A -l 'james.tl/nest in (stage1, puppet)' -o json`
 
     {
       value: services['items'].map do |service|

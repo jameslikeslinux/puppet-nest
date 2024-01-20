@@ -1,7 +1,5 @@
 ---
 values:
-  service:
-    loadBalancerIP: '172.21.0.1'
   mariadb:
     auth:
       password: "%{lookup('nest::service::wordpress::database_passwords.thestaticvoid')}"

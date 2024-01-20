@@ -38,14 +38,15 @@ plan nest::kubernetes::helm_deploy (
   }
 
   apply('localhost') {
-    $helm_release = $release
-    $helm_chart   = $chart.basename
+    $helm_release   = $release
+    $helm_chart     = $chart.basename
+    $helm_namespace = $namespace
 
     include nest::bolt # for lookups
 
-    $resources = lookup('resources', Array[Hash], 'unique', []).reverse
+    $resources = lookup('resources', Array[Hash], 'unique', [])
     $values    = lookup('values', Hash, 'deep', {})
-    $patches   = lookup('patches', Array[Hash], 'unique', []).reverse
+    $patches   = lookup('patches', Array[Hash], 'unique', [])
 
     file {
       '/tmp/kustomize':

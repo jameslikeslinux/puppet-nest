@@ -18,38 +18,38 @@ values:
     hostPath:
       path: '/home/james/.ssh/id_ed25519'
       type: File
-  service:
-    loadBalancerIP: '172.21.0.2'
   mariadb:
     auth:
       password: "%{lookup('nest::service::wordpress::database_passwords.portfolio')}"
 
-patches:
-  - patch: |
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: "%{nest::bolt::helm_release}-wordpress"
-      spec:
-        template:
-          spec:
-            containers:
-              - name: nest
-                image: registry.gitlab.james.tl/nest/puppet:cortex-a53
-                imagePullPolicy: Always
-                volumeMounts:
-                - mountPath: '/etc/puppetlabs/bolt'
-                  name: bolt-config
-                  readOnly: true
-                - mountPath: '/home/james/.ssh/id_ed25519'
-                  name: james-ssh-key
-                  readOnly: true
-            imagePullSecrets:
-              - name: "%{nest::bolt::helm_release}-registry-auths"
-  - patch: |
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: "%{nest::bolt::helm_release}-wordpress"
-        labels:
-          'james.tl/nest': 'puppet'
+# patches:
+#   - patch: |
+#       apiVersion: apps/v1
+#       kind: Deployment
+#       metadata:
+#         name: "%{nest::bolt::helm_release}-wordpress"
+#         namespace: "%{nest::bolt::helm_namespace}"
+#       spec:
+#         template:
+#           spec:
+#             containers:
+#               - name: nest
+#                 image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+#                 imagePullPolicy: Always
+#                 volumeMounts:
+#                 - mountPath: '/etc/puppetlabs/bolt'
+#                   name: bolt-config
+#                   readOnly: true
+#                 - mountPath: '/home/james/.ssh/id_ed25519'
+#                   name: james-ssh-key
+#                   readOnly: true
+#             imagePullSecrets:
+#               - name: "%{nest::bolt::helm_release}-registry-auths"
+#   - patch: |
+#       apiVersion: v1
+#       kind: Service
+#       metadata:
+#         name: "%{nest::bolt::helm_release}-wordpress"
+#         namespace: "%{nest::bolt::helm_namespace}"
+#         labels:
+#           'james.tl/nest': 'puppet'

@@ -55,6 +55,7 @@ patches:
       kind: Deployment
       metadata:
         name: "%{nest::bolt::helm_release}-wordpress"
+        namespace: "%{nest::bolt::helm_namespace}"
       spec:
         template:
           spec:
@@ -64,5 +65,6 @@ patches:
       kind: Service
       metadata:
         name: "%{nest::bolt::helm_release}-wordpress"
+        namespace: "%{nest::bolt::helm_namespace}"
         labels:
           'james.tl/nest': 'stage1'

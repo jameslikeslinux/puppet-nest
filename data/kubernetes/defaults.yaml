@@ -1,0 +1,10 @@
+---
+patches:
+  - patch: |
+      - op: add
+        path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
+        value: "%{nest::bolt::load_balancer_ip}"
+    target:
+      version: v1
+      kind: Service
+      labelSelector: 'james.tl/nest'
