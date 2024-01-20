@@ -31,6 +31,10 @@ stages:
                    -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
+  rules:
+    - if: '$BUILD && $BUILD != $CPU'
+      when: never
+    - when: always
 
 'Build haswell':
   <<: *template
