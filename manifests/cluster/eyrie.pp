@@ -1,9 +1,5 @@
 class nest::cluster::eyrie {
   # Disable VPN in favor of secure VLAN
-  Service <| title == 'openvpn-client@nest' |> {
-    enable => false,
-  }
-
   file { '/etc/systemd/system/openvpn-client@nest.service':
     ensure => link,
     target => '/dev/null',
