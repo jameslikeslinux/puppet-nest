@@ -7,9 +7,6 @@ classes:
 # Avoid trashing SD cards
 nest::journal: volatile
 
-# Buggy power management on Clusterboard prevents reboot
-nest::kexec: true
-
 nest::reset_filter_rules:
   - '- /etc/kubernetes/'
   - 'P /opt/cni/**'

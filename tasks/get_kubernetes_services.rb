@@ -7,15 +7,10 @@ require_relative '../../ruby_task_helper/files/task_helper.rb'
 # Fetch Kubernetes service names and URIs with kubectl
 class GetKubernetesServices < TaskHelper
   def task(_opts)
-    return { value: [] } unless File.exist?(ENV['KUBECONFIG'])
-
     internal = system 'grep -q cluster.local /etc/resolv.conf'
     services = `kubectl get services -A -l 'james.tl/nest in (stage1, puppet)' -o json`
 
-    unless $CHILD_STATUS.success?
-      raise TaskHelper::Error.new('\'kubectl get services\' failed',
-                                  'nest::get_kubernetes_services/kubectl-failure')
-    end
+    return { value: [] } unless $CHILD_STATUS.success?
 
     services = JSON.parse(services)
 
