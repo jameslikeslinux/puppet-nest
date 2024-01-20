@@ -1,0 +1,8 @@
+---
+description: 'Deploy Puppet'
+
+steps:
+  - description: 'Generate the cert using the Puppet Server CA'
+    command: '/srv/puppet/bin/r10k deploy environment -pv'
+    run_as: root
+    targets: puppet-server

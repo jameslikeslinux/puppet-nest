@@ -1,29 +1,24 @@
 ---
 stages:
-  - test
-  - deploy
+  - 'Test'
+  - 'Build'
+  - 'Deploy'
 
-validate:
+'Validate':
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
-  stage: 'test'
+  stage: 'Test'
   script:
     - 'pdk validate --puppet-version=8.2.0'
 
-unit:
+'Unit Test':
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
-  stage: 'test'
+  stage: 'Test'
   script:
     - 'pdk test unit --puppet-version=8.2.0'
 
-r10k:
-  stage: 'deploy'
-  tags: ['r10k']
-  script:
-    - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
-
 .template: &template
   image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'
-  stage: 'deploy'
+  stage: 'Build'
   script:
     - 'eval $(ssh-agent -s)'
     - 'chmod 600 "$SSH_PRIVATE_KEY"'
@@ -37,8 +32,20 @@ r10k:
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
 
-package:
+'Build haswell':
+  <<: *template
+  tags: ['amd64']
+  variables:
+    CPU: 'haswell'
+
+'Build cortex-a53':
   <<: *template
   tags: ['arm64']
   variables:
     CPU: 'cortex-a53'
+
+'Deploy':
+  stage: 'Deploy'
+  tags: ['r10k']
+  script:
+    - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
