@@ -5,6 +5,7 @@ class nest::base::packages {
         'app-admin/helm',
         'app-admin/sysstat',
         'app-editors/vim',
+        'app-misc/jq',
         'app-misc/tmux',
         'app-portage/genlop',
         'app-portage/gentoolkit',
