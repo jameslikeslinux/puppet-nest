@@ -15,8 +15,10 @@ class nest::bolt {
   }
 
   if $helm_chart {
-    $load_balancer_ip = lookup('nest::host_records')["${helm_release}.eyrie"]
+    $fqdn = "${helm_release}.eyrie"
+    $load_balancer_ip = lookup('nest::host_records')[$fqdn]
   } else {
+    $fqdn = undef
     $load_balancer_ip = undef
   }
 
