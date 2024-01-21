@@ -24,6 +24,8 @@ lookup_options:
     convert_to: 'Sensitive'
   nest::service::puppet::puppetboard_secret_key:
     convert_to: 'Sensitive'
+  nest::service::reverse_proxy::hosts:
+    merge: 'hash'
   nest::service::puppet::r10k_deploy_key:
     convert_to: 'Sensitive'
   nest::service::streamux::password:

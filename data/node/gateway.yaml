@@ -1,0 +1,58 @@
+---
+classes:
+  - 'nest::node::web'
+  - 'nest::service::gateway'
+  - 'nest::service::reverse_proxy'
+
+nest::dvorak: true
+
+nest::service::apache::manage_firewall: true
+
+nest::service::gateway::port_forwards:
+  git:
+    dest: '96.30.196.9'
+    port: 22
+    proto: tcp
+    to_addr: '172.22.0.1'
+    to_port: 2222
+  # streamlabs:
+  #   dest: '96.30.196.9'
+  #   port: 59650
+  #   proto: tcp
+  #   to_addr: '172.22.0.9'
+  #   to_port: 59650
+
+nest::service::reverse_proxy::hosts:
+  gitlab.james.tl:
+    destination: '172.22.0.1:8000'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+    encoded_slashes: true
+    timeout: 300
+    websockets: true
+
+  james.tl:
+    destination: 'portfolio.eyrie'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+    priority: '20'  # higher priority
+    serveraliases: ['www.james.tl']
+    serve_local: true
+
+  registry.gitlab.james.tl:
+    destination: '172.22.0.1:5050'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+
+  requests.thesatelliteoflove.net:
+    destination: 'ombi.nest'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+    serveraliases: ['requests.heloandnala.net']
+
+  thestaticvoid.com:
+    destination: 'thestaticvoid.eyrie'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+    serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
+    serve_local: true
+
+  vault.thesatelliteoflove.net:
+    destination: '127.0.0.1:8080'
+    ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
+    websockets: '127.0.0.1:3012'
