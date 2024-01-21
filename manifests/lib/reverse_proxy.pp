@@ -5,6 +5,7 @@ define nest::lib::reverse_proxy (
   Optional[Nest::IPList]   $ip              = undef,
   Optional[Integer]        $port            = undef,
   Boolean                  $preserve_host   = false,
+  Optional[String]         $priority        = undef,
   String                   $servername      = $name,
   Array[String]            $serveraliases   = [],
   Boolean                  $serve_local     = false,
@@ -100,6 +101,7 @@ define nest::lib::reverse_proxy (
     | EOT
 
   nest::lib::virtual_host { $name:
+    priority      => $priority,
     servername    => $servername,
     serveraliases => $serveraliases,
     ip            => $ip,

@@ -32,6 +32,13 @@ nest::service::reverse_proxy::hosts:
     timeout: 300
     websockets: true
 
+  james.tl:
+    destination: 'portfolio.eyrie'
+    ip: ['104.156.227.40', '2001:19f0:300:2005::40']
+    priority: '20'  # higher priority
+    serveraliases: ['www.james.tl']
+    serve_local: true
+
   registry.gitlab.james.tl:
     destination: '172.22.0.1:5050'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
@@ -51,10 +58,3 @@ nest::service::reverse_proxy::hosts:
     destination: '127.0.0.1:8080'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
     websockets: '127.0.0.1:3012'
-
-nest::service::wordpress::sites:
-  portfolio:
-    ip: ['104.156.227.40', '2001:19f0:300:2005::40']
-    servername: 'james.tl'
-    serveraliases: ['www.james.tl']
-    priority: '20'  # higher priority

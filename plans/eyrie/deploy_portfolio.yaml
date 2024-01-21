@@ -1,0 +1,8 @@
+---
+description: 'Deploy james.tl portfolio'
+
+steps:
+  - description: 'Deploy portfolio Wordpress instance'
+    plan: nest::eyrie::deploy_wordpress
+    parameters:
+      name: 'portfolio'
