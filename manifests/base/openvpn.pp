@@ -143,6 +143,6 @@ class nest::base::openvpn {
   }
   ~>
   service { $openvpn_service:
-    enable => true,
+    enable => $nest::vpn_client,
   }
 }

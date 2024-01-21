@@ -1,0 +1,8 @@
+---
+description: 'Deploy TheStaticVoid blog'
+
+steps:
+  - description: 'Deploy thestaticvoid Wordpress instance'
+    plan: nest::eyrie::deploy_wordpress
+    parameters:
+      name: 'thestaticvoid'

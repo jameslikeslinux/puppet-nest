@@ -92,6 +92,36 @@ class nest::service::kubernetes (
     firewalld_service { 'kube-control-plane':
       ensure => present,
     }
+
+    service { 'nfs-server':
+      enable => true,
+    }
+
+    service { 'zfs-share':
+      enable  => true,
+      require => Package['sys-fs/zfs'],
+    }
+
+    firewalld_service { 'nfs':
+      ensure => present,
+      zone   => 'kubernetes',
+    }
+
+    file {
+      default:
+        mode  => '0644',
+        owner => 'root',
+        group => 'root',
+      ;
+
+      '/etc/systemd/system/kubelet.service.d':
+        ensure => directory,
+      ;
+
+      '/etc/systemd/system/kubelet.service.d/10-require-etcd-mount.conf':
+        content => "[Service]\nExecCondition=/usr/sbin/mountpoint -q /var/lib/etcd\n",
+      ;
+    }
   } else {
     firewalld_service { 'kubelet-worker':
       ensure => present,

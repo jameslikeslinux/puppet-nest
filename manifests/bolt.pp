@@ -25,4 +25,10 @@ class nest::bolt {
       $result + { $token[0] => { 'auth' => base64('encode', $token[1]).chomp } }
     },
   }))
+
+  if $helm_release {
+    $wordpress_db_password = lookup('nest::service::wordpress::database_passwords')[$helm_release]
+  } else {
+    $wordpress_db_password = undef
+  }
 }

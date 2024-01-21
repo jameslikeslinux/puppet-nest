@@ -1,0 +1,15 @@
+---
+description: 'Restore a Wordpress instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+
+steps:
+  - description: "Restore ${name} Wordpress instance"
+    plan: nest::wordpress::restore
+    parameters:
+      targets: "${name}.eyrie"
+      name: $name
+      db_host: "${name}-mariadb"

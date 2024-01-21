@@ -6,6 +6,14 @@ values:
     runAsUser: 1000
   livenessProbe:
     initialDelaySeconds: 600
+  wordpressPassword: 'wordpress' # throwaway
+  allowEmptyPassword: false
+  mariadb:
+    auth:
+      database: "%{nest::bolt::helm_release}"
+      username: "%{nest::bolt::helm_release}"
+      password: "%{nest::bolt::wordpress_db_password}"
+      rootPassword: "%{lookup('nest::service::mysql::root_password')}"
   extraVolumes:
   - name: nest
     hostPath:
@@ -14,10 +22,6 @@ values:
   - name: ssh-host-key
     hostPath:
       path: '/etc/ssh/ssh_host_ed25519_key'
-      type: File
-  - name: ssh-known-hosts
-    hostPath:
-      path: '/etc/ssh/ssh_known_hosts'
       type: File
   sidecars:
   - name: nest
@@ -34,9 +38,6 @@ values:
       name: nest
     - mountPath: '/etc/ssh/ssh_host_ed25519_key'
       name: ssh-host-key
-      readOnly: true
-    - mountPath: '/etc/ssh/ssh_known_hosts'
-      name: ssh-known-hosts
       readOnly: true
     - mountPath: '/srv/wordpress'
       name: wordpress-data

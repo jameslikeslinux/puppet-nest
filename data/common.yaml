@@ -18,6 +18,8 @@ lookup_options:
     merge: 'unique'
   nest::ssh_private_keys:
     merge: 'hash'
+  nest::service::mysql::root_password:
+    convert_to: 'Sensitive'
   nest::service::puppet::puppetboard_secret_key:
     convert_to: 'Sensitive'
   nest::service::puppet::r10k_deploy_key:

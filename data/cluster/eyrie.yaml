@@ -1,6 +1,5 @@
 ---
 classes:
-  - 'nest::cluster::eyrie'
   - 'nest::service::kubernetes'
   - 'nest::tool::bolt'
 
@@ -8,6 +7,9 @@ nest::external_interfaces: ['end0']
 
 # Avoid trashing SD cards
 nest::journal: volatile
+
+# Cluster is on isolated VLAN
+nest::vpn_client: false
 
 nest::reset_filter_rules:
   - '- /etc/kubernetes/'

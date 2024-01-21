@@ -72,9 +72,16 @@ class nest::base::fstab {
       'set 6/opt[1] fsc',
       'set 6/opt[2] x-systemd.automount',
       'set 6/opt[3] x-systemd.requires',
-      'set 6/opt[3]/value openvpn-client@nest.service',
-      'set 6/opt[4] x-systemd.requires',
-      'set 6/opt[4]/value cachefilesd.service',
+      'set 6/opt[3]/value cachefilesd.service',
+
+      $nest::vpn_client ? {
+        true    => [
+          'set 6/opt[4] x-systemd.requires',
+          'set 6/opt[4]/value openvpn-client@nest.service',
+        ],
+        default => [],
+      },
+
       'set 6/dump 0',
       'set 6/passno 0',
     ],
@@ -84,17 +91,15 @@ class nest::base::fstab {
       'set 6/file /nest',
       'set 6/vfstype nfs',
       'set 6/opt[1] x-systemd.automount',
-      'set 6/opt[2] x-systemd.requires',
-      'set 6/opt[2]/value openvpn-client@nest.service',
-      'set 6/dump 0',
-      'set 6/passno 0',
-    ],
 
-    'nest-novpn' => [
-      "set 6/spec ${nest::nestfs_hostname}:/nest",
-      'set 6/file /nest',
-      'set 6/vfstype nfs',
-      'set 6/opt[1] x-systemd.automount',
+      $nest::vpn_client ? {
+        true    => [
+          'set 6/opt[2] x-systemd.requires',
+          'set 6/opt[2]/value openvpn-client@nest.service',
+        ],
+        default => [],
+      },
+
       'set 6/dump 0',
       'set 6/passno 0',
     ],
@@ -104,26 +109,21 @@ class nest::base::fstab {
       'set 7/file /falcon',
       'set 7/vfstype nfs',
       'set 7/opt[1] x-systemd.automount',
-      'set 7/opt[2] x-systemd.requires',
-      'set 7/opt[2]/value openvpn-client@nest.service',
-      'set 7/dump 0',
-      'set 7/passno 0',
-    ],
 
-    'falcon-novpn' => [
-      'set 7/spec falcon.nest:/falcon',
-      'set 7/file /falcon',
-      'set 7/vfstype nfs',
-      'set 7/opt[1] x-systemd.automount',
+      $nest::vpn_client ? {
+        true    => [
+          'set 7/opt[2] x-systemd.requires',
+          'set 7/opt[2]/value openvpn-client@nest.service',
+        ],
+        default => [],
+      },
+
       'set 7/dump 0',
       'set 7/passno 0',
     ],
   }
 
-  if $trusted['extensions']['pp_cluster'] == 'eyrie' {
-    $nest_spec   = 'nest-novpn'
-    $falcon_spec = 'falcon-novpn'
-  } elsif $nest::fscache {
+  if $nest::fscache {
     $nest_spec   = 'nest-fscache'
     $falcon_spec = 'falcon'
   } else {
@@ -143,7 +143,7 @@ class nest::base::fstab {
 
   augeas { 'fstab':
     context => '/files/etc/fstab',
-    changes => ['rm *[spec]'] + $fstab,
+    changes => ['rm *[spec]'] + $fstab.flatten,
   }
 
   # XXX: Hide harmless error at shutdown when trying to unmount /var due to

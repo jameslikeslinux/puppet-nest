@@ -1,0 +1,20 @@
+---
+description: 'Deploy a Wordpress instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+
+steps:
+  - description: 'Deploy the instance'
+    plan: nest::kubernetes::helm_deploy
+    parameters:
+      release: $name
+      chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
+      wait: true
+
+  - description: 'Restore the instance'
+    plan: nest::eyrie::restore_wordpress
+    parameters:
+      name: $name

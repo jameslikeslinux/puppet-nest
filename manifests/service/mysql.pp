@@ -1,4 +1,6 @@
-class nest::service::mysql {
+class nest::service::mysql (
+  Sensitive $root_password,
+) {
   class { 'mysql::client':
     package_manage => false,
   }
@@ -14,6 +16,7 @@ class nest::service::mysql {
           'ssl-key'           => undef,
         },
       },
+      root_password    => $root_password,
       service_name     => 'mysqld',
       service_provider => 'systemd',
     }

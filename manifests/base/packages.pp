@@ -39,7 +39,7 @@ class nest::base::packages {
           ensure => installed,
         }
 
-        unless defined(Package['virtual/mysql']) {
+        unless defined(Package['virtual/mysql']) { # mysql module
           nest::lib::package { 'dev-db/mariadb':
             ensure => installed,
             use    => '-server',

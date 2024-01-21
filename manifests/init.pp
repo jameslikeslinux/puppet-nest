@@ -26,6 +26,7 @@ class nest (
   Boolean $openvpn        = false,
   Boolean $puppet         = true,
   Boolean $public_ssh     = false,
+  Boolean $vpn_client     = true,
 
   # System settings
   Enum['off', 'sway', 'xmonad']  $autologin           = xmonad,

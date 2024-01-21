@@ -1,26 +1,23 @@
----
-resources:
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: "%{nest::bolt::helm_release}-registry-auths"
-    data:
-      .dockerconfigjson: "%{nest::bolt::registry_auths}"
-    type: kubernetes.io/dockerconfigjson
+--- {}
+# resources:
+#   - apiVersion: v1
+#     kind: Secret
+#     metadata:
+#       name: "%{nest::bolt::helm_release}-registry-auths"
+#     data:
+#       .dockerconfigjson: "%{nest::bolt::registry_auths}"
+#     type: kubernetes.io/dockerconfigjson
 
-values:
-  extraVolumes:
-  - name: bolt-config
-    hostPath:
-      path: '/etc/puppetlabs/bolt'
-      type: Directory
-  - name: james-ssh-key
-    hostPath:
-      path: '/home/james/.ssh/id_ed25519'
-      type: File
-  mariadb:
-    auth:
-      password: "%{lookup('nest::service::wordpress::database_passwords.portfolio')}"
+# values:
+#   extraVolumes:
+#   - name: bolt-config
+#     hostPath:
+#       path: '/etc/puppetlabs/bolt'
+#       type: Directory
+#   - name: james-ssh-key
+#     hostPath:
+#       path: '/home/james/.ssh/id_ed25519'
+#       type: File
 
 # patches:
 #   - patch: |
