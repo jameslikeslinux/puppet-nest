@@ -24,6 +24,7 @@ plan nest::wordpress::restore (
   $restore_cmd = [
     'rsync', '-av', '--delete',
     '--exclude', 'wordpress.sql',
+    '--filter', 'P wp-config.php',
     "falcon:/nest/backup/${name}/",
     $wp_root,
   ].flatten.shellquote

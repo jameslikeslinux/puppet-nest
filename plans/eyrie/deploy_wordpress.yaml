@@ -6,10 +6,16 @@ parameters:
     description: 'Instance name'
     type: String
 
+  namespace:
+    description: 'Kubernetes namespace'
+    type: String
+    default: 'default'
+
 steps:
   - description: 'Deploy the instance'
     plan: nest::kubernetes::helm_deploy
     parameters:
+      namespace: $namespace
       release: $name
       chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
       wait: true
