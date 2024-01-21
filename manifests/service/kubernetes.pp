@@ -144,8 +144,12 @@ class nest::service::kubernetes (
     ;
 
     # Allow pods to access cluster services
-    'calico':
+    'pods-to-cluster':
       source => '192.168.0.0/16',
+      dest   => '10.96.0.0/12';
+    'pods-to-lb':
+      source => '192.168.0.0/16',
+      dest   => '172.21.0.0/16',
     ;
 
     # Allow external access
