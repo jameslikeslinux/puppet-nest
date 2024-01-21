@@ -13,7 +13,7 @@ plan nest::wordpress::backup (
   $password = lookup('nest::service::wordpress::database_passwords')[$name]
 
   run_plan('nest::mariadb::backup', {
-    'targets'     => $targets,
+    'targets'     => get_targets($targets),
     'host'        => $db_host,
     'name'        => $name,
     'user'        => $name,

@@ -14,7 +14,7 @@ resources:
       name: "%{nest::bolt::helm_release}-backup"
       namespace: "%{nest::bolt::helm_namespace}"
     spec:
-      schedule: '*/5 * * * *'
+      schedule: '0 5 * * *'
       jobTemplate:
         spec:
           template:
@@ -36,9 +36,14 @@ resources:
                     - name: bolt-config
                       mountPath: '/etc/puppetlabs/bolt'
                       readOnly: true
+                    - name: eyaml-config
+                      mountPath: '/etc/eyaml'
+                      readOnly: true
                     - name: james-ssh-key
                       mountPath: '/home/james/.ssh/id_ed25519'
                       readOnly: true
+                    - name: nest
+                      mountPath: '/nest'
               imagePullSecrets:
                 - name: "%{nest::bolt::helm_release}-registry-auths"
               restartPolicy: OnFailure
@@ -50,10 +55,18 @@ resources:
                   hostPath:
                     path: '/etc/puppetlabs/bolt'
                     type: Directory
+                - name: eyaml-config
+                  hostPath:
+                    path: '/etc/eyaml'
+                    type: Directory
                 - name: james-ssh-key
                   hostPath:
                     path: '/home/james/.ssh/id_ed25519'
                     type: File
+                - name: nest
+                  hostPath:
+                    path: '/nest'
+                    type: Directory
 
 values:
   podSecurityContext:
