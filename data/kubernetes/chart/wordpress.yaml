@@ -14,9 +14,10 @@ resources:
       name: "%{nest::bolt::helm_release}-backup"
       namespace: "%{nest::bolt::helm_namespace}"
     spec:
-      schedule: '0 5 * * *'
+      schedule: '0 */3 * * *'
       jobTemplate:
         spec:
+          ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
           template:
             spec:
               containers:
@@ -24,14 +25,14 @@ resources:
                   image: registry.gitlab.james.tl/nest/puppet:cortex-a53
                   imagePullPolicy: Always
                   command:
-                    - 'bolt'
-                    - 'plan'
-                    - 'run'
-                    - 'nest::eyrie::backup_wordpress'
-                    - "name=%{nest::bolt::helm_release}"
+                    - 'zsh'
+                    - '-c'
+                    - 'eval $(ssh-agent -s) &&
+                      ssh-add &&
+                      bolt plan run nest::eyrie::backup_wordpress name=%{nest::bolt::helm_release}'
                   env:
-                    - name: HOME
-                      value: '/home/james'
+                    - name: KUBECONFIG
+                      value: '/nest/home/kubeconfigs/eyrie.conf'
                   volumeMounts:
                     - name: bolt-config
                       mountPath: '/etc/puppetlabs/bolt'
@@ -46,7 +47,7 @@ resources:
                       mountPath: '/nest'
               imagePullSecrets:
                 - name: "%{nest::bolt::helm_release}-registry-auths"
-              restartPolicy: OnFailure
+              restartPolicy: Never
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

@@ -13,7 +13,7 @@ plan nest::wordpress::backup (
   $password = lookup('nest::service::wordpress::database_passwords')[$name]
 
   run_plan('nest::mariadb::backup', {
-    'targets'     => get_targets($targets),
+    'targets'     => $targets,
     'host'        => $db_host,
     'name'        => $name,
     'user'        => $name,
@@ -23,8 +23,9 @@ plan nest::wordpress::backup (
 
   $backup_cmd = [
     'rsync', '-av', '--delete',
-    "${wp_root}/wp-content/",
-    "falcon:/nest/backup/${name}/wp-content",
+    '--exclude', 'wordpress.sql',
+    "${wp_root}/",
+    "falcon:/nest/backup/${name}",
   ].flatten.shellquote
 
   run_command($backup_cmd, $targets, 'rsync')
