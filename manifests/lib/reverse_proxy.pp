@@ -7,6 +7,7 @@ define nest::lib::reverse_proxy (
   Boolean                  $preserve_host   = false,
   String                   $servername      = $name,
   Array[String]            $serveraliases   = [],
+  Boolean                  $serve_local     = false,
   Boolean                  $ssl             = true,
   Optional[Integer]        $timeout         = undef,
   Variant[Boolean, String] $websockets      = false,
@@ -16,12 +17,14 @@ define nest::lib::reverse_proxy (
     $balancer = ''
   } else {
     $url      = "balancer://${name}/"
-    $members  = $destination.map |$d| { "  BalancerMember http://${d}" }
+    $members  = $destination.map |$d| { "    BalancerMember http://${d}" }
     $balancer = @("BALANCER")
       <Proxy balancer://${name}>
       ${members.join("\n")}
-      </Proxy>
-      | BALANCER
+        </Proxy>
+
+        
+      |- BALANCER
   }
 
   if $encoded_slashes {
@@ -32,6 +35,26 @@ define nest::lib::reverse_proxy (
     $allow_encoded_slashes = off
   }
 
+  if $serve_local {
+    $proxy_path     = '/_backend_/'
+    $proxy_rewrites = {
+      rewrites => [
+        { 'rewrite_base' => '/' },
+        { 'rewrite_rule' => ['^$ /_backend_/ [L]'] },
+        {
+          'rewrite_cond' => [
+            '%{REQUEST_FILENAME} !-f',
+            '%{REQUEST_FILENAME} !-d',
+          ],
+          'rewrite_rule' => ['^(.*) /_backend_/$1 [L]'],
+        },
+      ]
+    }
+  } else {
+    $proxy_path     = '/'
+    $proxy_rewrites = {}
+  }
+
   if $timeout {
     $proxy_params = { 'timeout' => $timeout }
   } else {
@@ -39,11 +62,18 @@ define nest::lib::reverse_proxy (
   }
 
   $proxy_pass = [{
-    'path'     => '/',
+    'path'     => $proxy_path,
     'url'      => $url,
     'keywords' => $proxy_pass_keywords,
     'params'   => $proxy_params,
   }]
+
+  $directories = [
+    {
+      'path'     => "/srv/www/${servername}",
+      'options'  => ['Indexes', 'FollowSymLinks', 'MultiViews'],
+    } + $proxy_rewrites,
+  ]
 
   if $websockets {
     include 'apache::mod::proxy_wstunnel'
@@ -63,10 +93,10 @@ define nest::lib::reverse_proxy (
 
   $certbot_exception = @(EOT)
     <Location "/.well-known">
-      AllowOverride None
-      Require all granted
-      ProxyPass !
-    </Location>
+        AllowOverride None
+        Require all granted
+        ProxyPass !
+      </Location>
     | EOT
 
   nest::lib::virtual_host { $name:
@@ -78,6 +108,7 @@ define nest::lib::reverse_proxy (
     zfs_docroot   => false,
     extra_params  => {
       'allow_encoded_slashes' => $allow_encoded_slashes,
+      'directories'           => $directories,
       'proxy_pass'            => $proxy_pass,
       'proxy_preserve_host'   => $preserve_host,
       'rewrites'              => $websocket_rewrites,
