@@ -1,4 +1,7 @@
 ---
+default:
+  interruptible: true
+
 stages:
   - 'Test'
   - 'Build'
