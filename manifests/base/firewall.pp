@@ -1,7 +1,7 @@
 class nest::base::firewall {
   case $facts['os']['family'] {
     'Gentoo': {
-      if $facts['networking']['interfaces'] {
+      if $facts['networking']['interfaces'] and !defined(Class['nest::service::kubernetes']) {
         # Keep this filter list in sync with systemd-networkd's 20-ethernet.network
         $external_interfaces = $nest::external_interfaces.reduce(
           $facts['networking']['interfaces'].keys.filter |$i| {

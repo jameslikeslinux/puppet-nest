@@ -58,14 +58,16 @@ class nest::service::kubernetes (
 
   # Allow forwarding and control access between networks used by Kubernetes
   firewalld_zone { 'kubernetes':
-    ensure  => present,
-    sources => [
+    ensure     => present,
+    interfaces => $nest::external_interfaces,
+    masquerade => true,
+    sources    => [
       '10.96.0.0/12',   # K8s service network
       '192.168.0.0/16', # Calico pod network
       '172.22.0.0/24',  # Nest VPN
       "${facts['networking']['network']}/${facts['networking']['netmask']}", # Host pod network
     ],
-    target  => 'default',
+    target     => 'default',
   }
   ->
   exec { 'firewalld-kubernetes-add-forward':
@@ -114,7 +116,6 @@ class nest::service::kubernetes (
     # Allow pods to access cluster services
     'calico':
       source => '192.168.0.0/16',
-      dest   => '10.96.0.0/12',
     ;
 
     # Allow external access

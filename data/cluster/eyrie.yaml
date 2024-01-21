@@ -4,6 +4,8 @@ classes:
   - 'nest::service::kubernetes'
   - 'nest::tool::bolt'
 
+nest::external_interfaces: ['end0']
+
 # Avoid trashing SD cards
 nest::journal: volatile
 
