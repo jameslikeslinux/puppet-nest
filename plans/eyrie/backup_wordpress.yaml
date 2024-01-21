@@ -1,0 +1,15 @@
+---
+description: 'Backup a Wordpress instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+
+steps:
+  - description: "Backup ${name} Wordpress instance"
+    plan: nest::wordpress::backup
+    parameters:
+      targets: $name
+      name: $name
+      db_host: "${name}-mariadb"

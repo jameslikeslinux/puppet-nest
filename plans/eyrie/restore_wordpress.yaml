@@ -10,6 +10,6 @@ steps:
   - description: "Restore ${name} Wordpress instance"
     plan: nest::wordpress::restore
     parameters:
-      targets: "${name}.eyrie"
+      targets: "${name}.eyrie" # use fqdn; new service might not be in Bolt inventory
       name: $name
       db_host: "${name}-mariadb"
