@@ -19,6 +19,11 @@ class nest::base::dracut {
       omit_dracutmodules+=" zfs "
       kernel_cmdline="rd.live.overlay.overlayfs=1"
       | EOT
+
+    # Install dmsetup(8) for dmsquash-live
+    package { 'sys-fs/lvm2':
+      ensure => installed,
+    }
   } elsif $facts['build'] and $facts['build'] != 'kernel' {
     $base_config_content = ''
   } else {
