@@ -14,7 +14,7 @@ class nest::bolt {
     default => 'default',
   }
 
-  if $helm_chart {
+  if $helm_release {
     $fqdn = "${helm_release}.eyrie"
     $load_balancer_ip = lookup('nest::host_records')[$fqdn]
   } else {

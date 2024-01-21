@@ -28,7 +28,7 @@ plan nest::kubernetes::deploy_dashboard (
 
   unless $has_token {
     $get_token_cmd = 'kubectl get secret james-token -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d'
-    $token = run_command($get_token_cmd, 'localhost', 'Get admin auth token').first.value['stdout'].chomp
+    $token = run_command($get_token_cmd, 'localhost', 'Get admin auth token').first.value['stdout']
 
     $edit_kubeconfig_cmd = "echo '    token: ${token}' >> \$KUBECONFIG"
     run_command($edit_kubeconfig_cmd, 'localhost', 'Add token to the kubeconfig')

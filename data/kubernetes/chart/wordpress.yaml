@@ -1,4 +1,60 @@
 ---
+resources:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::bolt::helm_release}-registry-auths"
+      namespace: "%{nest::bolt::helm_namespace}"
+    data:
+      .dockerconfigjson: "%{nest::bolt::registry_auths}"
+    type: kubernetes.io/dockerconfigjson
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: "%{nest::bolt::helm_release}-backup"
+      namespace: "%{nest::bolt::helm_namespace}"
+    spec:
+      schedule: '*/5 * * * *'
+      jobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nest
+                  image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+                  imagePullPolicy: Always
+                  command:
+                    - 'bolt'
+                    - 'plan'
+                    - 'run'
+                    - 'nest::eyrie::backup_wordpress'
+                    - "name=%{nest::bolt::helm_release}"
+                  env:
+                    - name: HOME
+                      value: '/home/james'
+                  volumeMounts:
+                    - name: bolt-config
+                      mountPath: '/etc/puppetlabs/bolt'
+                      readOnly: true
+                    - name: james-ssh-key
+                      mountPath: '/home/james/.ssh/id_ed25519'
+                      readOnly: true
+              imagePullSecrets:
+                - name: "%{nest::bolt::helm_release}-registry-auths"
+              restartPolicy: OnFailure
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+              volumes:
+                - name: bolt-config
+                  hostPath:
+                    path: '/etc/puppetlabs/bolt'
+                    type: Directory
+                - name: james-ssh-key
+                  hostPath:
+                    path: '/home/james/.ssh/id_ed25519'
+                    type: File
+
 values:
   podSecurityContext:
     fsGroup: 1000
@@ -15,40 +71,40 @@ values:
       password: "%{nest::bolt::wordpress_db_password}"
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
   extraVolumes:
-  - name: nest
-    hostPath:
-      path: '/nest'
-      type: Directory
-  - name: ssh-host-key
-    hostPath:
-      path: '/etc/ssh/ssh_host_ed25519_key'
-      type: File
+    - name: nest
+      hostPath:
+        path: '/nest'
+        type: Directory
+    - name: ssh-host-key
+      hostPath:
+        path: '/etc/ssh/ssh_host_ed25519_key'
+        type: File
   sidecars:
-  - name: nest
-    image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
-    imagePullPolicy: Always
-    command: ['/usr/bin/sshd', '-D', '-e']
-    securityContext:
-      capabilities:
-        add:
-        - SYS_CHROOT  # for sshd
-        - SYS_PTRACE
-    volumeMounts:
-    - mountPath: '/nest'
-      name: nest
-    - mountPath: '/etc/ssh/ssh_host_ed25519_key'
-      name: ssh-host-key
-      readOnly: true
-    - mountPath: '/srv/wordpress'
-      name: wordpress-data
-      subPath: wordpress
-    ports:
-    - name: ssh
-      containerPort: 22
+    - name: nest
+      image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+      imagePullPolicy: Always
+      command: ['/usr/bin/sshd', '-D', '-e']
+      securityContext:
+        capabilities:
+          add:
+          - SYS_CHROOT  # for sshd
+          - SYS_PTRACE
+      volumeMounts:
+        - name: nest
+          mountPath: '/nest'
+        - name: ssh-host-key
+          mountPath: '/etc/ssh/ssh_host_ed25519_key'
+          readOnly: true
+        - name: wordpress-data
+          mountPath: '/srv/wordpress'
+          subPath: wordpress
+      ports:
+        - name: ssh
+          containerPort: 22
   service:
     extraPorts:
-    - name: ssh
-      port: 22
+      - name: ssh
+        port: 22
 
 patches:
   - patch: |
