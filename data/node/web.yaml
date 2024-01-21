@@ -39,6 +39,7 @@ nest::service::reverse_proxy::hosts:
     priority: '20'  # higher priority
     serveraliases: ['www.james.tl']
     serve_local: true
+    timeout: 600
 
   registry.gitlab.james.tl:
     destination: '172.22.0.1:5050'
@@ -55,6 +56,7 @@ nest::service::reverse_proxy::hosts:
     preserve_host: true
     serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
     serve_local: true
+    timeout: 600
 
   vault.thesatelliteoflove.net:
     destination: '127.0.0.1:8080'
