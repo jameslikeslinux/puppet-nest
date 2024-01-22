@@ -65,6 +65,10 @@ nest::service::gitlab_runner::instances:
     dns: '172.22.0.1'
     host: 'gitlab.james.tl'
     cap_add: ['SYS_CHROOT']
+    volumes:
+      - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
+      - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
+      - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
 
   nest:
     dns: '172.22.0.1'
