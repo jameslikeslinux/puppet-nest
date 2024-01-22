@@ -47,7 +47,7 @@ stages:
 
 'Build cortex-a53':
   <<: *template
-  # tags: ['arm64']
+  tags: ['arm64']
   variables:
     CPU: 'cortex-a53'
 
