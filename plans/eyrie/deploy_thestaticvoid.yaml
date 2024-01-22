@@ -1,8 +1,15 @@
 ---
 description: 'Deploy TheStaticVoid blog'
 
+parameters:
+  restore:
+    description: 'Load content and data from backup'
+    type: Boolean
+    default: false
+
 steps:
   - description: 'Deploy thestaticvoid Wordpress instance'
     plan: nest::eyrie::deploy_wordpress
     parameters:
       name: 'thestaticvoid'
+      restore: $restore

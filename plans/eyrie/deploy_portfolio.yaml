@@ -1,8 +1,15 @@
 ---
 description: 'Deploy james.tl portfolio'
 
+parameters:
+  restore:
+    description: 'Load content and data from backup'
+    type: Boolean
+    default: false
+
 steps:
   - description: 'Deploy portfolio Wordpress instance'
     plan: nest::eyrie::deploy_wordpress
     parameters:
       name: 'portfolio'
+      restore: $restore

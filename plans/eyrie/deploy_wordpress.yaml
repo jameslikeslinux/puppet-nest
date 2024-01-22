@@ -11,6 +11,11 @@ parameters:
     type: String
     default: 'default'
 
+  restore:
+    description: 'Load content and data from backup'
+    type: Boolean
+    default: false
+
 steps:
   - description: 'Deploy the instance'
     plan: nest::kubernetes::helm_deploy
@@ -24,3 +29,4 @@ steps:
     plan: nest::eyrie::restore_wordpress
     parameters:
       name: $name
+      restore: $restore

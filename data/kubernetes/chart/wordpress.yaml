@@ -15,6 +15,7 @@ resources:
       namespace: "%{nest::bolt::helm_namespace}"
     spec:
       schedule: '0 */3 * * *'
+      timeZone: 'America/New_York'
       jobTemplate:
         spec:
           ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
