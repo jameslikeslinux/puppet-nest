@@ -67,7 +67,7 @@ class nest::service::gitlab (
   }
   ->
   nest::lib::container { 'gitlab':
-    image   => 'gitlab/gitlab-ce',
+    image   => 'nest/forks/gitlab',
     cap_add => ['SYS_CHROOT'],
     env     => ["GITLAB_OMNIBUS_CONFIG=from_file('/omnibus_config.rb')"],
     publish => $publish,
