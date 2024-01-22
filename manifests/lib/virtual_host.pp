@@ -1,5 +1,6 @@
 define nest::lib::virtual_host (
   String                 $servername,
+  String                 $docroot       = "/srv/www/${servername}",
   Hash[String, Any]      $extra_params  = {},
   Optional[Nest::IPList] $ip            = undef,
   Optional[Integer]      $port          = undef,
@@ -34,8 +35,10 @@ define nest::lib::virtual_host (
 
   ensure_resource('apache::listen', $http_port, {})
 
-  nest::lib::srv { "www/${servername}":
-    zfs => $zfs_docroot,
+  if $docroot == "/srv/www/${servername}" {
+    nest::lib::srv { "www/${servername}":
+      zfs => $zfs_docroot,
+    }
   }
 
   if $ssl {
@@ -58,12 +61,11 @@ define nest::lib::virtual_host (
         ip              => $ip,
         port            => 80,
         add_listen      => false,
-        docroot         => "/srv/www/${servername}",
+        docroot         => $docroot,
         docroot_owner   => 'james',
         docroot_group   => 'users',
         redirect_status => 'permanent',
         redirect_dest   => "https://${servername}/",
-        require         => Nest::Lib::Srv["www/${servername}"],
       }
     }
   } else {
@@ -79,10 +81,9 @@ define nest::lib::virtual_host (
     servername    => $servername,
     ip            => $ip,
     add_listen    => false,
-    docroot       => "/srv/www/${servername}",
+    docroot       => $docroot,
     docroot_owner => 'james',
     docroot_group => 'users',
-    require       => Nest::Lib::Srv["www/${servername}"],
     *             => $vhost_params + $extra_params,
   }
 
@@ -93,12 +94,11 @@ define nest::lib::virtual_host (
       serveraliases   => $serveraliases[1, -1],
       ip              => $ip,
       add_listen      => false,
-      docroot         => "/srv/www/${servername}",
+      docroot         => $docroot,
       docroot_owner   => 'james',
       docroot_group   => 'users',
       redirect_status => 'permanent',
       redirect_dest   => "${vhost_redirect_proto}://${servername}${vhost_redirect_port}/",
-      require         => Nest::Lib::Srv["www/${servername}"],
       *               => $vhost_params,
     }
   }

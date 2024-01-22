@@ -12,6 +12,7 @@ define nest::lib::reverse_proxy (
   Boolean                  $ssl             = true,
   Optional[Integer]        $timeout         = undef,
   Variant[Boolean, String] $websockets      = false,
+  String                   $docroot         = "/srv/www/${servername}",
 ) {
   if $destination =~ String {
     $url      = "http://${destination}/"
@@ -71,7 +72,7 @@ define nest::lib::reverse_proxy (
 
   $directories = [
     {
-      'path'     => "/srv/www/${servername}",
+      'path'     => $docroot,
       'options'  => ['Indexes', 'FollowSymLinks', 'MultiViews'],
     } + $proxy_rewrites,
   ]
@@ -101,6 +102,7 @@ define nest::lib::reverse_proxy (
     | EOT
 
   nest::lib::virtual_host { $name:
+    docroot       => $docroot,
     priority      => $priority,
     servername    => $servername,
     serveraliases => $serveraliases,
