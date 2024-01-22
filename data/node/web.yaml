@@ -35,7 +35,6 @@ nest::service::reverse_proxy::hosts:
   james.tl:
     destination: 'portfolio.eyrie'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
-    preserve_host: true
     priority: '20'  # higher priority
     serveraliases: ['www.james.tl']
     serve_local: true
@@ -53,7 +52,6 @@ nest::service::reverse_proxy::hosts:
   thestaticvoid.com:
     destination: 'thestaticvoid.eyrie'
     ip: ['104.156.227.40', '2001:19f0:300:2005::40']
-    preserve_host: true
     serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
     serve_local: true
     timeout: 600
