@@ -12,25 +12,11 @@ class nest::base::users {
         ensure => installed,
       }
 
-      file_line { 'useradd-group':
-        path  => '/etc/default/useradd',
-        line  => 'GROUP=1000',
-        match => '^GROUP=',
-      }
-
       group {
-        'users':
-          gid     => '1000',
-          require => File_line['useradd-group'],
-        ;
-
+        'james':
+          gid => '1000';
         'media':
           gid => '1001',
-        ;
-
-        # XXX Cleanup deprecated service group
-        'bitwarden':
-          ensure => absent,
         ;
       }
 
@@ -62,7 +48,7 @@ class nest::base::users {
 
         'james':
           uid      => '1000',
-          gid      => 'users',
+          gid      => 'james',
           groups   => ['wheel'],
           home     => '/home/james',
           comment  => 'James Lee',
@@ -77,24 +63,6 @@ class nest::base::users {
           home    => '/dev/null',
           comment => 'Media Services',
           shell   => '/sbin/nologin',
-        ;
-
-        # XXX Cleanup deprecated service users
-        [
-          'ombi',
-          'couchpotato',
-          'nzbget',
-          'radarr',
-          'sonarr',
-          'transmission',
-          'plex',
-        ]:
-          ensure => absent,
-        ;
-
-        'bitwarden':
-          ensure => absent,
-          before => Group['bitwarden'],
         ;
       }
 
@@ -117,7 +85,7 @@ class nest::base::users {
           ensure => directory,
           mode   => '0755',
           owner  => 'james',
-          group  => 'users',
+          group  => 'james',
           before => Vcsrepo['/home/james'],
         ;
       }

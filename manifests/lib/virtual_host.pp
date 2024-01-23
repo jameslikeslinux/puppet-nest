@@ -63,7 +63,7 @@ define nest::lib::virtual_host (
         add_listen      => false,
         docroot         => $docroot,
         docroot_owner   => 'james',
-        docroot_group   => 'users',
+        docroot_group   => 'james',
         redirect_status => 'permanent',
         redirect_dest   => "https://${servername}/",
       }
@@ -83,7 +83,7 @@ define nest::lib::virtual_host (
     add_listen    => false,
     docroot       => $docroot,
     docroot_owner => 'james',
-    docroot_group => 'users',
+    docroot_group => 'james',
     *             => $vhost_params + $extra_params,
   }
 
@@ -96,7 +96,7 @@ define nest::lib::virtual_host (
       add_listen      => false,
       docroot         => $docroot,
       docroot_owner   => 'james',
-      docroot_group   => 'users',
+      docroot_group   => 'james',
       redirect_status => 'permanent',
       redirect_dest   => "${vhost_redirect_proto}://${servername}${vhost_redirect_port}/",
       *               => $vhost_params,
