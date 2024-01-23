@@ -15,6 +15,11 @@ class nest::tool::bolt (
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }
+
+    # For vaultwarden token hashing
+    package { 'app-crypt/argon2':
+      ensure => installed,
+    }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file {
       default:

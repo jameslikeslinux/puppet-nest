@@ -20,10 +20,13 @@ plan nest::kubernetes::helm_deploy (
   Optional[String] $repo_url    = undef,
   Optional[String] $version     = undef,
   Boolean          $wait        = false,
-  Hash             $subcharts   = {},
+  Array[Hash]      $subcharts   = [],
+  Optional[String] $parent      = undef,
 ) {
-  $subcharts.each |$subrelease, $params| {
-    run_plan('nest::kubernetes::helm_deploy', $params + {
+  $subcharts.each |$subchart| {
+    run_plan('nest::kubernetes::helm_deploy', $subchart + {
+      parent    => $release,
+      namespace => $namespace,
       render_to => '/tmp/kustomize/subcharts.yaml',
       append    => true,
     })
@@ -41,6 +44,7 @@ plan nest::kubernetes::helm_deploy (
     $helm_release   = $release
     $helm_chart     = $chart.basename
     $helm_namespace = $namespace
+    $helm_parent    = $parent
 
     include nest::bolt # for lookups
 
@@ -95,7 +99,7 @@ plan nest::kubernetes::helm_deploy (
       default => ['--version', $version],
     },
 
-    $wait ? {
+    ($wait and !$render_to) ? {
       true    => ['--wait', '--timeout', '1h'],
       default => [],
     },

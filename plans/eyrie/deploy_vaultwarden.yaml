@@ -1,0 +1,38 @@
+---
+description: 'Deploy a Vaultwarden instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+    default: 'bitwarden'
+
+  namespace:
+    description: 'Kubernetes namespace'
+    type: String
+    default: 'default'
+
+  restore:
+    description: 'Load content and data from backup'
+    type: Boolean
+    default: false
+
+steps:
+  - description: 'Deploy the instance'
+    plan: nest::kubernetes::helm_deploy
+    parameters:
+      namespace: $namespace
+      release: $name
+      chart: 'vaultwarden'
+      repo_name: 'guerzon'
+      repo_url: 'https://guerzon.github.io/vaultwarden'
+      subcharts:
+        - release: "${name}-mariadb"
+          chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
+      wait: true
+
+  - description: 'Restore the instance'
+    plan: nest::eyrie::restore_vaultwarden
+    parameters:
+      name: $name
+      restore: $restore

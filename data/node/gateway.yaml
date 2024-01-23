@@ -39,9 +39,9 @@ nest::service::reverse_proxy::hosts:
     serveraliases: ['requests.heloandnala.net']
 
   vault.thesatelliteoflove.net:
-    destination: '127.0.0.1:8080'
+    destination: 'bitwarden.eyrie'
     ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
-    websockets: '127.0.0.1:3012'
+    websockets: 'bitwarden.eyrie:3012'
 
   # Wordpress sites
   james.tl:

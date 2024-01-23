@@ -1,0 +1,20 @@
+---
+description: 'Restore a Vaultwarden instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+  restore:
+    description: 'Safety gate'
+    type: Boolean
+    default: false
+
+steps:
+  - description: "Restore Vaultwarden instance"
+    plan: nest::vaultwarden::restore
+    parameters:
+      targets: "${name}.eyrie" # use fqdn; new service might not be in Bolt inventory
+      name: $name
+      db_host: "${name}-mariadb"
+      restore: $restore

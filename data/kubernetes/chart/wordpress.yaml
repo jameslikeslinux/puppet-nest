@@ -83,7 +83,7 @@ values:
     auth:
       database: "%{nest::bolt::helm_release}"
       username: "%{nest::bolt::helm_release}"
-      password: "%{nest::bolt::wordpress_db_password}"
+      password: "%{nest::bolt::db_password}"
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
   extraVolumes:
     - name: nest
@@ -102,8 +102,8 @@ values:
       securityContext:
         capabilities:
           add:
-          - SYS_CHROOT  # for sshd
-          - SYS_PTRACE
+            - SYS_CHROOT  # for sshd
+            - SYS_PTRACE
       volumeMounts:
         - name: nest
           mountPath: '/nest'

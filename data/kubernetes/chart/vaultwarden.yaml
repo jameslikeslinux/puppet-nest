@@ -1,0 +1,82 @@
+---
+resources:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::bolt::helm_release}-secrets"
+      namespace: "%{nest::bolt::helm_namespace}"
+    data:
+      database-url: "%{nest::bolt::vaultwarden_db_url}"
+
+values:
+  adminToken:
+    value: "%{nest::bolt::vaultwarden_admin_token_hash}"
+  data:
+    name: vaultwarden-data
+    size: 10Gi
+  database:
+    type: mysql
+    existingSecret: "%{nest::bolt::helm_release}-secrets"
+    existingSecretKey: database-url
+  smtp:
+    host: smtp.gmail.com
+    username:
+      value: system@james.tl
+    password:
+      value: "%{lookup('nest::service::bitwarden::smtp_password')}"
+  service:
+    type: LoadBalancer
+
+patches:
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "%{nest::bolt::helm_release}-vaultwarden"
+        namespace: "%{nest::bolt::helm_namespace}"
+      spec:
+        template:
+          spec:
+            containers:
+              - name: nest
+                image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+                imagePullPolicy: Always
+                command: ['/usr/bin/sshd', '-D', '-e']
+                securityContext:
+                  capabilities:
+                    add:
+                      - SYS_CHROOT  # for sshd
+                      - SYS_PTRACE
+                volumeMounts:
+                  - name: nest
+                    mountPath: '/nest'
+                  - name: ssh-host-key
+                    mountPath: '/etc/ssh/ssh_host_ed25519_key'
+                    readOnly: true
+                  - name: vaultwarden-data
+                    mountPath: '/srv/vaultwarden/data'
+                ports:
+                  - name: ssh
+                    containerPort: 22
+            shareProcessNamespace: true
+            volumes:
+              - name: nest
+                hostPath:
+                  path: '/nest'
+                  type: Directory
+              - name: ssh-host-key
+                hostPath:
+                  path: '/etc/ssh/ssh_host_ed25519_key'
+                  type: File
+  - patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "%{nest::bolt::helm_release}-vaultwarden"
+        namespace: "%{nest::bolt::helm_namespace}"
+        labels:
+          'james.tl/nest': 'stage1'
+      spec:
+        ports:
+          - name: ssh
+            port: 22

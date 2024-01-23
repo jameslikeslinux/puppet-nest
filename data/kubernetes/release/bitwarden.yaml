@@ -1,0 +1,9 @@
+---
+values:
+  domain: https://vault.thesatelliteoflove.net
+  ipHeader: X-Forwarded-For
+  invitationOrgName: Bitwarden
+  signupsAllowed: false
+  smtp:
+    fromName: Bitwarden
+    from: bitwarden@thesatelliteoflove.net

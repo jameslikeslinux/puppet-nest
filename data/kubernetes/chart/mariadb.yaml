@@ -1,0 +1,7 @@
+---
+values:
+  auth:
+    database: "%{nest::bolt::helm_parent}"
+    username: "%{nest::bolt::helm_parent}"
+    password: "%{nest::bolt::db_password}"
+    rootPassword: "%{lookup('nest::service::mysql::root_password')}"

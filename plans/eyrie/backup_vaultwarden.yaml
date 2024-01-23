@@ -1,0 +1,15 @@
+---
+description: 'Backup a Vaultwarden instance'
+
+parameters:
+  name:
+    description: 'Instance name'
+    type: String
+
+steps:
+  - description: "Backup ${name} Vaultwarden instance"
+    plan: nest::vaultwarden::backup
+    parameters:
+      targets: $name
+      name: $name
+      db_host: "${name}-mariadb"
