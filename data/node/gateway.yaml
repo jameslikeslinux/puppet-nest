@@ -49,7 +49,6 @@ nest::service::reverse_proxy::hosts:
     docroot: '/nest/www/james.tl'
     ip: ['96.30.196.9', '2001:19f0:5401:e44::9']
     priority: '20'  # higher priority
-    serveraliases: ['www.james.tl']
     serve_local: true
     timeout: 600
 
