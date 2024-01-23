@@ -27,6 +27,7 @@ class nest::service::gitlab_runner (
       ensure => $runner_ensure,
       ignore => ['config.toml', '.runner_system_id'],
       purge  => true,
+      notify => Exec['gitlab-runner-unregister-all'], # unregister purged instances
     }
 
     $instances.each |$instance, $attributes| {
