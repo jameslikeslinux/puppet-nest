@@ -1,6 +1,6 @@
 class nest::tool::pdk {
   if $facts['build'] == 'pdk' {
-    $pdk_version        = '3.0.0'
+    $pdk_version        = '3.0.1'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
     package { 'pdk':
@@ -13,12 +13,6 @@ class nest::tool::pdk {
       path  => "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/pdk-${pdk_version}/lib/pdk/util/ruby_version.rb",
       line  => '[bundler_basedir]',
       match => 'absolute_path.*join.*bundler_basedir',
-    }
-
-    # Missing dependency in 3.0.0
-    package { 'locale':
-      ensure   => installed,
-      provider => gem,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file { '/usr/local/bin/pdk':
