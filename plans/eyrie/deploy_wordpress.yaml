@@ -23,7 +23,7 @@ steps:
       namespace: $namespace
       release: $name
       chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
-      wait: true
+      wait: $restore
 
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_wordpress

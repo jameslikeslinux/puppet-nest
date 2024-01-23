@@ -29,7 +29,7 @@ steps:
       subcharts:
         - release: "${name}-mariadb"
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
-      wait: true
+      wait: $restore
 
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_vaultwarden
