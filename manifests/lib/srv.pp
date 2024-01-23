@@ -1,8 +1,11 @@
 define nest::lib::srv (
-  Optional[String] $mode  = undef,
-  Optional[String] $owner = undef,
-  Optional[String] $group = undef,
-  Boolean          $zfs   = true,
+  Nest::Ensure     $ensure = 'present',
+  Optional[String] $mode   = undef,
+  Optional[String] $owner  = undef,
+  Optional[String] $group  = undef,
+  Optional[Array]  $ignore = undef,
+  Boolean          $purge  = false,
+  Boolean          $zfs    = true,
 ) {
   unless $facts['is_container'] {
     ensure_resource('zfs', 'srv', {
@@ -13,6 +16,7 @@ define nest::lib::srv (
 
     if $zfs {
       zfs { "srv/${name}":
+        ensure     => $ensure,
         name       => "${facts['rpool']}/srv/${name}",
         mountpoint => "/srv/${name}",
         require    => Zfs['srv'],
@@ -28,10 +32,29 @@ define nest::lib::srv (
     group  => 'root',
   })
 
-  file { "/srv/${name}":
-    ensure => directory,
-    mode   => $mode,
-    owner  => $owner,
-    group  => $group,
+  if $ensure == present {
+    if $purge {
+      $purge_args = {
+        ignore  => $ignore,
+        purge   => $purge,
+        recurse => true,
+        force   => true,
+      }
+    } else {
+      $purge_args = {}
+    }
+
+    file { "/srv/${name}":
+      ensure => directory,
+      mode   => $mode,
+      owner  => $owner,
+      group  => $group,
+      *      => $purge_args,
+    }
+  } else {
+    file { "/srv/${name}":
+      ensure => absent,
+      force  => true,
+    }
   }
 }

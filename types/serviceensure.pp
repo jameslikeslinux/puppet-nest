@@ -1,1 +1,1 @@
-type Nest::ServiceEnsure = Enum['running', 'enabled', 'present', 'disabled', 'stopped', 'absent']
+type Nest::ServiceEnsure = Variant[Nest::Ensure, Enum['running', 'enabled', 'disabled', 'stopped']]

@@ -60,19 +60,22 @@ nest::service::gitlab::https: true
 nest::service::gitlab::web_port: 8000
 nest::service::gitlab::default_theme: 2
 
+nest::service::gitlab_runner::dns: '172.22.0.1'
 nest::service::gitlab_runner::instances:
   shared:
-    dns: '172.22.0.1'
     host: 'gitlab.james.tl'
     cap_add: ['SYS_CHROOT']
+    run_untagged: true
+    tag_list: ['amd64', 'arm64', 'falcon']
     volumes:
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
+    zfs: true
 
   nest:
-    dns: '172.22.0.1'
     host: 'gitlab.james.tl'
+    limit: 2
     privileged: true
     security_options: ['seccomp=unconfined']
     tag_list: ['nest', 'amd64', 'falcon']
@@ -85,7 +88,6 @@ nest::service::gitlab_runner::instances:
     zfs: true
 
   r10k:
-    dns: '172.22.0.1'
     default_image: 'registry.gitlab.james.tl/nest/tools/r10k:haswell'
     host: 'gitlab.james.tl'
     tag_list: ['r10k']

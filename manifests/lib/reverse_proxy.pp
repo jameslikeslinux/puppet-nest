@@ -50,7 +50,7 @@ define nest::lib::reverse_proxy (
           ],
           'rewrite_rule' => ['^(.*) /_backend_/$1 [L]'],
         },
-      ]
+      ],
     }
   } else {
     $proxy_path     = '/'

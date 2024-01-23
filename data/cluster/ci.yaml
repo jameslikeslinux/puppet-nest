@@ -4,10 +4,17 @@ classes:
 
 nest::distcc_server: true
 
+nest::service::gitlab_runner::dns: '172.22.0.1'
 nest::service::gitlab_runner::instances:
-  nest:
-    dns: '172.22.0.1'
+  shared:
     host: 'gitlab.james.tl'
+    cap_add: ['SYS_CHROOT']
+    tag_list: ["%{facts.profile.architecture}", "%{trusted.certname}"]
+    zfs: true
+
+  nest:
+    host: 'gitlab.james.tl'
+    limit: 2
     privileged: true
     security_options: ['seccomp=unconfined']
     tag_list: ['nest', "%{facts.profile.architecture}", "%{trusted.certname}"]
