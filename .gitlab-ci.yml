@@ -28,8 +28,7 @@ stages:
     - 'ssh-add "$SSH_PRIVATE_KEY"'
     - 'mkdir -p debug/usr/lib/debug'
     - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
-    - 'buildah bud --cap-add SYS_PTRACE --security-opt seccomp=unconfined
-                   --build-arg BOLT_TAG="$CPU"
+    - 'buildah bud --build-arg BOLT_TAG="$CPU"
                    --build-arg SSH_AUTH_SOCK="$SSH_AUTH_SOCK"
                    -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
