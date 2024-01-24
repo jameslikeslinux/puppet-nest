@@ -53,8 +53,8 @@ define nest::lib::gitlab_runner (
 
   $zfs_args = $zfs ? {
     true    => [
-      '--docker-cap-add', 'SYS_ADMIN',
       '--docker-devices', '/dev/zfs',
+      '--docker-privileged',
       '--docker-volumes', '/var/lib/containers/storage:/var/lib/containers/storage',
       '--env', 'STORAGE_DRIVER=zfs',
     ],

@@ -26,11 +26,13 @@ stages:
     - 'eval $(ssh-agent -s)'
     - 'chmod 600 "$SSH_PRIVATE_KEY"'
     - 'ssh-add "$SSH_PRIVATE_KEY"'
-    - 'mkdir -p debug/usr/lib/debug'
+    - '[[ $CPU == cortex-* ]] && QEMU_ARCH=aarch64'
+    - '[[ -f "/usr/bin/qemu-${QEMU_ARCH}" ]] && qemu_args="-v /usr/bin/qemu-${QEMU_ARCH}:/usr/bin/qemu-${QEMU_ARCH}:ro"'
     - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
     - 'buildah bud --build-arg BOLT_TAG="$CPU"
                    --build-arg SSH_AUTH_SOCK="$SSH_AUTH_SOCK"
                    -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
+                   $qemu_args
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
