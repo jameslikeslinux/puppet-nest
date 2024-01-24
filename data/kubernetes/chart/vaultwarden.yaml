@@ -7,6 +7,75 @@ resources:
       namespace: "%{nest::kubernetes::helm_namespace}"
     data:
       database-url: "%{nest::kubernetes::vaultwarden_db_url}"
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::kubernetes::helm_release}-registry-auths"
+      namespace: "%{nest::kubernetes::helm_namespace}"
+    data:
+      .dockerconfigjson: "%{nest::kubernetes::registry_auths}"
+    type: kubernetes.io/dockerconfigjson
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: "%{nest::kubernetes::helm_release}-backup"
+      namespace: "%{nest::kubernetes::helm_namespace}"
+    spec:
+      schedule: '0 */3 * * *'
+      timeZone: 'America/New_York'
+      jobTemplate:
+        spec:
+          ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
+          template:
+            spec:
+              containers:
+                - name: nest
+                  image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+                  imagePullPolicy: Always
+                  command:
+                    - 'zsh'
+                    - '-c'
+                    - 'eval $(ssh-agent -s) &&
+                      ssh-add &&
+                      bolt plan run nest::eyrie::backup_vaultwarden name=%{nest::kubernetes::helm_release}'
+                  env:
+                    - name: KUBECONFIG
+                      value: '/nest/home/kubeconfigs/eyrie.conf'
+                  volumeMounts:
+                    - name: bolt-config
+                      mountPath: '/etc/puppetlabs/bolt'
+                      readOnly: true
+                    - name: eyaml-config
+                      mountPath: '/etc/eyaml'
+                      readOnly: true
+                    - name: james-ssh-key
+                      mountPath: '/home/james/.ssh/id_ed25519'
+                      readOnly: true
+                    - name: nest
+                      mountPath: '/nest'
+              imagePullSecrets:
+                - name: "%{nest::kubernetes::helm_release}-registry-auths"
+              restartPolicy: Never
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+              volumes:
+                - name: bolt-config
+                  hostPath:
+                    path: '/etc/puppetlabs/bolt'
+                    type: Directory
+                - name: eyaml-config
+                  hostPath:
+                    path: '/etc/eyaml'
+                    type: Directory
+                - name: james-ssh-key
+                  hostPath:
+                    path: '/home/james/.ssh/id_ed25519'
+                    type: File
+                - name: nest
+                  hostPath:
+                    path: '/nest'
+                    type: Directory
 
 values:
   adminToken:
