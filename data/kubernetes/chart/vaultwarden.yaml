@@ -3,20 +3,20 @@ resources:
   - apiVersion: v1
     kind: Secret
     metadata:
-      name: "%{nest::bolt::helm_release}-secrets"
-      namespace: "%{nest::bolt::helm_namespace}"
+      name: "%{nest::kubernetes::helm_release}-secrets"
+      namespace: "%{nest::kubernetes::helm_namespace}"
     data:
-      database-url: "%{nest::bolt::vaultwarden_db_url}"
+      database-url: "%{nest::kubernetes::vaultwarden_db_url}"
 
 values:
   adminToken:
-    value: "%{nest::bolt::vaultwarden_admin_token_hash}"
+    value: "%{nest::kubernetes::vaultwarden_admin_token_hash}"
   data:
     name: vaultwarden-data
     size: 10Gi
   database:
     type: mysql
-    existingSecret: "%{nest::bolt::helm_release}-secrets"
+    existingSecret: "%{nest::kubernetes::helm_release}-secrets"
     existingSecretKey: database-url
   smtp:
     host: smtp.gmail.com
@@ -32,8 +32,8 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: "%{nest::bolt::helm_release}-vaultwarden"
-        namespace: "%{nest::bolt::helm_namespace}"
+        name: "%{nest::kubernetes::helm_release}-vaultwarden"
+        namespace: "%{nest::kubernetes::helm_namespace}"
       spec:
         template:
           spec:
@@ -72,8 +72,8 @@ patches:
       apiVersion: v1
       kind: Service
       metadata:
-        name: "%{nest::bolt::helm_release}-vaultwarden"
-        namespace: "%{nest::bolt::helm_namespace}"
+        name: "%{nest::kubernetes::helm_release}-vaultwarden"
+        namespace: "%{nest::kubernetes::helm_namespace}"
         labels:
           'james.tl/nest': 'stage1'
       spec:

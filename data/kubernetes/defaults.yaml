@@ -3,10 +3,10 @@ patches:
   - patch: |
       - op: add
         path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
-        value: "%{nest::bolt::load_balancer_ip}"
+        value: "%{nest::kubernetes::load_balancer_ip}"
       - op: add
         path: '/metadata/labels/james.tl~1fqdn'
-        value: "%{nest::bolt::fqdn}"
+        value: "%{nest::kubernetes::fqdn}"
     target:
       version: v1
       kind: Service

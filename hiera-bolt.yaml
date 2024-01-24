@@ -11,12 +11,12 @@ defaults:
 hierarchy:
   - name: 'Helm Release'
     paths:
-      - "bolt-private/kubernetes/release/%{nest::bolt::helm_release}.yaml"
-      - "kubernetes/release/%{nest::bolt::helm_release}.yaml"
+      - "bolt-private/kubernetes/release/%{nest::kubernetes::helm_release}.yaml"
+      - "kubernetes/release/%{nest::kubernetes::helm_release}.yaml"
   - name: 'Helm Chart'
     paths:
-      - "bolt-private/kubernetes/chart/%{nest::bolt::helm_chart}.yaml"
-      - "kubernetes/chart/%{nest::bolt::helm_chart}.yaml"
+      - "bolt-private/kubernetes/chart/%{nest::kubernetes::helm_chart}.yaml"
+      - "kubernetes/chart/%{nest::kubernetes::helm_chart}.yaml"
   - name: 'Kubernetes Defaults'
     paths:
       - "bolt-private/kubernetes/defaults.yaml"

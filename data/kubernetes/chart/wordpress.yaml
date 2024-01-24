@@ -3,16 +3,16 @@ resources:
   - apiVersion: v1
     kind: Secret
     metadata:
-      name: "%{nest::bolt::helm_release}-registry-auths"
-      namespace: "%{nest::bolt::helm_namespace}"
+      name: "%{nest::kubernetes::helm_release}-registry-auths"
+      namespace: "%{nest::kubernetes::helm_namespace}"
     data:
-      .dockerconfigjson: "%{nest::bolt::registry_auths}"
+      .dockerconfigjson: "%{nest::kubernetes::registry_auths}"
     type: kubernetes.io/dockerconfigjson
   - apiVersion: batch/v1
     kind: CronJob
     metadata:
-      name: "%{nest::bolt::helm_release}-backup"
-      namespace: "%{nest::bolt::helm_namespace}"
+      name: "%{nest::kubernetes::helm_release}-backup"
+      namespace: "%{nest::kubernetes::helm_namespace}"
     spec:
       schedule: '0 */3 * * *'
       timeZone: 'America/New_York'
@@ -30,7 +30,7 @@ resources:
                     - '-c'
                     - 'eval $(ssh-agent -s) &&
                       ssh-add &&
-                      bolt plan run nest::eyrie::backup_wordpress name=%{nest::bolt::helm_release}'
+                      bolt plan run nest::eyrie::backup_wordpress name=%{nest::kubernetes::helm_release}'
                   env:
                     - name: KUBECONFIG
                       value: '/nest/home/kubeconfigs/eyrie.conf'
@@ -47,7 +47,7 @@ resources:
                     - name: nest
                       mountPath: '/nest'
               imagePullSecrets:
-                - name: "%{nest::bolt::helm_release}-registry-auths"
+                - name: "%{nest::kubernetes::helm_release}-registry-auths"
               restartPolicy: Never
               securityContext:
                 runAsUser: 1000
@@ -81,9 +81,9 @@ values:
   allowEmptyPassword: false
   mariadb:
     auth:
-      database: "%{nest::bolt::helm_release}"
-      username: "%{nest::bolt::helm_release}"
-      password: "%{nest::bolt::db_password}"
+      database: "%{nest::kubernetes::helm_release}"
+      username: "%{nest::kubernetes::helm_release}"
+      password: "%{nest::kubernetes::db_password}"
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
   extraVolumes:
     - name: nest
@@ -126,8 +126,8 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: "%{nest::bolt::helm_release}-wordpress"
-        namespace: "%{nest::bolt::helm_namespace}"
+        name: "%{nest::kubernetes::helm_release}-wordpress"
+        namespace: "%{nest::kubernetes::helm_namespace}"
       spec:
         template:
           spec:
@@ -136,7 +136,7 @@ patches:
       apiVersion: v1
       kind: Service
       metadata:
-        name: "%{nest::bolt::helm_release}-wordpress"
-        namespace: "%{nest::bolt::helm_namespace}"
+        name: "%{nest::kubernetes::helm_release}-wordpress"
+        namespace: "%{nest::kubernetes::helm_namespace}"
         labels:
           'james.tl/nest': 'stage1'
