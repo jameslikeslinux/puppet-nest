@@ -1,6 +1,7 @@
 ---
 nest::autologin: sway
 nest::bootloader: systemd
+nest::dtb_file: 'rockchip/rk3399-pinebook-pro.dtb'
 nest::dvorak: true
 nest::swap_alt_win: true
 nest::text_scaling_factor: 1.1
@@ -22,3 +23,6 @@ nest::kernel_config:
   CONFIG_CHARGER_GPIO: m
   CONFIG_SND_SOC_ES8316: m
   CONFIG_VIDEO_ROCKCHIP_VDEC: m
+
+nest::base::firmware::arm::soc: 'rk3399'
+nest::base::firmware::uboot::defconfig: 'pinebook-pro-rk3399_defconfig'

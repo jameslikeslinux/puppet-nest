@@ -1,4 +1,7 @@
-class nest::base::firmware::uboot {
+class nest::base::firmware::uboot (
+  String                      $defconfig,
+  Hash[String, Nest::Kconfig] $config = {},
+) {
   # For nest::base::portage::makeopts
   include 'nest::base::portage'
 
@@ -23,17 +26,6 @@ class nest::base::firmware::uboot {
     refreshonly => true,
   }
 
-  $defconfig = $facts['profile']['platform'] ? {
-    'beagleboneblack' => 'am335x_evm_defconfig',
-    'pine64'          => 'pine64-lts_defconfig',
-    'pinebookpro'     => 'pinebook-pro-rk3399_defconfig',
-    'raspberrypi3'    => 'rpi_arm64_defconfig',
-    'raspberrypi4'    => 'rpi_arm64_defconfig',
-    'rock5'           => 'rock5b-rk3588_defconfig',
-    'rockpro64'       => 'rockpro64-rk3399_defconfig',
-    'sopine'          => 'sopine_baseboard_defconfig',
-  }
-
   exec { 'uboot-defconfig':
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/u-boot',
@@ -42,8 +34,14 @@ class nest::base::firmware::uboot {
     notify  => Exec['uboot-build'],
   }
 
+  $config.each |$setting, $value| {
+    nest::lib::kconfig { $setting:
+      value => $value,
+    }
+  }
+
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
-    /^raspberrypi/ => undef,
+    /^raspberrypi/ => undef, # setting not available
     default        => n,
   }
 
@@ -77,41 +75,14 @@ class nest::base::firmware::uboot {
   }
 
   case $facts['profile']['platform'] {
-    /^(pinebookpro|rockpro64)$/: {
-      $build_options = 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf'
-
-      # RK3399 defaults to uncommon 1.5 Mbps
-      nest::lib::kconfig { 'CONFIG_BAUDRATE':
-        value => 115200,
+    /^(pinebookpro|rockpro64|rock4|rock5)$/: {
+      $build_options = $facts['profile']['platform'] ? {
+        'rock5' => "BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf \
+                    ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin",
+        default => 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf',
       }
 
-      package { 'dev-python/pyelftools':
-        ensure => installed,
-        before => Exec['uboot-build'],
-      }
-    }
-
-    'raspberrypi4': {
-      $build_options = ''
-
-      nest::lib::kconfig {
-        # Fails with "Unknown partition table type 0"
-        'CONFIG_MMC_SDHCI_SDMA':
-          value => n,
-        ;
-
-        # Let the main SOC UART be found instead of just the PL011 chip
-        'CONFIG_SERIAL_PROBE_ALL':
-          value => y,
-        ;
-      }
-    }
-
-    'rock5': {
-      $build_options = "BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf \
-        ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin"
-
-      # RK3588 defaults to uncommon 1.5 Mbps
+      # Rockchip defaults to uncommon 1.5 Mbps
       nest::lib::kconfig { 'CONFIG_BAUDRATE':
         value => 115200,
       }

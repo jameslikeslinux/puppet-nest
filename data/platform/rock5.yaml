@@ -6,3 +6,8 @@ nest::kernel_tag: 'collabora/v6.6.0-rc1'
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
+
+nest::base::firmware::rockchip:
+  git_branch: 'radxa'
+
+nest::base::firmware::uboot::defconfig: 'rock5b-rk3588_defconfig'

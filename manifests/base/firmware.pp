@@ -1,133 +1,84 @@
 class nest::base::firmware {
-  case $facts['profile']['platform'] {
-    'beagleboneblack': {
-      contain 'nest::base::firmware::uboot'
+  if $nest::dtb_file {
+    $soc_vendor = dirname($nest::dtb_file)
 
-      file { '/boot/am335x-boneblack.dtb':
-        source => '/usr/src/linux/arch/arm/boot/dts/ti/omap/am335x-boneblack.dtb',
-      }
+    $dtb_root = $facts['profile']['architecture'] ? {
+      'arm'   => '/boot',
+      default => "/boot/${soc_vendor}",
     }
 
-    'pine64': {
-      contain 'nest::base::firmware::arm'
-      contain 'nest::base::firmware::uboot'
-
-      Class['nest::base::firmware::arm']
-      ~> Class['nest::base::firmware::uboot']
-
-      file {
-        '/boot/allwinner':
-          ensure => directory,
-        ;
-
-        '/boot/allwinner/sun50i-a64-pine64-lts.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/allwinner/sun50i-a64-pine64-lts.dtb',
-        ;
-
-        '/lib/firmware/rtl_bt/rtl8723bs_config.bin':
-          ensure  => link,
-          target  => 'rtl8723bs_config-OBDA8723.bin',
-          require => Package['sys-kernel/linux-firmware'],
-        ;
-      }
+    file {
+      $dtb_root:
+        ensure => directory;
+      "${dtb_root}/${basename($nest::dtb_file)}":
+        source => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/dts/${nest::dtb_file}",
+      ;
     }
 
-    'pinebookpro': {
-      contain 'nest::base::firmware::arm'
-      contain 'nest::base::firmware::uboot'
+    case $soc_vendor {
+      'amlogic': {
+        contain 'nest::base::firmware::uboot'
+        # contain 'nest::base::firmware::arm'
+        # contain 'nest::base::firmware::uboot'
 
-      Class['nest::base::firmware::arm']
-      ~> Class['nest::base::firmware::uboot']
-
-      file {
-        '/boot/rockchip':
-          ensure => directory,
-        ;
-
-        '/boot/rockchip/rk3399-pinebook-pro.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dtb',
-        ;
+        # Class['nest::base::firmware::arm']
+        # ~> Class['nest::base::firmware::uboot']
       }
-    }
 
-    'raspberrypi3', 'raspberrypi4': {
-      contain 'nest::base::firmware::raspberrypi'
-      contain 'nest::base::firmware::uboot'
+      'allwinner': {
+        contain 'nest::base::firmware::arm'
+        contain 'nest::base::firmware::uboot'
 
-      Class['nest::base::firmware::uboot']
-      -> Class['nest::base::firmware::raspberrypi']
+        Class['nest::base::firmware::arm']
+        ~> Class['nest::base::firmware::uboot']
 
-      if $nest::dtb_file {
-        file { "/boot/${nest::dtb_file}":
-          source => "/usr/src/linux/arch/arm64/boot/dts/broadcom/${nest::dtb_file}",
+        if $facts['profile']['platform'] == 'pine64' {
+          file { '/lib/firmware/rtl_bt/rtl8723bs_config.bin':
+            ensure  => link,
+            target  => 'rtl8723bs_config-OBDA8723.bin',
+            require => Package['sys-kernel/linux-firmware'],
+          }
         }
       }
 
-      file { '/boot/overlays':
-        source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
-        links   => follow,
-        recurse => true,
-        purge   => true,
-        force   => true,
-        ignore  => ['.*', '*.dts', 'Makefile'],
+      'broadcom': {
+        contain 'nest::base::firmware::uboot'
+
+        if $facts['profile']['platform'] =~ /^raspberrypi/ {
+          contain 'nest::base::firmware::raspberrypi'
+
+          Class['nest::base::firmware::uboot']
+          -> Class['nest::base::firmware::raspberrypi']
+
+          file { '/boot/overlays':
+            source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
+            links   => follow,
+            recurse => true,
+            purge   => true,
+            force   => true,
+            ignore  => ['.*', '*.dts', 'Makefile'],
+          }
+        }
       }
-    }
 
-    'rock5': {
-      class { 'nest::base::firmware::rockchip':
-        git_branch => 'radxa',
+      'rockchip': {
+        contain 'nest::base::firmware::arm'
+
+        if $facts['profile']['platform'] == 'rock5' {
+          contain 'nest::base::firmware::rockchip'
+
+          Class['nest::base::firmware::rockchip']
+          ~> Class['nest::base::firmware::uboot']
+        } else {
+          contain 'nest::base::firmware::uboot'
+
+          Class['nest::base::firmware::arm']
+          ~> Class['nest::base::firmware::uboot']
+        }
       }
 
-      contain 'nest::base::firmware::rockchip'
-      contain 'nest::base::firmware::uboot'
-
-      Class['nest::base::firmware::rockchip']
-      ~> Class['nest::base::firmware::uboot']
-
-      file {
-        '/boot/rockchip':
-          ensure => directory,
-        ;
-
-        '/boot/rockchip/rk3588-rock-5b.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dtb',
-        ;
-      }
-    }
-
-    'rockpro64': {
-      contain 'nest::base::firmware::arm'
-      contain 'nest::base::firmware::uboot'
-
-      Class['nest::base::firmware::arm']
-      ~> Class['nest::base::firmware::uboot']
-
-      file {
-        '/boot/rockchip':
-          ensure => directory,
-        ;
-
-        '/boot/rockchip/rk3399-rockpro64.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtb',
-        ;
-      }
-    }
-
-    'sopine': {
-      contain 'nest::base::firmware::arm'
-      contain 'nest::base::firmware::uboot'
-
-      Class['nest::base::firmware::arm']
-      ~> Class['nest::base::firmware::uboot']
-
-      file {
-        '/boot/allwinner':
-          ensure => directory,
-        ;
-
-        '/boot/allwinner/sun50i-a64-sopine-baseboard.dtb':
-          source => '/usr/src/linux/arch/arm64/boot/dts/allwinner/sun50i-a64-sopine-baseboard.dtb',
-        ;
+      'ti/omap': {
+        contain 'nest::base::firmware::uboot'
       }
     }
   }

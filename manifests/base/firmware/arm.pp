@@ -1,19 +1,13 @@
-class nest::base::firmware::arm {
+class nest::base::firmware::arm (
+  String $soc,
+) {
   # For nest::base::portage::makeopts
   include 'nest::base::portage'
 
-  case $facts['profile']['platform'] {
-    /^(pinebookpro|rockpro64)$/: {
-      nest::lib::toolchain { 'arm-none-eabi':
-        gcc_only => true,
-        before   => Exec['arm-trusted-firmware-build'],
-      }
-
-      $plat = 'rk3399'
-    }
-
-    /^(pine64|sopine)$/: {
-      $plat = 'sun50i_a64'
+  if $soc == 'rk3399' {
+    nest::lib::toolchain { 'arm-none-eabi':
+      gcc_only => true,
+      before   => Exec['arm-trusted-firmware-build'],
     }
   }
 
@@ -25,7 +19,7 @@ class nest::base::firmware::arm {
   }
   ~>
   exec { 'arm-trusted-firmware-build':
-    command     => "/usr/bin/make ${nest::base::portage::makeopts} E=0 PLAT=${plat}",
+    command     => "/usr/bin/make ${nest::base::portage::makeopts} E=0 PLAT=${soc}",
     cwd         => '/usr/src/arm-trusted-firmware',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => [

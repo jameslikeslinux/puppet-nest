@@ -1,9 +1,10 @@
 ---
 nest::autologin: sway
 nest::bootloader: systemd
-nest::dtb_file: 'bcm2710-rpi-3-b-plus.dtb'
+nest::dtb_file: 'broadcom/bcm2710-rpi-3-b-plus.dtb'
 nest::dvorak: true
 nest::fscache: false
+nest::kernel_defconfig: 'bcm2711_defconfig'
 nest::swap_alt_win: true
 nest::wifi: true
 
@@ -33,3 +34,5 @@ nest::kernel_config:
   # Rely on filesystem compression
   CONFIG_MODULE_COMPRESS_NONE: y
   CONFIG_MODULE_COMPRESS_XZ: n
+
+nest::base::firmware::uboot::defconfig: 'rpi_arm64_defconfig'

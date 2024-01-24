@@ -34,20 +34,8 @@ class nest::base::kernel {
     default => $facts['profile']['architecture'],
   }
 
-  $defconfig = $facts['profile']['platform'] ? {
-    'beagleboneblack' => 'multi_v7_defconfig',
-    'pine64'          => 'defconfig',
-    'pinebookpro'     => 'defconfig',
-    'raspberrypi3'    => 'bcm2711_defconfig',
-    'raspberrypi4'    => 'bcm2711_defconfig',
-    'rock5'           => 'defconfig',
-    'rockpro64'       => 'defconfig',
-    'sopine'          => 'defconfig',
-    default           => 'defconfig kvm_guest.config',
-  }
-
   exec { 'kernel-defconfig':
-    command => "/usr/bin/make ARCH=${arch} ${defconfig}",
+    command => "/usr/bin/make ARCH=${arch} ${nest::kernel_defconfig}",
     cwd     => '/usr/src/linux',
     creates => '/usr/src/linux/.config',
     require => Exec['kernel-reset-config'],

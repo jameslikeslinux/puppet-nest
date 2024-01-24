@@ -1,0 +1,10 @@
+---
+nest::bootloader: systemd
+nest::dtb_file: 'amlogic/meson-g12a-radxa-zero.dtb'
+nest::fscache: false
+
+nest::kernel_cmdline:
+  - 'console=ttyS0,115200n8'
+
+nest::base::firmware::arm::soc: 'sun50i_a64'
+nest::base::firmware::uboot::defconfig: 'radxa-zero_defconfig'

@@ -1,4 +1,5 @@
 ---
+nest::kernel_defconfig: 'multi_v7_defconfig'
 nest::kernel_config:
   # Prefer giving the kernel more of the virtual address space for ZFS
   CONFIG_VMSPLIT_2G: y

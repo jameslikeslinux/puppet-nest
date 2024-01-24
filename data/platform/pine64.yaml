@@ -1,5 +1,6 @@
 ---
 nest::bootloader: systemd
+nest::dtb_file: 'allwinner/sun50i-a64-pine64-lts.dtb'
 nest::fscache: false
 
 # Workaround unstable eMMC boot
@@ -16,3 +17,6 @@ nest::kernel_config:
   CONFIG_RTL8723BS: m
   CONFIG_VIDEO_SUNXI: y
   CONFIG_VIDEO_SUNXI_CEDRUS: m
+
+nest::base::firmware::arm::soc: 'sun50i_a64'
+nest::base::firmware::uboot::defconfig: 'pine64-lts_defconfig'

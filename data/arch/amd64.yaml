@@ -1,4 +1,5 @@
 ---
+nest::kernel_defconfig: 'defconfig kvm_guest.config'
 nest::kernel_config:
   # Architecture options
   CONFIG_NUMA_BALANCING: y
