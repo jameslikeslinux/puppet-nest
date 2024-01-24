@@ -61,15 +61,9 @@ define nest::lib::gitlab_runner (
     default => [],
   }
 
-  $gitlab_runner_command = [
-    '/usr/bin/podman', 'run', '--rm',
-    '-v', '/srv/gitlab-runner:/etc/gitlab-runner',
-    'gitlab/gitlab-runner',
-  ]
-
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
   $register_command = [
-    $gitlab_runner_command, 'register',
+    '/usr/local/bin/gitlab-runner', 'register',
     '--name', $name,
     '--non-interactive',
     $limit_args,
@@ -90,37 +84,37 @@ define nest::lib::gitlab_runner (
     '--token', $registration_token,
   ].flatten.shellquote
 
-  $unregister_all_runners_cmd = [
-    $gitlab_runner_command, 'unregister',
-    '--all-runners',
-  ].flatten.shellquote
+  $unregister_command = @(CMD/L)
+    /usr/local/bin/gitlab-runner unregister --all-runners && \
+    /bin/rm -f /srv/gitlab-runner/config.toml
+    | CMD
 
-  $unregister_command = "${unregister_all_runners_cmd} && /bin/rm -f /srv/gitlab-runner/config.toml"
-
-  if $ensure == present {
-    unless defined(Exec['gitlab-runner-unregister-all']) {
-      exec { 'gitlab-runner-unregister-all':
-        command     => $unregister_command,
-        refreshonly => true,
+  unless $facts['is_container'] {
+    if $ensure == present {
+      unless defined(Exec['gitlab-runner-unregister-all']) {
+        exec { 'gitlab-runner-unregister-all':
+          command     => $unregister_command,
+          refreshonly => true,
+        }
       }
-    }
 
-    file { "/srv/gitlab-runner/register-${name}.sh":
-      mode    => '0600',
-      owner   => 'root',
-      group   => 'root',
-      content => "${register_command}\n",
-      notify  => Exec['gitlab-runner-unregister-all'],
-    }
+      file { "/srv/gitlab-runner/register-${name}.sh":
+        mode    => '0600',
+        owner   => 'root',
+        group   => 'root',
+        content => "${register_command}\n",
+        notify  => Exec['gitlab-runner-unregister-all'],
+      }
 
-    exec { "gitlab-runner-register-${name}":
-      command     => "/bin/sh /srv/gitlab-runner/register-${name}.sh",
-      refreshonly => true,
-      subscribe   => Exec['gitlab-runner-unregister-all'],
-    }
-  } else {
-    exec { 'gitlab-runner-unregister-all':
-      command => "${unregister_command}; rm -f /srv/gitlab-runner/register-${name}.sh",
+      exec { "gitlab-runner-register-${name}":
+        command     => "/bin/sh /srv/gitlab-runner/register-${name}.sh",
+        refreshonly => true,
+        subscribe   => Exec['gitlab-runner-unregister-all'],
+      }
+    } else {
+      exec { 'gitlab-runner-unregister-all':
+        command => "${unregister_command}; rm -f /srv/gitlab-runner/register-${name}.sh",
+      }
     }
   }
 }
