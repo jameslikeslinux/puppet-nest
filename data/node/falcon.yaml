@@ -65,8 +65,6 @@ nest::service::gitlab_runner::instances:
   shared:
     host: 'gitlab.james.tl'
     cap_add: ['SYS_CHROOT']
-    run_untagged: true
-    tag_list: ['amd64', 'arm64', 'falcon']
     volumes:
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
@@ -78,7 +76,6 @@ nest::service::gitlab_runner::instances:
     limit: 2
     privileged: true
     security_options: ['seccomp=unconfined']
-    tag_list: ['nest', 'amd64', 'falcon']
     volumes:
       - '/nest:/nest'
       - '/falcon:/falcon'
@@ -90,7 +87,6 @@ nest::service::gitlab_runner::instances:
   r10k:
     default_image: 'registry.gitlab.james.tl/nest/tools/r10k:haswell'
     host: 'gitlab.james.tl'
-    tag_list: ['r10k']
     volumes:
       - '/srv/puppet/code:/etc/puppetlabs/code'
       - '/srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro'

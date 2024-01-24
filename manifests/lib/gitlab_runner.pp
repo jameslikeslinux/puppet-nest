@@ -9,8 +9,6 @@ define nest::lib::gitlab_runner (
   Array[String]     $cap_add          = [],
   Array[String]     $security_options = [],
   Array[String]     $volumes          = [],
-  Array[String]     $tag_list         = [],
-  Boolean           $run_untagged     = $tag_list.empty,
   Boolean           $privileged       = false,
   Boolean           $zfs              = false,
 ) {
@@ -24,12 +22,6 @@ define nest::lib::gitlab_runner (
     $limit_args = ['--limit', String($limit)]
   } else {
     $limit_args = []
-  }
-
-  if $run_untagged {
-    $run_untagged_args = ['--run-untagged']
-  } else {
-    $run_untagged_args = []
   }
 
   $dns_args = $dns ? {
@@ -95,9 +87,7 @@ define nest::lib::gitlab_runner (
     $privileged_args,
     $zfs_args,
     '--url', "https://${host}/",
-    '--registration-token', $registration_token,
-    '--tag-list', $tag_list.join(','),
-    $run_untagged_args,
+    '--token', $registration_token,
   ].flatten.shellquote
 
   $unregister_all_runners_cmd = [
@@ -106,11 +96,6 @@ define nest::lib::gitlab_runner (
   ].flatten.shellquote
 
   $unregister_command = "${unregister_all_runners_cmd} && /bin/rm -f /srv/gitlab-runner/config.toml"
-
-  $list_command = [
-    $gitlab_runner_command, 'list',
-    '--name', $name,
-  ].flatten.shellquote
 
   if $ensure == present {
     unless defined(Exec['gitlab-runner-unregister-all']) {

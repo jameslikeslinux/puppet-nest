@@ -20,6 +20,8 @@ lookup_options:
     merge: 'unique'
   nest::ssh_private_keys:
     merge: 'hash'
+  nest::service::gitlab_runner::instances:
+    merge: 'deep'
   nest::service::mysql::root_password:
     convert_to: 'Sensitive'
   nest::service::puppet::puppetboard_secret_key:

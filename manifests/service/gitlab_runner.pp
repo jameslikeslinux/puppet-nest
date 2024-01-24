@@ -1,5 +1,4 @@
 class nest::service::gitlab_runner (
-  String              $registration_token,
   Integer             $concurrent = $nest::concurrency,
   Optional[String]    $dns        = undef,
   Nest::ServiceEnsure $ensure     = running,
@@ -35,8 +34,7 @@ class nest::service::gitlab_runner (
         require => $runner_require,
         before  => $runner_before,
         *       => {
-          dns                => $dns,
-          registration_token => $registration_token,
+          dns => $dns,
         } + $attributes + {
           ensure => $runner_ensure,
         },
