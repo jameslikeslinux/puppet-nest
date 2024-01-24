@@ -12,17 +12,25 @@ class nest::service::gitlab_runner (
     $runner_require = $stop
     $runner_before  = $uninstall
     $runner_notify  = undef
+    $srv_notify     = undef
   } else {
     $runner_ensure  = present
     $runner_require = $install
     $runner_before  = $run
-    $runner_notify  = Service['container-gitlab-runner']
 
-    file_line { 'gitlab-runner-concurrent':
-      path    => '/srv/gitlab-runner/config.toml',
-      line    => "concurrent = ${concurrent}",
-      match   => '^concurrent =',
-      require => $run, # no restart required
+    if $facts['is_container'] {
+      $runner_notify = undef
+      $srv_notify    = undef
+    } else {
+      $runner_notify = Service['container-gitlab-runner']
+      $srv_notify    = Exec['gitlab-runner-unregister-all']
+
+      file_line { 'gitlab-runner-concurrent':
+        path    => '/srv/gitlab-runner/config.toml',
+        line    => "concurrent = ${concurrent}",
+        match   => '^concurrent =',
+        require => $run, # no restart required
+      }
     }
   }
 
@@ -30,7 +38,7 @@ class nest::service::gitlab_runner (
     ensure => $runner_ensure,
     ignore => ['config.toml', '.*'],
     purge  => true,
-    notify => Exec['gitlab-runner-unregister-all'], # unregister purged instances
+    notify => $srv_notify, # unregister purged instances
   }
 
   file { '/usr/local/bin/gitlab-runner':

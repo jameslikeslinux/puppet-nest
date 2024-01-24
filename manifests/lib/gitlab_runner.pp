@@ -12,9 +12,6 @@ define nest::lib::gitlab_runner (
   Boolean           $privileged       = false,
   Boolean           $zfs              = false,
 ) {
-  # Required for /usr/bin/podman
-  include 'nest'
-
   # Required for /srv/gitlab-runner and container
   include 'nest::service::gitlab_runner'
 
