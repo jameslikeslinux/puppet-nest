@@ -21,7 +21,7 @@ resources:
       name: "%{nest::kubernetes::helm_release}-backup"
       namespace: "%{nest::kubernetes::helm_namespace}"
     spec:
-      schedule: '0 */3 * * *'
+      schedule: "%{nest::kubernetes::cron_job_offset} */3 * * *"
       timeZone: 'America/New_York'
       jobTemplate:
         spec:

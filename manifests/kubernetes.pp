@@ -19,6 +19,16 @@ class nest::kubernetes {
     default => undef,
   }
 
+  if $helm_release {
+    $cron_job_offset  = stdlib::seeded_rand(60, $helm_release)
+    $fqdn             = "${helm_release}.eyrie"
+    $load_balancer_ip = lookup('nest::host_records')[$fqdn]
+  } else {
+    $cron_job_offset  = 0
+    $fqdn             = undef
+    $load_balancer_ip = undef
+  }
+
   $db_password = $helm_chart ? {
     'mariadb'     => $helm_parent? {
       'bitwarden' => lookup('nest::service::bitwarden::database_password'),
@@ -27,14 +37,6 @@ class nest::kubernetes {
     'vaultwarden' => lookup('nest::service::bitwarden::database_password'),
     'wordpress'   => lookup('nest::service::wordpress::database_passwords')[$helm_release],
     default       => undef,
-  }
-
-  if $helm_release {
-    $fqdn = "${helm_release}.eyrie"
-    $load_balancer_ip = lookup('nest::host_records')[$fqdn]
-  } else {
-    $fqdn = undef
-    $load_balancer_ip = undef
   }
 
   $registry_auths = base64('encode', stdlib::to_json({
