@@ -16,7 +16,7 @@ class nest::kubernetes {
 
   $helm_parent = defined('$::helm_parent') ? {
     true    => $::helm_parent, # lint:ignore:top_scope_facts
-    default => 'default',
+    default => undef,
   }
 
   $db_password = $helm_chart ? {
@@ -48,11 +48,10 @@ class nest::kubernetes {
 
     # See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token
     $vaultwarden_admin_token      = lookup('nest::service::bitwarden::admin_token')
-    $vaultwarden_admin_token_hash = $vaultwarden_admin_token
-    # $vaultwarden_admin_token_hash = generate(
-    #   '/bin/zsh',
-    #   '-c',
-    #   "/usr/bin/argon2 $(/usr/sbin/openssl rand -base64 32) -e -id -k 65540 -t 3 -p 4 <<< ${vaultwarden_admin_token.shellquote}",
-    # )
+    $vaultwarden_admin_token_hash = generate(
+      '/bin/sh',
+      '-c',
+      "echo -n ${vaultwarden_admin_token.shellquote} | argon2 `openssl rand -base64 32` -e -id -k 65540 -t 3 -p 4",
+    ).chomp
   }
 }
