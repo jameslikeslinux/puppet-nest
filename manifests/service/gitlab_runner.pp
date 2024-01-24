@@ -4,29 +4,31 @@ class nest::service::gitlab_runner (
   Nest::ServiceEnsure $ensure     = running,
   Hash[String, Hash]  $instances  = {},
 ) inherits nest {
-  $install = [Nest::Lib::Srv['gitlab-runner'], File['/usr/local/bin/gitlab-runner']]
-  $service = Nest::Lib::Container['gitlab-runner']
+  $install = $uninstall = [Nest::Lib::Srv['gitlab-runner'], File['/usr/local/bin/gitlab-runner']]
+  $run = $stop = Nest::Lib::Container['gitlab-runner']
 
   if $ensure == absent {
     $runner_ensure  = absent
-    $runner_require = $service
-    $runner_before  = $install
+    $runner_require = $stop
+    $runner_before  = $uninstall
+    $runner_notify  = undef
   } else {
     $runner_ensure  = present
     $runner_require = $install
-    $runner_before  = $service
+    $runner_before  = $run
+    $runner_notify  = Service['container-gitlab-runner']
 
     file_line { 'gitlab-runner-concurrent':
       path    => '/srv/gitlab-runner/config.toml',
       line    => "concurrent = ${concurrent}",
       match   => '^concurrent =',
-      require => Nest::Lib::Container['gitlab-runner'], # no restart required
+      require => $run, # no restart required
     }
   }
 
   nest::lib::srv { 'gitlab-runner':
     ensure => $runner_ensure,
-    ignore => ['config.toml', '.runner_system_id'],
+    ignore => ['config.toml', '.*'],
     purge  => true,
     notify => Exec['gitlab-runner-unregister-all'], # unregister purged instances
   }
@@ -43,6 +45,7 @@ class nest::service::gitlab_runner (
     nest::lib::gitlab_runner { "${trusted['certname']}-${instance}":
       require => $runner_require,
       before  => $runner_before,
+      notify  => $runner_notify,
       *       => {
         dns => $dns,
       } + $attributes + {

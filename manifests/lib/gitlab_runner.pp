@@ -63,7 +63,7 @@ define nest::lib::gitlab_runner (
 
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
   $register_command = [
-    '/usr/local/bin/gitlab-runner', 'register',
+    'gitlab-runner', 'register',
     '--name', $name,
     '--non-interactive',
     $limit_args,
@@ -98,7 +98,7 @@ define nest::lib::gitlab_runner (
         }
       }
 
-      file { "/srv/gitlab-runner/register-${name}.sh":
+      file { "/srv/gitlab-runner/.register-${name}.sh":
         mode    => '0600',
         owner   => 'root',
         group   => 'root',
@@ -107,13 +107,13 @@ define nest::lib::gitlab_runner (
       }
 
       exec { "gitlab-runner-register-${name}":
-        command     => "/bin/sh /srv/gitlab-runner/register-${name}.sh",
+        command     => "/bin/sh /srv/gitlab-runner/.register-${name}.sh",
         refreshonly => true,
         subscribe   => Exec['gitlab-runner-unregister-all'],
       }
     } else {
       exec { 'gitlab-runner-unregister-all':
-        command => "${unregister_command}; rm -f /srv/gitlab-runner/register-${name}.sh",
+        command => "${unregister_command}; rm -f /srv/gitlab-runner/.register-${name}.sh",
       }
     }
   }
