@@ -47,9 +47,7 @@ up /etc/openvpn/up.sh
 down /etc/openvpn/down.sh
 down-pre
 verb 3
-cipher AES-128-GCM
   <%- if $server { -%>
-ncp-ciphers AES-128-GCM
 dh /etc/openvpn/dh4096.pem
 server <%= $network %> 255.255.255.128
 topology subnet
@@ -95,6 +93,7 @@ client
 nobind
 connect-retry 2 30
 connect-timeout 2
+data-ciphers <%= if $facts['profile']['cpu'] =~ /^cortex-a(8|53|72)$/ { 'CHACHA20-POLY1305' } else { 'AES-128-GCM' } %>
   <%- $nest::openvpn_servers.each |$server| { -%>
     <%- if $server =~ Stdlib::IP::Address { -%>
 remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
