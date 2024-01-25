@@ -11,8 +11,7 @@ define nest::lib::container (
   Array[String]       $volumes = [],
 ) {
   unless $facts['is_container'] {
-    # Required for /usr/bin/podman
-    include 'nest'
+    require 'nest::base::containers'
 
     if $ensure == absent {
       service { "container-${name}":
@@ -141,7 +140,6 @@ define nest::lib::container (
         command => "/bin/systemctl stop container-${name}",
         returns => [0, 5],
         unless  => "/usr/bin/test ${podman_create_str.shellquote} = \"`${podman_inspect_create_command.shellquote}`\"",
-        require => Class['nest::base::containers'],
       }
       ~>
       exec { "create-container-${name}":

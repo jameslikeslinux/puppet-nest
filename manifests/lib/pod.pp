@@ -4,8 +4,7 @@ define nest::lib::pod (
   Array[String]       $publish = [],
 ) {
   unless $facts['is_container'] {
-    # Required for /usr/bin/podman
-    include 'nest'
+    require 'nest::base::containers'
 
     if $ensure == absent {
       service { "pod-${name}":
@@ -86,7 +85,6 @@ define nest::lib::pod (
         command => "/bin/systemctl stop pod-${name}",
         returns => [0, 5],
         unless  => "/usr/bin/test ${podman_create_str.shellquote} = \"`${podman_inspect_create_command.shellquote}`\"",
-        require => Class['nest::base::containers'],
       }
       ~>
       exec { "create-pod-${name}":
