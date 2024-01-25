@@ -1,0 +1,18 @@
+---
+description: 'Deactivate a node and revoke its certs'
+
+parameters:
+  name:
+    description: 'Certname of the node to delete'
+    type: String
+
+steps:
+  - description: 'puppet node clean'
+    command: "podman exec puppetserver puppet node clean ${name}"
+    run_as: root
+    targets: puppet-server
+
+  - description: 'puppet node deactivate'
+    command: "podman exec puppetserver puppet node deactivate ${name}"
+    run_as: root
+    targets: puppet-server
