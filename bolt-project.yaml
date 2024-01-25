@@ -6,6 +6,10 @@ disable-warnings:
 
 hiera-config: 'hiera-bolt.yaml'
 
+log:
+  console:
+    level: fatal
+
 modules:
   - name: reboot
     git: git@gitlab.james.tl:nest/forks/puppet-reboot.git
