@@ -2,6 +2,7 @@ class nest::service::gitlab_runner (
   Integer             $concurrent = $nest::concurrency,
   Optional[String]    $dns        = '172.22.0.1',
   Nest::ServiceEnsure $ensure     = running,
+  Optional[String]    $host       = undef,
   Hash[String, Hash]  $instances  = {},
 ) inherits nest {
   $install = $uninstall = [Nest::Lib::Srv['gitlab-runner'], File['/usr/local/bin/gitlab-runner']]
@@ -42,11 +43,12 @@ class nest::service::gitlab_runner (
   }
 
   file { '/usr/local/bin/gitlab-runner':
-    ensure => $runner_ensure,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-    source => 'puppet:///modules/nest/scripts/gitlab-runner.sh',
+    ensure  => $runner_ensure,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    source  => 'puppet:///modules/nest/scripts/gitlab-runner.sh',
+    require => Class['nest::base::containers'],
   }
 
   $instances.each |$instance, $attributes| {
@@ -55,7 +57,8 @@ class nest::service::gitlab_runner (
       before  => $runner_before,
       notify  => $runner_notify,
       *       => {
-        dns => $dns,
+        dns  => $dns,
+        host => $host,
       } + $attributes + {
         ensure => $runner_ensure,
       },
