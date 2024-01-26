@@ -5,11 +5,6 @@ class nest::base::bootloader {
   $kernel_cmdline = [
     'loglevel=3', # must come after 'quiet', if specified
 
-    $facts['zpools_cached'] ? {
-      true    => [],
-      default => 'zfs_force',
-    },
-
     # Let I/O preferences be configurable at boot time
     "rd.vconsole.font=ter-v${nest::console_font_size}b",
     "rd.vconsole.keymap=${nest::base::console::keymap}",
