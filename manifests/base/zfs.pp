@@ -57,14 +57,16 @@ class nest::base::zfs {
   }
 
   unless $facts['is_container'] or $facts['running_live'] {
-    exec { 'zgenhostid':
-      command => '/sbin/zgenhostid `hostid`',
-      creates => '/etc/hostid',
-    }
-
-    exec { 'generate-zpool-cache':
-      command => "/sbin/zpool set cachefile= ${trusted['certname']}",
-      creates => '/etc/zfs/zpool.cache',
+    if $facts['hostid'] {
+      exec { 'generate-zpool-cache':
+        command => "/sbin/zpool set cachefile= ${trusted['certname']}",
+        creates => '/etc/zfs/zpool.cache',
+      }
+    } else {
+      exec { 'zgenhostid':
+        command => '/sbin/zgenhostid `hostid`',
+        creates => '/etc/hostid',
+      }
     }
 
     # Manage swap volume properties for experimenting with workarounds listed in
