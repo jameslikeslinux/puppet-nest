@@ -3,7 +3,7 @@ nest::bootloader: systemd
 nest::fscache: false
 nest::uboot_tag: 'collabora/v2023.10'
 nest::kernel_defconfig: 'rockchip_linux_defconfig'
-nest::kernel_tag: 'radxa/v5.10.66'
+nest::kernel_tag: 'radxa/v5.10.160'
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
