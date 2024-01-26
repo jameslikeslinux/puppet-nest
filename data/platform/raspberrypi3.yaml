@@ -5,6 +5,7 @@ nest::dtb_file: 'broadcom/bcm2710-rpi-3-b-plus.dtb'
 nest::dvorak: true
 nest::fscache: false
 nest::kernel_defconfig: 'bcm2711_defconfig'
+nest::puppet: false
 nest::swap_alt_win: true
 nest::wifi: true
 
