@@ -140,7 +140,7 @@ nest::package_keywords:
     version: '~3.1.0'
 
 nest::uboot_tag: 'u-boot/v2024.01-rc1'
-nest::kernel_tag: 'stable/v6.6.0'
+nest::kernel_tag: 'stable/v6.6.14'
 
 nest::kernel_config:
   # Preferences
