@@ -81,6 +81,7 @@ class nest::base::kernel {
 
     # Ignore warning on newer GCC
     $cflags = [
+      '-Wno-deprecated-declarations',
       '-Wno-implicit-fallthrough',
       '-Wno-tautological-compare',
       '-Wno-int-in-bool-context',
