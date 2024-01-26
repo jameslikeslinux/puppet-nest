@@ -106,10 +106,19 @@ class nest::base::kernel {
   }
 
   $kernel_make_cmd = @("KERNEL_MAKE")
+    #!/bin/bash
     set -o pipefail
+    export PATH=/usr/lib/distcc/bin:/usr/bin:/bin
     make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
         olddefconfig all modules_install 2>&1 | tee build.log
     | KERNEL_MAKE
+
+  file { '/usr/src/linux/build.sh':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => $kernel_make_cmd,
+  }
 
   exec { 'kernel-olddefconfig':
     command     => "/usr/bin/make ARCH=${arch} olddefconfig",
@@ -118,22 +127,21 @@ class nest::base::kernel {
   }
   ~>
   exec { 'kernel-build':
-    command     => $kernel_make_cmd,
+    command     => '/usr/src/linux/build.sh',
     cwd         => '/usr/src/linux',
-    path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
-    environment => 'HOME=/root',  # for distcc
-    timeout     => 0,
-    refreshonly => true,
+    environment => 'HOME=/root', # for distcc
     noop        => !$facts['build'],
+    refreshonly => true,
+    timeout     => 0,
     notify      => Class['nest::base::dracut'],
-    provider    => shell,
+    require     => File['/usr/src/linux/build.sh'],
   }
   ~>
   exec { 'module-rebuild':
     command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
-    timeout     => 0,
-    refreshonly => true,
     noop        => str2bool($facts['skip_module_rebuild']),
+    refreshonly => true,
+    timeout     => 0,
     notify      => Class['nest::base::dracut'],
   }
   ->
@@ -145,30 +153,4 @@ class nest::base::kernel {
   Exec['kernel-defconfig']
   -> Nest::Lib::Kconfig <| config == '/usr/src/linux/.config' |>
   ~> Exec['kernel-olddefconfig']
-
-
-  #
-  # XXX Cleanup
-  #
-  ['gentoo-sources', 'raspberrypi-sources'].each |$package| {
-    exec { "remove-${package}":
-      command => "/usr/bin/emerge --depclean '${package}'",
-      onlyif  => "/usr/bin/eix --quiet --installed --exact '${package}'",
-      require => File_line['package.provided-kernel'],
-    }
-  }
-
-  # Replace old symlink
-  file { '/usr/src/linux':
-    ensure => directory,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
-    before => Vcsrepo['/usr/src/linux'],
-  }
-
-  # Replaced by empty LOCALVERSION build variable
-  file { '/usr/src/linux/.scmversion':
-    ensure => absent,
-  }
 }
