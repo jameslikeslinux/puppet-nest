@@ -1,6 +1,6 @@
 class nest::service::gitlab_runner (
   Integer             $concurrent = $nest::concurrency,
-  Optional[String]    $dns        = undef,
+  Optional[String]    $dns        = '172.22.0.1',
   Nest::ServiceEnsure $ensure     = running,
   Hash[String, Hash]  $instances  = {},
 ) inherits nest {

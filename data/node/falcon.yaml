@@ -60,7 +60,6 @@ nest::service::gitlab::https: true
 nest::service::gitlab::web_port: 8000
 nest::service::gitlab::default_theme: 2
 
-nest::service::gitlab_runner::dns: '172.22.0.1'
 nest::service::gitlab_runner::instances:
   shared:
     host: 'gitlab.james.tl'
