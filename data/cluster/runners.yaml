@@ -1,0 +1,3 @@
+---
+# Cluster is directly connected to Nest
+nest::vpn_client: false
