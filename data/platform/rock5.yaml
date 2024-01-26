@@ -2,10 +2,21 @@
 nest::bootloader: systemd
 nest::fscache: false
 nest::uboot_tag: 'collabora/v2023.10'
-nest::kernel_tag: 'collabora/v6.6.0-rc1'
+nest::kernel_defconfig: 'rockchip_linux_defconfig'
+nest::kernel_tag: 'radxa/v5.10.66'
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
+
+nest::kernel_config:
+  CONFIG_GCC_PLUGINS: null
+  CONFIG_SYSFB_SIMPLEFB: null
+  CONFIG_DRM_SIMPLEDRM: null
+
+  # Match defconfig
+  CONFIG_USB_USBNET: y
+  CONFIG_USB_NET_RNDIS_HOST: y
+  CONFIG_CRYPTO_DES: y
 
 nest::base::firmware::rockchip:
   git_branch: 'radxa'
