@@ -3,11 +3,19 @@ class nest::base::bootloader {
   include 'nest::base::console'
 
   $kernel_cmdline = [
-    'init=/lib/systemd/systemd',
     'loglevel=3', # must come after 'quiet', if specified
 
-    $facts['hostid'] ? {
-      undef   => 'zfs_force',
+    $facts['zpools_cached'] ? {
+      true    => [],
+      default => 'zfs_force',
+    },
+
+    # Let I/O preferences be configurable at boot time
+    "rd.vconsole.font=ter-v${nest::console_font_size}b",
+    "rd.vconsole.keymap=${nest::base::console::keymap}",
+
+    $nest::wifi ? {
+      true    => 'cfg80211.ieee80211_regdom=US',
       default => [],
     },
 
@@ -15,15 +23,6 @@ class nest::base::bootloader {
       true    => "nohz_full=${facts['processors']['count'] / 2}-${facts['processors']['count'] - 1}",
       default => [],
     },
-
-    $nest::wifi ? {
-      true    => 'cfg80211.ieee80211_regdom=US',
-      default => [],
-    },
-
-    # Let I/O preferences be configurable at boot time
-    "rd.vconsole.font=ter-v${nest::console_font_size}b",
-    "rd.vconsole.keymap=${nest::base::console::keymap}",
 
     # Let kernel swap to compressed memory instead of a physical volume, which
     # is slow and, currently, prone to hanging.  max_pool_percent=100 ensures
@@ -42,6 +41,8 @@ class nest::base::bootloader {
     'delayacct',
 
     $nest::kernel_cmdline,
+
+    'init=/lib/systemd/systemd',
   ].flatten.join(' ').strip
 
   case $nest::bootloader {
