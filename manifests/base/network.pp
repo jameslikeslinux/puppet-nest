@@ -1,12 +1,9 @@
 class nest::base::network {
-  File {
-    mode  => '0644',
-    owner => 'root',
-    group => 'root',
-  }
-
   file { '/etc/systemd/network':
     ensure       => directory,
+    mode         => '0644',
+    owner        => root,
+    group        => root,
     purge        => true,
     recurse      => true,
     force        => true,
@@ -15,28 +12,20 @@ class nest::base::network {
       'puppet:///modules/nest/network',
     ],
     sourceselect => all,
-    notify       => Exec['systemd-networkd-reload'],
+  }
+  ->
+  service { 'systemd-networkd':
+    enable => true,
   }
 
-  unless $nest::vpn_client {
-    ['20-ethernet', '20-wireless'].each |$network| {
-      file {
-        "/etc/systemd/network/${network}.network.d":
-          ensure => directory;
-        "/etc/systemd/network/${network}.network.d/10-domains.conf":
-          content => "[Network]\nDomains=nest\n",
-          notify  => Exec['systemd-networkd-reload'],
-        ;
-      }
+  unless $facts['is_container'] {
+    exec { 'systemd-networkd-reload':
+      command     => '/bin/networkctl reload',
+      onlyif      => '/bin/systemctl is-active systemd-networkd',
+      refreshonly => true,
+      subscribe   => File['/etc/systemd/network'],
+      before      => Service['systemd-networkd'],
     }
-  }
-
-  exec { 'systemd-networkd-reload':
-    command     => '/usr/bin/networkctl reload',
-    onlyif      => '/usr/bin/systemctl is-active systemd-networkd',
-    unless      => '/usr/bin/systemd-detect-virt -c',
-    refreshonly => true,
-    before      => Service['systemd-networkd'],
   }
 
   $wait_for_any_online = @(WAIT)
@@ -46,16 +35,20 @@ class nest::base::network {
     | WAIT
 
   file {
+    default:
+      mode  => '0644',
+      owner => 'root',
+      group => 'root',
+    ;
+
     '/etc/systemd/system/systemd-networkd-wait-online.service.d':
-      ensure => directory;
+      ensure => directory,
+    ;
+
     '/etc/systemd/system/systemd-networkd-wait-online.service.d/10-wait-for-any.conf':
       content => $wait_for_any_online,
     ;
   }
   ~>
   nest::lib::systemd_reload { 'network': }
-  ~>
-  service { 'systemd-networkd':
-    enable => true,
-  }
 }
