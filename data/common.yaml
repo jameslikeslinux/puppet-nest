@@ -76,6 +76,7 @@ nest::openvpn_servers:
 
 nest::ssh_host_keys:
   '*.nest,*.eyrie,*.cluster.local,*.james.tl,localhost': ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8IV6XOFkcGWKuvfpbEixC7KPDKpfxPGGownlkEVWzw
+  'gitlab.james.tl,[falcon.nest]:2222': ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJKT9+cIWglolZpJnoaY+NJ8rEwlqVyqPtgpocRGaInW
   github.com: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
   unifi.home: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPx6R+bs1IAfvykJxCN18uQ0qmNts8P1b300HNt0PNr
   gateway.home: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOxXStSLn3YEuZuyAJdUZBZLmWMjqP49FUkOd2r7R29w

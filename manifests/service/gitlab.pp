@@ -83,20 +83,4 @@ class nest::service::gitlab (
     File['/srv/gitlab/gitlab.rb']
     ~> Service['container-gitlab']
   }
-
-  # Export or manage SSH keys based on ability to access
-  if $facts['gitlab_ssh'] {
-    $facts['gitlab_ssh'].each |$key, $value| {
-      if $external_name =~ /localhost$/ {
-        sshkey { "${external_name}@${value['type']}":
-          key => $value['key'],
-        }
-      } else {
-        @@sshkey { "${external_name}@${value['type']}":
-          key => $value['key'],
-          tag => 'gitlab',
-        }
-      }
-    }
-  }
 }
