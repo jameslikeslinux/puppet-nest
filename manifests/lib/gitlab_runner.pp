@@ -61,7 +61,7 @@ define nest::lib::gitlab_runner (
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
   $register_command = [
     'gitlab-runner', 'register',
-    '--description', $name,
+    '--description', $trusted['certname'],
     '--non-interactive',
     $limit_args,
     '--output-limit', '524288',

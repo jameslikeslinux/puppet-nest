@@ -52,7 +52,7 @@ class nest::service::gitlab_runner (
   }
 
   $instances.each |$instance, $attributes| {
-    nest::lib::gitlab_runner { "${trusted['certname']}-${instance}":
+    nest::lib::gitlab_runner { $instance:
       require => $runner_require,
       before  => $runner_before,
       notify  => $runner_notify,
