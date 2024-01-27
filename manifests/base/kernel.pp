@@ -81,13 +81,14 @@ class nest::base::kernel {
 
     # Ignore warning on newer GCC
     $cflags = [
-      '-Wno-implicit-fallthrough',
-      '-Wno-tautological-compare',
-      '-Wno-int-in-bool-context',
-      '-Wno-array-compare',
       '-Wno-address',
-      '-Wno-stringop-overread',
+      '-Wno-array-compare',
       '-Wno-dangling-pointer',
+      '-Wno-enum-int-mismatch',
+      '-Wno-implicit-fallthrough',
+      '-Wno-int-in-bool-context',
+      '-Wno-stringop-overread',
+      '-Wno-tautological-compare',
     ]
     $cflags_override = "KCFLAGS=\"${cflags.join(' ')}\""
 
@@ -107,9 +108,9 @@ class nest::base::kernel {
 
   $kernel_make_cmd = @("KERNEL_MAKE")
     #!/bin/bash
-    set -o pipefail
-    export PATH=/usr/lib/distcc/bin:/usr/bin:/bin
-    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
+    set -ex -o pipefail
+    export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
+    make -C /usr/src/linux ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
         olddefconfig all modules_install 2>&1 | tee build.log
     | KERNEL_MAKE
 
@@ -128,8 +129,6 @@ class nest::base::kernel {
   ~>
   exec { 'kernel-build':
     command     => '/usr/src/linux/build.sh',
-    cwd         => '/usr/src/linux',
-    environment => 'HOME=/root', # for distcc
     noop        => !$facts['build'],
     refreshonly => true,
     timeout     => 0,

@@ -9,7 +9,7 @@ nest::kernel_cmdline:
   - 'console=tty0'
 
 nest::kernel_config:
-  CONFIG_GCC_PLUGINS: null
+  # Missing in Linux 5.10
   CONFIG_SYSFB_SIMPLEFB: null
   CONFIG_DRM_SIMPLEDRM: null
 
@@ -17,6 +17,9 @@ nest::kernel_config:
   CONFIG_USB_USBNET: y
   CONFIG_USB_NET_RNDIS_HOST: y
   CONFIG_CRYPTO_DES: y
+
+  # For zswap
+  CONFIG_FRONTSWAP: y
 
 nest::base::firmware::rockchip:
   git_branch: 'radxa'
