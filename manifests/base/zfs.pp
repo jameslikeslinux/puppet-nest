@@ -63,9 +63,11 @@ class nest::base::zfs {
         creates => '/etc/zfs/zpool.cache',
       }
     } else {
+      notify { 'Generating hostid...reboot or remove /etc/hostid before running Puppet again.': }
+      ~>
       exec { 'zgenhostid':
-        command => '/sbin/zgenhostid `hostid`',
-        creates => '/etc/hostid',
+        command     => '/sbin/zgenhostid `hostid`',
+        refreshonly => true,
       }
     }
 
