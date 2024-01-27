@@ -57,17 +57,15 @@ class nest::base::zfs {
   }
 
   unless $facts['is_container'] or $facts['running_live'] {
-    if $facts['hostid'] {
+    exec { 'zgenhostid':
+      command => '/sbin/zgenhostid `hostid`',
+      creates => '/etc/hostid',
+    }
+
+    if $facts['hostid'] == $facts['rpool_hostid'] {
       exec { 'generate-zpool-cache':
         command => "/sbin/zpool set cachefile= ${trusted['certname']}",
         creates => '/etc/zfs/zpool.cache',
-      }
-    } else {
-      notify { 'Generating hostid...reboot or remove /etc/hostid before running Puppet again.': }
-      ~>
-      exec { 'zgenhostid':
-        command     => '/sbin/zgenhostid `hostid`',
-        refreshonly => true,
       }
     }
 
