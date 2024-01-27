@@ -1,7 +1,6 @@
 ---
 nest::dtb_file: 'broadcom/bcm2711-rpi-400.dtb'
 nest::fscache: true
-nest::openvpn_client: false
 nest::monitor_layout: ['HDMI-A-1@0', 'HDMI-A-2@2560']
 nest::primary_monitor: 'HDMI-A-1'
 nest::text_scaling_factor: 1.1

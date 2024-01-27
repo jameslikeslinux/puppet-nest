@@ -2,12 +2,14 @@
 classes:
   - 'nest::service::gitlab_runner'
 
-# Cluster is directly connected to Nest
+nest::distcc_server: true
 nest::vpn_client: false
-nest::wifi: false
 
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
-  runner:
-    cap_add: ['SYS_CHROOT']
+  builder:
+    limit: 2
+    privileged: true
+    security_options: ['seccomp=unconfined']
+    volumes: ['/nest:/nest', '/falcon:/falcon']
     zfs: true
