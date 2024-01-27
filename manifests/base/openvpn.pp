@@ -30,11 +30,22 @@ class nest::base::openvpn {
           before  => Service["openvpn-${mode}@nest"],
         }
 
-        file { '/etc/openvpn/learn-address.sh':
-          mode    => '0755',
-          source  => 'puppet:///modules/nest/openvpn/learn-address.sh',
-          require => Package['net-vpn/openvpn'],
-          before  => Service["openvpn-${mode}@nest"],
+        file {
+          default:
+            require => Package['net-vpn/openvpn'],
+            before  => Service["openvpn-${mode}@nest"],
+          ;
+          '/etc/openvpn/.manage-hosts.sh':
+            mode   => '0755',
+            source => 'puppet:///modules/nest/openvpn/manage-hosts.sh',
+          ;
+          [
+            '/etc/openvpn/client-connect.sh',
+            '/etc/openvpn/client-disconnect.sh',
+          ]:
+            ensure => link,
+            target => '.manage-hosts.sh',
+          ;
         }
 
         file { '/etc/hosts.nest':

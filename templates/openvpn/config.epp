@@ -84,7 +84,8 @@ push "route 172.21.0.0 255.255.0.0"
 push "route 172.22.4.0 255.255.255.0"
 
 setenv HOSTS /etc/hosts.nest
-learn-address /etc/openvpn/learn-address.sh
+client-connect /etc/openvpn/client-connect.sh
+client-disconnect /etc/openvpn/client-disconnect.sh
 ifconfig-pool-persist <%= $ipp_file %>
   <%- } -%>
 <%- } -%>
