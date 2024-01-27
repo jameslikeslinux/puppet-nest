@@ -1,9 +1,11 @@
 ---
 nest::bootloader: systemd
+nest::dtb_file: 'rockchip/rk3588-rock-5b.dtb'
 nest::fscache: false
-nest::uboot_tag: 'collabora/v2023.10'
 nest::kernel_defconfig: 'rockchip_linux_defconfig'
 nest::kernel_tag: 'radxa/v5.10.160'
+nest::uboot_tag: 'collabora/v2023.10'
+
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
   - 'console=tty0'
@@ -21,7 +23,5 @@ nest::kernel_config:
   # For zswap
   CONFIG_FRONTSWAP: y
 
-nest::base::firmware::rockchip:
-  git_branch: 'radxa'
-
+nest::base::firmware::rockchip::git_branch: 'radxa'
 nest::base::firmware::uboot::defconfig: 'rock5b-rk3588_defconfig'

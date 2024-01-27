@@ -63,7 +63,7 @@ class nest::base::firmware {
       }
 
       'rockchip': {
-        contain 'nest::base::firmware::arm'
+        contain 'nest::base::firmware::uboot'
 
         if $facts['profile']['platform'] == 'rock5' {
           contain 'nest::base::firmware::rockchip'
@@ -71,7 +71,7 @@ class nest::base::firmware {
           Class['nest::base::firmware::rockchip']
           ~> Class['nest::base::firmware::uboot']
         } else {
-          contain 'nest::base::firmware::uboot'
+          contain 'nest::base::firmware::arm'
 
           Class['nest::base::firmware::arm']
           ~> Class['nest::base::firmware::uboot']
