@@ -86,6 +86,16 @@ class nest::base::ssh {
         remote_ip    => '172.22.0.0/24',
         action       => allow,
       }
+
+      windows_firewall::exception { 'eyrie-ssh':
+        ensure       => present,
+        display_name => 'Eyrie SSH',
+        description  => 'Allow SSH from Eyrie network',
+        protocol     => 'TCP',
+        local_port   => 22,
+        remote_ip    => '172.22.4.0/24',
+        action       => allow,
+      }
     }
   }
 

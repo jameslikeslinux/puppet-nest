@@ -7,7 +7,7 @@ class nest::base::distccd {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => "[Service]\nEnvironment=\"ALLOWED_SERVERS=172.22.0.0/24\"\n",
+    content => "[Service]\nEnvironment=\"ALLOWED_SERVERS=172.22.0.0/16\"\n",
   }
   ~>
   nest::lib::systemd_reload { 'distccd': }

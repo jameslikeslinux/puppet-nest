@@ -83,6 +83,15 @@ class nest::base::firewall {
         remote_ip    => '172.22.0.0/24',
         action       => allow,
       }
+
+      windows_firewall::exception { 'eyrie-icmp':
+        ensure       => present,
+        display_name => 'Eyrie ICMP',
+        description  => 'Allow pings from Eyrie network',
+        protocol     => 'ICMPv4',
+        remote_ip    => '172.22.4.0/24',
+        action       => allow,
+      }
     }
   }
 }
