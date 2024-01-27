@@ -2,9 +2,10 @@ class nest::base::firmware {
   if $nest::dtb_file {
     $soc_vendor = dirname($nest::dtb_file)
 
-    $dtb_root = $facts['profile']['architecture'] ? {
-      'arm'   => '/boot',
-      default => "/boot/${soc_vendor}",
+    $dtb_root = $facts['profile']['platform'] ? {
+      'beagleboneblack' => '/boot',
+      /^raspberrypi/    => '/boot',
+      default           => "/boot/${soc_vendor}",
     }
 
     file {
@@ -88,16 +89,16 @@ class nest::base::firmware {
   }
 
   $files = {
-    'linux/brcm/brcmfmac43455-sdio.bin'                       => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'linux/brcm/brcmfmac43455-sdio.clm_blob'                  => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'linux/brcm/brcmfmac43455-sdio.txt'                       => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'manjaro/brcm/BCM4345C5.hcd'                              => ['pinebookpro'],
-    'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'                  => ['haswell'],
-    'raspberrypi/brcm/BCM4345C0.hcd'                          => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'raspberrypi/brcm/BCM4345C5.hcd'                          => ['raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.bin'                 => ['pinebookpro', 'raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.clm_blob'            => ['pinebookpro', 'raspberrypi4'],
-    'raspberrypi/brcm/brcmfmac43456-sdio.txt'                 => ['pinebookpro', 'raspberrypi4'],
+    'linux/brcm/brcmfmac43455-sdio.bin'            => ['raspberrypi3', 'rockpro64', 'rock4'],
+    'linux/brcm/brcmfmac43455-sdio.clm_blob'       => ['raspberrypi3', 'rockpro64', 'rock4'],
+    'linux/brcm/brcmfmac43455-sdio.txt'            => ['raspberrypi3', 'rockpro64', 'rock4'],
+    'manjaro/brcm/BCM4345C5.hcd'                   => ['pinebookpro'],
+    'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'       => ['haswell'],
+    'raspberrypi/brcm/BCM4345C0.hcd'               => ['raspberrypi3', 'rockpro64', 'rock4'],
+    'raspberrypi/brcm/BCM4345C5.hcd'               => ['raspberrypi4'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.bin'      => ['pinebookpro', 'raspberrypi4'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.clm_blob' => ['pinebookpro', 'raspberrypi4'],
+    'raspberrypi/brcm/brcmfmac43456-sdio.txt'      => ['pinebookpro', 'raspberrypi4'],
   }
 
   $files_categorized = $files.reduce([{}, {}]) |$memo, $file| {
