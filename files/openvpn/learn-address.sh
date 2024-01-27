@@ -7,8 +7,7 @@ add_host() {
     local ip_regex="${ip//./\\.}"
 
     # Remove any existing conflicts
-    sed -i '/^'"$ip_regex"'[[:space:]]/d' "$HOSTS"
-    sed -i '/[[:space:]]'"$cn"'\([[:space:]]\|$\)/d' "$HOSTS"
+    delete_host "$@"
 
     # Add the new entry
     echo -e "${ip}\t${cn}" >> "$HOSTS"
@@ -17,12 +16,22 @@ add_host() {
     /bin/systemctl reload dnsmasq
 }
 
+delete_host() {
+    local ip="$1" cn="$2"
+    local ip_regex="${ip//./\\.}"
+
+    sed -i '/^'"$ip_regex"'[[:space:]]/d' "$HOSTS"
+    sed -i '/[[:space:]]'"$cn"'\([[:space:]]\|$\)/d' "$HOSTS"
+
+    /bin/systemctl reload dnsmasq
+}
+
 case "$1" in
     'add'|'update')
         add_host "$2" "$3"
         ;;
     'delete')
-        # no-op
+        delete_host "$2" "$3"
         ;;
     *)
         echo "Unknown action ${1}" >&2
