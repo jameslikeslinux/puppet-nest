@@ -56,18 +56,22 @@ class nest::base::zfs {
     require => Package['sys-fs/zfs'],
   }
 
-  unless $facts['is_container'] or $facts['running_live'] {
+  if !$facts['is_container'] and !$facts['running_live'] {
     exec { 'zgenhostid':
       command => '/sbin/zgenhostid',
       creates => '/etc/hostid',
     }
 
     if $facts['hostid'] and $facts['hostid'] == $facts['rpool_hostid'] {
+      $kernel_params = []
+
       exec { 'generate-zpool-cache':
         command => "/sbin/zpool set cachefile= ${trusted['certname']}",
         creates => '/etc/zfs/zpool.cache',
       }
     } else {
+      $kernel_params = ['zfs_force']
+
       file { '/etc/zfs/zpool.cache':
         ensure => absent,
       }
@@ -82,6 +86,8 @@ class nest::base::zfs {
       secondarycache => 'none',
       logbias        => 'throughput',
     }
+  } else {
+    $kernel_params = []
   }
 
   # Avoid copying incompatible xattrs from NFS4 to ZFS
