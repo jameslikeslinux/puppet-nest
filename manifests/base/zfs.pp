@@ -62,7 +62,7 @@ class nest::base::zfs {
       creates => '/etc/hostid',
     }
 
-    if $facts['hostid'] == $facts['rpool_hostid'] {
+    if $facts['hostid'] and $facts['hostid'] == $facts['rpool_hostid'] {
       exec { 'generate-zpool-cache':
         command => "/sbin/zpool set cachefile= ${trusted['certname']}",
         creates => '/etc/zfs/zpool.cache',
