@@ -56,12 +56,13 @@ class nest::base::zfs {
     require => Package['sys-fs/zfs'],
   }
 
-  if !$facts['is_container'] and !$facts['running_live'] {
+  unless $facts['build'] {
     exec { 'zgenhostid':
       command => '/sbin/zgenhostid',
       creates => '/etc/hostid',
     }
 
+    # In case hostid is reset, e.g, by removing /etc/hostid
     if $facts['hostid'] and $facts['hostid'] == $facts['rpool_hostid'] {
       $kernel_params = []
 
@@ -76,7 +77,9 @@ class nest::base::zfs {
         ensure => absent,
       }
     }
+  }
 
+  unless $facts['is_container'] or $facts['running_live'] {
     # Manage swap volume properties for experimenting with workarounds listed in
     # https://github.com/openzfs/zfs/issues/7734
     zfs { "${facts['rpool']}/swap":
@@ -86,8 +89,6 @@ class nest::base::zfs {
       secondarycache => 'none',
       logbias        => 'throughput',
     }
-  } else {
-    $kernel_params = []
   }
 
   # Avoid copying incompatible xattrs from NFS4 to ZFS
