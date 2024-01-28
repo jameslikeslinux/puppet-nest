@@ -58,7 +58,7 @@ class nest::base::zfs {
 
   unless $facts['is_container'] or $facts['running_live'] {
     exec { 'zgenhostid':
-      command => '/sbin/zgenhostid `hostid`',
+      command => '/sbin/zgenhostid',
       creates => '/etc/hostid',
     }
 
@@ -66,6 +66,10 @@ class nest::base::zfs {
       exec { 'generate-zpool-cache':
         command => "/sbin/zpool set cachefile= ${trusted['certname']}",
         creates => '/etc/zfs/zpool.cache',
+      }
+    } else {
+      file { '/etc/zfs/zpool.cache':
+        ensure => absent,
       }
     }
 
