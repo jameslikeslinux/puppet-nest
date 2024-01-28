@@ -56,7 +56,9 @@ class nest::base::zfs {
     require => Package['sys-fs/zfs'],
   }
 
-  unless $facts['build'] {
+  if $facts['build'] {
+    $kernel_params = []
+  } else {
     exec { 'zgenhostid':
       command => '/sbin/zgenhostid',
       creates => '/etc/hostid',
