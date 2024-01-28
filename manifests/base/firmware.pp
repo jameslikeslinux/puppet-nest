@@ -19,11 +19,10 @@ class nest::base::firmware {
     case $soc_vendor {
       'amlogic': {
         contain 'nest::base::firmware::uboot'
-        # contain 'nest::base::firmware::arm'
-        # contain 'nest::base::firmware::uboot'
+        contain 'nest::base::firmware::amlogic'
 
-        # Class['nest::base::firmware::arm']
-        # ~> Class['nest::base::firmware::uboot']
+        Class['nest::base::firmware::uboot']
+        ~> Class['nest::base::firmware::amlogic']
       }
 
       'allwinner': {
