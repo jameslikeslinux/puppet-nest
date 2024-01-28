@@ -61,7 +61,7 @@ nest::service::gitlab::web_port: 8000
 nest::service::gitlab::default_theme: 2
 
 nest::service::gitlab_runner::instances:
-  shared:
+  runner:
     host: 'gitlab.james.tl'
     cap_add: ['SYS_CHROOT']
     volumes:
@@ -70,7 +70,7 @@ nest::service::gitlab_runner::instances:
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
     zfs: true
 
-  nest:
+  builder:
     host: 'gitlab.james.tl'
     limit: 2
     privileged: true
