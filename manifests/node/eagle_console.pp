@@ -1,4 +1,4 @@
-class nest::node::eyrie_console {
+class nest::node::eagle_console {
   # Avoid using UART on this node
   file_line {
     default:
