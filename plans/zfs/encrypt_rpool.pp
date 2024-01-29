@@ -1,10 +1,10 @@
 # Snapshot and migrate ROOT to encrypted dataset
 #
 # @param targets Hosts to encrypt
-# @param keylocation Path to the key location on the node or 'prompt'
+# @param keylocation Key URI (e.g. 'file:///...') on the node or 'prompt'
 plan nest::zfs::encrypt_rpool (
   TargetSpec $targets,
-  Variant[Stdlib::Unixpath, Enum['prompt']] $keylocation = 'prompt',
+  String     $keylocation = 'prompt',
 ) {
   if $keylocation == 'prompt' {
     $passphrase = prompt('Encryption passphrase', 'sensitive' => true)
@@ -18,10 +18,8 @@ plan nest::zfs::encrypt_rpool (
     }
 
     $echo_passphrase = "echo ${passphrase.unwrap.shellquote} | "
-    $keylocation_arg = $keylocation
   } else {
     $echo_passphrase = ''
-    $keylocation_arg = "file://${keylocation}"
   }
 
   parallelize(get_targets($targets)) |$t| {
@@ -31,7 +29,7 @@ plan nest::zfs::encrypt_rpool (
     })
 
     $zfs_create_cmd = "${echo_passphrase}zfs create -o encryption=aes-128-gcm \
-                        -o keyformat=passphrase -o keylocation=${keylocation_arg} ${t}/crypt"
+                        -o keyformat=passphrase -o keylocation=${keylocation} ${t}/crypt"
     run_command($zfs_create_cmd, $t, "zfs create ${t}/crypt", {
       '_run_as' => 'root',
     })
