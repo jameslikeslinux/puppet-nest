@@ -1,6 +1,7 @@
 ---
 classes:
   - 'nest::service::gitlab_runner'
+  - 'nest::tool::qemu'
 
 nest::distcc_server: true
 nest::vpn_client: false
@@ -11,5 +12,10 @@ nest::service::gitlab_runner::instances:
     limit: 2
     privileged: true
     security_options: ['seccomp=unconfined']
-    volumes: ['/nest:/nest', '/falcon:/falcon']
+    volumes:
+      - '/nest:/nest'
+      - '/falcon:/falcon'
+      - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
+      - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
+      - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
     zfs: true
