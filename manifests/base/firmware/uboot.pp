@@ -77,8 +77,8 @@ class nest::base::firmware::uboot (
   case $facts['profile']['platform'] {
     /^(pinebookpro|rockpro64|rock4|rock5)$/: {
       $build_options = $facts['profile']['platform'] ? {
-        'rock5' => "BL31=../rkbin/bin/rk35/rk3588_bl31_v1.28.elf \
-                    ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin",
+        'rock5' => "BL31=../rkbin/bin/rk35/rk3588_bl31_v1.38.elf \
+                    ROCKCHIP_TPL=../rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.11.bin",
         default => 'BL31=../arm-trusted-firmware/build/rk3399/release/bl31/bl31.elf',
       }
 
