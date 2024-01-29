@@ -6,7 +6,7 @@ class nest::base::containers {
 
     unless $facts['mountpoints']['/var/lib/containers'] {
       zfs { 'containers':
-        name       => "${facts['rpool']}/containers",
+        name       => "${trusted['certname']}/containers",
         mountpoint => '/var/lib/containers',
       }
     }
