@@ -67,7 +67,7 @@ plan nest::zfs::encrypt_rpool (
     })
 
     $swaplabel_cmd = "swaplabel -L '' ${t}/swap"
-    run_command($swaplabel_cmd, $t, "Disable old swap", {
+    run_command($swaplabel_cmd, $t, 'Disable old swap', {
       '_run_as' => 'root',
     })
 

@@ -12,10 +12,10 @@ class nest::tool::qemu {
     }
     ->
     file { '/etc/binfmt.d/qemu.conf':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      source  => '/usr/share/qemu/binfmt.d/qemu.conf',
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => '/usr/share/qemu/binfmt.d/qemu.conf',
     }
     ~>
     service { 'systemd-binfmt':
