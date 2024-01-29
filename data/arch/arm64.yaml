@@ -1,4 +1,5 @@
 ---
 nest::distcc_hosts:
-  eyas1.nest: 8
-  eyas2.nest: 8
+  builder1.nest: 8
+  builder2.nest: 8
+  builder3.nest: 8
