@@ -7,7 +7,7 @@ class nest::base::wifi {
       ensure => installed,
     }
 
-    if $nest::wlans {
+    if $nest::wlans and $facts['build'] in [undef, 'stage3', 'kernel'] {
       $nest::wlans.unwrap.each |$wlan, $wlan_params| {
         $wlan_params_sensitive = $wlan_params.reduce({}) |$memo, $param| {
           if $param[0] == 'passphrase' {

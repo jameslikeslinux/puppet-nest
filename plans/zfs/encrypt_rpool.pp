@@ -23,8 +23,7 @@ plan nest::zfs::encrypt_rpool (
   }
 
   parallelize(get_targets($targets)) |$t| {
-    $zfs_snapshot_cmd = "zfs snapshot -r ${t}@encrypt"
-    run_command($zfs_snapshot_cmd, $t, 'zfs snapshot', {
+    run_command("zfs snapshot -r ${t}@encrypt", $t, {
       '_run_as' => 'root',
     })
 
@@ -34,7 +33,7 @@ plan nest::zfs::encrypt_rpool (
       '_run_as' => 'root',
     })
 
-    run_command("zfs create -o atime=off ${t}/crypt/ROOT", $t, "zfs create ${t}/crypt/ROOT", {
+    run_command("zfs create -o atime=off ${t}/crypt/ROOT", $t, {
       '_run_as' => 'root',
     })
 
@@ -43,34 +42,32 @@ plan nest::zfs::encrypt_rpool (
     }).first.value['stdout'].chomp.regsubst('^.*?/', '')
 
     $datasets = {
-      $current_fs           => '-o canmount=noauto -o mountpoint=/',
-      "${current_fs}/debug" => '-o canmount=noauto -o mountpoint=/usr/lib/debug -o compression=zstd',
-      "${current_fs}/src"   => '-o canmount=noauto -o mountpoint=/usr/src -o compression=zstd',
-      "${current_fs}/var"   => '-o canmount=noauto -o mountpoint=/var',
-      'home'                => '-o canmount=noauto -o mountpoint=/home',
-      'home/james'          => '-o canmount=noauto -o mountpoint=/home/james',
+      $current_fs           => '-o mountpoint=/',
+      "${current_fs}/debug" => '-o mountpoint=/usr/lib/debug -o compression=zstd',
+      "${current_fs}/src"   => '-o mountpoint=/usr/src -o compression=zstd',
+      "${current_fs}/var"   => '-o mountpoint=/var',
+      'home'                => '-o mountpoint=/home',
+      'home/james'          => '-o mountpoint=/home/james',
       'swap'                => '-o refreservation=none',
     }
 
     $datasets.each |$fs, $opts| {
-      $zfs_move_cmd = "zfs send -v ${t}/${fs}@encrypt | zfs receive -v ${opts} ${t}/crypt/${fs}"
-      run_command($zfs_move_cmd, $t, "zfs send/receive ${t}/${fs}", {
+      run_command("zfs send -v ${t}/${fs}@encrypt | zfs receive -uv ${opts} ${t}/crypt/${fs}", $t, {
         '_run_as' => 'root',
       })
+
+      unless $fs == 'swap' {
+        run_command("zfs set canmount=noauto ${t}/${fs}", $t, {
+          '_run_as' => 'root',
+        })
+      }
     }
 
-    $zfs_set_canmount_cmd = "zfs set -r canmount=noauto ${t}/${current_fs}"
-    run_command($zfs_set_canmount_cmd, $t, "Disable old BE ${t}/${current_fs}", {
+    run_command("swapoff /dev/zvol/${t}/swap && zfs destroy -r ${t}/swap", $t, {
       '_run_as' => 'root',
     })
 
-    $swaplabel_cmd = "swaplabel -L '' ${t}/swap"
-    run_command($swaplabel_cmd, $t, 'Disable old swap', {
-      '_run_as' => 'root',
-    })
-
-    $zpool_set_bootfs_cmd = "zpool set bootfs=${t}/crypt/${current_fs} ${t}"
-    run_command($zfs_move_cmd, $t, 'zpool set bootfs', {
+    run_command("zpool set bootfs=${t}/crypt/${current_fs} ${t}", $t, {
       '_run_as' => 'root',
     })
   }
