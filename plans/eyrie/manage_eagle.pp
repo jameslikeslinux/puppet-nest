@@ -1,8 +1,8 @@
-# Manage the state of Eyrie nodes through its console
+# Manage the state of Eagle nodes through its console
 #
 # @param targets Nodes to manage
 # @param power Action to take on the nodes
-plan nest::eyrie::manage_node (
+plan nest::eyrie::manage_eagle (
   TargetSpec $targets,
   Enum['off', 'on', 'reset'] $power,
 ) {
@@ -36,7 +36,7 @@ plan nest::eyrie::manage_node (
         }
       }
 
-      run_command($gpio_cmd, 'eyrie-console', "${action} node ${node.name}", {
+      run_command($gpio_cmd, 'eagle-console', "${action} node ${node.name}", {
         _run_as => 'root',
       })
     } else {
