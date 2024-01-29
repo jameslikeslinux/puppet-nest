@@ -26,7 +26,8 @@ class nest::base::wifi {
     }
 
     service { 'iwd':
-      enable => true,
+      enable  => true,
+      require => Package['net-wireless/iwd'],
     }
 
     $iwd_service_fix_content = @(IWD_SERVICE_FIX)
