@@ -110,19 +110,6 @@ class nest::service::streamux (
   }
 
   #
-  # GoPro
-  #
-  python::pyvenv { '/opt/open-gopro':
-    ensure => present,
-  }
-  ->
-  python::pip { 'open-gopro':
-    ensure     => present,
-    virtualenv => '/opt/open-gopro',
-    url        => 'git+https://gitlab.james.tl/james/open-gopro.git@streamux#subdirectory=demos/python/sdk_wireless_camera_control',
-  }
-
-  #
   # Streamux
   #
   vcsrepo { '/home/james/streamux':
