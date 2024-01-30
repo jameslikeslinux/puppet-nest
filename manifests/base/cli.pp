@@ -22,4 +22,20 @@ class nest::base::cli {
       source => 'puppet:///modules/nest/cli/reset-test-filter.rules',
     ;
   }
+
+  # Required for building live ISOs
+  unless defined(Package['sys-boot/grub']) {
+    package { 'sys-boot/grub':
+      ensure => installed,
+    }
+  }
+
+  # Fix broken argument processing with grub-mkrescue(1)
+  # See: https://gitlab.james.tl/nest/cli/-/issues/26
+  file { '/usr/local/bin/xorriso':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => "#!/bin/zsh\nexec xorriso \"\${@:#--}\"\n"
+  }
 }

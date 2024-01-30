@@ -1,10 +1,9 @@
 class nest::base::bootloader::grub {
-  nest::lib::package_use { 'sys-boot/grub':
-    use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs', 'truetype'],
-  }
-
-  package { 'sys-boot/grub':
-    ensure => installed,
+  unless defined(Package['sys-boot/grub']) {
+    nest::lib::package { 'sys-boot/grub':
+      ensure => installed,
+      use    => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs', 'truetype'],
+    }
   }
 
   if $facts['mountpoints']['/boot'] or ($facts['profile']['platform'] == 'live' and $facts['is_container'] and !$facts['build']) {
