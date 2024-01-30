@@ -1,5 +1,5 @@
 ---
 nest::distcc_hosts:
-  builder1.nest: 8
-  builder2.nest: 8
-  builder3.nest: 8
+  builder1: 8
+  builder2: 8
+  builder3: 8

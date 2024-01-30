@@ -59,7 +59,7 @@ nest::cnames:
 nest::cups_servers:
   - 'falcon.nest'
 nest::distcc_hosts:
-  falcon.nest: 16
+  falcon: 16
 nest::hosts:
   unifi.home:
     ip: '172.22.1.12'
