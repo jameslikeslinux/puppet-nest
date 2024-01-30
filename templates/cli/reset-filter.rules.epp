@@ -11,7 +11,7 @@
 #
 
 # Global rules
-- /boot/
+P /boot/**
 - /etc/hostid
 - /etc/mtab
 - /etc/printcap
