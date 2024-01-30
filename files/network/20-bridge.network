@@ -1,6 +1,6 @@
 [Match]
-Host=builder*
-Host=runner*
+Host|=builder*
+Host|=runner*
 Name=en*
 
 [Network]
