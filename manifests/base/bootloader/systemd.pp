@@ -6,14 +6,28 @@ class nest::base::bootloader::systemd {
       $bootctl_args = ''
     }
 
+    # Hack bootloader updates because bootctl won't work with MBR
+    # "File system '/dev/mmcblk0p1' is not on a GPT partition table."
+    if $facts['profile']['platform'] == 'radxazero' {
+      $bootctl_returns = [0, 1]
+      file { ['/boot/EFI/systemd/systemd-bootaa64.efi', '/boot/EFI/BOOT/BOOTAA64.EFI']:
+        source  => '/usr/lib/systemd/boot/efi/systemd-bootaa64.efi',
+        require => Exec['bootctl-install'],
+      }
+    } else {
+      $bootctl_returns = 0
+    }
+
     exec { 'bootctl-install':
       command => "/usr/bin/bootctl install --graceful ${bootctl_args}",
+      returns => $bootctl_returns,
       unless  => '/usr/bin/bootctl is-installed | /bin/grep yes',
       before  => Exec['kernel-install'],
     }
     ~>
     exec { 'bootctl-update':
       command     => '/usr/bin/bootctl update --graceful --no-variables',
+      returns     => $bootctl_returns,
       refreshonly => true,
     }
 
