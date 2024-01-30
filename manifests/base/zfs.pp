@@ -56,27 +56,16 @@ class nest::base::zfs {
     require => Package['sys-fs/zfs'],
   }
 
-  if $facts['build'] {
-    $kernel_params = []
-  } else {
+  unless $facts['build'] {
     exec { 'zgenhostid':
       command => '/sbin/zgenhostid',
       creates => '/etc/hostid',
     }
 
-    # In case hostid is reset, e.g, by removing /etc/hostid
     if $facts['hostid'] and $facts['hostid'] == $facts['rpool_hostid'] {
-      $kernel_params = []
-
       exec { 'generate-zpool-cache':
         command => "/sbin/zpool set cachefile= ${trusted['certname']}",
         creates => '/etc/zfs/zpool.cache',
-      }
-    } else {
-      $kernel_params = ['zfs_force']
-
-      file { '/etc/zfs/zpool.cache':
-        ensure => absent,
       }
     }
   }

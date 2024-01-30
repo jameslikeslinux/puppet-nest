@@ -2,12 +2,7 @@ class nest::base::bootloader {
   # For nest::base::console::keymap
   include 'nest::base::console'
 
-  # For nest::base::zfs::kernel_params
-  include 'nest::base::zfs'
-
   $kernel_cmdline = [
-    $nest::base::zfs::kernel_params,
-
     'loglevel=3', # must come after 'quiet', if specified
 
     # Let I/O preferences be configurable at boot time
