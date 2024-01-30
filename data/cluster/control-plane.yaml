@@ -1,0 +1,4 @@
+---
+nest::wifi: false
+nest::kernel_config:
+  CONFIG_USB_ETH: y
