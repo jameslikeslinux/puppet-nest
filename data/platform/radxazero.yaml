@@ -5,6 +5,7 @@ nest::fscache: false
 nest::wifi: true
 
 nest::kernel_cmdline:
-  - 'console=ttyS0,115200n8'
+  - 'console=ttyAML0,115200n8'
+  - 'console=tty0'
 
 nest::base::firmware::uboot::defconfig: 'radxa-zero_defconfig'
