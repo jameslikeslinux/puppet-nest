@@ -41,6 +41,7 @@ class nest::base::firmware::uboot (
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
+    'radxazero'    => undef, # setting not available
     /^raspberrypi/ => undef, # setting not available
     default        => n,
   }
