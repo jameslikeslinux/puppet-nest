@@ -2,6 +2,7 @@
 nest::bootloader: systemd
 nest::dtb_file: 'amlogic/meson-g12a-radxa-zero.dtb'
 nest::fscache: false
+nest::wifi: true
 
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
