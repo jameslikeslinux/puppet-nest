@@ -2,6 +2,3 @@
 Host=falcon
 Name=eyrie
 Type=vlan
-
-[Address]
-Address=172.22.4.2/24

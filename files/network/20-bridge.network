@@ -1,0 +1,7 @@
+[Match]
+Host=builder*
+Host=runner*
+Name=en*
+
+[Network]
+Bridge=br0

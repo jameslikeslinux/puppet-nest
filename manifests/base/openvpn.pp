@@ -61,7 +61,7 @@ class nest::base::openvpn {
         }
 
         class { 'nest::service::dnsmasq':
-          interfaces      => ['tun0', 'eyrie'],
+          interfaces      => ['tun0', 'br0'],
           bind_interfaces => true,
         }
 
