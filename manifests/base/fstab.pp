@@ -27,6 +27,15 @@ class nest::base::fstab {
       'set 1/passno 2',
     ],
 
+    'boot-mbr' => [
+      "set 1/spec LABEL=${labelname}-bt",
+      'set 1/file /boot',
+      "set 1/vfstype ${boot_vfstype}",
+      'set 1/opt defaults',
+      'set 1/dump 0',
+      'set 1/passno 2',
+    ],
+
     'efi'     => [
       "set 2/spec PARTLABEL=${hostname}-efi",
       'set 2/file /efi',
@@ -123,6 +132,11 @@ class nest::base::fstab {
     ],
   }
 
+  $boot_spec = $facts['profile']['platform'] ? {
+    'radxazero' => 'boot-mbr',
+    default     => 'boot',
+  }
+
   if $nest::fscache {
     $nest_spec   = 'nest-fscache'
     $falcon_spec = 'falcon'
@@ -134,11 +148,11 @@ class nest::base::fstab {
   if $facts['profile']['platform'] == 'live' {
     $fstab = $specs['nest-nocache'] + $specs['falcon']
   } elsif $nest::nestfs_hostname == "${hostname}.nest" {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var']
+    $fstab = $specs[$boot_spec] + $specs['swap'] + $specs['var']
   } elsif $facts['mountpoints']['/efi'] {
-    $fstab = $specs['boot'] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs[$falcon_spec]
+    $fstab = $specs[$boot_spec] + $specs['efi'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs[$falcon_spec]
   } else {
-    $fstab = $specs['boot'] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs[$falcon_spec]
+    $fstab = $specs[$boot_spec] + $specs['swap'] + $specs['var'] + $specs[$nest_spec] + $specs[$falcon_spec]
   }
 
   augeas { 'fstab':
