@@ -4,9 +4,12 @@ class nest::base::puppet {
     default => [],
   }
 
-  $domain = $facts['networking']['network'] ? {
-    '172.22.4.0' => 'eyrie',
-    default      => 'nest',
+  if $facts['domain'] {
+    $domain = $facts['domain']
+  } elsif $facts['networking']['network'] == '172.22.4.0' {
+    $domain = 'eyrie'
+  } else {
+    $domain = 'nest'
   }
 
   $fqdn = "${trusted['certname']}.${domain}"
