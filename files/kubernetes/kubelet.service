@@ -5,6 +5,7 @@ Description=Kubernetes node agent
 EnvironmentFile=-/etc/kubernetes/kubelet.env
 EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
 ExecStart=/usr/bin/kubelet $KUBELET_ARGS $KUBELET_KUBEADM_ARGS
+ExecStartPost=/usr/sbin/sysctl -p /etc/sysctl.conf
 Restart=on-failure
 
 [Install]
