@@ -15,6 +15,7 @@ class nest::base::packages {
         'net-dns/bind-tools',
         'net-misc/whois',
         'sys-apps/ethtool',
+        'sys-apps/gptfdisk',
         'sys-apps/ipmitool',
         'sys-apps/pciutils',
         'sys-apps/pv',
