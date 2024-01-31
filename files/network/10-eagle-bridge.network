@@ -1,0 +1,6 @@
+[Match]
+Host=eagle
+Name=en*
+
+[Network]
+Bridge=br0
