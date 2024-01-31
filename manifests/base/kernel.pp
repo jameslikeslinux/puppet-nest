@@ -11,8 +11,14 @@ class nest::base::kernel {
     before => Exec['kernel-build'],
   }
 
+  if $facts['build'] {
+    $repo_ensure = latest
+  } else {
+    $repo_ensure = present
+  }
+
   vcsrepo { '/usr/src/linux':
-    ensure   => latest,
+    ensure   => $repo_ensure,
     provider => git,
     source   => 'https://gitlab.james.tl/nest/forks/linux.git',
     revision => $nest::kernel_tag,

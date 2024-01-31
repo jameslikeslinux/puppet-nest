@@ -11,8 +11,14 @@ class nest::base::firmware::arm (
     }
   }
 
+  if $facts['build'] {
+    $repo_ensure = latest
+  } else {
+    $repo_ensure = present
+  }
+
   vcsrepo { '/usr/src/arm-trusted-firmware':
-    ensure   => latest,
+    ensure   => $repo_ensure,
     provider => git,
     source   => 'https://gitlab.james.tl/nest/forks/arm-trusted-firmware.git',
     revision => 'main',
