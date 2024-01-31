@@ -98,6 +98,18 @@ class nest::base::firmware::uboot (
       $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
     }
 
+    'radxazero': {
+      $build_options = ''
+
+      nest::lib::kconfig {
+        'CONFIG_MMC_IO_VOLTAGE':
+          value => y;
+        'CONFIG_MMC_HS200_SUPPORT':
+          value => y,
+        ;
+      }
+    }
+
     default: {
       $build_options = ''
     }
