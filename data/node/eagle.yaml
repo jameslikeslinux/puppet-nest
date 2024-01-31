@@ -1,3 +1,4 @@
 ---
+nest::external_interfaces: ['br0']
 nest::journal: persistent
 nest::service::kubernetes::control_plane: true
