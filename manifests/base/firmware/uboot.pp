@@ -14,17 +14,9 @@ class nest::base::firmware::uboot (
     before => Exec['uboot-build'],
   }
 
-  if $facts['build'] {
-    $repo_ensure = latest
-  } else {
-    $repo_ensure = present
-  }
-
-  vcsrepo { '/usr/src/u-boot':
-    ensure   => $repo_ensure,
-    provider => git,
-    source   => 'https://gitlab.james.tl/nest/forks/u-boot.git',
-    revision => $nest::uboot_tag,
+  nest::lib::src_repo { '/usr/src/u-boot':
+    url => 'https://gitlab.james.tl/nest/forks/u-boot.git',
+    ref => $nest::uboot_tag,
   }
   ~>
   exec { 'uboot-reset-config':

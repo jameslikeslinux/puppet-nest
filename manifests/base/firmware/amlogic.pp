@@ -4,17 +4,9 @@ class nest::base::firmware::amlogic {
     default     => fail("Unsupported platform ${facts['profile']['platform']}"),
   }
 
-  if $facts['build'] {
-    $repo_ensure = latest
-  } else {
-    $repo_ensure = present
-  }
-
-  vcsrepo { '/usr/src/fip':
-    ensure   => $repo_ensure,
-    provider => git,
-    source   => 'https://gitlab.james.tl/nest/forks/fip.git',
-    revision => 'radxa',
+  nest::lib::src_repo { '/usr/src/fip':
+    url => 'https://gitlab.james.tl/nest/forks/fip.git',
+    ref => 'radxa',
   }
   ~>
   exec { 'amlogic-firmware-build':
