@@ -12,7 +12,7 @@ class nest::base::firmware::amlogic {
   }
   ~>
   exec { 'amlogic-firmware-build':
-    command     => "/usr/bin/make fip BOARD=${board} UBOOT_BIN=/usr/src/u-boot/u-boot.bin",
+    command     => "/usr/bin/make distclean fip BOARD=${board} UBOOT_BIN=/usr/src/u-boot/u-boot.bin",
     cwd         => '/usr/src/fip',
     timeout     => 0,
     refreshonly => true,
