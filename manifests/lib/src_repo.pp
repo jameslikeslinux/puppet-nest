@@ -8,6 +8,12 @@ define nest::lib::src_repo (
       provider => git,
       source   => $url,
       revision => $ref,
+      before   => File[$name],
     }
+  }
+
+  # For automatic dependencies
+  file { $name:
+    ensure => directory,
   }
 }
