@@ -1,6 +1,6 @@
 [Match]
 Host=falcon
-Name=en*
+Name=enp*s0
 
 [Network]
 Bond=bond0
