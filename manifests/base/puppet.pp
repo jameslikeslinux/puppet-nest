@@ -6,7 +6,7 @@ class nest::base::puppet {
 
   if $facts['domain'] {
     $domain = $facts['domain']
-  } elsif $facts['networking']['network'] == '172.22.4.0' {
+  } elsif $facts['networking']['network'] == '172.22.4.0' and !$facts['networking']['interfaces']['tun0'] {
     $domain = 'eyrie'
   } else {
     $domain = 'nest'
