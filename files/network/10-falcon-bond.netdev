@@ -7,4 +7,4 @@ Name=bond0
 
 [Bond]
 Mode=balance-alb
-MIIMonitorSec=0.1
+MIIMonitorSec=1

@@ -1,0 +1,6 @@
+[Match]
+Host=fileserver*
+Name=wlan0
+
+[Network]
+Bond=bond0

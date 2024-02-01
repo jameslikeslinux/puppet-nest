@@ -1,0 +1,7 @@
+[Match]
+Host=fileserver*
+Name=usb0
+
+[Network]
+Bond=bond0
+PrimarySlave=yes
