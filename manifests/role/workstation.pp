@@ -1,6 +1,7 @@
 class nest::role::workstation {
   contain 'nest::role::workstation::chrome'
   contain 'nest::role::workstation::firefox'
+  contain 'nest::role::workstation::terminals'
 
   case $facts['os']['family'] {
     'Gentoo': {
@@ -17,7 +18,6 @@ class nest::role::workstation {
       contain 'nest::role::workstation::plasma'
       contain 'nest::role::workstation::pipewire'
       contain 'nest::role::workstation::sway'
-      contain 'nest::role::workstation::terminals'
       contain 'nest::role::workstation::virtualization'
       contain 'nest::role::workstation::xmonad'
       contain 'nest::role::workstation::xorg'
