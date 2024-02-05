@@ -81,6 +81,7 @@ class nest::base::packages {
         'procps-ng',
         'tmux',
         'vim',
+        'wget',
       ]:
         ensure   => installed,
         provider => 'cygwin',
