@@ -7,4 +7,5 @@ steps:
     parameters:
       name: eyrie
       control_plane: eyrie-control-plane
+      vip: 172.21.255.255
       workers: eyrie-workers

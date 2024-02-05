@@ -1,20 +1,26 @@
 <%- |
-  String $clusterName,
-  String $controlPlaneEndpoint,
+  String $cluster_name,
+  String $control_plane_endpoint,
+  Sensitive $certificate_key,
 | -%>
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 
 # Custom name
-clusterName: <%= $clusterName %>
+clusterName: <%= $cluster_name %>
 
 # Use DNS to lookup control plane to route based on client network
-controlPlaneEndpoint: <%= $controlPlaneEndpoint %>
+controlPlaneEndpoint: <%= $control_plane_endpoint %>
 
 # Use the default Calico subnet
 networking:
   podSubnet: 192.168.0.0/16
+
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+certificateKey: <%= $certificate_key.unwrap %>
 
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1

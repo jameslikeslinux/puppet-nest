@@ -9,11 +9,15 @@ steps:
   - description: 'Initialize control plane'
     plan: nest::kubernetes::init
     parameters:
-      target: eyrie-control-plane
       name: eyrie
+      control_plane_endpoint: control-plane.eyrie
+      vip: 172.21.255.255
+    targets: eyrie-control-plane
 
   - description: 'Setup container networking'
     plan: nest::kubernetes::setup
+    parameters:
+      control_plane: eyrie-control-plane
 
   - description: 'Join worker nodes'
     plan: nest::kubernetes::join_node
@@ -26,12 +30,6 @@ steps:
     parameters:
       name: coredns
       namespace: kube-system
-
-  # - description: 'Rebalance Calico API Server'
-  #   plan: nest::kubernetes::restart_deployment
-  #   parameters:
-  #     name: calico-apiserver
-  #     namespace: calico-apiserver
 
   - description: 'Configure network'
     plan: nest::kubernetes::configure_network

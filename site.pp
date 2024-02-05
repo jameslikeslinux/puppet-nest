@@ -32,7 +32,8 @@ case $facts['os']['family'] {
     }
 
     Sysctl {
-      target => '/etc/sysctl.d/nest.conf',
+      target  => '/etc/sysctl.d/nest.conf',
+      require => File['/etc/sysctl.d'],
     }
 
     # Effectively disable resources that can't be managed in containers

@@ -20,6 +20,8 @@ class nest (
   Hash[Stdlib::Fqdn, Hash]                $hosts        = {},
 
   # Service toggles
+  Boolean $bird_client    = false,
+  Boolean $bird_server    = false,
   Boolean $distcc_server  = false,
   Boolean $fileserver     = false,
   Boolean $fscache        = true,

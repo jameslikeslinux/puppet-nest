@@ -132,8 +132,21 @@ class nest::service::kubernetes (
     ensure => present,
   }
 
-  # Allow BGP for Calico
+  # Allow BGP for kube-vip
   firewalld_service { 'bgp':
+    ensure => present,
+  }
+
+  # Allow cluster access to Calico
+  firewalld_custom_service { 'calico':
+    ensure => present,
+    ports  => [
+      { 'port' => 1790, 'protocol' => 'tcp' }, # BGP
+      { 'port' => 5473, 'protocol' => 'tcp' }, # Typha
+    ]
+  }
+  ->
+  firewalld_service { 'calico':
     ensure => present,
   }
 
@@ -160,10 +173,11 @@ class nest::service::kubernetes (
     ;
   }
 
-  # Allow cluster access to Calico Typha
-  firewalld_port { 'typha':
-    ensure   => present,
-    port     => 5473,
-    protocol => 'tcp',
+  file { '/usr/local/bin/calicoctl':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    source  => "https://github.com/projectcalico/calico/releases/download/v3.27.0/calicoctl-linux-${facts['profile']['architecture']}",
+    replace => false,
   }
 }

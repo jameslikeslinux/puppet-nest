@@ -140,7 +140,7 @@ groups:
       - name: 'eyrie-control-plane'
         targets:
           - _plugin: puppetdb
-            query: "inventory[certname] { certname = 'eagle' }"
+            query: "inventory[certname] { certname ~ '^control\\d+' or certname = 'eagle' }"
             target_mapping:
               name: certname
               uri: facts.fqdn

@@ -10,6 +10,10 @@ parameters:
     type: TargetSpec
     description: 'Control plane to reset'
 
+  vip:
+    type: Stdlib::IP::Address::V4
+    description: 'Address control plane is reachable on'
+
   workers:
     type: TargetSpec
     default: []
@@ -24,6 +28,20 @@ steps:
 
   - description: 'Reset control plane'
     command: 'kubeadm reset --force'
+    run_as: root
+    targets: $control_plane
+
+  # Cleanup leftover from kube-vip
+  - description: 'Remove VIP'
+    command: "ip addr delete dev lo ${vip}/32"
+    catch_errors: true
+    run_as: root
+    targets: $control_plane
+
+  # Reset connections between control plane nodes...
+  # They reconnect to each other after the kube-vip pods are destroyed
+  - description: 'Restart BGP service'
+    command: "systemctl restart bird"
     run_as: root
     targets: $control_plane
 

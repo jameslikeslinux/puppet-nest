@@ -2,7 +2,6 @@
 classes:
   - 'nest::node::falcon'
   - 'nest::service::barrier'
-  - 'nest::service::bird'
   - 'nest::service::gitlab'
   - 'nest::service::gitlab_runner'
   - 'nest::service::libvirt'
@@ -33,6 +32,8 @@ nest::monitor_layout: ['DP-2@0', 'DP-1@2560']
 nest::primary_monitor: 'DP-1'
 nest::text_scaling_factor: 1.1
 
+nest::base::bird::router_id: '172.22.4.2'
+nest::bird_client: true
 nest::distcc_server: true
 nest::fileserver: true
 nest::fscache: false

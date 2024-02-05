@@ -1,4 +1,4 @@
-# join nodes to Kubernetes cluster
+# Join nodes to Kubernetes cluster
 #
 # @param targets Nodes to join
 # @param control_plane Node that controls the workers

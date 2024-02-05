@@ -4,13 +4,15 @@ class nest::base::puppet {
     default => [],
   }
 
-  if $facts['domain'] {
+  # lint:ignore:legacy_facts
+  if $facts['build'] == 'stage3' and $facts['domain'] {
     $domain = $facts['domain']
   } elsif $facts['networking']['network'] == '172.22.4.0' and !$facts['networking']['interfaces']['tun0'] {
     $domain = 'eyrie'
   } else {
     $domain = 'nest'
   }
+  # lint:endignore
 
   $fqdn = "${trusted['certname']}.${domain}"
 
@@ -49,11 +51,11 @@ class nest::base::puppet {
 
       # My hosts take on the domain name of the network to which they're attached.
       # Provide a stable, canonical value for Puppet.
-      file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
+      file { '/etc/puppetlabs/facter/facts.d/nest.yaml':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => "---\nfqdn: '${fqdn}'\n",
+        content => "---\ndomain: '${domain}'\nfqdn: '${fqdn}'\n",
       }
 
       if $facts['build'] or $facts['running_live'] {
@@ -100,10 +102,9 @@ class nest::base::puppet {
         }
       }
 
-      # XXX: Cleanup bolt 'puppet-agent' compat in favor of 'interpreters' feature
-      file { '/opt/puppetlabs':
+      # XXX: Cleanup old fqdn external fact
+      file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
         ensure => absent,
-        force  => true,
       }
     }
 

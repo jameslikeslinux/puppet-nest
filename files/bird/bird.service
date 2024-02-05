@@ -1,11 +1,14 @@
 [Unit]
 Description=BIRD Internet Routing Daemon
-After=network.target
+After=network-online.target
+StartLimitBurst=10
 
 [Service]
 Type=forking
+ExecStartPre=/bin/ip rule add table bird
 ExecStart=/usr/sbin/bird -u bird -g bird
-Restart=on-failure
+ExecStopPost=/bin/ip rule delete table bird
+Restart=always
 
 [Install]
 WantedBy=default.target

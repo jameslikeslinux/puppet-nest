@@ -33,6 +33,10 @@ hierarchy:
     paths:
       - "private/os/%{facts.os.family}.yaml"
       - "os/%{facts.os.family}.yaml"
+  - name: 'Domain'
+    paths:
+      - "private/domain/%{facts.domain}.yaml"
+      - "domain/%{facts.domain}.yaml"
   - name: 'Common'
     paths:
       - 'private/common.yaml'

@@ -16,6 +16,7 @@ class nest::base {
 
   case $facts['os']['family'] {
     'Gentoo': {
+      contain 'nest::base::bird'
       contain 'nest::base::branding'
       contain 'nest::base::cli'
       contain 'nest::base::console'

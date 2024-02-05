@@ -2,14 +2,18 @@
 
 # @param manifest Path or URL to the Calico manifest to deploy
 plan nest::kubernetes::calicoctl_apply (
-  String $manifest
+  TargetSpec $control_plane,
+  String $manifest,
 ) {
+  $target = get_targets($control_plane)[0]
+
   if $manifest =~ Stdlib::HTTPUrl {
-    $manifest_cmd = "curl ${manifest}"
+    $manifest_real = $manifest
   } else {
-    $manifest_cmd = "cat ${find_file($manifest)}"
+    $manifest_real = '/tmp/calico-config.yaml'
+    upload_file($manifest, $manifest_real, $target)
   }
 
-  $apply_cmd = "${manifest_cmd} | kubectl exec -i -n kube-system calicoctl -- /calicoctl apply -f -"
-  run_command($apply_cmd, 'localhost', "Apply Calico manifest ${manifest}")
+  $apply_cmd = "calicoctl apply -f ${manifest_real}"
+  run_command($apply_cmd, get_targets($control_plane)[0], "Apply Calico manifest ${manifest}")
 }

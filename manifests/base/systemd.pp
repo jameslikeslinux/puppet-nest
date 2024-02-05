@@ -8,6 +8,14 @@ class nest::base::systemd {
     ensure  => directory,
   }
 
+  # Corresponds with `require` in site.pp
+  file { '/etc/sysctl.d':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
   unless $facts['build'] {
     file { '/etc/hostname':
       content => "${::trusted['certname']}\n",
