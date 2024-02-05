@@ -31,6 +31,10 @@ case $facts['os']['family'] {
       provider => 'systemd',
     }
 
+    Sysctl {
+      target => '/etc/sysctl.d/nest.conf',
+    }
+
     # Effectively disable resources that can't be managed in containers
     if $facts['is_container'] {
       Service <||> {
