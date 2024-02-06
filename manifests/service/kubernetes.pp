@@ -143,7 +143,7 @@ class nest::service::kubernetes (
     ports  => [
       { 'port' => 1790, 'protocol' => 'tcp' }, # BGP
       { 'port' => 5473, 'protocol' => 'tcp' }, # Typha
-    ]
+    ],
   }
   ->
   firewalld_service { 'calico':

@@ -1,5 +1,5 @@
 ---
-nest::bird_server: true
+nest::bird_role: control-plane
 nest::external_interfaces: ['br0']
 nest::journal: persistent
 nest::service::kubernetes::control_plane: true

@@ -33,7 +33,7 @@ nest::primary_monitor: 'DP-1'
 nest::text_scaling_factor: 1.1
 
 nest::base::bird::router_id: '172.22.4.2'
-nest::bird_client: true
+nest::bird_role: server
 nest::distcc_server: true
 nest::fileserver: true
 nest::fscache: false

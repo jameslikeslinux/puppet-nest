@@ -3,12 +3,9 @@ classes:
   - 'nest::service::kubernetes'
   - 'nest::tool::bolt'
 
+nest::bird_role: worker
 nest::external_interfaces: ['end0']
-
-# Avoid trashing SD cards
 nest::journal: volatile
-
-# Cluster is directly connected to Nest
 nest::vpn_client: false
 
 nest::reset_filter_rules:

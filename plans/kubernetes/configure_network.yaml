@@ -2,11 +2,25 @@
 description: 'Configure Kubernetes network'
 
 steps:
-  - description: 'Install kube-vip Cloud Provider'
+  - description: 'Install MetalLB'
+    plan: 'nest::kubernetes::helm_deploy'
+    parameters:
+      release: 'metallb'
+      chart: 'metallb'
+      namespace: 'metallb-system'
+      repo_name: 'metallb'
+      repo_url: 'https://metallb.github.io/metallb'
+      version: '0.13.12'
+
+  - description: 'Wait for MetalLB controller'
+    plan: 'nest::kubernetes::wait'
+    parameters:
+      kind: deployment
+      name: 'metallb-controller'
+      namespace: 'metallb-system'
+
+  - description: 'Configure MetalLB address pool'
     plan: 'nest::kubernetes::apply'
     parameters:
-      manifest: 'nest/kubernetes/manifests/kube-vip-cloud-controller.yaml'
+      manifest: 'nest/kubernetes/manifests/metallb-config.yaml'
 
-  - description: 'Configure kube-vip Cloud Provider'
-    command: 'kubectl create configmap -n kube-system kubevip --from-literal cidr-global=172.21.0.0/17'
-    targets: localhost

@@ -1,2 +1,2 @@
 ---
-nest::bird_client: true
+nest::bird_role: client

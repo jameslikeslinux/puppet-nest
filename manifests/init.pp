@@ -20,8 +20,6 @@ class nest (
   Hash[Stdlib::Fqdn, Hash]                $hosts        = {},
 
   # Service toggles
-  Boolean $bird_client    = false,
-  Boolean $bird_server    = false,
   Boolean $distcc_server  = false,
   Boolean $fileserver     = false,
   Boolean $fscache        = true,
@@ -32,6 +30,7 @@ class nest (
 
   # System settings
   Enum['off', 'sway', 'xmonad']  $autologin           = xmonad,
+  Optional[Nest::BirdRole]       $bird_role           = undef,
   Enum['grub', 'systemd']        $bootloader          = grub,
   Integer[0]                     $boot_menu_delay     = 3,
   Optional[Integer]              $cpus                = undef,

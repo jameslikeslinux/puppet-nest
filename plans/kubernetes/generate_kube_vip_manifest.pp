@@ -25,7 +25,6 @@ plan nest::kubernetes::generate_kube_vip_manifest (
       '--address', $vip,
       '--controlplane',
       '--enableLoadBalancer',
-      '--services',
       '--bgp',
       '--localAS', '65000',
       '--bgppeers', $bgp_peers.map |$p| { "${p}:65000::false" }.join(','),

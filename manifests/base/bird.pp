@@ -1,13 +1,7 @@
 class nest::base::bird (
   Optional[String] $router_id = undef,
 ) {
-  if $nest::bird_client or $nest::bird_server {
-    if $nest::bird_server {
-      $mode = 'server'
-    } else {
-      $mode = 'client'
-    }
-
+  if $nest::bird_role {
     # This class owns this config for now
     file {
       default:
@@ -33,7 +27,7 @@ class nest::base::bird (
       ;
 
       '/etc/bird.conf':
-        content => epp('nest/bird/bird.conf.epp', { 'mode' => $mode, 'router_id' => $router_id }),
+        content => epp('nest/bird/bird.conf.epp', { 'mode' => $nest::bird_role, 'router_id' => $router_id }),
       ;
 
       '/etc/systemd/system/bird.service':
