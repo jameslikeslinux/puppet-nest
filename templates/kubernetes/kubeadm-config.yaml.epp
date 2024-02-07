@@ -44,4 +44,9 @@ kind: KubeProxyConfiguration
 # See: https://github.com/kubernetes/kubernetes/blob/master/pkg/proxy/ipvs/README.md
 mode: ipvs
 
+# Exclude kube-vip IPVS load-balancing entries
+# See: https://kube-vip.io/docs/about/architecture/#known-issues
+ipvs:
+  excludeCIDRs: ['172.21.255.255/32']
+
 # vim:ft=yaml
