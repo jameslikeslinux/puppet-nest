@@ -38,13 +38,6 @@ steps:
     run_as: root
     targets: $control_plane
 
-  # Reset connections between control plane nodes...
-  # They reconnect to each other after the kube-vip pods are destroyed
-  - description: 'Restart BGP service'
-    command: "systemctl restart bird"
-    run_as: root
-    targets: $control_plane
-
   - description: 'Remove Kubeconfig'
     command: "rm -f '/nest/home/kubeconfigs/${name}.conf'"
     targets: localhost
