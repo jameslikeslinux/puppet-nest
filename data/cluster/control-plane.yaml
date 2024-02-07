@@ -3,8 +3,9 @@ classes:
   - 'nest::service::kubernetes'
 
 nest::bird_role: control-plane
-nest::external_interfaces: ['bond0']
+nest::external_interfaces: ['usb0']
 nest::vpn_client: false
+nest::wifi: false
 
 nest::reset_filter_rules:
   - '- /etc/kubernetes/'
