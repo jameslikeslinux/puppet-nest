@@ -132,16 +132,22 @@ class nest::service::kubernetes (
     ensure => present,
   }
 
-  # Allow BGP for kube-vip
+  # Allow custom BGP port for- and avoiding conflicts with kube-vip
+  firewalld_port { 'kube-vip':
+    ensure   => present,
+    port     => 1790,
+    protocol => 'tcp',
+  }
+
+  # Allow BGP for Calico
   firewalld_service { 'bgp':
     ensure => present,
   }
 
-  # Allow cluster access to Calico
+  # Allow cluster access to Calico services
   firewalld_custom_service { 'calico':
     ensure => present,
     ports  => [
-      { 'port' => 1790, 'protocol' => 'tcp' }, # BGP
       { 'port' => 5473, 'protocol' => 'tcp' }, # Typha
     ],
   }

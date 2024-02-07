@@ -22,8 +22,8 @@ protocol kernel {
 
 <% if $mode == 'worker' { -%>
 template bgp control_plane {
-    local as 65000;
-    neighbor as 65000;
+    local port 1790 as 65000;
+    neighbor port 1790 as 65000;
     direct;
 
     ipv4 {
@@ -44,19 +44,8 @@ protocol bgp eagle from control_plane {
     neighbor 172.22.4.10;
 }
 <% } elsif $mode == 'control-plane' { -%>
-protocol bgp falcon {
-    local as 65000;
-    neighbor 172.22.4.2 as 65000;
-    direct;
-
-    ipv4 {
-        import none;
-        export all;
-    };
-}
-
 protocol bgp kube_vip {
-    local as 65000;
+    local port 1790 as 65000;
     neighbor range 172.22.4.0/24 as 65000;
     direct;
     rr client;
@@ -77,6 +66,29 @@ protocol bgp eyrie {
         import all;
         export all;
     };
+}
+
+template bgp kube_vip {
+    local as 65000;
+    neighbor port 1790 as 65000;
+    direct;
+
+    ipv4 {
+        import none;
+        export all;
+    };
+}
+
+protocol bgp control1 from kube_vip {
+    neighbor 172.22.4.8;
+}
+
+protocol bgp control2 from kube_vip {
+    neighbor 172.22.4.9;
+}
+
+protocol bgp eagle from kube_vip {
+    neighbor 172.22.4.10;
 }
 <% } else { -%>
 protocol bgp falcon {
