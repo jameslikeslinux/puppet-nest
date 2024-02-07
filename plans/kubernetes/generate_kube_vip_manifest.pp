@@ -12,11 +12,10 @@ plan nest::kubernetes::generate_kube_vip_manifest (
   parallelize(get_targets($targets)) |$t| {
     # XXX Generalize this
     $bgp_peers = $t.name ? {
-      # 'control1' => ['172.22.4.9', '172.22.4.10'],
-      # 'control2' => ['172.22.4.8', '172.22.4.10'],
-      # 'eagle'    => ['172.22.4.8', '172.22.4.9'],
-      # default    => fail("Can't determine BGP peers for ${t.name}")
-      default      => ['172.22.4.2'],
+      'control1' => ['172.22.4.9', '172.22.4.10'],
+      'control2' => ['172.22.4.8', '172.22.4.10'],
+      'eagle'    => ['172.22.4.8', '172.22.4.9'],
+      default    => fail("Can't determine BGP peers for ${t.name}")
     }
 
     $kube_vip_cmd_quoted = [
