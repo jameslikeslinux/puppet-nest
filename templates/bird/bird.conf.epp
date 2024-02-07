@@ -20,8 +20,8 @@ protocol kernel {
     };
 }
 
-<% if $mode in ['client', 'worker'] { -%>
-template bgp eyrie {
+<% if $mode == 'worker' { -%>
+template bgp control_plane {
     local as 65000;
     neighbor as 65000;
     direct;
@@ -32,21 +32,15 @@ template bgp eyrie {
     };
 }
 
-  <%- if $mode == 'client' { -%>
-protocol bgp falcon from eyrie {
-    neighbor 172.22.4.2;
-}
-
-  <%- } -%>
-protocol bgp control1 from eyrie {
+protocol bgp control1 from control_plane {
     neighbor 172.22.4.8;
 }
 
-protocol bgp control2 from eyrie {
+protocol bgp control2 from control_plane {
     neighbor 172.22.4.9;
 }
 
-protocol bgp eagle from eyrie {
+protocol bgp eagle from control_plane {
     neighbor 172.22.4.10;
 }
 <% } elsif $mode == 'control-plane' { -%>
@@ -72,7 +66,7 @@ protocol bgp kube_vip {
         export all;
     };
 }
-<% } else { -%>
+<% } elsif $mode == 'server' { -%>
 protocol bgp eyrie {
     local as 65000;
     neighbor range 172.22.4.0/24 as 65000;
@@ -82,6 +76,17 @@ protocol bgp eyrie {
     ipv4 {
         import all;
         export all;
+    };
+}
+<% } else { -%>
+protocol bgp falcon {
+    local as 65000;
+    neighbor 172.22.4.2 as 65000;
+    direct;
+
+    ipv4 {
+        import all;
+        export none;
     };
 }
 <% } -%>
