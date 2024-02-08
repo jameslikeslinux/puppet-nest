@@ -1,0 +1,6 @@
+[Match]
+Host=control*
+Name=wlan0
+
+[Network]
+Bond=bond0
