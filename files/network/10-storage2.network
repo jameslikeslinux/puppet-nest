@@ -1,9 +1,9 @@
 [Match]
-Host=fileserver1
+Host=storage2
 Name=bond0
 
 [Network]
-Address=172.22.4.17/24
+Address=172.22.4.18/24
 DNS=172.22.0.1 172.22.4.2
 Domains=nest eyrie
 Gateway=172.22.4.1

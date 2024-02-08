@@ -1,5 +1,5 @@
 [Match]
-Host=fileserver*
+Host=storage*
 Name=usb0
 
 [Network]

@@ -70,9 +70,9 @@ nest::host_records:
   portfolio.eyrie: '172.21.0.2'
   bitwarden.eyrie: '172.21.0.5'
   falcon.eyrie: '172.22.4.2'
-  fileserver1.eyrie: '172.22.4.17'
-  fileserver2.eyrie: '172.22.4.18'
-  fileserver3.eyrie: '172.22.4.19'
+  storage1.eyrie: '172.22.4.17'
+  storage2.eyrie: '172.22.4.18'
+  storage3.eyrie: '172.22.4.19'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_servers:
   - '172.22.1.10'

@@ -1,5 +1,5 @@
 [Match]
-Host=fileserver*
+Host=storage*
 
 [NetDev]
 Kind=bond
