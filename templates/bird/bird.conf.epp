@@ -14,6 +14,7 @@ protocol device {
 
 protocol kernel {
     kernel table 100;
+    merge paths;
 
     ipv4 {
         export all;
