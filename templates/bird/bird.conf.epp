@@ -98,6 +98,7 @@ protocol bgp eyrie {
     ipv4 {
         import all;
         export all;
+        add paths;
     };
 }
 <% } else { -%>
@@ -109,6 +110,7 @@ protocol bgp falcon {
     ipv4 {
         import all;
         export none;
+        add paths;
     };
 }
 <% } -%>

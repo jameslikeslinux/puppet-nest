@@ -8,7 +8,7 @@ ExecStartPre=/bin/ip rule add table bird
 ExecStart=/usr/sbin/bird -u bird -g bird
 ExecStopPost=/bin/ip rule delete table bird
 Restart=always
-RestartSec=1
+RestartSec=2
 
 [Install]
 WantedBy=default.target
