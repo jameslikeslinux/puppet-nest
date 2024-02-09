@@ -1,7 +1,3 @@
 ---
 resources:
   backup: {}
-
-values:
-  speaker:
-    enabled: false

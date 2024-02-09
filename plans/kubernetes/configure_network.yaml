@@ -19,7 +19,7 @@ steps:
       name: 'metallb-controller'
       namespace: 'metallb-system'
 
-  - description: 'Configure MetalLB address pool'
+  - description: 'Configure MetalLB'
     plan: 'nest::kubernetes::apply'
     parameters:
       manifest: 'nest/kubernetes/manifests/metallb-config.yaml'

@@ -79,6 +79,8 @@ resources:
                       path: '/nest'
                       type: Directory
 
+values: {}
+
 patches:
   20-nest:
     - patch:
