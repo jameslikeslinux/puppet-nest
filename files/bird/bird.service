@@ -1,6 +1,7 @@
 [Unit]
 Description=BIRD Internet Routing Daemon
 After=network-online.target
+StartLimitBurst=10
 
 [Service]
 Type=forking
