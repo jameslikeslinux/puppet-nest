@@ -1,7 +1,8 @@
-class nest::base::bird (
-  Optional[String] $router_id = undef,
-) {
+class nest::base::bird {
   if $nest::bird_role {
+    $router_name = "${trusted['certname']}.eyrie"
+    $router_id   = $nest::host_records[$router_name]
+
     # This class owns this config for now
     file {
       default:

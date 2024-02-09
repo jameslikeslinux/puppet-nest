@@ -72,6 +72,7 @@ nest::host_records:
   falcon.eyrie: '172.22.4.2'
   control1.eyrie: '172.22.4.8'
   control2.eyrie: '172.22.4.9'
+  eagle.eyrie: '172.22.4.10'
   storage1.eyrie: '172.22.4.17'
   storage2.eyrie: '172.22.4.18'
   storage3.eyrie: '172.22.4.19'
