@@ -1,23 +1,10 @@
 class nest::kubernetes {
-  $helm_release = defined('$::helm_release') ? {
-    true    => $::helm_release, # lint:ignore:top_scope_facts
-    default => undef,
-  }
-
-  $helm_chart = defined('$::helm_chart') ? {
-    true    => $::helm_chart, # lint:ignore:top_scope_facts
-    default => undef,
-  }
-
-  $helm_namespace = defined('$::helm_namespace') ? {
-    true    => $::helm_namespace, # lint:ignore:top_scope_facts
-    default => 'default',
-  }
-
-  $helm_parent = defined('$::helm_parent') ? {
-    true    => $::helm_parent, # lint:ignore:top_scope_facts
-    default => undef,
-  }
+  # lint:ignore:top_scope_facts
+  $helm_release   = pick_default($::helm_release)
+  $helm_chart     = pick_default($::helm_chart)
+  $helm_namespace = pick_default($::helm_namespace, 'default')
+  $helm_parent    = pick_default($::helm_parent)
+  # lint:endignore
 
   if $helm_release {
     $cron_job_offset  = stdlib::seeded_rand(60, $helm_release)

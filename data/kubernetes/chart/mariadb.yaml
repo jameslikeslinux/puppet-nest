@@ -1,4 +1,7 @@
 ---
+resources:
+  backup: {}
+
 values:
   auth:
     database: "%{nest::kubernetes::helm_parent}"

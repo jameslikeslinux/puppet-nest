@@ -1,13 +1,143 @@
 ---
+lookup_options:
+  resources:
+    merge: hash
+  values:
+    merge: deep
+  patches:
+    merge: hash
+
+resources:
+  backup:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "%{nest::kubernetes::helm_release}-registry-auths"
+        namespace: "%{nest::kubernetes::helm_namespace}"
+      data:
+        .dockerconfigjson: "%{nest::kubernetes::registry_auths}"
+      type: kubernetes.io/dockerconfigjson
+    - apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: "%{nest::kubernetes::helm_release}-backup"
+        namespace: "%{nest::kubernetes::helm_namespace}"
+      spec:
+        schedule: "%{nest::kubernetes::cron_job_offset} */3 * * *"
+        timeZone: 'America/New_York'
+        jobTemplate:
+          spec:
+            ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
+            template:
+              spec:
+                containers:
+                  - name: nest
+                    image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+                    imagePullPolicy: Always
+                    command:
+                      - 'zsh'
+                      - '-c'
+                      - 'eval $(ssh-agent -s) &&
+                        ssh-add &&
+                        bolt plan run nest::eyrie::backup_%{nest::kubernetes::helm_chart} name=%{nest::kubernetes::helm_release}'
+                    env:
+                      - name: KUBECONFIG
+                        value: '/nest/home/kubeconfigs/eyrie.conf'
+                    volumeMounts:
+                      - name: bolt-config
+                        mountPath: '/etc/puppetlabs/bolt'
+                        readOnly: true
+                      - name: eyaml-config
+                        mountPath: '/etc/eyaml'
+                        readOnly: true
+                      - name: james-ssh-key
+                        mountPath: '/home/james/.ssh/id_ed25519'
+                        readOnly: true
+                      - name: nest
+                        mountPath: '/nest'
+                imagePullSecrets:
+                  - name: "%{nest::kubernetes::helm_release}-registry-auths"
+                restartPolicy: Never
+                securityContext:
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                volumes:
+                  - name: bolt-config
+                    hostPath:
+                      path: '/etc/puppetlabs/bolt'
+                      type: Directory
+                  - name: eyaml-config
+                    hostPath:
+                      path: '/etc/eyaml'
+                      type: Directory
+                  - name: james-ssh-key
+                    hostPath:
+                      path: '/home/james/.ssh/id_ed25519'
+                      type: File
+                  - name: nest
+                    hostPath:
+                      path: '/nest'
+                      type: Directory
+
 patches:
-  - patch: |
-      - op: add
-        path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
-        value: "%{nest::kubernetes::load_balancer_ip}"
-      - op: add
-        path: '/metadata/labels/james.tl~1fqdn'
-        value: "%{nest::kubernetes::fqdn}"
-    target:
-      version: v1
-      kind: Service
-      labelSelector: 'james.tl/nest'
+  20-nest:
+    - patch:
+        - op: add
+          path: '/spec/template/spec/containers/-'
+          value:
+            name: nest
+            image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+            imagePullPolicy: Always
+            command: ['/usr/bin/sshd', '-D', '-e']
+            securityContext:
+              capabilities:
+                add:
+                  - SYS_CHROOT  # for sshd
+                  - SYS_PTRACE
+            volumeMounts:
+              - name: nest
+                mountPath: '/nest'
+              - name: ssh-host-key
+                mountPath: '/etc/ssh/ssh_host_ed25519_key'
+                readOnly: true
+            ports:
+              - name: ssh
+                containerPort: 22
+        - op: add
+          path: '/spec/template/spec/shareProcessNamespace'
+          value: true
+        - op: add
+          path: '/spec/template/spec/volumes/-'
+          value:
+            name: nest
+            hostPath:
+              path: '/nest'
+              type: Directory
+        - op: add
+          path: '/spec/template/spec/volumes/-'
+          value:
+            name: ssh-host-key
+            hostPath:
+              path: '/etc/ssh/ssh_host_ed25519_key'
+              type: File
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        labelSelector: 'james.tl/nest'
+    - patch:
+        - op: add
+          path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
+          value: "%{nest::kubernetes::load_balancer_ip}"
+        - op: add
+          path: '/metadata/labels/james.tl~1fqdn'
+          value: "%{nest::kubernetes::fqdn}"
+        - op: add
+          path: '/spec/ports/-'
+          value:
+            name: ssh
+            port: 22
+      target:
+        version: v1
+        kind: Service
+        labelSelector: 'james.tl/nest'

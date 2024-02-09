@@ -48,9 +48,9 @@ plan nest::kubernetes::helm_deploy (
 
     include nest::bolt # for lookups
 
-    $resources = lookup('resources', Array[Hash], 'unique', [])
-    $values    = lookup('values', Hash, 'deep', {})
-    $patches   = lookup('patches', Array[Hash], 'unique', [])
+    $resources = lookup('resources')
+    $values    = lookup('values')
+    $patches   = lookup('patches')
 
     file {
       '/tmp/kustomize':
@@ -58,13 +58,19 @@ plan nest::kubernetes::helm_deploy (
       '/tmp/kustomize/subcharts.yaml':
         ensure => file;
       '/tmp/kustomize/resources.yaml':
-        content => $resources.map |$r| { $r.stdlib::to_yaml }.join;
+        content => $resources.values.flatten.map |$r| { if $r.empty { '' } else { $r.stdlib::to_yaml } }.join;
       '/tmp/kustomize/values.yaml':
         content => $values.stdlib::to_yaml;
       '/tmp/kustomize/kustomization.yaml':
         content => {
           'resources' => ['subcharts.yaml', 'resources.yaml', 'helm.yaml'],
-          'patches'   => $patches,
+          'patches'   => $patches.keys.sort.map |$k| { $patches[$k] }.flatten.map |$p| {
+            if $p['patch'] =~ String {
+              $p
+            } else {
+              $p + { 'patch' => $p['patch'].stdlib::to_yaml }
+            }
+          },
         }.stdlib::to_yaml,
       ;
     }

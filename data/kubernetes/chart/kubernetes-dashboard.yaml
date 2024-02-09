@@ -1,4 +1,7 @@
 ---
+resources:
+  backup: {}
+
 values:
   app:
     settings:
@@ -23,18 +26,19 @@ values:
         type: LoadBalancer
 
 patches:
-  - patch: |
+  10-cluster-role:
+    patch:
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRole
       metadata:
         name: "%{nest::kubernetes::helm_release}"
-        namespace: "%{nest::kubernetes::helm_namespace}"
       rules:
         # Allow full read-only access
         - apiGroups: ['*']
           resources: ['*']
           verbs: ['get', 'list', 'watch']
-  - patch: |
+  10-nest:
+    patch:
       apiVersion: v1
       kind: Service
       metadata:
