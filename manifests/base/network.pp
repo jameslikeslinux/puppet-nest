@@ -25,6 +25,12 @@ class nest::base::network {
     sourceselect => all,
   }
   ->
+  file_line { 'systemd-networkd-disable-ManageForeignRoutingPolicyRules':
+    path  => '/etc/systemd/networkd.conf',
+    line  => 'ManageForeignRoutingPolicyRules=no',
+    match => '^#?ManageForeignRoutingPolicyRules=',
+  }
+  ~>
   service { 'systemd-networkd':
     enable => true,
   }
