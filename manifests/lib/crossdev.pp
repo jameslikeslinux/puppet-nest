@@ -2,6 +2,12 @@ class nest::lib::crossdev {
   package { 'sys-devel/crossdev':
     ensure => installed,
   }
+  ->
+  file_line { 'crossdev-usepkg':
+    path  => '/usr/bin/crossdev',
+    line  => 'export EMERGE_DEFAULT_OPTS="--quiet-build=n --usepkg"',
+    match => '^export EMERGE_DEFAULT_OPTS=',
+  }
 
   nest::lib::repo { 'crossdev': }
 
