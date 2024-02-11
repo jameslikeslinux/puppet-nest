@@ -1,0 +1,28 @@
+<%- |
+  String $api_server,
+  String $token,
+  String $ca_cert_hash,
+  Array[Nest::KubernetesTaint] $taints,
+| -%>
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: <%= $api_server %>
+    token: <%= $token %>
+    caCertHashes:
+      - <%= $ca_cert_hash %>
+nodeRegistration:
+<% if $taints.empty { -%>
+  taints: []
+<% } else { -%>
+  taints:
+<% $taints.each |$t| {
+    if $t =~ /^(\w+)(=(\w+))?:(\w+)$/ { -%>
+    - key: <%= $1 %>
+      value: <%= $3 %>
+      effect: <%= $4 %>
+<%  }
+  }
+} -%>

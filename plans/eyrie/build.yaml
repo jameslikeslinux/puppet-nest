@@ -25,6 +25,13 @@ steps:
       control_plane: eyrie-control-plane
     targets: eyrie-workers
 
+  - description: 'Join storage nodes'
+    plan: nest::kubernetes::join_node
+    parameters:
+      control_plane: eyrie-control-plane
+      taints: role=storage:NoSChedule
+    targets: eyrie-storage
+
   - description: 'Rebalance CoreDNS'
     plan: nest::kubernetes::restart_deployment
     parameters:

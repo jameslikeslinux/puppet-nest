@@ -26,7 +26,7 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   }).first.value['stdout'].chomp)
 
-  $kubeadm_config = epp('nest/kubernetes/kubeadm-config.yaml.epp', {
+  $kubeadm_config = epp('nest/kubernetes/kubeadm-init-config.yaml.epp', {
     cluster_name           => $name,
     control_plane_endpoint => $control_plane_endpoint,
     certificate_key        => $cert_key,

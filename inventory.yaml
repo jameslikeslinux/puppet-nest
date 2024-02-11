@@ -151,6 +151,13 @@ groups:
             target_mapping:
               name: certname
               uri: facts.fqdn
+      - name: 'eyrie-storage'
+        targets:
+          - _plugin: puppetdb
+            query: "inventory[certname] { certname ~ '^storage\\d+' }"
+            target_mapping:
+              name: certname
+              uri: facts.fqdn
 
   - name: 'puppet-server'
     targets:
