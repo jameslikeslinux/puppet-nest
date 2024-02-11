@@ -19,15 +19,16 @@ parameters:
 
 steps:
   - description: 'Deploy the instance'
-    plan: nest::kubernetes::helm_deploy
+    plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      release: $name
-      chart: 'vaultwarden'
+      service: $name
+      app: 'vaultwarden'
       repo_name: 'guerzon'
       repo_url: 'https://guerzon.github.io/vaultwarden'
       subcharts:
-        - release: "${name}-mariadb"
+        - service: "${name}-mariadb"
+          app: 'mariadb'
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
       wait: $restore
 

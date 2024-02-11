@@ -18,10 +18,11 @@ parameters:
 
 steps:
   - description: 'Deploy the instance'
-    plan: nest::kubernetes::helm_deploy
+    plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      release: $name
+      service: $name
+      app: 'wordpress'
       chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
       wait: $restore
 

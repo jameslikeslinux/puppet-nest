@@ -10,8 +10,8 @@ values:
   allowEmptyPassword: false
   mariadb:
     auth:
-      database: "%{nest::kubernetes::helm_release}"
-      username: "%{nest::kubernetes::helm_release}"
+      database: "%{nest::kubernetes::service}"
+      username: "%{nest::kubernetes::service}"
       password: "%{nest::kubernetes::db_password}"
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
 
@@ -21,16 +21,16 @@ patches:
         apiVersion: apps/v1
         kind: Deployment
         metadata:
-          name: "%{nest::kubernetes::helm_release}-wordpress"
-          namespace: "%{nest::kubernetes::helm_namespace}"
+          name: "%{nest::kubernetes::service}-wordpress"
+          namespace: "%{nest::kubernetes::namespace}"
           labels:
             'james.tl/nest': 'stage1'
     - patch:
         apiVersion: v1
         kind: Service
         metadata:
-          name: "%{nest::kubernetes::helm_release}-wordpress"
-          namespace: "%{nest::kubernetes::helm_namespace}"
+          name: "%{nest::kubernetes::service}-wordpress"
+          namespace: "%{nest::kubernetes::namespace}"
           labels:
             'james.tl/nest': 'stage1'
   30-nest:

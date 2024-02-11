@@ -4,7 +4,7 @@ resources:
 
 values:
   auth:
-    database: "%{nest::kubernetes::helm_parent}"
-    username: "%{nest::kubernetes::helm_parent}"
+    database: "%{nest::kubernetes::parent_service}"
+    username: "%{nest::kubernetes::parent_service}"
     password: "%{nest::kubernetes::db_password}"
     rootPassword: "%{lookup('nest::service::mysql::root_password')}"

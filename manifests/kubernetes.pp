@@ -1,14 +1,14 @@
 class nest::kubernetes {
   # lint:ignore:top_scope_facts
-  $helm_release   = pick_default($::helm_release)
-  $helm_chart     = pick_default($::helm_chart)
-  $helm_namespace = pick_default($::helm_namespace, 'default')
-  $helm_parent    = pick_default($::helm_parent)
+  $service        = pick_default($::kubernetes_service)
+  $app            = pick_default($::kubernetes_app)
+  $namespace      = pick_default($::kubernetes_namespace, 'default')
+  $parent_service = pick_default($::kubernetes_parent_service)
   # lint:endignore
 
-  if $helm_release {
-    $cron_job_offset  = stdlib::seeded_rand(60, $helm_release)
-    $fqdn             = "${helm_release}.eyrie"
+  if $service {
+    $cron_job_offset  = stdlib::seeded_rand(60, $service)
+    $fqdn             = "${service}.eyrie"
     $load_balancer_ip = lookup('nest::host_records')[$fqdn]
   } else {
     $cron_job_offset  = 0
@@ -16,13 +16,13 @@ class nest::kubernetes {
     $load_balancer_ip = undef
   }
 
-  $db_password = $helm_chart ? {
-    'mariadb'     => $helm_parent? {
+  $db_password = $app ? {
+    'mariadb'     => $parent_service ? {
       'bitwarden' => lookup('nest::service::bitwarden::database_password'),
       default     => undef,
     },
     'vaultwarden' => lookup('nest::service::bitwarden::database_password'),
-    'wordpress'   => lookup('nest::service::wordpress::database_passwords')[$helm_release],
+    'wordpress'   => lookup('nest::service::wordpress::database_passwords')[$service],
     default       => undef,
   }
 
@@ -32,8 +32,8 @@ class nest::kubernetes {
     },
   }))
 
-  if $helm_chart == 'vaultwarden' {
-    $vaultwarden_db_url = base64('encode', "mysql://${helm_release}:${db_password}@${helm_release}-mariadb/${helm_release}")
+  if $app == 'vaultwarden' {
+    $vaultwarden_db_url = base64('encode', "mysql://${service}:${db_password}@${service}-mariadb/${service}")
 
     # See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token
     $vaultwarden_admin_token      = lookup('nest::service::bitwarden::admin_token')

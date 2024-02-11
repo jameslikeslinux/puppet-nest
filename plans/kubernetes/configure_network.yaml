@@ -3,10 +3,10 @@ description: 'Configure Kubernetes network'
 
 steps:
   - description: 'Install MetalLB'
-    plan: 'nest::kubernetes::helm_deploy'
+    plan: 'nest::kubernetes::deploy'
     parameters:
-      release: 'metallb'
-      chart: 'metallb'
+      service: 'metallb'
+      app: 'metallb'
       namespace: 'metallb-system'
       repo_name: 'metallb'
       repo_url: 'https://metallb.github.io/metallb'

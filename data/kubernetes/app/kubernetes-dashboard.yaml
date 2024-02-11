@@ -13,7 +13,7 @@ values:
         resourceAutoRefreshTimeInterval: 30 # default 5
     ingress:
       hosts:
-        - "%{nest::kubernetes::helm_release}.eyrie"
+        - "%{nest::kubernetes::service}.eyrie"
         - kubernetes.eyrie
   api:
     containers:
@@ -31,7 +31,7 @@ patches:
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRole
       metadata:
-        name: "%{nest::kubernetes::helm_release}"
+        name: "%{nest::kubernetes::service}"
       rules:
         # Allow full read-only access
         - apiGroups: ['*']
@@ -42,7 +42,7 @@ patches:
       apiVersion: v1
       kind: Service
       metadata:
-        name: "%{nest::kubernetes::helm_release}-nginx-controller"
-        namespace: "%{nest::kubernetes::helm_namespace}"
+        name: "%{nest::kubernetes::service}-nginx-controller"
+        namespace: "%{nest::kubernetes::namespace}"
         labels:
           'james.tl/nest': 'dns-only'

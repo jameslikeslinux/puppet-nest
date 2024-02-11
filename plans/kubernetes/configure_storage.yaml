@@ -3,10 +3,10 @@ description: 'Configure NFS CSI driver'
 
 steps:
   - description: 'Install NFS CSI driver'
-    plan: 'nest::kubernetes::helm_deploy'
+    plan: 'nest::kubernetes::deploy'
     parameters:
-      release: 'csi-driver-nfs'
-      chart: 'csi-driver-nfs'
+      service: 'csi-driver-nfs'
+      app: 'csi-driver-nfs'
       namespace: 'kube-system'
       repo_name: 'csi-driver-nfs'
       repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'

@@ -6,9 +6,9 @@ plan nest::kubernetes::deploy_dashboard (
 ) {
   # Post-install hooks fail on slow cluster so try several times
   ctrl::do_until(limit => 3) || {
-    run_plan('nest::kubernetes::helm_deploy', {
-      release       => 'kubernetes-dashboard',
-      chart         => 'kubernetes-dashboard',
+    run_plan('nest::kubernetes::deploy', {
+      service       => 'kubernetes-dashboard',
+      app           => 'kubernetes-dashboard',
       namespace     => 'kubernetes-dashboard',
       repo_name     => 'kubernetes-dashboard',
       repo_url      => 'https://kubernetes.github.io/dashboard/',

@@ -12,16 +12,16 @@ resources:
     - apiVersion: v1
       kind: Secret
       metadata:
-        name: "%{nest::kubernetes::helm_release}-registry-auths"
-        namespace: "%{nest::kubernetes::helm_namespace}"
+        name: "%{nest::kubernetes::service}-registry-auths"
+        namespace: "%{nest::kubernetes::namespace}"
       data:
         .dockerconfigjson: "%{nest::kubernetes::registry_auths}"
       type: kubernetes.io/dockerconfigjson
     - apiVersion: batch/v1
       kind: CronJob
       metadata:
-        name: "%{nest::kubernetes::helm_release}-backup"
-        namespace: "%{nest::kubernetes::helm_namespace}"
+        name: "%{nest::kubernetes::service}-backup"
+        namespace: "%{nest::kubernetes::namespace}"
       spec:
         schedule: "%{nest::kubernetes::cron_job_offset} */3 * * *"
         timeZone: 'America/New_York'
@@ -39,7 +39,7 @@ resources:
                       - '-c'
                       - 'eval $(ssh-agent -s) &&
                         ssh-add &&
-                        bolt plan run nest::eyrie::backup_%{nest::kubernetes::helm_chart} name=%{nest::kubernetes::helm_release}'
+                        bolt plan run nest::eyrie::backup_%{nest::kubernetes::app} name=%{nest::kubernetes::service}'
                     env:
                       - name: KUBECONFIG
                         value: '/nest/home/kubeconfigs/eyrie.conf'
@@ -56,7 +56,7 @@ resources:
                       - name: nest
                         mountPath: '/nest'
                 imagePullSecrets:
-                  - name: "%{nest::kubernetes::helm_release}-registry-auths"
+                  - name: "%{nest::kubernetes::service}-registry-auths"
                 restartPolicy: Never
                 securityContext:
                   runAsUser: 1000

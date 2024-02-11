@@ -1,31 +1,36 @@
-# Install or upgrade a Helm chart
+# Install or upgrade a service with Helm and Kustomize
 #
-# @param release Installation name
-# @param chart Name of the chart to install
+# @param service Installation name
+# @param app Name of the app to install
 # @param append How `render_to` should be written out
+# @param chart Chart name if it doesn't match `app`
 # @param hooks Enable or disable install hooks
 # @param namespace Namespace to manage
 # @param render_to Just save the fully-rendered chart to this yaml file
 # @param repo_name Optional name of the Helm repo to add
 # @param repo_url Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
-plan nest::kubernetes::helm_deploy (
-  String           $release,
-  String           $chart       = $release,
-  Boolean          $append      = false,
-  Boolean          $hooks       = true,
-  Optional[String] $namespace   = undef,
-  Optional[String] $render_to   = undef,
-  Optional[String] $repo_name   = undef,
-  Optional[String] $repo_url    = undef,
-  Optional[String] $version     = undef,
-  Boolean          $wait        = false,
-  Array[Hash]      $subcharts   = [],
-  Optional[String] $parent      = undef,
+# @param wait Wait for resources to become available
+# @param subcharts Additional apps and services to deploy with this one
+# @param parent Private. The parent service this one is being rendered for.
+plan nest::kubernetes::deploy (
+  String           $service,
+  String           $app       = $service,
+  Boolean          $append    = false,
+  String           $chart     = $app,
+  Boolean          $hooks     = true,
+  Optional[String] $namespace = undef,
+  Optional[String] $render_to = undef,
+  Optional[String] $repo_name = undef,
+  Optional[String] $repo_url  = undef,
+  Optional[String] $version   = undef,
+  Boolean          $wait      = false,
+  Array[Hash]      $subcharts = [],
+  Optional[String] $parent    = undef,
 ) {
   $subcharts.each |$subchart| {
-    run_plan('nest::kubernetes::helm_deploy', $subchart + {
-      parent    => $release,
+    run_plan('nest::kubernetes::deploy', $subchart + {
+      parent    => $service,
       namespace => $namespace,
       render_to => '/tmp/kustomize/subcharts.yaml',
       append    => true,
@@ -41,10 +46,10 @@ plan nest::kubernetes::helm_deploy (
   }
 
   apply('localhost') {
-    $helm_release   = $release
-    $helm_chart     = $chart.basename
-    $helm_namespace = $namespace
-    $helm_parent    = $parent
+    $kubernetes_service        = $service
+    $kubernetes_app            = $app
+    $kubernetes_namespace      = $namespace
+    $kubernetes_parent_service = $parent
 
     include nest::bolt # for lookups
 
@@ -84,7 +89,7 @@ plan nest::kubernetes::helm_deploy (
       default => ['template', '--kube-version', '1.28.2'],
     },
 
-    $release, $chart_real,
+    $service, $chart_real,
 
     $hooks ? {
       false   => '--no-hooks',
@@ -124,5 +129,5 @@ plan nest::kubernetes::helm_deploy (
     $cmd_verb = 'Deploy'
   }
 
-  run_command("${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${release} from Helm chart ${chart_real}")
+  run_command("${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${service} from Helm chart ${chart_real}")
 }

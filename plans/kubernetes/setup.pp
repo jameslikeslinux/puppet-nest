@@ -8,9 +8,9 @@ plan nest::kubernetes::setup (
   $replace_coredns_config_cmd = 'kubectl replace -f https://gitlab.james.tl/nest/kubernetes/-/raw/main/coredns-config.yaml'
   run_command($replace_coredns_config_cmd, 'localhost', 'Replace CoreDNS config')
 
-  run_plan('nest::kubernetes::helm_deploy', {
-    release   => 'calico',
-    chart     => 'tigera-operator',
+  run_plan('nest::kubernetes::deploy', {
+    service   => 'calico',
+    app       => 'tigera-operator',
     namespace => 'tigera-operator',
     repo_name => 'projectcalico',
     repo_url  => 'https://docs.tigera.io/calico/charts',
