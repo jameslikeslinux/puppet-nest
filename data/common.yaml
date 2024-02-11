@@ -299,6 +299,10 @@ nest::kernel_config:
   CONFIG_IP_NF_RAW: m
   CONFIG_DUMMY: m
 
+  # For Ceph
+  CONFIG_BLK_DEV_RBD: m
+  CONFIG_CEPH_FS: m
+
   # For libvirt
   CONFIG_VIRTUALIZATION: y
   CONFIG_VHOST_NET: m
