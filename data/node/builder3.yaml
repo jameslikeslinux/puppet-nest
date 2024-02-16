@@ -1,0 +1,3 @@
+---
+nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
+nest::base::firmware::uboot::defconfig: 'rock5a-rk3588s_defconfig'
