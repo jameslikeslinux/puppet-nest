@@ -27,6 +27,11 @@ class nest::base::kernel {
     match => '^sys-kernel/vanilla-sources-',
   }
 
+  file { '/usr/src/linux/.defconfig':
+    content => "${nest::kernel_defconfig}\n",
+    notify  => Exec['kernel-reset-config'],
+  }
+
   $arch = $facts['profile']['architecture'] ? {
     'amd64' => 'x86_64',
     default => $facts['profile']['architecture'],
@@ -108,7 +113,8 @@ class nest::base::kernel {
     #!/bin/bash
     set -ex -o pipefail
     export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
-    make -C /usr/src/linux ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
+    cd /usr/src/linux
+    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
         olddefconfig all modules_install 2>&1 | tee build.log
     | KERNEL_MAKE
 

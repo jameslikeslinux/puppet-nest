@@ -24,6 +24,11 @@ class nest::base::firmware::uboot (
     refreshonly => true,
   }
 
+  file { '/usr/src/u-boot/.defconfig':
+    content => "${defconfig}\n",
+    notify  => Exec['uboot-reset-config'],
+  }
+
   exec { 'uboot-defconfig':
     command => "/usr/bin/make ${defconfig}",
     cwd     => '/usr/src/u-boot',
@@ -101,6 +106,21 @@ class nest::base::firmware::uboot (
     }
   }
 
+  $uboot_make_cmd = @("UBOOT_MAKE")
+    #!/bin/bash
+    set -ex -o pipefail
+    export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
+    cd /usr/src/u-boot
+    make ${nest::base::portage::makeopts} ${build_options} 2>&1 | tee build.log
+    | UBOOT_MAKE
+
+  file { '/usr/src/u-boot/build.sh':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    content => $uboot_make_cmd,
+  }
+
   exec { 'uboot-olddefconfig':
     command     => '/usr/bin/make olddefconfig',
     cwd         => '/usr/src/u-boot',
@@ -108,14 +128,11 @@ class nest::base::firmware::uboot (
   }
   ~>
   exec { 'uboot-build':
-    command     => "/usr/bin/make ${nest::base::portage::makeopts} ${build_options}",
-    cwd         => '/usr/src/u-boot',
-    path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin', '/usr/src/u-boot/scripts/dtc'],
-    environment => 'HOME=/root',  # for distcc
-    timeout     => 0,
-    # just attempt once per config change
-    refreshonly => true,
+    command     => '/usr/src/u-boot/build.sh',
     noop        => !$facts['build'],
+    refreshonly => true,
+    timeout     => 0,
+    require     => File['/usr/src/u-boot/build.sh'],
   }
 
   Exec['uboot-defconfig']
