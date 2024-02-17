@@ -101,10 +101,8 @@ nest::package_keywords:
   net-firewall/firewalld: {}
   net-wireless/iwd: {}
   sys-apps/systemd: {}
-  sys-fs/zfs:
-    accept_keywords: '**'
-  sys-fs/zfs-kmod:
-    accept_keywords: '**'
+  sys-fs/zfs: {}
+  sys-fs/zfs-kmod: {}
 
   # For Puppet
   dev-ruby/sys-filesystem:
