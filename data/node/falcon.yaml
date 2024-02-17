@@ -67,6 +67,7 @@ nest::service::gitlab_runner::instances:
     volumes:
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
+      - '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
     zfs: true
 
@@ -80,6 +81,7 @@ nest::service::gitlab_runner::instances:
       - '/falcon:/falcon'
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
+      - '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro'
       - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
     zfs: true
 

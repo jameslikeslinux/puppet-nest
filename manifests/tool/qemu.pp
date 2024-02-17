@@ -7,6 +7,7 @@ class nest::tool::qemu {
         'static-user',
         'qemu_user_targets_arm',
         'qemu_user_targets_aarch64',
+        'qemu_user_targets_riscv64',
         'qemu_user_targets_x86_64',
       ],
     }
