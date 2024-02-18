@@ -21,7 +21,7 @@ define nest::lib::repo (
       | END_REPO
 
     vcsrepo { "/var/db/repos/${name}":
-      ensure   => latest,
+      ensure   => present,
       provider => git,
       source   => $url,
       depth    => 1,
