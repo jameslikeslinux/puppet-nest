@@ -1,21 +1,23 @@
 diff --git a/lib/puppet/provider/service/init.rb b/lib/puppet/provider/service/init.rb
-index a28c4b8e52..308b4c08b0 100644
+index 88e7242545..b86fa5448e 100644
 --- a/lib/puppet/provider/service/init.rb
 +++ b/lib/puppet/provider/service/init.rb
-@@ -24,7 +24,7 @@ Puppet::Type.type(:service).provide :init, :parent => :base do
-   confine :true => begin
-       os = Puppet.runtime[:facter].value('os.name').downcase
-       family = Puppet.runtime[:facter].value('os.family').downcase
--      !(os == 'debian' || os == 'ubuntu' || family == 'redhat')
-+      !(os == 'debian' || os == 'ubuntu' || family == 'redhat' || family == 'gentoo')
-   end
+@@ -22,8 +22,8 @@ Puppet::Type.type(:service).provide :init, :parent => :base do
+ 
+   # Debian and Ubuntu should use the Debian provider.
+   confine :false => ['Debian', 'Ubuntu'].include?(Puppet.runtime[:facter].value('os.name'))
+-  # RedHat systems should use the RedHat provider.
+-  confine :false => Puppet.runtime[:facter].value('os.family') == 'RedHat'
++  # Gentoo and RedHat systems should use the systemd provider.
++  confine :false => ['Gentoo', 'RedHat'].include?(Puppet.runtime[:facter].value('os.family'))
  
    # We can't confine this here, because the init path can be overridden.
+   # confine :exists => defpath
 diff --git a/lib/puppet/provider/service/systemd.rb b/lib/puppet/provider/service/systemd.rb
-index abc1a2653b..a36e448ea8 100644
+index de6acefc92..e415f2259f 100644
 --- a/lib/puppet/provider/service/systemd.rb
 +++ b/lib/puppet/provider/service/systemd.rb
-@@ -12,8 +12,7 @@ Puppet::Type.type(:service).provide :systemd, :parent => :base do
+@@ -13,8 +13,7 @@ Puppet::Type.type(:service).provide :systemd, :parent => :base do
  
    commands :systemctl => "systemctl"
  
