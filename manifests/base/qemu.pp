@@ -1,6 +1,6 @@
 class nest::base::qemu {
   if $facts['virtual'] == 'kvm'
-  or $facts['profile']['platform'] == 'live'
+  or ($facts['profile'] and $facts['profile']['platform'] == 'live')
   or ($facts['dmi'] and $facts['dmi']['manufacturer'] and $facts['dmi']['manufacturer'] =~ /OVMF/) {
     $qemu_guest_agent_ensure = installed
   } else {

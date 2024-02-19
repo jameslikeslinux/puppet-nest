@@ -1,0 +1,17 @@
+---
+nest::classes:
+  - 'nest::base::cygwin'
+  - 'nest::base::eyaml'
+  - 'nest::base::firewall'
+  - 'nest::base::git'
+  - 'nest::base::openvpn'
+  - 'nest::base::packages'
+  - 'nest::base::puppet'
+  - 'nest::base::qemu'
+  - 'nest::base::ssh'
+  - 'nest::base::syslog'
+  - 'nest::base::users'
+  - 'nest::base::vmware'
+  - 'nest::gui::chrome'
+  - 'nest::gui::firefox'
+  - 'nest::gui::terminals'

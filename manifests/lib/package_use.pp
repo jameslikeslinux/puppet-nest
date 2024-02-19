@@ -14,6 +14,7 @@ define nest::lib::package_use (
       command     => "/usr/bin/emerge -N ${package}",
       timeout     => 0,
       refreshonly => true,
+      require     => Class['nest::base::portage'],
     }
 
     Package_use[$name]

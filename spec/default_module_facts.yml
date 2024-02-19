@@ -1,9 +1,7 @@
 ---
 profile:
-  architecture: 'arm64'
-  cpu: 'cortex-a74'
-  platform: 'pinebookpro'
-  role: 'workstation'
+  architecture: 'amd64'
+  role: 'server'
 release:
   build_id: '1234'
   image_id: 'stage3'

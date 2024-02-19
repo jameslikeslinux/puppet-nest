@@ -7,5 +7,6 @@ class nest::base::gentoo {
   exec { 'eselect-news-read':
     command => $news_read_command,
     onlyif  => '/usr/bin/test `/usr/bin/eselect news count` -gt 0',
+    require => Class['nest::base::mta'],
   }
 }

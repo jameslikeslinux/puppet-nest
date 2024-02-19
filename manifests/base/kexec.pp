@@ -52,8 +52,9 @@ class nest::base::kexec {
     nest::lib::systemd_reload { 'kexec': }
     ~>
     service { 'kexec-load':
-      ensure => $kexec_load_ensure,
-      enable => true,
+      ensure    => $kexec_load_ensure,
+      enable    => true,
+      subscribe => Class['nest::base::bootloader'],
     }
   } else {
     service { 'kexec-load':

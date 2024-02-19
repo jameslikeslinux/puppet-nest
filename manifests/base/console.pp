@@ -29,4 +29,8 @@ class nest::base::console {
   file { '/etc/vconsole.conf':
     content => $vconsole_conf_content,
   }
+
+  # Update initramfs for all changes in this class
+  Class['nest::base::console']
+  ~> Class['nest::base::dracut']
 }

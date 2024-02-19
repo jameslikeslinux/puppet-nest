@@ -11,13 +11,13 @@ describe 'nest::base::kexec' do
           facts
         end
 
-        context 'when kexec => true' do
+        context 'and kexec => true' do
           let(:pre_condition) { 'class { "nest": kexec => true }' }
 
           it { is_expected.to contain_service('kexec-load').that_subscribes_to('Class[nest::base::bootloader]') }
         end
 
-        context 'when kexec => false' do
+        context 'and kexec => false' do
           let(:pre_condition) { 'class { "nest": kexec => false }' }
 
           it { is_expected.to contain_service('kexec-load').with({ 'ensure' => 'stopped', 'enable' => false }) }

@@ -1,0 +1,4 @@
+---
+nest::classes:
+  - 'nest::base::bootloader'
+  - 'nest::base::kexec'

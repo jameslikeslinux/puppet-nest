@@ -1,4 +1,10 @@
 class nest::base::dracut {
+  Class[
+    'nest::base::branding', # /etc/os-release, etc
+    'nest::base::users',    # root user config
+    'nest::base::zfs',      # zpool.cache, etc
+  ] ~> Class['nest::base::dracut']
+
   if $facts['force_kernel_install'] {
     notify { 'forcing-kernel-install': }
   }

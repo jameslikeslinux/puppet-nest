@@ -68,6 +68,7 @@ class nest::base::bootloader::systemd {
       command     => "/usr/bin/kernel-install add ${nest::kernel_version} ${image}",
       refreshonly => true,
       timeout     => 0,
+      subscribe   => Class['nest::base::dracut'],
     }
 
     # Legacy extlinux config for platforms that don't run systemd-boot

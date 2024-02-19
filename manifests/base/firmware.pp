@@ -12,7 +12,8 @@ class nest::base::firmware {
       $dtb_root:
         ensure => directory;
       "${dtb_root}/${basename($nest::dtb_file)}":
-        source => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/dts/${nest::dtb_file}",
+        source  => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/dts/${nest::dtb_file}",
+        require => Class['nest::base::kernel'],
       ;
     }
 
@@ -134,4 +135,8 @@ class nest::base::firmware {
       ensure => absent,
     }
   }
+
+  # Update initramfs for all changes in this class
+  Class['nest::base::firmware']
+  ~> Class['nest::base::dracut']
 }

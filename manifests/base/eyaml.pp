@@ -14,7 +14,7 @@ class nest::base::eyaml {
         group => 'root',
       }
 
-      if $facts['build'] in [undef, 'stage3', 'kernel'] {
+      if $nest::eyaml_private_key {
         $eyaml_private_key = $nest::eyaml_private_key
 
         exec { 'make-eyaml-key-readable':

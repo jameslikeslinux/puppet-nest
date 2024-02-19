@@ -1,0 +1,8 @@
+---
+nest::classes:
+  - 'nest::base::console'
+  - 'nest::base::dracut'
+  - 'nest::base::firmware'
+  - 'nest::base::fstab'
+  - 'nest::base::kernel'
+  - 'nest::base::plymouth'

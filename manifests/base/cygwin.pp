@@ -72,4 +72,7 @@ class nest::base::cygwin {
     enable  => true,
     require => Exec['cygserver-config'],
   }
+
+  Class['nest::base::cygwin']
+  -> Package <| provider == 'cygwin' and title != 'cygrunsrv' |>
 }

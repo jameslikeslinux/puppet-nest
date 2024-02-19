@@ -1,6 +1,7 @@
 class nest::tool::bolt (
   String            $cert,
   Sensitive[String] $key,
+  Optional[String]  $ca = undef,
 ) {
   if $facts['build'] == 'bolt' {
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
@@ -21,6 +22,12 @@ class nest::tool::bolt (
       ensure => installed,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
+    if $ca {
+      $ca_content = $ca
+    } else {
+      $ca_content = file("${settings::ssldir}/certs/ca.pem")
+    }
+
     file {
       default:
         mode  => '0644',
@@ -33,7 +40,7 @@ class nest::tool::bolt (
       ;
 
       '/etc/puppetlabs/bolt/ca.pem':
-        content => file("${settings::ssldir}/certs/ca.pem"),
+        content => $ca_content,
       ;
 
       '/etc/puppetlabs/bolt/cert.pem':

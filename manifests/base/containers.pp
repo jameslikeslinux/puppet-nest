@@ -94,6 +94,7 @@ class nest::base::containers {
     owner   => 'root',
     group   => 'root',
     content => $subuidgid_content,
+    require => Class['nest::base::users'], # overwrite generated entries
   }
 
   # XXX cleanup

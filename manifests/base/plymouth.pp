@@ -14,6 +14,7 @@ class nest::base::plymouth {
     line    => 'Wants=systemd-ask-password-plymouth.path',
     match   => '^Wants=',
     require => Package['sys-boot/plymouth'],
+    notify  => Class['nest::base::dracut'],
   }
 
   $plymouthd_conf_contents = @(PLYMOUTH_CONF)
@@ -27,5 +28,6 @@ class nest::base::plymouth {
     group   => 'root',
     content => $plymouthd_conf_contents,
     require => Package['sys-boot/plymouth'],
+    notify  => Class['nest::base::dracut'],
   }
 }

@@ -1,0 +1,87 @@
+---
+nest::classes:
+  - 'nest::gui::bitwarden'
+  - 'nest::gui::chrome'
+  - 'nest::gui::cups'
+  - 'nest::gui::cursor'
+  - 'nest::gui::dunst'
+  - 'nest::gui::firefox'
+  - 'nest::gui::fonts'
+  - 'nest::gui::greetd'
+  - 'nest::gui::input'
+  - 'nest::gui::media'
+  - 'nest::gui::packages'
+  - 'nest::gui::pipewire'
+  - 'nest::gui::plasma'
+  - 'nest::gui::policykit'
+  - 'nest::gui::sway'
+  - 'nest::gui::terminals'
+  - 'nest::gui::virtualization'
+  - 'nest::gui::xmonad'
+  - 'nest::gui::xorg'
+  - 'nest::gui::zoom'
+  - 'nest::service::bluetooth'
+  - 'nest::tool::bolt'
+  - 'nest::tool::pdk'
+
+nest::package_keywords:
+  # I always want the latest of these
+  app-editors/vscode: {}
+  app-misc/ddcutil: {}
+  gui-apps/foot: {}
+  gui-apps/gtkgreet: {}
+  gui-apps/waybar: {}
+  gui-apps/wl-clipboard: {}
+  gui-libs/wlroots: {}
+  gui-wm/sway: {}
+  media-fonts/fontawesome: {}
+  media-video/pipewire: {}
+  media-video/wireplumber: {}
+  net-im/zoom: {}
+  www-client/firefox: {}
+  x11-misc/barrier: {}
+  x11-terms/alacritty: {}
+
+  # For firefox
+  dev-libs/nspr: {}
+  dev-libs/nss: {}
+  media-libs/dav1d:
+    version: '~1.0.0'
+  media-libs/libepoxy:
+    version: '~1.5.10'
+
+  # For foot
+  dev-libs/tllist: {}
+  gui-apps/foot-terminfo: {}
+  media-libs/fcft: {}
+
+  # For pipewire
+  media-libs/roc-toolkit:
+    version: '~0.3.0'
+
+  # For waybar
+  dev-libs/date:
+    version: '~3.0.0'
+  dev-libs/spdlog:
+    version: '~1.8.5'
+
+  # For barrier
+  dev-cpp/gulrak-filesystem:
+    version: '~1.5.10'
+
+nest::kernel_config:
+  # Networking
+  CONFIG_BT: m
+  CONFIG_BT_HIDP: m
+  CONFIG_BT_HCIBTUSB: m
+
+  # Device drivers
+  CONFIG_INPUT_UINPUT: m
+  CONFIG_MEDIA_SUPPORT: m
+  CONFIG_MEDIA_CAMERA_SUPPORT: y
+  CONFIG_MEDIA_USB_SUPPORT: y
+  CONFIG_USB_VIDEO_CLASS: m
+  CONFIG_SND_USB_AUDIO: m
+  CONFIG_HIDRAW: y
+  CONFIG_UHID: m
+  CONFIG_HID_LOGITECH_DJ: m

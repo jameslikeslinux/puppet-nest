@@ -24,10 +24,8 @@ class nest::base::cli {
   }
 
   # Required for building live ISOs
-  unless defined(Package['sys-boot/grub']) {
-    package { 'sys-boot/grub':
-      ensure => installed,
-    }
+  package { 'sys-boot/grub':
+    ensure => installed,
   }
 
   # Fix broken argument processing with grub-mkrescue(1)

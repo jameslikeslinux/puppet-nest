@@ -28,12 +28,6 @@ class nest::base::users {
         match => '^CREATE_HOME ',
       }
 
-      if $facts['build'] in [undef, 'stage3'] {
-        $pw_hash = $nest::pw_hash
-      } else {
-        $pw_hash = undef
-      }
-
       user {
         default:
           managehome => false,
@@ -43,7 +37,7 @@ class nest::base::users {
         'root':
           shell    => '/bin/zsh',
           require  => File['/bin/zsh'],
-          password => $pw_hash,
+          password => $nest::pw_hash,
         ;
 
         'james':
@@ -53,7 +47,7 @@ class nest::base::users {
           home     => '/home/james',
           comment  => 'James Lee',
           shell    => '/bin/zsh',
-          password => $pw_hash,
+          password => $nest::pw_hash,
           require  => Package['app-shells/zsh'],
         ;
 
@@ -149,7 +143,7 @@ class nest::base::users {
       subscribe   => Class['nest::base::puppet'],
     }
 
-    if $facts['build'] in [undef, 'stage3'] {
+    if $nest::ssh_private_keys {
       if $nest::ssh_private_keys[$user] {
         file { "${home_dir}/.ssh/id_ed25519":
           mode      => '0600',

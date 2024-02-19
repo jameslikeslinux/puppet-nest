@@ -9,6 +9,7 @@ defaults:
     pkcs7_public_key: '/etc/eyaml/keys/public_key.pkcs7.pem'
 
 hierarchy:
+  # Relating to specific instances
   - name: 'Nodes'
     paths:
       - "private/node/%{trusted.certname}.yaml"
@@ -17,10 +18,12 @@ hierarchy:
     paths:
       - "private/cluster/%{trusted.extensions.pp_cluster}.yaml"
       - "cluster/%{trusted.extensions.pp_cluster}.yaml"
-  - name: 'Roles'
+  - name: 'Domain'
     paths:
-      - "private/role/%{facts.profile.role}.yaml"
-      - "role/%{facts.profile.role}.yaml"
+      - "private/domain/%{facts.domain}.yaml"
+      - "domain/%{facts.domain}.yaml"
+
+  # Generic build data
   - name: 'Platforms'
     paths:
       - "private/platform/%{facts.profile.platform}.yaml"
@@ -29,14 +32,20 @@ hierarchy:
     paths:
       - "private/arch/%{facts.profile.architecture}.yaml"
       - "arch/%{facts.profile.architecture}.yaml"
-  - name: 'Operating Systems'
+  - name: 'Builds'
     paths:
-      - "private/os/%{facts.os.family}.yaml"
-      - "os/%{facts.os.family}.yaml"
-  - name: 'Domain'
-    paths:
-      - "private/domain/%{facts.domain}.yaml"
-      - "domain/%{facts.domain}.yaml"
+      - "private/build/%{facts.os.family}/%{facts.build}/%{facts.build}.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/%{facts.build}.yaml"
+      - "private/build/%{facts.os.family}/%{facts.build}/%{facts.profile.role}.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/%{facts.profile.role}.yaml"
+      - "private/build/%{facts.os.family}/%{facts.build}/stage3.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage3.yaml"
+      - "private/build/%{facts.os.family}/%{facts.build}/stage2.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage2.yaml"
+      - "private/build/%{facts.os.family}/%{facts.build}/stage1.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage1.yaml"
+      - "private/build/%{facts.os.family}.yaml"
+      - "build/%{facts.os.family}.yaml"
   - name: 'Common'
     paths:
       - 'private/common.yaml'

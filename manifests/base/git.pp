@@ -50,4 +50,7 @@ class nest::base::git {
       }
     }
   }
+
+  # Git should be installed before managing any Vcsrepos
+  Class['nest::base::git'] -> Vcsrepo <| provider == git |>
 }

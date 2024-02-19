@@ -1,16 +1,16 @@
 class nest (
   # Required settings
-  String               $uboot_tag,
-  String               $kernel_tag,
-  Stdlib::Host         $nestfs_hostname,
-  Array[Stdlib::Host]  $openvpn_servers,
-  String               $pw_hash,
-  Hash[String, String] $ssh_host_keys,
-  Hash[String, String] $ssh_private_keys,
+  String              $uboot_tag,
+  String              $kernel_tag,
+  Stdlib::Host        $nestfs_hostname,
+  Array[Stdlib::Host] $openvpn_servers,
 
-  # eyaml keys
-  String    $eyaml_public_key,
-  Sensitive $eyaml_private_key,
+  # Keys
+  String                         $eyaml_public_key,
+  Optional[Sensitive]            $eyaml_private_key = undef,
+  Optional[String]               $pw_hash           = undef,
+  Hash[String, String]           $ssh_host_keys     = {},
+  Optional[Hash[String, String]] $ssh_private_keys  = undef,
 
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn]        $cnames       = {},
@@ -20,13 +20,13 @@ class nest (
   Hash[Stdlib::Fqdn, Hash]                $hosts        = {},
 
   # Service toggles
-  Boolean $distcc_server  = false,
-  Boolean $fileserver     = false,
-  Boolean $fscache        = true,
-  Boolean $openvpn        = false,
-  Boolean $puppet         = true,
-  Boolean $public_ssh     = false,
-  Boolean $vpn_client     = true,
+  Boolean $distcc_server = false,
+  Boolean $fileserver    = false,
+  Boolean $fscache       = true,
+  Boolean $openvpn       = false,
+  Boolean $puppet        = true,
+  Boolean $public_ssh    = false,
+  Boolean $vpn_client    = true,
 
   # System settings
   Enum['off', 'sway', 'xmonad']  $autologin           = xmonad,
@@ -67,6 +67,9 @@ class nest (
   Float            $text_scaling_factor = $gui_scaling_factor,
   Array[String]    $monitor_layout      = [],
   Optional[String] $primary_monitor     = undef,
+
+  # Other nest classes
+  Array[String] $classes = [],
 ) {
   if $kernel_tag =~ /v([\d.]+(-rc\d+)?)/ {
     $kernel_version = $1
@@ -100,14 +103,5 @@ class nest (
     $concurrency = $facts['processors']['count']
   }
 
-  # Include standard base configuration
-  contain 'nest::base'
-
-  # Apply role-specific configuration
-  contain "nest::role::${facts['profile']['role']}"
-
-  # Let client ask for a tool configuration
-  if $facts['build'] in ['bolt', 'buildah', 'pdk', 'qemu', 'r10k'] {
-    contain "nest::tool::${facts['build']}"
-  }
+  contain $classes
 }

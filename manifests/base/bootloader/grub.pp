@@ -1,9 +1,6 @@
 class nest::base::bootloader::grub {
-  unless defined(Package['sys-boot/grub']) {
-    nest::lib::package { 'sys-boot/grub':
-      ensure => installed,
-      use    => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs', 'truetype'],
-    }
+  nest::lib::package_use { 'sys-boot/grub':
+    use => ['grub_platforms_efi-64', 'grub_platforms_pc', 'libzfs', 'truetype'],
   }
 
   if $facts['mountpoints']['/boot'] or ($facts['profile']['platform'] == 'live' and $facts['is_container'] and !$facts['build']) {
@@ -147,7 +144,8 @@ class nest::base::bootloader::grub {
       ;
 
       'dracut':
-        command => "/usr/bin/dracut --force --kver ${nest::kernel_version}",
+        command   => "/usr/bin/dracut --force --kver ${nest::kernel_version}",
+        subscribe => Class['nest::base::dracut'],
       ;
     }
     ~>
