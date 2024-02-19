@@ -1,4 +1,6 @@
 class nest::base::branding {
+  tag 'configure_profile'
+
   $variant = $facts['profile']['role'] ? {
     'server'      => 'Server',
     'workstation' => 'Workstation',

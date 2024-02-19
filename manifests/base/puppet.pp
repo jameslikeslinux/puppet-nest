@@ -1,4 +1,6 @@
 class nest::base::puppet {
+  tag 'build_prep'
+
   $dns_alt_names = $nest::openvpn ? {
     true    => $nest::openvpn_servers.filter |$s| { $s !~ Stdlib::IP::Address },
     default => [],
