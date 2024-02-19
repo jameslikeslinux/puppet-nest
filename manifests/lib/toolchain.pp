@@ -38,12 +38,33 @@ define nest::lib::toolchain (
           ensure => file,
         }
       }
+
+      if $facts['llvm_clang'] {
+        file {
+          default:
+            ensure => link,
+            notify => Class['nest::base::distccd'];
+          "/usr/local/bin/${name}-clang":
+            target => $facts['llvm_clang'];
+          "/usr/local/bin/${name}-clang++":
+            target => "${facts['llvm_clang']}++",
+          ;
+        }
+      }
     }
 
     'absent': {
       exec { "crossdev-uninstall-${name}":
         command => "/usr/bin/crossdev -C ${name}",
         onlyif  => "/usr/bin/test -e /usr/bin/${name}-gcc",
+      }
+
+      file { [
+        "/usr/local/bin/${name}-clang",
+        "/usr/local/bin/${name}-clang++",
+      ]:
+        ensure => absent,
+        notify => Class['nest::base::distccd'],
       }
     }
   }

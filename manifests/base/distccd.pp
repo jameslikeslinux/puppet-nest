@@ -20,5 +20,10 @@ class nest::base::distccd {
     package { 'sys-devel/clang':
       ensure => installed,
     }
+
+    exec { 'update-distcc-compiler-links':
+      command     => '/usr/bin/eselect compiler-shadow update',
+      refreshonly => true,
+    }
   }
 }
