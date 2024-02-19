@@ -3,6 +3,7 @@ class nest::node::falcon {
     [
       'aarch64-unknown-linux-gnu',
       'armv7a-unknown-linux-gnueabihf',
+      'riscv64-unknown-linux-gnu',
     ]:
       # use defaults
     ;
