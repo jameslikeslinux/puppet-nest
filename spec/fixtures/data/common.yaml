@@ -1,6 +1,11 @@
 ---
 nest::eyaml_public_key: 'fake-public-key'
 nest::eyaml_private_key: 'fake-private-key'
+nest::pw_hash: 'fake-pw-hash'
+nest::ssh_host_keys:
+  example.com: 'ed25519 fake-ssh-key'
+nest::ssh_private_keys:
+  ed25519: 'fake-ssh-key'
 
 nest::role::workstation::chrome::google_api_key: 'fake-google-api-key'
 nest::role::workstation::chrome::google_oauth_id: 'fake-google-oauth-id'

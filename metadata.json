@@ -68,6 +68,12 @@
   "operatingsystem_support": [
     {
       "operatingsystem": "Gentoo"
+    },
+    {
+      "operatingsystem": "windows",
+      "operatingsystemrelease": [
+        "10"
+      ]
     }
   ],
   "requirements": [

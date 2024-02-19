@@ -11,13 +11,13 @@ stages:
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
   stage: 'Test'
   script:
-    - 'pdk validate --puppet-version=8.2.0'
+    - 'pdk validate --puppet-version=8.4.0'
 
 'Unit Test':
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
   stage: 'Test'
   script:
-    - 'pdk test unit --puppet-version=8.2.0'
+    - 'pdk test unit --puppet-version=8.4.0 --verbose'
 
 .template: &template
   image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'

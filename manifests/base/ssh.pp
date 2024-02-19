@@ -74,8 +74,6 @@ class nest::base::ssh {
       file { 'C:/tools/cygwin/etc/ssh_known_hosts':
         # default mode
       }
-      ->
-      Sshkey <||>
 
       windows_firewall::exception { 'nest-ssh':
         ensure       => present,
