@@ -21,8 +21,8 @@ class nest::base::containers {
 
   # Preselect optional dependencies
   package { [
-    'app-containers/cni-plugins',
     'app-containers/crun',
+    'app-containers/netavark',
   ]:,
     ensure => installed,
   }
@@ -63,25 +63,19 @@ class nest::base::containers {
       content => "[Service]\nDelegate=yes\n",
       notify  => Nest::Lib::Systemd_reload['containers'],
     ;
-
-    '/etc/systemd/system/podman-firewalld-reload.service':
-      source => 'puppet:///modules/nest/containers/podman-firewalld-reload.service',
-      notify => Nest::Lib::Systemd_reload['containers'],
-    ;
   }
   ->
   nest::lib::systemd_reload { 'containers': }
   ->
   service { [
     'podman.socket',
-    'podman-firewalld-reload',
+    'netavark-firewalld-reload',
   ]:
     enable => true,
   }
 
   $rootless_users = ['james']
-  $subuidgid_content = $rootless_users.map |$user| {
-    $index = $rootless_users.index($user)
+  $subuidgid_content = $rootless_users.map |$index, $user| {
     $subuidgid = 65536 * $index + 100000
     "${user}:${subuidgid}:65536\n"
   }.join
@@ -95,11 +89,5 @@ class nest::base::containers {
     group   => 'root',
     content => $subuidgid_content,
     require => Class['nest::base::users'], # overwrite generated entries
-  }
-
-  # XXX cleanup
-  # Replaced by package-managed 87-podman-bridge.conflist
-  file { '/etc/cni/net.d/87-podman.conflist':
-    ensure => absent,
   }
 }

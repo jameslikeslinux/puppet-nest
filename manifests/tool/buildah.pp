@@ -1,8 +1,5 @@
 class nest::tool::buildah {
-  package { [
-    'app-containers/buildah',
-    'app-containers/netavark',
-  ]:
+  package { 'app-containers/buildah':
     ensure => installed,
   }
 }
