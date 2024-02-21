@@ -1,4 +1,8 @@
 ---
+nest::classes:
+  - 'nest::firmware::raspberrypi'
+  - 'nest::firmware::uboot'
+
 nest::autologin: sway
 nest::bootloader: systemd
 nest::dtb_file: 'broadcom/bcm2710-rpi-3-b-plus.dtb'
@@ -7,6 +11,7 @@ nest::fscache: false
 nest::kernel_defconfig: 'bcm2711_defconfig'
 nest::puppet: false
 nest::swap_alt_win: true
+nest::uboot_defconfig: 'rpi_arm64_defconfig'
 nest::wifi: true
 
 nest::package_keywords:
@@ -35,5 +40,3 @@ nest::kernel_config:
   # Rely on filesystem compression
   CONFIG_MODULE_COMPRESS_NONE: y
   CONFIG_MODULE_COMPRESS_XZ: n
-
-nest::base::firmware::uboot::defconfig: 'rpi_arm64_defconfig'

@@ -157,10 +157,6 @@ nest::kernel_config:
   CONFIG_IKCONFIG: y
   CONFIG_IKCONFIG_PROC: y
 
-  # For systemd
-  CONFIG_BPF_SYSCALL: y
-  CONFIG_CRYPTO_USER_API_HASH: m
-
   # Support distcc
   CONFIG_GCC_PLUGINS: n
 
@@ -224,6 +220,7 @@ nest::kernel_config:
   CONFIG_USB_SERIAL_CH341: m      # for Pinebook Pro adapter
   CONFIG_USB_SERIAL_CP210X: m     # for Raspberry Pi adapter
   CONFIG_USB_SERIAL_FTDI_SIO: m   # for BeagleBone Black adapter
+  CONFIG_VIRTIO_MENU: y
   CONFIG_VIRTIO_PCI: y
   CONFIG_VIRTIO_BALLOON: m
 
@@ -235,6 +232,8 @@ nest::kernel_config:
   CONFIG_EXFAT_FS: m
   CONFIG_SQUASHFS: m
   CONFIG_SQUASHFS_XZ: y
+  CONFIG_NFS_FS: y
+  CONFIG_NFS_V4: y
   CONFIG_NFS_V4_1: y
   CONFIG_NFS_V4_2: y
   CONFIG_NFS_FSCACHE: y
@@ -242,12 +241,15 @@ nest::kernel_config:
   CONFIG_NFSD_V4: y
 
   # For zswap
+  CONFIG_SWAP: y
   CONFIG_ZSWAP: y
   CONFIG_Z3FOLD: y
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
+  CONFIG_BPF_SYSCALL: y
   CONFIG_FANOTIFY: y
+  CONFIG_CRYPTO_USER_API_HASH: m
 
   # For containers
   CONFIG_POSIX_MQUEUE: y
@@ -305,6 +307,7 @@ nest::kernel_config:
 
   # For libvirt
   CONFIG_VIRTUALIZATION: y
+  CONFIG_VHOST_MENU: y
   CONFIG_VHOST_NET: m
   CONFIG_NETFILTER_XT_CONNMARK: m
   CONFIG_NETFILTER_XT_TARGET_CHECKSUM: m
@@ -329,6 +332,8 @@ nest::kernel_config:
   CONFIG_CRYPTO_SHA512: y
   CONFIG_CRYPTO_DES: m
   CONFIG_CRYPTO_USER_API_SKCIPHER: m
+  CONFIG_ASYMMETRIC_KEY_TYPE: y
+  CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE: y
   CONFIG_PKCS8_PRIVATE_KEY_PARSER: m
 
   # For iotop

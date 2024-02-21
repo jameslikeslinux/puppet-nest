@@ -1,10 +1,8 @@
-class nest::base::firmware::arm (
-  String $soc,
-) {
+class nest::firmware::arm {
   # For nest::base::portage::makeopts
   include 'nest::base::portage'
 
-  if $soc == 'rk3399' {
+  if $nest::soc == 'rk3399' {
     nest::lib::toolchain { 'arm-none-eabi':
       gcc_only => true,
       before   => Exec['arm-trusted-firmware-build'],
@@ -17,7 +15,7 @@ class nest::base::firmware::arm (
   }
   ~>
   exec { 'arm-trusted-firmware-build':
-    command     => "/usr/bin/make ${nest::base::portage::makeopts} E=0 PLAT=${soc}",
+    command     => "/usr/bin/make ${nest::base::portage::makeopts} E=0 PLAT=${nest::soc}",
     cwd         => '/usr/src/arm-trusted-firmware',
     path        => ['/usr/lib/distcc/bin', '/usr/bin', '/bin'],
     environment => [

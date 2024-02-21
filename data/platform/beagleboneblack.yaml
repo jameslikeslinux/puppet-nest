@@ -1,8 +1,12 @@
 ---
+nest::classes:
+  - 'nest::firmware::uboot'
+
 nest::bootloader: systemd
 nest::dtb_file: 'ti/omap/am335x-boneblack.dtb'
 nest::fscache: false
 nest::puppet: false
+nest::uboot_defconfig: 'am335x_evm_defconfig'
 
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
@@ -21,5 +25,3 @@ nest::kernel_config:
   CONFIG_DRM_I2C_NXP_TDA998X: m
   CONFIG_DRM_TILCDC: m
   CONFIG_SND_SOC_DAVINCI_MCASP: m
-
-nest::base::firmware::uboot::defconfig: 'am335x_evm_defconfig'

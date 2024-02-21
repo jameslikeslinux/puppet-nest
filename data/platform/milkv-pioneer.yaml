@@ -1,0 +1,23 @@
+---
+nest::classes:
+  - 'nest::firmware::opensbi'
+  - 'nest::firmware::sophgo'
+  - 'nest::firmware::uboot'
+  - 'nest::firmware::zsbl'
+
+nest::bootloader: systemd
+nest::dtb_file: 'sophgo/mango-milkv-pioneer.dtb'
+nest::kernel_defconfig: 'sophgo_mango_normal_defconfig'
+nest::kernel_tag: 'sophgo/v6.1.72'
+nest::opensbi_branch: 'sophgo/sg2042-dev-nest'
+nest::soc: 'sg2042'
+nest::uboot_tag: 'sophgo/v2023.10-rc2'
+nest::uboot_defconfig: 'sophgo_sg2042_defconfig'
+
+nest::kernel_cmdline:
+  - 'console=ttyS0,115200n8'
+  - 'console=tty0'
+
+nest::kernel_config:
+  # Selects ZLIB_DEFLATE for ZFS
+  CONFIG_CRYPTO_DEFLATE: m

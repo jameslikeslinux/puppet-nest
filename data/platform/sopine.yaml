@@ -1,7 +1,12 @@
 ---
+nest::classes:
+  - 'nest::firmware::arm'
+  - 'nest::firmware::uboot'
+
 nest::bootloader: systemd
 nest::fscache: false
 nest::puppet: false
+nest::uboot_defconfig: 'sopine_baseboard_defconfig'
 
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
@@ -11,4 +16,3 @@ nest::kernel_config:
   CONFIG_DMA_SUN6I: y
 
 nest::base::firmware::arm::soc: 'sun50i_a64'
-nest::base::firmware::uboot::defconfig: 'sopine_baseboard_defconfig'

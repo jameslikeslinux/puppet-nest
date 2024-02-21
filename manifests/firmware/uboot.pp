@@ -1,7 +1,8 @@
-class nest::base::firmware::uboot (
-  String                      $defconfig,
-  Hash[String, Nest::Kconfig] $config = {},
-) {
+class nest::firmware::uboot {
+  unless $nest::uboot_tag {
+    fail("'uboot_tag' is not set")
+  }
+
   # For nest::base::portage::makeopts
   include 'nest::base::portage'
 
@@ -25,28 +26,29 @@ class nest::base::firmware::uboot (
   }
 
   file { '/usr/src/u-boot/.defconfig':
-    content => "${defconfig}\n",
+    content => "${nest::uboot_defconfig}\n",
     notify  => Exec['uboot-reset-config'],
   }
 
   exec { 'uboot-defconfig':
-    command => "/usr/bin/make ${defconfig}",
+    command => "/usr/bin/make ${nest::uboot_defconfig}",
     cwd     => '/usr/src/u-boot',
     creates => '/usr/src/u-boot/.config',
     require => Exec['uboot-reset-config'],
     notify  => Exec['uboot-build'],
   }
 
-  $config.each |$setting, $value| {
+  $nest::uboot_config.each |$setting, $value| {
     nest::lib::kconfig { $setting:
       value => $value,
     }
   }
 
   $env_is_in_spi_flash = $facts['profile']['platform'] ? {
-    'radxazero'    => undef, # setting not available
-    /^raspberrypi/ => undef, # setting not available
-    default        => n,
+    'milkv-pioneer' => undef, # setting not available
+    'radxazero'     => undef, # setting not available
+    /^raspberrypi/  => undef, # setting not available
+    default         => n,
   }
 
   nest::lib::kconfig {
@@ -104,6 +106,14 @@ class nest::base::firmware::uboot (
     default: {
       $build_options = ''
     }
+  }
+
+  if $build_options =~ /arm-trusted-firmware/ {
+    Class['nest::firmware::arm']
+    ~> Exec['uboot-build']
+  } elsif $build_options =~ /rkbin/ {
+    Class['nest::firmware::rockchip']
+    ~> Exec['uboot-build']
   }
 
   $uboot_make_cmd = @("UBOOT_MAKE")

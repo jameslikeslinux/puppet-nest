@@ -1,10 +1,8 @@
-class nest::base::firmware::rockchip (
-  String $git_branch = 'rockchip',
-) {
+class nest::firmware::rockchip {
   vcsrepo { '/usr/src/rkbin':
     ensure   => latest,
     provider => git,
     source   => 'https://gitlab.james.tl/nest/forks/rkbin.git',
-    revision => $git_branch,
+    revision => $nest::rkbin_branch,
   }
 }

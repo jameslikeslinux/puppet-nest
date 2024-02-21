@@ -1,4 +1,8 @@
 ---
+nest::classes:
+  - 'nest::firmware::raspberrypi'
+  - 'nest::firmware::uboot'
+
 nest::autologin: sway
 nest::bootloader: systemd
 nest::dtb_file: 'broadcom/bcm2711-rpi-4-b.dtb'
@@ -6,6 +10,7 @@ nest::dvorak: true
 nest::fscache: false
 nest::kernel_defconfig: 'bcm2711_defconfig'
 nest::swap_alt_win: true
+nest::uboot_defconfig: 'rpi_arm64_defconfig'
 nest::wifi: true
 
 nest::package_keywords:
@@ -37,11 +42,9 @@ nest::kernel_config:
   CONFIG_MODULE_COMPRESS_NONE: y
   CONFIG_MODULE_COMPRESS_XZ: n
 
-nest::base::firmware::uboot::defconfig: 'rpi_arm64_defconfig'
-nest::base::firmware::uboot::config:
+nest::uboot_config:
   # Fails with "Unknown partition table type 0"
   CONFIG_MMC_SDHCI_SDMA: n
 
   # Let the main SOC UART be found instead of just the PL011 chip
   CONFIG_SERIAL_PROBE_ALL: y
-

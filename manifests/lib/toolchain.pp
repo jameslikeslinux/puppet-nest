@@ -1,10 +1,17 @@
 define nest::lib::toolchain (
   Enum['present', 'absent'] $ensure   = present,
+  Optional[String]          $gcc_env  = undef,
   Boolean                   $gcc_only = false,
 ) {
   case $ensure {
     'present': {
       include 'nest::lib::crossdev'
+
+      if $gcc_env {
+        $gcc_env_args = "--genv ${gcc_env.shellquote}"
+      } else {
+        $gcc_env_args = ''
+      }
 
       $stage = $gcc_only ? {
         true    => 1,
@@ -12,7 +19,7 @@ define nest::lib::toolchain (
       }
 
       exec { "crossdev-install-${name}":
-        command => "/usr/bin/crossdev --stable --stage${stage} --target ${name}",
+        command => "/usr/bin/crossdev ${gcc_env_args} --stable --portage '--usepkg' --stage${stage} --target ${name}",
         creates => "/usr/bin/${name}-gcc",
         timeout => 0,
         require => Class['nest::lib::crossdev'],
@@ -33,9 +40,11 @@ define nest::lib::toolchain (
         ;
       }
 
-      if $gcc_only {
+      # Bare-metal toolchains mask various USE flags
+      if $name =~ /-(eabi|elf)$/ {
         file { "/etc/portage/profile/package.use.mask/cross-${name}":
-          ensure => file,
+          ensure  => file,
+          require => Exec["crossdev-install-${name}"],
         }
       }
 

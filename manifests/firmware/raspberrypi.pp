@@ -1,4 +1,4 @@
-class nest::base::firmware::raspberrypi {
+class nest::firmware::raspberrypi {
   package { 'sys-boot/raspberrypi-firmware':
     ensure => installed,
   }
@@ -11,7 +11,8 @@ class nest::base::firmware::raspberrypi {
   }
 
   file { '/boot/u-boot.bin':
-    source => '/usr/src/u-boot/u-boot.bin',
+    source  => '/usr/src/u-boot/u-boot.bin',
+    require => Class['nest::firmware::uboot'],
   }
 
   file { '/boot/config.txt':

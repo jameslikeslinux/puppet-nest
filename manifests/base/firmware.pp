@@ -4,6 +4,7 @@ class nest::base::firmware {
 
     $dtb_root = $facts['profile']['platform'] ? {
       'beagleboneblack' => '/boot',
+      'milkv-pioneer'   => '/boot/riscv64',
       /^raspberrypi/    => '/boot',
       default           => "/boot/${soc_vendor}",
     }
@@ -17,69 +18,14 @@ class nest::base::firmware {
       ;
     }
 
-    case $soc_vendor {
-      'amlogic': {
-        contain 'nest::base::firmware::uboot'
-        contain 'nest::base::firmware::amlogic'
-
-        Class['nest::base::firmware::uboot']
-        ~> Class['nest::base::firmware::amlogic']
-      }
-
-      'allwinner': {
-        contain 'nest::base::firmware::arm'
-        contain 'nest::base::firmware::uboot'
-
-        Class['nest::base::firmware::arm']
-        ~> Class['nest::base::firmware::uboot']
-
-        if $facts['profile']['platform'] == 'pine64' {
-          file { '/lib/firmware/rtl_bt/rtl8723bs_config.bin':
-            ensure  => link,
-            target  => 'rtl8723bs_config-OBDA8723.bin',
-            require => Package['sys-kernel/linux-firmware'],
-          }
-        }
-      }
-
-      'broadcom': {
-        contain 'nest::base::firmware::uboot'
-
-        if $facts['profile']['platform'] =~ /^raspberrypi/ {
-          contain 'nest::base::firmware::raspberrypi'
-
-          Class['nest::base::firmware::uboot']
-          -> Class['nest::base::firmware::raspberrypi']
-
-          file { '/boot/overlays':
-            source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
-            links   => follow,
-            recurse => true,
-            purge   => true,
-            force   => true,
-            ignore  => ['.*', '*.dts', 'Makefile'],
-          }
-        }
-      }
-
-      'rockchip': {
-        contain 'nest::base::firmware::uboot'
-
-        if $facts['profile']['platform'] == 'rock5' {
-          contain 'nest::base::firmware::rockchip'
-
-          Class['nest::base::firmware::rockchip']
-          ~> Class['nest::base::firmware::uboot']
-        } else {
-          contain 'nest::base::firmware::arm'
-
-          Class['nest::base::firmware::arm']
-          ~> Class['nest::base::firmware::uboot']
-        }
-      }
-
-      'ti/omap': {
-        contain 'nest::base::firmware::uboot'
+    if $facts['profile']['platform'] and $facts['profile']['platform'] =~ /^raspberrypi/ {
+      file { '/boot/overlays':
+        source  => '/usr/src/linux/arch/arm64/boot/dts/overlays',
+        links   => follow,
+        recurse => true,
+        purge   => true,
+        force   => true,
+        ignore  => ['.*', '*.dts', 'Makefile'],
       }
     }
   }
@@ -92,6 +38,7 @@ class nest::base::firmware {
     'linux/brcm/brcmfmac43455-sdio.bin'            => ['raspberrypi3', 'rockpro64', 'rock4'],
     'linux/brcm/brcmfmac43455-sdio.clm_blob'       => ['raspberrypi3', 'rockpro64', 'rock4'],
     'linux/brcm/brcmfmac43455-sdio.txt'            => ['raspberrypi3', 'rockpro64', 'rock4'],
+    'linux/rtl_bt/rtl8723bs_config.bin'            => ['pine64'],
     'manjaro/brcm/BCM4345C5.hcd'                   => ['pinebookpro'],
     'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'       => ['haswell'],
     'raspberrypi/brcm/BCM4345C0.hcd'               => ['raspberrypi3', 'rockpro64', 'rock4'],

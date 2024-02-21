@@ -1,8 +1,13 @@
 ---
+nest::classes:
+  - 'nest::firmware::amlogic'
+  - 'nest::firmware::uboot'
+
 nest::bootloader: systemd
 nest::dtb_file: 'amlogic/meson-g12a-radxa-zero.dtb'
 nest::fscache: false
 nest::puppet: false
+nest::uboot_defconfig: 'radxa-zero_defconfig'
 nest::wifi: true
 
 nest::kernel_cmdline:
@@ -11,5 +16,3 @@ nest::kernel_cmdline:
 
 nest::kernel_config:
   CONFIG_USB_ETH: y
-
-nest::base::firmware::uboot::defconfig: 'radxa-zero_defconfig'

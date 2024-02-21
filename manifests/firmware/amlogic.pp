@@ -1,4 +1,4 @@
-class nest::base::firmware::amlogic {
+class nest::firmware::amlogic {
   $board = $facts['profile']['platform'] ? {
     'radxazero' => 'radxa-zero',
     default     => fail("Unsupported platform ${facts['profile']['platform']}"),
@@ -15,5 +15,6 @@ class nest::base::firmware::amlogic {
     timeout     => 0,
     refreshonly => true,
     noop        => !$facts['build'],
+    subscribe   => Class['nest::firmware::uboot'],
   }
 }

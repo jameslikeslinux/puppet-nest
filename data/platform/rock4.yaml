@@ -1,7 +1,13 @@
 ---
+nest::classes:
+  - 'nest::firmware::arm'
+  - 'nest::firmware::uboot'
+
 nest::bootloader: systemd
 nest::dtb_file: 'rockchip/rk3399-rock-4c-plus.dtb'
 nest::fscache: false
+nest::soc: 'rk3399'
+nest::uboot_defconfig: 'rock-4c-plus-rk3399_defconfig'
 nest::wifi: true
 
 nest::kernel_cmdline:
@@ -13,6 +19,3 @@ nest::kernel_config:
   # Device drivers
   CONFIG_SND_SOC_ES8316: m
   CONFIG_VIDEO_ROCKCHIP_VDEC: m
-
-nest::base::firmware::arm::soc: 'rk3399'
-nest::base::firmware::uboot::defconfig: 'rock-4c-plus-rk3399_defconfig'

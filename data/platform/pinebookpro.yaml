@@ -1,10 +1,16 @@
 ---
+nest::classes:
+  - 'nest::firmware::arm'
+  - 'nest::firmware::uboot'
+
 nest::autologin: sway
 nest::bootloader: systemd
 nest::dtb_file: 'rockchip/rk3399-pinebook-pro.dtb'
 nest::dvorak: true
+nest::soc: 'rk3399'
 nest::swap_alt_win: true
 nest::text_scaling_factor: 1.1
+nest::uboot_defconfig: 'pinebook-pro-rk3399_defconfig'
 nest::wifi: true
 
 # Sustained load drains the battery.  Reduce load from compilation by limiting
@@ -23,6 +29,3 @@ nest::kernel_config:
   CONFIG_CHARGER_GPIO: m
   CONFIG_SND_SOC_ES8316: m
   CONFIG_VIDEO_ROCKCHIP_VDEC: m
-
-nest::base::firmware::arm::soc: 'rk3399'
-nest::base::firmware::uboot::defconfig: 'pinebook-pro-rk3399_defconfig'

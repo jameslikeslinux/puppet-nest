@@ -1,6 +1,5 @@
 class nest (
   # Required settings
-  String              $uboot_tag,
   String              $kernel_tag,
   Stdlib::Host        $nestfs_hostname,
   Array[Stdlib::Host] $openvpn_servers,
@@ -42,9 +41,13 @@ class nest (
   Array[String]                  $kernel_cmdline      = [],
   String                         $kernel_defconfig    = 'defconfig',
   Boolean                        $kexec               = false,
+  String                         $opensbi_branch      = 'riscv-software-src/master',
   Array[String]                  $reset_filter_rules  = [],
+  String                         $rkbin_branch        = 'rockchip',
+  Optional[String]               $soc                 = undef,
   Hash[String, Nest::Kconfig]    $uboot_config        = {},
   Optional[String]               $uboot_defconfig     = undef,
+  Optional[String]               $uboot_tag           = undef,
   Enum['tcp', 'udp']             $vpn_transport       = udp,
   Boolean                        $wifi                = false,
   Optional[Sensitive[Hash]]      $wlans               = undef,
