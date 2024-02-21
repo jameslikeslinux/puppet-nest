@@ -1,0 +1,4 @@
+---
+nest::package_unmask:
+  # XXX Until we can build on bare metal
+  dev-lang/rust-bin: {}
