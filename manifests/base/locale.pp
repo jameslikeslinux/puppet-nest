@@ -1,5 +1,5 @@
 class nest::base::locale {
-  tag 'build_prep'
+  tag 'init'
 
   file_line { 'locale.gen-en_US.UTF-8':
     path  => '/etc/locale.gen',

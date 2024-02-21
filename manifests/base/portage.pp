@@ -1,6 +1,6 @@
 class nest::base::portage {
-  tag 'build_prep'
-  tag 'configure_profile'
+  tag 'init'
+  tag 'profile'
 
   class { 'portage':
     eselect_ensure => installed,

@@ -1,5 +1,5 @@
 class nest::base::branding {
-  tag 'configure_profile'
+  tag 'profile'
 
   $variant = $facts['profile']['role'] ? {
     'server'      => 'Server',

@@ -1,5 +1,5 @@
 class nest::base::distcc {
-  tag 'build_prep'
+  tag 'init'
 
   package { 'sys-devel/distcc':
     ensure => installed,
