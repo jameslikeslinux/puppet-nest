@@ -35,9 +35,6 @@ class nest::base::firmware {
   }
 
   $files = {
-    'linux/brcm/brcmfmac43455-sdio.bin'            => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'linux/brcm/brcmfmac43455-sdio.clm_blob'       => ['raspberrypi3', 'rockpro64', 'rock4'],
-    'linux/brcm/brcmfmac43455-sdio.txt'            => ['raspberrypi3', 'rockpro64', 'rock4'],
     'linux/rtl_bt/rtl8723bs_config.bin'            => ['pine64'],
     'manjaro/brcm/BCM4345C5.hcd'                   => ['pinebookpro'],
     'plugable/brcm/BCM20702A1-0a5c-21e8.hcd'       => ['haswell'],
