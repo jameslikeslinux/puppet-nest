@@ -62,6 +62,7 @@ class nest::base::bootloader::systemd {
       'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
       'arm64' => '/usr/src/linux/arch/arm64/boot/Image',
       'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
+      'riscv' => '/usr/src/linux/arch/riscv/boot/Image',
     }
 
     exec { 'kernel-install':
