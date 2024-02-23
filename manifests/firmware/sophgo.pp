@@ -23,11 +23,6 @@ class nest::firmware::sophgo {
     | INI
 
   file {
-    '/boot/u-boot.bin':
-      source  => '/usr/src/u-boot/u-boot.bin',
-      require => Class['nest::firmware::uboot'],
-    ;
-
     '/boot/zsbl.bin':
       source  => '/usr/src/zsbl/zsbl.bin',
       require => Class['nest::firmware::zsbl'],
@@ -36,6 +31,11 @@ class nest::firmware::sophgo {
     '/boot/riscv64/fw_dynamic.bin':
       source  => '/usr/src/opensbi/build/platform/generic/firmware/fw_dynamic.bin',
       require => Class['nest::firmware::opensbi'],
+    ;
+
+    '/boot/riscv64/u-boot.bin':
+      source  => '/usr/src/u-boot/u-boot.bin',
+      require => Class['nest::firmware::uboot'],
     ;
 
     '/boot/riscv64/conf.ini':
