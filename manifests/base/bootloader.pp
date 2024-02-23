@@ -1,4 +1,7 @@
 class nest::base::bootloader {
+  tag 'boot'
+  tag 'kernel'
+
   # For nest::base::console::keymap
   include 'nest::base::console'
 

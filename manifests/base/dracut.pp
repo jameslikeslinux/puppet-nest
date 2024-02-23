@@ -1,4 +1,7 @@
 class nest::base::dracut {
+  tag 'boot'
+  tag 'kernel'
+
   Class[
     'nest::base::branding', # /etc/os-release, etc
     'nest::base::users',    # root user config

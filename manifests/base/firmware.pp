@@ -1,4 +1,6 @@
 class nest::base::firmware {
+  tag 'kernel'
+
   if $nest::dtb_file {
     $soc_vendor = dirname($nest::dtb_file)
 
