@@ -3,9 +3,6 @@ Name=bond* br* en* eth* usb*
 
 [Network]
 DHCP=yes
-DNS=172.22.0.1
-Domains=nest
-DNSDefaultRoute=yes
 
 [DHCP]
 RouteMetric=10
