@@ -94,7 +94,7 @@ client
 nobind
 connect-retry 2 30
 connect-timeout 2
-data-ciphers <%= if $facts['profile'] and $facts['profile']['cpu'] and $facts['profile']['cpu'] =~ /^cortex-a(8|53|72)$/ { 'CHACHA20-POLY1305' } else { 'AES-128-GCM' } %>
+data-ciphers <%= if $facts['profile'] and $facts['profile']['cpu'] and $facts['profile']['cpu'] =~ /^(cortex-a(8|53|72)|rv64gc)$/ { 'CHACHA20-POLY1305' } else { 'AES-128-GCM' } %>
   <%- $nest::openvpn_servers.each |$server| { -%>
     <%- if $server =~ Stdlib::IP::Address { -%>
 remote <%= $server %> 1194<% if $nest::vpn_transport == tcp { %> tcp<% } %>
