@@ -19,6 +19,14 @@ nest::kernel_cmdline:
   - 'console=tty0'
 
 nest::kernel_config:
+  # Tuning
+  CONFIG_HZ_PERIODIC: n
+  CONFIG_NO_HZ_IDLE: y
+  CONFIG_PREEMPT_NONE: n
+  CONFIG_PREEMPT_VOLUNTARY: y
+  CONFIG_CPU_IDLE: y
+  CONFIG_RISCV_SBI_CPUIDLE: y
+
   # Selects ZLIB_DEFLATE for ZFS
   CONFIG_CRYPTO_DEFLATE: m
 
