@@ -7,7 +7,7 @@ nest::classes:
 
 nest::bootloader: systemd
 nest::dtb_file: 'sophgo/mango-milkv-pioneer.dtb'
-nest::kernel_defconfig: 'sophgo_mango_fedora_defconfig'
+nest::kernel_defconfig: 'sophgo_mango_normal_defconfig'
 nest::kernel_tag: 'sophgo/v6.1.72'
 nest::opensbi_branch: 'sophgo/sg2042-dev-nest'
 nest::soc: 'sg2042'
@@ -18,6 +18,10 @@ nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
 
+nest::kernel_config:
+  # Selects ZLIB_DEFLATE for ZFS
+  CONFIG_CRYPTO_DEFLATE: m
+
 nest::uboot_config:
-  CONFIG_USE_BOOTCOMMAND: n
-  CONFIG_USE_PREBOOT: n
+  CONFIG_BOOTCOMMAND: 'run distro_bootcmd'
+  CONFIG_PREBOOT: 'fdt move ${fdt_addr_fixed} ${fdt_addr_r}'

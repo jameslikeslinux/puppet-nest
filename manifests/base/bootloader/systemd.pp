@@ -73,7 +73,7 @@ class nest::base::bootloader::systemd {
     }
 
     # Legacy extlinux config for platforms that don't run systemd-boot
-    if $facts['profile']['platform'] in ['milkv-pioneer'] {
+    if $facts['profile']['platform'] in [] {
       $extlinux_conf = @("EXTLINUX")
         DEFAULT Nest (${nest::kernel_version})
         TIMEOUT ${nest::boot_menu_delay}

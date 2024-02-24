@@ -13,13 +13,14 @@ define nest::lib::toolchain (
         $gcc_env_args = ''
       }
 
-      $stage = $gcc_only ? {
-        true    => 1,
-        default => 4,
+      if $gcc_only {
+        $stage_arg = '--stage1'
+      } else {
+        $stage_arg = ''
       }
 
       exec { "crossdev-install-${name}":
-        command => "/usr/bin/crossdev ${gcc_env_args} --stable --portage '--usepkg' --stage${stage} --target ${name}",
+        command => "/usr/bin/crossdev ${gcc_env_args} --stable --portage '--usepkg' ${stage_arg} --target ${name}",
         creates => "/usr/bin/${name}-gcc",
         timeout => 0,
         require => Class['nest::lib::crossdev'],
