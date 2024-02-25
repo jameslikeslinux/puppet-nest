@@ -1,16 +1,17 @@
 define nest::lib::toolchain (
   Enum['present', 'absent'] $ensure   = present,
-  Optional[String]          $gcc_env  = undef,
+  Optional[String]          $gcc_conf = undef,
   Boolean                   $gcc_only = false,
 ) {
   case $ensure {
     'present': {
       include 'nest::lib::crossdev'
 
-      if $gcc_env {
-        $gcc_env_args = "--genv ${gcc_env.shellquote}"
+      if $gcc_conf {
+        $extra_econf = "EXTRA_ECONF=${gcc_conf.shellquote}"
+        $gcc_conf_args = "--genv ${extra_econf.shellquote}"
       } else {
-        $gcc_env_args = ''
+        $gcc_conf_args = ''
       }
 
       if $gcc_only {
@@ -20,7 +21,7 @@ define nest::lib::toolchain (
       }
 
       exec { "crossdev-install-${name}":
-        command => "/usr/bin/crossdev ${gcc_env_args} --stable --portage '--usepkg' ${stage_arg} --target ${name}",
+        command => "/usr/bin/crossdev ${gcc_conf_args} --stable --portage '--usepkg' ${stage_arg} --target ${name}",
         creates => "/usr/bin/${name}-gcc",
         timeout => 0,
         require => Class['nest::lib::crossdev'],

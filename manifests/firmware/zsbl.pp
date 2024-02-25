@@ -7,8 +7,8 @@ class nest::firmware::zsbl {
   # - disable multilib so newlib doesn't fail trying to build for rv32
   # - with /usr/bin/ld for PIE support
   nest::lib::toolchain { 'riscv64-unknown-elf':
-    gcc_env => 'EXTRA_ECONF="--libdir=/usr/lib64 --disable-multilib --with-ld=/usr/bin/ld"',
-    before  => Exec['zsbl-build'],
+    gcc_conf => '--libdir=/usr/lib64 --disable-multilib --with-ld=/usr/bin/ld',
+    before   => Exec['zsbl-build'],
   }
 
   Nest::Lib::Kconfig {
