@@ -11,7 +11,7 @@ class nest::firmware::opensbi {
     set -ex -o pipefail
     export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
     cd /usr/src/opensbi
-    make ${nest::base::portage::makeopts} PLATFORM=generic 2>&1 | tee build.log
+    make ${nest::base::portage::makeopts} PLATFORM=generic BUILD_INFO=y 2>&1 | tee build.log
     | ZSBL_MAKE
 
   nest::lib::src_repo { '/usr/src/opensbi':
