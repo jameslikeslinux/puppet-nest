@@ -40,7 +40,7 @@ class nest::firmware::zsbl {
     set -ex -o pipefail
     export HOME=/root PATH=/usr/bin:/bin
     cd /usr/src/zsbl
-    make ${nest::base::portage::makeopts} KCFLAGS='-D_FORTIFY_SOURCE=0 -Wno-error' 2>&1 | tee build.log
+    make ${nest::base::portage::makeopts} KCFLAGS='-U_FORTIFY_SOURCE -Wno-error' 2>&1 | tee build.log
     | ZSBL_MAKE
 
   file { '/usr/src/zsbl/build.sh':
