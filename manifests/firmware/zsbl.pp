@@ -5,8 +5,9 @@ class nest::firmware::zsbl {
   # Install bare-metal toolchain with newlib C library
   # - set 'libdir' to workaround https://bugs.gentoo.org/908455
   # - disable multilib so newlib doesn't fail trying to build for rv32
+  # - with /usr/bin/ld for PIE support
   nest::lib::toolchain { 'riscv64-unknown-elf':
-    gcc_env => 'EXTRA_ECONF="--libdir=/usr/lib64 --disable-multilib"',
+    gcc_env => 'EXTRA_ECONF="--libdir=/usr/lib64 --disable-multilib --with-ld=/usr/bin/ld"',
     before  => Exec['zsbl-build'],
   }
 
@@ -16,7 +17,7 @@ class nest::firmware::zsbl {
 
   nest::lib::src_repo { '/usr/src/zsbl':
     url => 'https://gitlab.james.tl/nest/forks/zsbl.git',
-    ref => 'sophgo-nest',
+    ref => 'sophgo',
   }
   ~>
   exec { 'zsbl-reset-config':
@@ -32,14 +33,14 @@ class nest::firmware::zsbl {
     notify  => Exec['zsbl-build'],
   }
 
-  # Build without distcc for the special toolchain
+  # Build without distcc for the special toolchain, disable SSP,
   # and disable warnings-as-errors for newlib/GCC 13 compatibility
   $zsbl_make_cmd = @("ZSBL_MAKE")
     #!/bin/bash
     set -ex -o pipefail
     export HOME=/root PATH=/usr/bin:/bin
     cd /usr/src/zsbl
-    make ${nest::base::portage::makeopts} KCFLAGS='-Wno-error' 2>&1 | tee build.log
+    make ${nest::base::portage::makeopts} KCFLAGS='-D_FORTIFY_SOURCE=0 -Wno-error' 2>&1 | tee build.log
     | ZSBL_MAKE
 
   file { '/usr/src/zsbl/build.sh':
