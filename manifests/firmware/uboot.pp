@@ -3,39 +3,8 @@ class nest::firmware::uboot {
     fail("'uboot_tag' is not set")
   }
 
-  # For nest::base::portage::makeopts
-  include 'nest::base::portage'
-
   Nest::Lib::Kconfig {
     config => '/usr/src/u-boot/.config',
-  }
-
-  package { 'dev-lang/swig':
-    ensure => installed,
-    before => Exec['uboot-build'],
-  }
-
-  nest::lib::src_repo { '/usr/src/u-boot':
-    url => 'https://gitlab.james.tl/nest/forks/u-boot.git',
-    ref => $nest::uboot_tag,
-  }
-  ~>
-  exec { 'uboot-reset-config':
-    command     => '/bin/rm -f /usr/src/u-boot/.config',
-    refreshonly => true,
-  }
-
-  file { '/usr/src/u-boot/.defconfig':
-    content => "${nest::uboot_defconfig}\n",
-    notify  => Exec['uboot-reset-config'],
-  }
-
-  exec { 'uboot-defconfig':
-    command => "/usr/bin/make ${nest::uboot_defconfig}",
-    cwd     => '/usr/src/u-boot',
-    creates => '/usr/src/u-boot/.config',
-    require => Exec['uboot-reset-config'],
-    notify  => Exec['uboot-build'],
   }
 
   $nest::uboot_config.each |$setting, $value| {
@@ -110,42 +79,25 @@ class nest::firmware::uboot {
 
   if $build_options =~ /arm-trusted-firmware/ {
     Class['nest::firmware::arm']
-    ~> Exec['uboot-build']
+    ~> Nest::Lib::Build['uboot']
   } elsif $build_options =~ /rkbin/ {
     Class['nest::firmware::rockchip']
-    ~> Exec['uboot-build']
+    ~> Nest::Lib::Build['uboot']
   }
 
-  $uboot_make_cmd = @("UBOOT_MAKE")
-    #!/bin/bash
-    set -ex -o pipefail
-    export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
-    cd /usr/src/u-boot
-    make ${nest::base::portage::makeopts} ${build_options} 2>&1 | tee build.log
-    | UBOOT_MAKE
-
-  file { '/usr/src/u-boot/build.sh':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => $uboot_make_cmd,
+  package { 'dev-lang/swig':
+    ensure => installed,
+    before => Nest::Lib::Build['uboot'],
   }
 
-  exec { 'uboot-olddefconfig':
-    command     => '/usr/bin/make olddefconfig',
-    cwd         => '/usr/src/u-boot',
-    refreshonly => true,
+  nest::lib::src_repo { '/usr/src/u-boot':
+    url => 'https://gitlab.james.tl/nest/forks/u-boot.git',
+    ref => $nest::uboot_tag,
   }
   ~>
-  exec { 'uboot-build':
-    command     => '/usr/src/u-boot/build.sh',
-    noop        => !$facts['build'],
-    refreshonly => true,
-    timeout     => 0,
-    require     => File['/usr/src/u-boot/build.sh'],
+  nest::lib::build { 'uboot':
+    args      => $build_options,
+    defconfig => $nest::uboot_defconfig,
+    dir       => '/usr/src/u-boot',
   }
-
-  Exec['uboot-defconfig']
-  -> Nest::Lib::Kconfig <| config == '/usr/src/u-boot/.config' |>
-  ~> Exec['uboot-olddefconfig']
 }

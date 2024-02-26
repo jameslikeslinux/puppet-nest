@@ -1,48 +1,11 @@
 class nest::base::kernel {
-  # For nest::base::portage::makeopts
-  include 'nest::base::portage'
-
   Nest::Lib::Kconfig {
     config => '/usr/src/linux/.config',
-  }
-
-  nest::lib::package { 'sys-devel/bc':
-    ensure => installed,
-    before => Exec['kernel-build'],
-  }
-
-  nest::lib::src_repo { '/usr/src/linux':
-    url => 'https://gitlab.james.tl/nest/forks/linux.git',
-    ref => $nest::kernel_tag,
-  }
-  ~>
-  exec { 'kernel-reset-config':
-    command     => '/bin/rm -f /usr/src/linux/.config',
-    refreshonly => true,
-  }
-  ->  # sources w/o config, just like a provided package
-  file_line { 'package.provided-kernel':
-    path  => '/etc/portage/profile/package.provided',
-    line  => "sys-kernel/vanilla-sources-${nest::kernel_version.regsubst('-', '_')}",
-    match => '^sys-kernel/vanilla-sources-',
-  }
-
-  file { '/usr/src/linux/.defconfig':
-    content => "${nest::kernel_defconfig}\n",
-    notify  => Exec['kernel-reset-config'],
   }
 
   $arch = $facts['profile']['architecture'] ? {
     'amd64' => 'x86_64',
     default => $facts['profile']['architecture'],
-  }
-
-  exec { 'kernel-defconfig':
-    command => "/usr/bin/make ARCH=${arch} ${nest::kernel_defconfig}",
-    cwd     => '/usr/src/linux',
-    creates => '/usr/src/linux/.config',
-    require => Exec['kernel-reset-config'],
-    notify  => Exec['kernel-build'],
   }
 
   $nest::kernel_config.each |$config, $value| {
@@ -79,7 +42,7 @@ class nest::base::kernel {
     # Required for mkimage(1)
     nest::lib::package { 'dev-embedded/u-boot-tools':
       ensure => installed,
-      before => Exec['kernel-build'],
+      before => Nest::Lib::Build['kernel'],
     }
 
     # Ignore warning on newer GCC
@@ -109,35 +72,21 @@ class nest::base::kernel {
     $cflags_override = ''
   }
 
-  $kernel_make_cmd = @("KERNEL_MAKE")
-    #!/bin/bash
-    set -ex -o pipefail
-    export HOME=/root PATH=/usr/lib/distcc/bin:/usr/bin:/bin
-    cd /usr/src/linux
-    make ARCH=${arch} LOCALVERSION= ${nest::base::portage::makeopts} ${lld_override} ${cflags_override} \
-        olddefconfig all modules_install 2>&1 | tee build.log
-    | KERNEL_MAKE
-
-  file { '/usr/src/linux/build.sh':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => $kernel_make_cmd,
+  nest::lib::package { 'sys-devel/bc':
+    ensure => installed,
+    before => Nest::Lib::Build['kernel'],
   }
 
-  exec { 'kernel-olddefconfig':
-    command     => "/usr/bin/make ARCH=${arch} olddefconfig",
-    cwd         => '/usr/src/linux',
-    refreshonly => true,
+  nest::lib::src_repo { '/usr/src/linux':
+    url => 'https://gitlab.james.tl/nest/forks/linux.git',
+    ref => $nest::kernel_tag,
   }
   ~>
-  exec { 'kernel-build':
-    command     => '/usr/src/linux/build.sh',
-    noop        => !$facts['build'],
-    refreshonly => true,
-    timeout     => 0,
-    notify      => Class['nest::base::dracut'],
-    require     => File['/usr/src/linux/build.sh'],
+  nest::lib::build { 'kernel':
+    args      => "LOCALVERSION= ${lld_override} ${cflags_override} olddefconfig all modules_install",
+    defconfig => $nest::kernel_defconfig,
+    dir       => '/usr/src/linux',
+    makeargs  => "ARCH=${arch}",
   }
   ~>
   exec { 'module-rebuild':
@@ -153,7 +102,12 @@ class nest::base::kernel {
     binpkg => false,
   }
 
-  Exec['kernel-defconfig']
-  -> Nest::Lib::Kconfig <| config == '/usr/src/linux/.config' |>
-  ~> Exec['kernel-olddefconfig']
+  # Sources w/o config, just like a provided package
+  file_line { 'package.provided-kernel':
+    path    => '/etc/portage/profile/package.provided',
+    line    => "sys-kernel/vanilla-sources-${nest::kernel_version.regsubst('-', '_')}",
+    match   => '^sys-kernel/vanilla-sources-',
+    require => Nest::Lib::Src_repo['/usr/src/linux'],
+    before  => Nest::Lib::Build['kernel'],
+  }
 }
