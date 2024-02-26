@@ -2,7 +2,6 @@
 nest::classes:
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::dtb_file: 'ti/omap/am335x-boneblack.dtb'
 nest::fscache: false
 nest::puppet: false

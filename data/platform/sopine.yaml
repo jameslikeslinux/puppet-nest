@@ -3,7 +3,6 @@ nest::classes:
   - 'nest::firmware::arm'
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::fscache: false
 nest::puppet: false
 nest::uboot_defconfig: 'sopine_baseboard_defconfig'

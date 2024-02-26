@@ -44,12 +44,16 @@ class nest::base::bootloader {
   ].flatten.join(' ').strip
 
   case $nest::bootloader {
+    'grub': {
+      contain 'nest::base::bootloader::grub'
+    }
+
     'systemd': {
       contain 'nest::base::bootloader::systemd'
     }
 
-    default: {
-      contain 'nest::base::bootloader::grub'
+    'u-root': {
+      contain 'nest::base::bootloader::uroot'
     }
   }
 }

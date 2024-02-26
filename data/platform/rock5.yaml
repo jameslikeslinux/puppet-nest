@@ -3,7 +3,6 @@ nest::classes:
   - 'nest::firmware::rockchip'
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::dtb_file: 'rockchip/rk3588-rock-5b.dtb'
 nest::fscache: false
 nest::kernel_defconfig: 'rockchip_linux_defconfig'

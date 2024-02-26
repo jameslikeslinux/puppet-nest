@@ -3,7 +3,6 @@ nest::classes:
   - 'nest::firmware::arm'
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::dtb_file: 'rockchip/rk3399-rock-4c-plus.dtb'
 nest::fscache: false
 nest::soc: 'rk3399'

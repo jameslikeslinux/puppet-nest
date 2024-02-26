@@ -4,7 +4,6 @@ nest::classes:
   - 'nest::firmware::uboot'
 
 nest::autologin: sway
-nest::bootloader: systemd
 nest::dtb_file: 'rockchip/rk3399-pinebook-pro.dtb'
 nest::dvorak: true
 nest::soc: 'rk3399'

@@ -1,13 +1,14 @@
 define nest::lib::build (
-  String           $args      = '', # lint:ignore:params_empty_string_assignment
-  Optional[String] $command   = undef,
-  Optional[String] $defconfig = undef,
-  String           $dir       = $name,
-  Boolean          $distcc    = true,
-  String           $makeargs  = '', # lint:ignore:params_empty_string_assignment
+  String                                   $args      = '', # lint:ignore:params_empty_string_assignment
+  Optional[Variant[String, Array[String]]] $command   = undef,
+  Optional[String]                         $defconfig = undef,
+  String                                   $dir       = $name,
+  Boolean                                  $distcc    = true,
+  String                                   $makeargs  = '', # lint:ignore:params_empty_string_assignment
 ) {
   if $command {
-    $build_command = $command
+    $command_joined = [$command].flatten.join(' && ')
+    $build_command  = "(${command_joined})"
   } else {
     include 'nest::base::portage'
     $build_command = "make ${nest::base::portage::makeopts} ${makeargs} ${args}"

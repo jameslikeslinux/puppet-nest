@@ -4,7 +4,6 @@ nest::classes:
   - 'nest::firmware::uboot'
 
 nest::autologin: sway
-nest::bootloader: systemd
 nest::dtb_file: 'broadcom/bcm2711-rpi-4-b.dtb'
 nest::dvorak: true
 nest::fscache: false

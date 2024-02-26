@@ -3,7 +3,6 @@ nest::classes:
   - 'nest::firmware::amlogic'
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::dtb_file: 'amlogic/meson-g12a-radxa-zero.dtb'
 nest::fscache: false
 nest::puppet: false

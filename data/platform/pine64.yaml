@@ -3,7 +3,6 @@ nest::classes:
   - 'nest::firmware::arm'
   - 'nest::firmware::uboot'
 
-nest::bootloader: systemd
 nest::dtb_file: 'allwinner/sun50i-a64-pine64-lts.dtb'
 nest::fscache: false
 nest::soc: 'sun50i_a64'

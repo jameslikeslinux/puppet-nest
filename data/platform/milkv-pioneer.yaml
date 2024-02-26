@@ -2,10 +2,9 @@
 nest::classes:
   - 'nest::firmware::opensbi'
   - 'nest::firmware::sophgo'
-  - 'nest::firmware::uboot'
   - 'nest::firmware::zsbl'
 
-nest::bootloader: systemd
+nest::bootloader: u-root
 nest::dtb_file: 'sophgo/mango-milkv-pioneer.dtb'
 nest::kernel_defconfig: 'sophgo_mango_normal_defconfig'
 nest::kernel_tag: 'sophgo/v6.1.72'
@@ -29,7 +28,3 @@ nest::kernel_config:
 
   # Selects ZLIB_DEFLATE for ZFS
   CONFIG_CRYPTO_DEFLATE: m
-
-nest::uboot_config:
-  CONFIG_BOOTCOMMAND: 'run distro_bootcmd'
-  CONFIG_PREBOOT: 'fdt move ${fdt_addr_fixed} ${fdt_addr_r}'

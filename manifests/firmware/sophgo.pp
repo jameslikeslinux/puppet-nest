@@ -1,4 +1,7 @@
 class nest::firmware::sophgo {
+  # For nest::base::bootloader::spec::image
+  include 'nest::base::bootloader::spec'
+
   # /boot is fat32
   File {
     mode  => undef,
@@ -15,11 +18,40 @@ class nest::firmware::sophgo {
     source => '/usr/src/fip/firmware/fip.bin',
   }
 
-  $conf_ini_content = @(INI)
+  case $nest::bootloader {
+    'systemd': {
+      $conf_ini_kernel = "[kernel]\nname=u-boot.bin\n"
+      $uboot_ensure    = present
+      $uboot_source    = '/usr/src/u-boot/u-boot.bin'
+      $uroot_ensure    = absent
+      $uroot_source    = undef
+
+      Class['nest::firmware::uboot']
+      -> File['/boot/riscv64/u-boot.bin']
+    }
+
+    'u-root': {
+      $conf_ini_kernel = ''
+      $uboot_ensure    = absent
+      $uboot_source    = undef
+      $uroot_ensure    = present
+      $uroot_source    = '/usr/src/u-root/initramfs.cpio'
+
+      Class['nest::base::bootloader::uroot']
+      -> File['/boot/riscv64/initrd.img']
+
+      Class['nest::base::kernel']
+      -> File['/boot/riscv64/riscv64_Image']
+    }
+
+    default: {
+      fail("Unsupported bootloader '${nest::bootloader}'")
+    }
+  }
+
+  $conf_ini_content = @("INI")
     [sophgo-config]
-    [kernel]
-    name=u-boot.bin
-    [eof]
+    ${conf_ini_kernel}[eof]
     | INI
 
   file {
@@ -33,9 +65,19 @@ class nest::firmware::sophgo {
       require => Class['nest::firmware::opensbi'],
     ;
 
+    '/boot/riscv64/initrd.img':
+      ensure => $uroot_ensure,
+      source => $uroot_source,
+    ;
+
+    '/boot/riscv64/riscv64_Image':
+      ensure => $uroot_ensure,
+      source => $nest::base::bootloader::spec::image,
+    ;
+
     '/boot/riscv64/u-boot.bin':
-      source  => '/usr/src/u-boot/u-boot.bin',
-      require => Class['nest::firmware::uboot'],
+      ensure => $uboot_ensure,
+      source => $uboot_source,
     ;
 
     '/boot/riscv64/conf.ini':

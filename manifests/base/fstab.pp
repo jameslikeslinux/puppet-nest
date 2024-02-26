@@ -13,8 +13,8 @@ class nest::base::fstab {
   }
 
   $boot_vfstype = $nest::bootloader ? {
-    'systemd' => 'vfat',
-    default   => 'ext2',
+    'grub'  => 'ext2',
+    default => 'vfat',
   }
 
   $specs = {

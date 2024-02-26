@@ -14,7 +14,6 @@ classes:
   - 'nest::service::reverse_proxy'
   - 'nest::tool::qemu'
 
-nest::bootloader: systemd
 nest::isolate_smt: true
 nest::kernel_cmdline:
   - 'console=ttyS1,115200n8'
