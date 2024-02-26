@@ -1,2 +1,10 @@
 #!/bin/zsh
-exec podman run --rm -it -e TERM -v /srv/gitlab-runner:/etc/gitlab-runner gitlab/gitlab-runner $@
+#
+# GitLab Runner container wrapper
+# See: https://gitlab.james.tl/nest/puppet/-/blob/main/manifests/service/gitlab_runner.pp
+#
+
+exec podman run --rm -it -e TERM \
+    --entrypoint=/usr/bin/gitlab-runner \
+    -v /srv/gitlab-runner:/etc/gitlab-runner \
+    alpinelinux/gitlab-runner $@

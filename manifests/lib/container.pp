@@ -1,14 +1,16 @@
 define nest::lib::container (
   String              $image,
-  Array[String]       $cap_add = [],
-  Optional[String]    $dns     = undef,
-  Nest::ServiceEnsure $ensure  = running,
-  Array[String]       $env     = [],
-  Optional[String]    $network = undef,
-  Optional[String]    $pod     = undef,
-  Array[String]       $publish = [],
-  Array[String]       $tmpfs   = [],
-  Array[String]       $volumes = [],
+  Array[String]       $cap_add    = [],
+  Array[String]       $command    = [],
+  Optional[String]    $dns        = undef,
+  Nest::ServiceEnsure $ensure     = running,
+  Optional[String]    $entrypoint = undef,
+  Array[String]       $env        = [],
+  Optional[String]    $network    = undef,
+  Optional[String]    $pod        = undef,
+  Array[String]       $publish    = [],
+  Array[String]       $tmpfs      = [],
+  Array[String]       $volumes    = [],
 ) {
   unless $facts['is_container'] {
     require 'nest::base::containers'
@@ -83,6 +85,11 @@ define nest::lib::container (
         default => ["--dns=${dns}"],
       }
 
+      $entrypoint_args = $entrypoint ? {
+        undef   => [],
+        default => ["--entrypoint=${entrypoint}"],
+      }
+
       $env_args = $env.map |$e| {
         "--env=${e}"
       }
@@ -118,6 +125,7 @@ define nest::lib::container (
         '--replace',
         $cap_add_args,
         $dns_args,
+        $entrypoint_args,
         $env_args,
         $network_args,
         $pod_args,
@@ -127,7 +135,7 @@ define nest::lib::container (
         "--label=nest.podman.version=${facts['podman_version']}",
         "--name=${name}",
         $image,
-      ].flatten
+      ].flatten + $command
 
       $podman_create_str = "[${podman_create_cmd.join(' ')}]"
       $podman_inspect_create_command = [

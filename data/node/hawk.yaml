@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::node::hawk'
   - 'nest::service::barrier'
   - 'nest::service::gateway'

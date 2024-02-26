@@ -3,9 +3,6 @@ nest::classes:
   - 'nest::service::gitlab_runner'
   - 'nest::tool::qemu'
 
-nest::distcc_server: true
-nest::vpn_client: false
-
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   builder:

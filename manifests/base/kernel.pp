@@ -87,6 +87,7 @@ class nest::base::kernel {
     defconfig => $nest::kernel_defconfig,
     dir       => '/usr/src/linux',
     makeargs  => "ARCH=${arch}",
+    notify    => Class['nest::base::dracut'], # in case module-rebuild is noop
   }
   ~>
   exec { 'module-rebuild':

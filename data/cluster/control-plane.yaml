@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::service::kubernetes'
 
 nest::bird_role: control-plane

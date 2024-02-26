@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::service::gitlab_runner'
 
 # Cluster is directly connected to Nest

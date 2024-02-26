@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::node::falcon'
   - 'nest::service::barrier'
   - 'nest::service::gitlab'

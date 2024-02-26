@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::node::web'
   - 'nest::service::bitwarden'
   - 'nest::service::gateway'

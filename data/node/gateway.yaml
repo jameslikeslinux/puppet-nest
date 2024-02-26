@@ -1,5 +1,5 @@
 ---
-classes:
+nest::classes:
   - 'nest::service::gateway'
   - 'nest::service::reverse_proxy'
 
