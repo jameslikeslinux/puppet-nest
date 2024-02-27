@@ -1,4 +1,10 @@
 class nest::base::bootloader::spec {
+  $image = $facts['profile']['architecture'] ? {
+    'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
+    'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
+    default => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/Image",
+  }
+
   if $facts['mountpoints']['/boot'] {
     # For nest::base::bootloader::kernel_cmdline
     include 'nest::base::bootloader'
@@ -32,12 +38,6 @@ class nest::base::bootloader::spec {
         content => "root=zfs:AUTO ${nest::base::bootloader::kernel_cmdline}\n",
         notify  => Exec['kernel-install'],
       ;
-    }
-
-    $image = $facts['profile']['architecture'] ? {
-      'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
-      'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
-      default => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/Image",
     }
 
     exec { 'kernel-install':

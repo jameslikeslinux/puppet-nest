@@ -1,7 +1,4 @@
 class nest::firmware::sophgo {
-  # For nest::base::bootloader::spec::image
-  include 'nest::base::bootloader::spec'
-
   # /boot is fat32
   File {
     mode  => undef,
@@ -24,6 +21,7 @@ class nest::firmware::sophgo {
       $uboot_ensure    = present
       $uboot_source    = '/usr/src/u-boot/u-boot.bin'
       $uroot_ensure    = absent
+      $uroot_image     = undef
       $uroot_source    = undef
 
       Class['nest::firmware::uboot']
@@ -31,10 +29,13 @@ class nest::firmware::sophgo {
     }
 
     'u-root': {
+      include nest::base::bootloader::uroot # safe for stage2
+
       $conf_ini_kernel = ''
       $uboot_ensure    = absent
       $uboot_source    = undef
       $uroot_ensure    = present
+      $uroot_image     = $nest::base::bootloader::spec::image
       $uroot_source    = '/usr/src/u-root/initramfs.cpio'
 
       Class['nest::base::bootloader::uroot']
@@ -72,7 +73,7 @@ class nest::firmware::sophgo {
 
     '/boot/riscv64/riscv64_Image':
       ensure => $uroot_ensure,
-      source => $nest::base::bootloader::spec::image,
+      source => $uroot_image,
     ;
 
     '/boot/riscv64/u-boot.bin':
