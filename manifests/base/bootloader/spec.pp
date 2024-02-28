@@ -1,4 +1,6 @@
 class nest::base::bootloader::spec {
+  tag 'kernel'
+
   $image = $facts['profile']['architecture'] ? {
     'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
     'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
