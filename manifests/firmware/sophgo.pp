@@ -50,6 +50,7 @@ class nest::firmware::sophgo {
     }
   }
 
+  # See: https://github.com/sophgo/sophgo-doc/blob/main/SG2042/HowTo/Configuration%20Info%20in%20INI%20file.rst
   $conf_ini_content = @("INI")
     [sophgo-config]
     ${conf_ini_kernel}[eof]
