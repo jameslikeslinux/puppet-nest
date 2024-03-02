@@ -38,38 +38,47 @@ class nest::base::kernel {
     $lld_override = ''
   }
 
-  if $nest::kernel_tag =~ /^radxa\// {
-    # Required for mkimage(1)
-    nest::lib::package { 'dev-embedded/u-boot-tools':
-      ensure => installed,
-      before => Nest::Lib::Build['kernel'],
+  case $nest::kernel_tag {
+    /^radxa\//: {
+      # Required for mkimage(1)
+      nest::lib::package { 'dev-embedded/u-boot-tools':
+        ensure => installed,
+        before => Nest::Lib::Build['kernel'],
+      }
+
+      # Ignore warning on newer GCC
+      $cflags = [
+        '-Wno-address',
+        '-Wno-array-compare',
+        '-Wno-dangling-pointer',
+        '-Wno-enum-int-mismatch',
+        '-Wno-implicit-fallthrough',
+        '-Wno-int-in-bool-context',
+        '-Wno-stringop-overread',
+        '-Wno-tautological-compare',
+      ]
+      $cflags_override = "KCFLAGS=\"${cflags.join(' ')}\""
+
+      file { '/etc/portage/env/kcflags.conf':
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        content => "${cflags_override}\n",
+      }
+
+      Package_env <| title == 'sys-fs/zfs-kmod' |> {
+        env +> 'kcflags.conf',
+      }
     }
 
-    # Ignore warning on newer GCC
-    $cflags = [
-      '-Wno-address',
-      '-Wno-array-compare',
-      '-Wno-dangling-pointer',
-      '-Wno-enum-int-mismatch',
-      '-Wno-implicit-fallthrough',
-      '-Wno-int-in-bool-context',
-      '-Wno-stringop-overread',
-      '-Wno-tautological-compare',
-    ]
-    $cflags_override = "KCFLAGS=\"${cflags.join(' ')}\""
-
-    file { '/etc/portage/env/kcflags.conf':
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => "${cflags_override}\n",
+    /^sophgo\//: {
+      # Hide known warnings from Xe backport effort
+      $cflags_override = 'KCFLAGS="-Wno-discarded-qualifiers -Wno-address"'
     }
 
-    Package_env <| title == 'sys-fs/zfs-kmod' |> {
-      env +> 'kcflags.conf',
+    default: {
+      $cflags_override = ''
     }
-  } else {
-    $cflags_override = ''
   }
 
   nest::lib::package { 'sys-devel/bc':
