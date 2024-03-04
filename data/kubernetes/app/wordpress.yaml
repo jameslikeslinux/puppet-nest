@@ -1,4 +1,7 @@
 ---
+resources:
+  backup: {}
+
 values:
   podSecurityContext:
     fsGroup: 1000
