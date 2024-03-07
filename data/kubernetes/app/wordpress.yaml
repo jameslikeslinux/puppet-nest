@@ -3,6 +3,9 @@ resources:
   backup: {}
 
 values:
+  resources:
+    requests:
+      memory: '200Mi'
   podSecurityContext:
     fsGroup: 1000
   containerSecurityContext:
