@@ -1,8 +1,7 @@
-diff --git a/xwayland/selection/incoming.c b/xwayland/selection/incoming.c
-index 791eb5cf..43aeac54 100644
---- a/xwayland/selection/incoming.c
-+++ b/xwayland/selection/incoming.c
-@@ -467,13 +467,6 @@ void xwm_handle_selection_notify(struct wlr_xwm *xwm,
+diff -ur wlroots-0.17.1.orig/xwayland/selection/incoming.c wlroots-0.17.1/xwayland/selection/incoming.c
+--- wlroots-0.17.1.orig/xwayland/selection/incoming.c	2024-03-09 12:20:32.885007617 -0500
++++ wlroots-0.17.1/xwayland/selection/incoming.c	2024-03-09 12:22:36.329311698 -0500
+@@ -464,13 +464,6 @@
  			xwm_selection_transfer_destroy(transfer);
  		}
  	} else if (event->target == xwm->atoms[TARGETS]) {
@@ -16,20 +15,21 @@ index 791eb5cf..43aeac54 100644
  		// This sets the Wayland clipboard (by calling wlr_seat_set_selection)
  		xwm_selection_get_targets(selection);
  	} else if (transfer) {
-diff --git a/xwayland/selection/outgoing.c b/xwayland/selection/outgoing.c
-index 87c0fb06..59b233da 100644
---- a/xwayland/selection/outgoing.c
-+++ b/xwayland/selection/outgoing.c
-@@ -410,15 +410,6 @@ void xwm_handle_selection_request(struct wlr_xwm *xwm,
+diff -ur wlroots-0.17.1.orig/xwayland/selection/outgoing.c wlroots-0.17.1/xwayland/selection/outgoing.c
+--- wlroots-0.17.1.orig/xwayland/selection/outgoing.c	2024-03-09 12:20:32.885007617 -0500
++++ wlroots-0.17.1/xwayland/selection/outgoing.c	2024-03-09 12:22:41.153323575 -0500
+@@ -409,17 +409,6 @@
  		return;
  	}
  
 -	// No xwayland surface focused, deny access to clipboard
 -	if (xwm->focus_surface == NULL && xwm->drag_focus == NULL) {
--		char *selection_name = xwm_get_atom_name(xwm, selection->atom);
--		wlr_log(WLR_DEBUG, "denying read access to selection %u (%s): "
--			"no xwayland surface focused", selection->atom, selection_name);
--		free(selection_name);
+-		if (wlr_log_get_verbosity() >= WLR_DEBUG) {
+-			char *selection_name = xwm_get_atom_name(xwm, selection->atom);
+-			wlr_log(WLR_DEBUG, "denying read access to selection %u (%s): "
+-				"no xwayland surface focused", selection->atom, selection_name);
+-			free(selection_name);
+-		}
 -		goto fail_notify_requestor;
 -	}
 -
