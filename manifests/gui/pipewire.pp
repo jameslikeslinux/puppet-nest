@@ -1,5 +1,5 @@
 class nest::gui::pipewire {
-  if $facts['profile']['architecture'] == 'arm64' {
+  if $facts['profile']['architecture'] in ['arm64', 'riscv'] {
     nest::lib::package_env { 'media-libs/roc-toolkit':
       env    => {
         'EXTRA_ESCONS' => '--libdir=/usr/lib64',
