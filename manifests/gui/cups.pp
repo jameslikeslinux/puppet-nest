@@ -3,7 +3,7 @@ class nest::gui::cups {
 
   package { [
     'net-print/cups',
-    'net-print/cups-filters',
+    'net-print/cups-browsed',
     'kde-plasma/print-manager',
   ]:
     ensure => installed,
@@ -35,7 +35,7 @@ class nest::gui::cups {
     owner   => 'root',
     group   => 'root',
     content => template('nest/cups/cups-browsed.conf.erb'),
-    require => Package['net-print/cups-filters'],
+    require => Package['net-print/cups-browsed'],
     notify  => [
       Service['cups'],
       Service['cups-browsed'],
