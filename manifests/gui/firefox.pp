@@ -1,20 +1,9 @@
 class nest::gui::firefox {
   case $facts['os']['family'] {
     'Gentoo': {
-      # clang-11: error: the clang compiler does not support '-mcpu=cortex-a72.cortex-a53+crypto'
-      if defined(File['/etc/portage/env/no-big-little.conf']) {
-        package_env { 'www-client/firefox':
-          env    => 'no-big-little.conf',
-          before => Nest::Lib::Package_use['www-client/firefox'],
-        }
-      }
-
-      nest::lib::package_use { 'www-client/firefox':
-        use => ['hwaccel'],
-      }
-
-      package { 'www-client/firefox':
+      nest::lib::package { 'www-client/firefox':
         ensure => installed,
+        use    => 'hwaccel',
       }
 
       $webrender = $facts['profile']['platform'] ? {
@@ -31,7 +20,7 @@ class nest::gui::firefox {
         default:
           owner   => 'root',
           group   => 'root',
-          require => Package['www-client/firefox'],
+          require => Nest::Lib::Package['www-client/firefox'],
         ;
 
         '/usr/local/bin/firefox':

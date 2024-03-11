@@ -2,6 +2,8 @@ define nest::lib::package_env (
   String $package = $name,
   Hash   $env     = {},
 ) {
+  tag 'profile'
+
   unless $env.empty {
     $env_name = "${name.regsubst('^.*/', '')}.conf"
     $env_content = $env.map |$k, $v| {

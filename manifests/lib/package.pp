@@ -11,18 +11,20 @@ define nest::lib::package (
       Package_env <| title == $name |> {
         env    +> 'no-buildpkg.conf',
         before +> Package[$name],
+        tag    +> 'profile',
       }
     } else {
       package_env { $name:
         name   => $package,
         env    => 'no-buildpkg.conf',
         before => Package[$name],
+        tag    => 'profile',
       }
     }
 
-    $install_options = [{ '--usepkg' => 'n' }]
+    $usepkg_option = [{ '--usepkg' => 'n' }]
   } else {
-    $install_options = undef
+    $usepkg_option = []
   }
 
   nest::lib::package_env { $name:
@@ -41,23 +43,27 @@ define nest::lib::package (
     use    => $use,
   }
 
-  package { $name:
-    ensure          => $ensure,
-    install_options => $install_options,
-    name            => $package,
-  }
-
   if $world {
-    exec { "emerge-select-${name}":
-      command => "/usr/bin/emerge --noreplace ${package.shellquote}",
-      unless  => "/bin/grep -Fx ${package.shellquote} /var/lib/portage/world",
-      require => Package[$name],
+    $oneshot_option = []
+    $world_ensure   = $ensure ? {
+      'absent' => 'absent',
+      default  => 'present',
     }
   } else {
-    exec { "emerge-deselect-${name}":
-      command => "/usr/bin/emerge --deselect ${package.shellquote}",
-      onlyif  => "/bin/grep -Fx ${package.shellquote} /var/lib/portage/world",
-      require => Package[$name],
-    }
+    $oneshot_option = ['--oneshot']
+    $world_ensure   = 'absent'
+  }
+
+  package { $name:
+    ensure          => $ensure,
+    install_options => $usepkg_option + $oneshot_option,
+    name            => $package,
+  }
+  ->
+  file_line { "emerge-select-${name}":
+    ensure => $world_ensure,
+    path   => '/var/lib/portage/world',
+    line   => $package,
+    tag    => 'profile',
   }
 }

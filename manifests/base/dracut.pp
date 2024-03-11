@@ -12,12 +12,12 @@ class nest::base::dracut {
     notify { 'forcing-kernel-install': }
   }
 
-  package { 'sys-kernel/dracut':
+  nest::lib::package { 'sys-kernel/dracut':
     ensure => installed,
   }
 
   if $facts['profile']['architecture'] == 'amd64' {
-    package { 'sys-firmware/intel-microcode':
+    nest::lib::package { 'sys-firmware/intel-microcode':
       ensure => installed,
     }
   }
@@ -30,7 +30,7 @@ class nest::base::dracut {
       | EOT
 
     # Install dmsetup(8) for dmsquash-live
-    package { 'sys-fs/lvm2':
+    nest::lib::package { 'sys-fs/lvm2':
       ensure => installed,
     }
   } elsif $facts['build'] and $facts['build'] != 'kernel' {

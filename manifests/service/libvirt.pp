@@ -1,12 +1,9 @@
 class nest::service::libvirt {
   include 'nest'
 
-  nest::lib::package_use { 'app-emulation/libvirt':
-    use => 'firewalld',
-  }
-
-  package { 'app-emulation/libvirt':
+  nest::lib::package { 'app-emulation/libvirt':
     ensure => installed,
+    use    => 'firewalld',
   }
 
   file { '/etc/libvirt/libvirt-guests.conf':
@@ -14,7 +11,7 @@ class nest::service::libvirt {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    require => Package['app-emulation/libvirt'],
+    require => Nest::Lib::Package['app-emulation/libvirt'],
   }
 
   file_line { 'libvirt-guests-on_shutdown':
@@ -30,7 +27,7 @@ class nest::service::libvirt {
     'libvirt-guests',
   ]:
     enable  => true,
-    require => Package['app-emulation/libvirt'],
+    require => Nest::Lib::Package['app-emulation/libvirt'],
   }
 
   if $nest::fileserver or $nest::openvpn {

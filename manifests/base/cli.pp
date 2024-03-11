@@ -1,5 +1,5 @@
 class nest::base::cli {
-  package { 'app-admin/nest-cli':
+  nest::lib::package { 'app-admin/nest-cli':
     ensure => latest,
   }
 
@@ -24,6 +24,7 @@ class nest::base::cli {
   }
 
   # Required for building live ISOs
+  # Do not use nest::lib::package so grub class can define USE flags
   package { 'sys-boot/grub':
     ensure => installed,
   }

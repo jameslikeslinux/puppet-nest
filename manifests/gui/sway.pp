@@ -1,10 +1,10 @@
 class nest::gui::sway {
-  nest::lib::package_use { 'gui-wm/sway':
-    use => ['-swaybar', 'wallpapers'],
+  nest::lib::package { 'gui-wm/sway':
+    ensure => installed,
+    use    => ['-swaybar', 'wallpapers'],
   }
 
-  package { [
-    'gui-wm/sway',
+  nest::lib::package { [
     'gui-apps/waybar',
     'gui-apps/wl-clipboard',  # for tmux-yank
     'gui-apps/wtype',         # for simulating keyboard input
@@ -52,7 +52,7 @@ class nest::gui::sway {
     owner   => 'root',
     group   => 'root',
     content => $xresources_content,
-    require => Package['gui-wm/sway'],
+    require => Nest::Lib::Package['gui-wm/sway'],
   }
 
   $xkb_variant = $nest::dvorak ? {
@@ -95,7 +95,7 @@ class nest::gui::sway {
       mode    => '0644',
       owner   => 'root',
       group   => 'root',
-      require => Package['gui-wm/sway'],
+      require => Nest::Lib::Package['gui-wm/sway'],
     ;
 
     '/etc/sway/config':

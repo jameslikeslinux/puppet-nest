@@ -3,7 +3,7 @@ class nest::base::eyaml {
     'Gentoo': {
       $conf_dir = '/etc/eyaml'
 
-      package { 'dev-ruby/hiera-eyaml':
+      nest::lib::package { 'dev-ruby/hiera-eyaml':
         ensure => installed,
         before => File[$conf_dir],
       }

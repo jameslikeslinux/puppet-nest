@@ -1,5 +1,5 @@
 class nest::base::sudo {
-  package { 'app-admin/sudo':
+  nest::lib::package { 'app-admin/sudo':
     ensure  => installed,
     require => Class['nest::base::mta'],
   }

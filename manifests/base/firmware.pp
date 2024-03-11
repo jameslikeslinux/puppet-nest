@@ -32,7 +32,7 @@ class nest::base::firmware {
     }
   }
 
-  package { 'sys-kernel/linux-firmware':
+  nest::lib::package { 'sys-kernel/linux-firmware':
     ensure => installed,
   }
 

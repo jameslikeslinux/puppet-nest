@@ -18,7 +18,7 @@ class nest::tool::bolt (
     }
 
     # For vaultwarden token hashing
-    package { 'app-crypt/argon2':
+    nest::lib::package { 'app-crypt/argon2':
       ensure => installed,
     }
   } elsif $facts['os']['family'] == 'Gentoo' {

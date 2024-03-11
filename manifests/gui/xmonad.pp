@@ -4,21 +4,15 @@ class nest::gui::xmonad {
     unstable => true,
   }
 
-  nest::lib::package_use {
-    'x11-misc/rofi':
-      use => 'windowmode',
-    ;
-
-    'media-gfx/feh':
-      use => 'xinerama',
-    ;
+  nest::lib::package { 'x11-misc/rofi':
+    ensure => installed,
+    use    => 'windowmode',
   }
 
-  package { [
+  nest::lib::package { [
     'x11-wm/xmonad',
     'x11-wm/xmonad-contrib',
     'x11-misc/picom',
-    'x11-misc/rofi',
     'x11-misc/taffybar',
     'x11-misc/xwallpaper',
 
@@ -58,13 +52,5 @@ class nest::gui::xmonad {
     '/usr/local/bin/taffybar':
       content => $taffybar_wrapper_content,
     ;
-  }
-
-
-  #
-  # XXX Cleanup
-  #
-  package { 'media-gfx/feh':
-    ensure => absent,
   }
 }

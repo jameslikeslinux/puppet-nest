@@ -18,12 +18,12 @@ class nest::gui::chrome (
 
       if $chromium {
         unless $facts['build'] == 'stage1' {
-          package { 'www-client/chromium':
+          nest::lib::package { 'www-client/chromium':
             ensure => installed,
           }
 
           if $facts['profile']['architecture'] == 'amd64' {
-            package { 'www-plugins/chrome-binary-plugins':
+            nest::lib::package { 'www-plugins/chrome-binary-plugins':
               ensure => installed,
             }
           }
@@ -54,11 +54,11 @@ class nest::gui::chrome (
             owner   => 'root',
             group   => 'root',
             content => $chromium_flags,
-            require => Package['www-client/chromium'],
+            require => Nest::Lib::Package['www-client/chromium'],
           }
         }
 
-        package { 'www-client/google-chrome':
+        nest::lib::package { 'www-client/google-chrome':
           ensure => absent,
         }
       } else {
@@ -74,7 +74,7 @@ class nest::gui::chrome (
               "$@"
           | WRAPPER
 
-        package { 'www-client/google-chrome':
+        nest::lib::package { 'www-client/google-chrome':
           ensure => installed,
         }
         ->
@@ -85,7 +85,7 @@ class nest::gui::chrome (
           content => $chrome_wrapper,
         }
 
-        package { [
+        nest::lib::package { [
           'www-client/chromium',
           'www-plugins/chrome-binary-plugins',
         ]:

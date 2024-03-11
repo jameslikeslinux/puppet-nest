@@ -20,14 +20,14 @@ class nest::base::containers {
     | STORAGE_CONF
 
   # Preselect optional dependencies
-  package { [
+  nest::lib::package { [
     'app-containers/crun',
     'app-containers/netavark',
   ]:,
     ensure => installed,
   }
   ->
-  package { 'app-containers/podman':
+  nest::lib::package { 'app-containers/podman':
     ensure => installed,
   }
   ->

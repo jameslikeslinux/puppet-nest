@@ -5,11 +5,12 @@ class nest::gui::plasma {
   }
 
   # Don't build support for online services
-  nest::lib::package_use { 'kde-apps/spectacle':
-    use => '-kipi',
+  nest::lib::package { 'kde-apps/spectacle':
+    ensure => installed,
+    use    => '-kipi',
   }
 
-  package { [
+  nest::lib::package { [
     'kde-apps/ark',
     'kde-apps/dolphin',
     'kde-apps/ffmpegthumbs',
@@ -17,28 +18,7 @@ class nest::gui::plasma {
     'kde-apps/kdialog',
     'kde-apps/kwrite',
     'kde-apps/okular',
-    'kde-apps/spectacle',
   ]:
     ensure => installed,
-  }
-
-
-  # XXX cleanup
-  service { 'sddm':
-    ensure => stopped,
-    enable => false,
-  }
-  ->
-  package { 'x11-misc/sddm':
-    ensure  => absent,
-    require => Nest::Lib::Package['kde-plasma/plasma-meta'],
-  }
-  ->
-  file { [
-    '/etc/sddm.conf',
-    '/etc/sddm.conf.d',
-  ]:
-    ensure => absent,
-    force  => true,
   }
 }

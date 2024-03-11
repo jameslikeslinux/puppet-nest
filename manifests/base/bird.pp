@@ -16,7 +16,7 @@ class nest::base::bird {
       ;
     }
 
-    package { 'net-misc/bird':
+    nest::lib::package { 'net-misc/bird':
       ensure => installed,
     }
     ->
@@ -54,7 +54,7 @@ class nest::base::bird {
       ensure => absent,
     }
     ->
-    package { 'net-misc/bird':
+    nest::lib::package { 'net-misc/bird':
       ensure => absent,
     }
 

@@ -3,7 +3,7 @@ class nest::base::kexec {
     # For kernel_cmdline
     include nest::base::bootloader
 
-    package { 'sys-apps/kexec-tools':
+    nest::lib::package { 'sys-apps/kexec-tools':
       ensure => installed,
     }
 
@@ -71,7 +71,7 @@ class nest::base::kexec {
     ~>
     nest::lib::systemd_reload { 'kexec': }
 
-    package { 'sys-apps/kexec-tools':
+    nest::lib::package { 'sys-apps/kexec-tools':
       ensure  => absent,
       require => Service['kexec-load'],
     }

@@ -21,7 +21,7 @@ class nest::base::mta {
     }
   }
 
-  package { 'mail-client/mailx':
+  nest::lib::package { 'mail-client/mailx':
     ensure => installed,
   }
 }

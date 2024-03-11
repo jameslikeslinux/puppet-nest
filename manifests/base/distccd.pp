@@ -17,7 +17,7 @@ class nest::base::distccd {
   }
 
   if $nest::distcc_server {
-    package { 'sys-devel/clang':
+    nest::lib::package { 'sys-devel/clang':
       ensure => installed,
     }
 

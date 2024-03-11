@@ -1,6 +1,6 @@
 class nest::base::wifi {
   if $nest::wifi {
-    package { [
+    nest::lib::package { [
       'net-wireless/iw',
       'net-wireless/iwd',
     ]:
@@ -19,7 +19,7 @@ class nest::base::wifi {
 
         nest::lib::wlan { $wlan:
           *       => $wlan_params_sensitive,
-          require => Package['net-wireless/iwd'],
+          require => Nest::Lib::Package['net-wireless/iwd'],
           before  => Service['iwd'],  # iwd monitors state directory changes
         }
       }
@@ -27,7 +27,7 @@ class nest::base::wifi {
 
     service { 'iwd':
       enable  => true,
-      require => Package['net-wireless/iwd'],
+      require => Nest::Lib::Package['net-wireless/iwd'],
     }
 
     $iwd_service_fix_content = @(IWD_SERVICE_FIX)
@@ -76,7 +76,7 @@ class nest::base::wifi {
       enable => false,
     }
     ->
-    package { 'net-wireless/iwd':
+    nest::lib::package { 'net-wireless/iwd':
       ensure => absent,
     }
     ->

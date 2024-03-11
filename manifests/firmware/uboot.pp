@@ -40,7 +40,7 @@ class nest::firmware::uboot {
     }
 
     # nest::lib::packages doesn't play nice with sloted packages
-    package { [
+    nest::lib::package { [
       'dev-lang/python:2.7',
       'sys-apps/dtc',
     ]:
@@ -62,7 +62,7 @@ class nest::firmware::uboot {
         value => 115200,
       }
 
-      package { 'dev-python/pyelftools':
+      nest::lib::package { 'dev-python/pyelftools':
         ensure => installed,
         before => Exec['uboot-build'],
       }
@@ -85,7 +85,7 @@ class nest::firmware::uboot {
     ~> Nest::Lib::Build['uboot']
   }
 
-  package { 'dev-lang/swig':
+  nest::lib::package { 'dev-lang/swig':
     ensure => installed,
     before => Nest::Lib::Build['uboot'],
   }

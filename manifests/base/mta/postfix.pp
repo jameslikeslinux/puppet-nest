@@ -48,12 +48,9 @@ class nest::base::mta::postfix (
         $saslpass  = ''
       }
 
-      nest::lib::package_use { 'mail-mta/postfix':
-        use => 'sasl',
-      }
-
-      package { 'mail-mta/postfix':
+      nest::lib::package { 'mail-mta/postfix':
         ensure => installed,
+        use    => 'sasl',
       }
       ~>
       exec { '/usr/bin/newaliases':
@@ -129,7 +126,7 @@ class nest::base::mta::postfix (
         force  => true,
       }
       ->
-      package { 'mail-mta/postfix':
+      nest::lib::package { 'mail-mta/postfix':
         ensure => absent,
       }
     }

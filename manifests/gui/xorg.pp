@@ -63,7 +63,7 @@ class nest::gui::xorg {
     content => "Xcursor.theme: breeze_cursors\nXcursor.size: ${nest::cursor_size}\nXft.dpi: ${nest::dpi}\n",
   }
 
-  package { [
+  nest::lib::package { [
     'x11-apps/mesa-progs',
     'x11-apps/xev',
     'x11-apps/xhost',
@@ -87,7 +87,7 @@ class nest::gui::xorg {
     content => "i2c-dev\n",
   }
 
-  package { 'app-misc/ddcutil':
+  nest::lib::package { 'app-misc/ddcutil':
     ensure => installed,
   }
 

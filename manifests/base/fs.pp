@@ -1,5 +1,5 @@
 class nest::base::fs {
-  package { 'net-fs/nfs-utils':
+  nest::lib::package { 'net-fs/nfs-utils':
     ensure => installed,
   }
 
@@ -13,7 +13,7 @@ class nest::base::fs {
       require => Package['sys-fs/zfs'],
     }
 
-    package { 'net-fs/samba':
+    nest::lib::package { 'net-fs/samba':
       ensure => installed,
     }
 
@@ -53,7 +53,7 @@ class nest::base::fs {
   }
 
   if $nest::fscache {
-    package { 'sys-fs/cachefilesd':
+    nest::lib::package { 'sys-fs/cachefilesd':
       ensure => installed,
     }
 
@@ -94,7 +94,7 @@ class nest::base::fs {
       force  => true,
     }
     ->
-    package { 'sys-fs/cachefilesd':
+    nest::lib::package { 'sys-fs/cachefilesd':
       ensure => absent,
     }
   }

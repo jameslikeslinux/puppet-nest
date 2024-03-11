@@ -10,7 +10,7 @@ class nest::service::kubernetes (
   }
 
   # Install and enable container runtime
-  package { 'app-containers/cri-o':
+  nest::lib::package { 'app-containers/cri-o':
     ensure => installed,
   }
   ->
@@ -23,7 +23,7 @@ class nest::service::kubernetes (
   }
 
   # Install and enable kubelet with a service that works with CRI-O and kubeadm
-  package { 'sys-cluster/kubelet':
+  nest::lib::package { 'sys-cluster/kubelet':
     ensure => installed,
   }
   ->
@@ -43,7 +43,7 @@ class nest::service::kubernetes (
   }
 
   # Install management tools
-  package { [
+  nest::lib::package { [
     'app-containers/cri-tools',
     'sys-cluster/ipvsadm',
     'sys-cluster/kubeadm',
@@ -99,7 +99,7 @@ class nest::service::kubernetes (
 
     service { 'zfs-share':
       enable  => true,
-      require => Package['sys-fs/zfs'],
+      require => Nest::Lib::Package['sys-fs/zfs'],
     }
 
     firewalld_service { 'nfs':

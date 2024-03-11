@@ -1,10 +1,10 @@
 class nest::gui::fonts {
-  nest::lib::package_use { 'media-fonts/corefonts':
-    use => 'tahoma',
+  nest::lib::package { 'media-fonts/corefonts':
+    ensure => installed,
+    use    => 'tahoma',
   }
 
-  package { [
-    'media-fonts/corefonts',
+  nest::lib::package { [
     'media-fonts/fontawesome',
     'media-fonts/liberation-fonts', # primarily for GitHub, tbh
     'media-fonts/noto-emoji',
@@ -26,6 +26,6 @@ class nest::gui::fonts {
     # fontconfig is pulled in by the portage profile, and all packages
     # depend on the portage profile, so this is just an easy way to
     # establish that relationship.
-    require => Package['media-fonts/corefonts'],
+    require => Nest::Lib::Package['media-fonts/corefonts'],
   }
 }

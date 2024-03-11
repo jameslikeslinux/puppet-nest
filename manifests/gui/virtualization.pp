@@ -1,5 +1,5 @@
 class nest::gui::virtualization {
-  package { [
+  nest::lib::package { [
     'app-emulation/virt-manager',
     'app-emulation/virt-viewer',
   ]:

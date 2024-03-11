@@ -1,5 +1,5 @@
 class nest::lib::crossdev {
-  package { 'sys-devel/crossdev':
+  nest::lib::package { 'sys-devel/crossdev':
     ensure => installed,
   }
 

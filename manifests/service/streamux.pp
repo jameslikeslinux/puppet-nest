@@ -28,7 +28,7 @@ class nest::service::streamux (
   #
   # Hostapd
   #
-  package { 'net-wireless/hostapd':
+  nest::lib::package { 'net-wireless/hostapd':
     ensure => installed,
   }
   ->
@@ -121,7 +121,7 @@ class nest::service::streamux (
   }
 
   # For speedometer
-  package { 'dev-python/urwid':
+  nest::lib::package { 'dev-python/urwid':
     ensure => installed,
   }
 

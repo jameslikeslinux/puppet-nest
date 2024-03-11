@@ -1,8 +1,9 @@
 class nest::gui::terminals {
   case $facts['os']['family'] {
     'Gentoo': {
-      nest::lib::package_use { 'x11-terms/rxvt-unicode':
-        use => [
+      nest::lib::package { 'x11-terms/rxvt-unicode':
+        ensure => installed,
+        use    => [
           '256-color',
           'alt-font-width',
           'fading-colors', # required for 'perl'
@@ -15,33 +16,23 @@ class nest::gui::terminals {
         ],
       }
 
-      file { '/etc/portage/env/xterm.conf':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => "EXTRA_ECONF='--enable-double-buffer'\n",
+      nest::lib::package { 'x11-terms/xterm':
+        ensure => installed,
+        env    => { 'EXTRA_ECONF' => '--enable-double-buffer' },
       }
 
-      package_env { 'x11-terms/xterm':
-        env     => 'xterm.conf',
-        require => File['/etc/portage/env/xterm.conf'],
-        before  => Package['x11-terms/xterm'],
-      }
-
-      package { [
+      nest::lib::package { [
         'gui-apps/foot',
         'x11-terms/alacritty',
-        'x11-terms/rxvt-unicode',
-        'x11-terms/xterm',
       ]:
         ensure  => installed,
       }
 
-      package { [
+      nest::lib::package { [
         'x11-misc/urxvt-font-size',
         'x11-misc/urxvt-perls',
       ]:
-        require => Package['x11-terms/rxvt-unicode'],
+        require => Nest::Lib::Package['x11-terms/rxvt-unicode'],
       }
     }
 

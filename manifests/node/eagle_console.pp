@@ -33,7 +33,7 @@ class nest::node::eagle_console {
     ;
   }
 
-  package { [
+  nest::lib::package { [
     'dev-libs/libgpiod',
     'net-dialup/minicom',
   ]:

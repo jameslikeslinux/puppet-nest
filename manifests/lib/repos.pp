@@ -1,4 +1,6 @@
 class nest::lib::repos {
+  tag 'profile'
+
   file {
     default:
       ensure  => directory,

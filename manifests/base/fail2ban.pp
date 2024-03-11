@@ -6,7 +6,7 @@ class nest::base::fail2ban {
       backend = systemd
       | SSHD_JAIL
 
-    package { 'net-analyzer/fail2ban':
+    nest::lib::package { 'net-analyzer/fail2ban':
       ensure => installed,
     }
     ->
@@ -40,7 +40,7 @@ class nest::base::fail2ban {
       force  => true,
     }
     ->
-    package { 'net-analyzer/fail2ban':
+    nest::lib::package { 'net-analyzer/fail2ban':
       ensure  => absent,
     }
   }

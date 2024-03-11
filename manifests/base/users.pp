@@ -8,7 +8,7 @@ class nest::base::users {
         group  => 'root',
       }
 
-      package { 'app-shells/zsh':
+      nest::lib::package { 'app-shells/zsh':
         ensure => installed,
       }
 
@@ -48,7 +48,7 @@ class nest::base::users {
           comment  => 'James Lee',
           shell    => '/bin/zsh',
           password => $nest::pw_hash,
-          require  => Package['app-shells/zsh'],
+          require  => Nest::Lib::Package['app-shells/zsh'],
         ;
 
         'media':

@@ -1,5 +1,5 @@
 class nest::firmware::raspberrypi {
-  package { 'sys-boot/raspberrypi-firmware':
+  nest::lib::package { 'sys-boot/raspberrypi-firmware':
     ensure => installed,
   }
 
@@ -17,6 +17,6 @@ class nest::firmware::raspberrypi {
 
   file { '/boot/config.txt':
     content => epp('nest/raspberrypi/config.txt.epp'),
-    require => Package['sys-boot/raspberrypi-firmware'],
+    require => Nest::Lib::Package['sys-boot/raspberrypi-firmware'],
   }
 }

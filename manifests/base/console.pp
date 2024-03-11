@@ -4,7 +4,7 @@ class nest::base::console {
     default => 'us-nocaps',
   }
 
-  package { 'media-fonts/terminus-font':
+  nest::lib::package { 'media-fonts/terminus-font':
     ensure => installed,
   }
 

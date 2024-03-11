@@ -8,7 +8,7 @@ class nest::service::dnsmasq (
     group => 'root',
   }
 
-  package { 'net-dns/dnsmasq':
+  nest::lib::package { 'net-dns/dnsmasq':
     ensure => installed,
   }
   ->

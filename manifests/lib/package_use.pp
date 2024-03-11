@@ -7,6 +7,7 @@ define nest::lib::package_use (
     ensure => $ensure,
     name   => $package,
     use    => $use,
+    tag    => 'profile',
   }
 
   if defined(Package[$name]) {

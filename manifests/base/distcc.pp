@@ -1,6 +1,7 @@
 class nest::base::distcc {
   tag 'init'
 
+  # Do not use nest::lib::package due to init tag conflict with profile
   package { 'sys-devel/distcc':
     ensure => installed,
   }

@@ -1,5 +1,5 @@
 class nest::gui::media {
-  package { [
+  nest::lib::package { [
     'media-sound/playerctl',
     'media-video/mpv',
   ]:
@@ -12,7 +12,7 @@ class nest::gui::media {
     $libva_utils_ensure = absent
   }
 
-  package { 'media-video/libva-utils':
+  nest::lib::package { 'media-video/libva-utils':
     ensure => $libva_utils_ensure,
   }
 }

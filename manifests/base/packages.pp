@@ -1,7 +1,7 @@
 class nest::base::packages {
   case $facts['os']['family'] {
     'Gentoo': {
-      package { [
+      nest::lib::package { [
         'app-admin/helm',
         'app-admin/sysstat',
         'app-editors/vim',
@@ -36,7 +36,7 @@ class nest::base::packages {
       }
 
       unless $facts['profile']['architecture'] == 'arm' {
-        package { 'sys-devel/lld':
+        nest::lib::package { 'sys-devel/lld':
           ensure => installed,
         }
 
@@ -50,25 +50,25 @@ class nest::base::packages {
 
       unless $facts['profile']['architecture'] == 'riscv' {
         # !!! [0219 21:56:00] Unsupported host arch. Must be x86_64, 386, arm, arm64, s390x or ppc64le.
-        package { 'sys-cluster/kubectl':
+        nest::lib::package { 'sys-cluster/kubectl':
           ensure => installed,
         }
       }
 
       unless $facts['profile']['platform'] == 'beagleboneblack' {
-        package { 'sys-process/parallel':
+        nest::lib::package { 'sys-process/parallel':
           ensure => installed,
         }
       }
 
       if $facts['profile']['platform'] in ['milkv-pioneer', 'pine64', 'pinebookpro', 'rock4', 'rock5', 'rockpro64', 'sopine'] {
-        package { 'sys-fs/mtd-utils':
+        nest::lib::package { 'sys-fs/mtd-utils':
           ensure => installed,
         }
       }
 
       if $facts['profile']['platform'] in ['haswell', 'milkv-pioneer', 'rock4', 'rock5'] {
-        package { 'sys-apps/nvme-cli':
+        nest::lib::package { 'sys-apps/nvme-cli':
           ensure => installed,
         }
       }

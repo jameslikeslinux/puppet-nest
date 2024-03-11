@@ -5,6 +5,8 @@ define nest::lib::repo (
 ) {
   include 'nest::lib::repos'
 
+  tag 'profile'
+
   $default_content = $default ? {
     true    => "[DEFAULT]\nmain-repo = ${name}\n\n",
     default => '',

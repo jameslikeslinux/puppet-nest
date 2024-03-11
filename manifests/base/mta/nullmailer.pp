@@ -9,7 +9,7 @@ class nest::base::mta::nullmailer (
         $remotes_content = "smtp.nest\n"
       }
 
-      package { 'mail-mta/nullmailer':
+      nest::lib::package { 'mail-mta/nullmailer':
         ensure => installed,
       }
       ->
@@ -45,7 +45,7 @@ class nest::base::mta::nullmailer (
       }
 
       # XXX cleanup
-      package { 'net-mail/mailbase':
+      nest::lib::package { 'net-mail/mailbase':
         ensure => absent,
       }
 
@@ -66,7 +66,7 @@ class nest::base::mta::nullmailer (
         force  => true,
       }
       ->
-      package { 'mail-mta/nullmailer':
+      nest::lib::package { 'mail-mta/nullmailer':
         ensure => absent,
       }
     }

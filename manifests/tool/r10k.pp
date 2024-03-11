@@ -14,9 +14,11 @@ class nest::tool::r10k {
     'dev-ruby/puppet_forge',
     'dev-ruby/rash_alt',
     'dev-ruby/simple_oauth',
-  ]: }
+  ]:
+    tag => 'profile',
+  }
   ->
-  package { 'app-admin/r10k':
+  nest::lib::package { 'app-admin/r10k':
     ensure => installed,
   }
 

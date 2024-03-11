@@ -1,6 +1,7 @@
 class nest::base::git {
   case $facts['os']['family'] {
     'Gentoo': {
+      # Do not use nest::lib::package due to init tag conflict with profile
       package { 'dev-vcs/git':
         ensure => installed,
       }

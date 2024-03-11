@@ -1,10 +1,7 @@
 class nest::base::plymouth {
-  nest::lib::package_use { 'sys-boot/plymouth':
-    use => '-pango',
-  }
-
-  package { 'sys-boot/plymouth':
+  nest::lib::package { 'sys-boot/plymouth':
     ensure => installed,
+    use    => '-pango',
   }
 
   # Plymouth tries to start systemd-vconsole-setup before the console is ready,
@@ -13,7 +10,7 @@ class nest::base::plymouth {
     path    => '/lib/systemd/system/plymouth-start.service',
     line    => 'Wants=systemd-ask-password-plymouth.path',
     match   => '^Wants=',
-    require => Package['sys-boot/plymouth'],
+    require => Nest::Lib::Package['sys-boot/plymouth'],
     notify  => Class['nest::base::dracut'],
   }
 
@@ -27,7 +24,7 @@ class nest::base::plymouth {
     owner   => 'root',
     group   => 'root',
     content => $plymouthd_conf_contents,
-    require => Package['sys-boot/plymouth'],
+    require => Nest::Lib::Package['sys-boot/plymouth'],
     notify  => Class['nest::base::dracut'],
   }
 }

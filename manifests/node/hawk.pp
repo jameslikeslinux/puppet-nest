@@ -29,7 +29,7 @@ class nest::node::hawk {
     ;
   }
 
-  package { 'app-editors/vscode':
+  nest::lib::package { 'app-editors/vscode':
     ensure => installed,
   }
 
