@@ -26,8 +26,9 @@ nest::kernel_config:
   CONFIG_CPU_IDLE: y
   CONFIG_RISCV_SBI_CPUIDLE: y # not supported yet
 
-  # Device drivers ('y' for early boot)
+  # Device drivers
   CONFIG_IXGBE: m
+  CONFIG_DRM_AMDGPU: m
 
   # Selects ZLIB_DEFLATE for ZFS
   CONFIG_CRYPTO_DEFLATE: m
