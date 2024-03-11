@@ -3,6 +3,20 @@ nest::classes:
   - 'nest::service::gitlab_runner'
   - 'nest::tool::qemu'
 
+nest::kernel_config:
+  CONFIG_EXTRA_FIRMWARE: >-
+    amdgpu/gc_11_0_2_imu.bin
+    amdgpu/gc_11_0_2_me.bin
+    amdgpu/gc_11_0_2_mec.bin
+    amdgpu/gc_11_0_2_mes1.bin
+    amdgpu/gc_11_0_2_mes_2.bin
+    amdgpu/gc_11_0_2_mes.bin
+    amdgpu/gc_11_0_2_pfp.bin
+    amdgpu/gc_11_0_2_rlc.bin
+    amdgpu/psp_13_0_7_sos.bin
+    amdgpu/psp_13_0_7_ta.bin
+    amdgpu/smu_13_0_7.bin
+
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   builder:
