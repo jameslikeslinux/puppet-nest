@@ -28,16 +28,6 @@ nest::kernel_config:
 
   # Device drivers ('y' for early boot)
   CONFIG_IXGBE: m
-  CONFIG_DRM_RADEON: n
-  CONFIG_DRM_AMDGPU: n
-  CONFIG_DRM_XE: m
-  CONFIG_DRM_XE_FORCE_PROBE: '*'
-  CONFIG_DRM_XE_DEBUG: y
 
   # Selects ZLIB_DEFLATE for ZFS
   CONFIG_CRYPTO_DEFLATE: m
-
-  # Debugging
-  CONFIG_PCI_DEBUG: y
-  CONFIG_DYNAMIC_DEBUG: y
-  CONFIG_DYNAMIC_DEBUG_CORE: y
