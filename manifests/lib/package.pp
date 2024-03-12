@@ -27,9 +27,11 @@ define nest::lib::package (
     $usepkg_option = []
   }
 
-  nest::lib::package_env { $name:
-    name => $package,
-    env  => $env,
+  unless $env.empty {
+    nest::lib::package_env { $name:
+      name => $package,
+      env  => $env,
+    }
   }
 
   $use_ensure = $use ? {
