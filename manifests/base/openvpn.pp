@@ -53,13 +53,6 @@ class nest::base::openvpn {
           mode   => '0644',
         }
 
-        host { $::trusted['certname']:
-          ip      => '172.22.0.1',
-          target  => '/etc/hosts.nest',
-          require => File['/etc/hosts.nest'],
-          notify  => Service['dnsmasq'],
-        }
-
         class { 'nest::service::dnsmasq':
           interfaces      => ['tun0', 'br0'],
           bind_interfaces => true,
