@@ -3,8 +3,9 @@ Host=falcon
 Name=br0
 
 [Network]
+DHCP=yes
 DNS=172.22.4.1
-Domains=eyrie
 
-[Address]
-Address=172.22.4.2/24
+[DHCPv4]
+UseDNS=no
+UseDomains=yes

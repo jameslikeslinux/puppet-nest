@@ -1,6 +1,6 @@
 [NetDev]
 Kind=vlan
-Name=eyrie
+Name=nest
 
 [VLAN]
 Id=4

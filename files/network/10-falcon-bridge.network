@@ -1,6 +1,6 @@
 [Match]
 Host=falcon
-Name=en*u* eyrie
+Name=en*u* nest
 
 [Network]
 Bridge=br0

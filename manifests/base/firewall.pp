@@ -75,22 +75,27 @@ class nest::base::firewall {
         ensure => running,
       }
 
-      windows_firewall::exception { 'nest-icmp':
-        ensure       => present,
-        display_name => 'Nest ICMP',
-        description  => 'Allow pings from Nest VPN',
-        protocol     => 'ICMPv4',
-        remote_ip    => '172.22.0.0/24',
-        action       => allow,
+      windows_firewall::exception {
+        default:
+          ensure   => present,
+          protocol => 'ICMPv4',
+          action   => allow;
+        'nest-vpn-icmp':
+          display_name => 'Nest VPN ICMP',
+          description  => 'Allow pings from Nest VPN',
+          remote_ip    => '172.22.0.0/24';
+        'nest-secure-icmp':
+          display_name => 'Nest Secure ICMP',
+          description  => 'Allow pings from Nest secure network',
+          remote_ip    => '172.22.4.0/24',
+        ;
       }
 
+      # XXX Cleanup
       windows_firewall::exception { 'eyrie-icmp':
-        ensure       => present,
+        ensure       => absent,
         display_name => 'Eyrie ICMP',
-        description  => 'Allow pings from Eyrie network',
         protocol     => 'ICMPv4',
-        remote_ip    => '172.22.4.0/24',
-        action       => allow,
       }
     }
   }

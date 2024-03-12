@@ -1,6 +1,6 @@
 class nest::base::bird {
   if $nest::bird_role {
-    $router_name = "${trusted['certname']}.eyrie"
+    $router_name = $facts['fqdn'] # lint:ignore:legacy_facts
     $router_id   = $nest::host_records[$router_name]
 
     # This class owns this config for now

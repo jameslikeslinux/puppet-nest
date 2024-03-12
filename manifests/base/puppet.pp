@@ -9,8 +9,6 @@ class nest::base::puppet {
   # lint:ignore:legacy_facts
   if $facts['build'] == 'stage3' and $facts['domain'] {
     $domain = $facts['domain']
-  } elsif $facts['networking']['network'] == '172.22.4.0' and !$facts['networking']['interfaces']['tun0'] {
-    $domain = 'eyrie'
   } else {
     $domain = 'nest'
   }

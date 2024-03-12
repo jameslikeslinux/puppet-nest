@@ -4,7 +4,7 @@ Name=bond0
 
 [Network]
 DHCP=yes
-VLAN=eyrie
+VLAN=nest
 
 [DHCP]
 RouteMetric=10

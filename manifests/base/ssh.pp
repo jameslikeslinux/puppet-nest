@@ -75,24 +75,28 @@ class nest::base::ssh {
         # default mode
       }
 
-      windows_firewall::exception { 'nest-ssh':
-        ensure       => present,
-        display_name => 'Nest SSH',
-        description  => 'Allow SSH from Nest VPN',
-        protocol     => 'TCP',
-        local_port   => 22,
-        remote_ip    => '172.22.0.0/24',
-        action       => allow,
+      windows_firewall::exception {
+        default:
+          ensure     => present,
+          protocol   => 'TCP',
+          local_port => 22,
+          action     => allow;
+        'nest-vpn-ssh':
+          display_name => 'Nest VPN SSH',
+          description  => 'Allow SSH from Nest VPN',
+          remote_ip    => '172.22.0.0/24';
+        'nest-secure-ssh':
+          display_name => 'Nest Secure SSH',
+          description  => 'Allow SSH from Nest secure network',
+          remote_ip    => '172.22.4.0/24',
+        ;
       }
 
+      # XXX cleanup
       windows_firewall::exception { 'eyrie-ssh':
-        ensure       => present,
+        ensure       => absent,
         display_name => 'Eyrie SSH',
-        description  => 'Allow SSH from Eyrie network',
         protocol     => 'TCP',
-        local_port   => 22,
-        remote_ip    => '172.22.4.0/24',
-        action       => allow,
       }
     }
   }

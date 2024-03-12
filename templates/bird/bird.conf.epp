@@ -47,7 +47,7 @@ protocol bgp eagle from control_plane {
     neighbor 172.22.4.10;
 }
 <% } elsif $mode == 'control-plane' { -%>
-template bgp eyrie {
+template bgp nest {
     local as 65000;
     neighbor as 65000;
     direct;
@@ -59,11 +59,11 @@ template bgp eyrie {
     };
 }
 
-protocol bgp falcon from eyrie {
+protocol bgp falcon from nest {
     neighbor 172.22.4.2;
 }
 
-protocol bgp workers from eyrie {
+protocol bgp workers from nest {
     neighbor range 172.22.4.0/22;
 }
 
@@ -93,7 +93,7 @@ protocol bgp eagle from kube_vip {
     neighbor 172.22.4.10;
 }
 <% } elsif $mode == 'server' { -%>
-protocol bgp eyrie {
+protocol bgp nest {
     local as 65000;
     neighbor range 172.22.4.0/24 as 65000;
     direct;
