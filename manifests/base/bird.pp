@@ -1,5 +1,13 @@
 class nest::base::bird {
   if $nest::bird_role {
+    $bird_role = $nest::bird_role
+  } elsif !$nest::vpn_client {
+    $bird_role = 'client'
+  } else {
+    $bird_role = undef
+  }
+
+  if $bird_role {
     $router_name = $facts['fqdn'] # lint:ignore:legacy_facts
     $router_id   = $nest::host_records[$router_name]
 
@@ -28,7 +36,7 @@ class nest::base::bird {
       ;
 
       '/etc/bird.conf':
-        content => epp('nest/bird/bird.conf.epp', { 'mode' => $nest::bird_role, 'router_id' => $router_id }),
+        content => epp('nest/bird/bird.conf.epp', { 'mode' => $bird_role, 'router_id' => $router_id }),
       ;
 
       '/etc/systemd/system/bird.service':

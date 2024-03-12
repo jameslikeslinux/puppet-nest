@@ -18,10 +18,6 @@ hierarchy:
     paths:
       - "private/cluster/%{trusted.extensions.pp_cluster}.yaml"
       - "cluster/%{trusted.extensions.pp_cluster}.yaml"
-  - name: 'Domain'
-    paths:
-      - "private/domain/%{facts.domain}.yaml"
-      - "domain/%{facts.domain}.yaml"
 
   # Generic build data
   - name: 'Platforms'
