@@ -1,0 +1,11 @@
+[Match]
+Name=home
+
+[Network]
+DHCP=yes
+
+[DHCP]
+RouteMetric=20
+
+[DHCPv4]
+UseDomains=yes

@@ -1,0 +1,6 @@
+[NetDev]
+Kind=vlan
+Name=home
+
+[VLAN]
+Id=1
