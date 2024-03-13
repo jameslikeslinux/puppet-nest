@@ -1,0 +1,13 @@
+[Match]
+Host=osprey
+Name=eth0
+
+[Network]
+DHCP=yes
+VLAN=home
+
+[DHCP]
+RouteMetric=10
+
+[DHCPv4]
+UseDomains=yes
