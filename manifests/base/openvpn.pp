@@ -1,15 +1,6 @@
 class nest::base::openvpn {
   case $facts['os']['family'] {
     'Gentoo': {
-      $dnsmasq_config = @("EOT")
-        resolv-file=/run/systemd/resolve/resolv.conf
-        no-hosts
-        addn-hosts=/etc/hosts.nest
-        expand-hosts
-        domain=nest
-        enable-dbus
-        | EOT
-
       $openvpn_package_name = 'net-vpn/openvpn'
       $openvpn_package_opts = undef
 
@@ -18,7 +9,9 @@ class nest::base::openvpn {
         group => 'root',
       }
 
-      if $nest::openvpn {
+      if $nest::router {
+        contain 'nest::lib::router'
+
         $mode = 'server'
         $openvpn_config = epp('nest/openvpn/config.epp', { 'server' => udp })
 
@@ -45,37 +38,6 @@ class nest::base::openvpn {
           ]:
             ensure => link,
             target => '.manage-hosts.sh',
-          ;
-        }
-
-        file { '/etc/hosts.nest':
-          ensure => file,
-          mode   => '0644',
-        }
-
-        class { 'nest::service::dnsmasq':
-          interfaces      => ['tun0', 'br0'],
-          bind_interfaces => true,
-        }
-
-        file { '/etc/dnsmasq.d/nest.conf':
-          mode    => '0644',
-          content => $dnsmasq_config,
-          notify  => Service['dnsmasq'],
-        }
-
-        file {
-          default:
-            mode   => '0644',
-            notify => Service['dnsmasq'],
-          ;
-
-          '/etc/dnsmasq.d/cnames.conf':
-            content => $nest::cnames.map |$alias, $cname| { "cname=${alias},${cname}\n" }.join(''),
-          ;
-
-          '/etc/dnsmasq.d/host-records.conf':
-            content => $nest::host_records.map |$name, $ip| { "host-record=${name},${ip}\n" }.join(''),
           ;
         }
 

@@ -15,6 +15,7 @@ class nest (
   Hash[Stdlib::Fqdn, Stdlib::Fqdn]        $cnames       = {},
   Array[Stdlib::Host]                     $cups_servers = [],
   Hash[Stdlib::Host, Integer]             $distcc_hosts = {},
+  Hash[Stdlib::Fqdn, Stdlib::IP::Address] $fixed_ips    = {},
   Hash[Stdlib::Fqdn, Stdlib::IP::Address] $host_records = {},
   Hash[Stdlib::Fqdn, Hash]                $hosts        = {},
 
@@ -22,9 +23,9 @@ class nest (
   Boolean $distcc_server = false,
   Boolean $fileserver    = false,
   Boolean $fscache       = true,
-  Boolean $openvpn       = false,
   Boolean $puppet        = true,
   Boolean $public_ssh    = false,
+  Boolean $router        = false,
   Boolean $vpn_client    = true,
 
   # System settings

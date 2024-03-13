@@ -30,7 +30,7 @@ class nest::service::libvirt {
     require => Nest::Lib::Package['app-emulation/libvirt'],
   }
 
-  if $nest::fileserver or $nest::openvpn {
+  if $nest::fileserver or $nest::router {
     file { '/etc/systemd/system/libvirt-guests.service.d':
       ensure => directory,
       mode   => '0755',
@@ -58,9 +58,10 @@ class nest::service::libvirt {
     notify  => Nest::Lib::Systemd_reload['libvirt'],
   }
 
-  $after_openvpn_ensure = $nest::openvpn ? {
-    true    => 'present',
-    default => 'absent',
+  if $nest::router {
+    $after_openvpn_ensure = 'present'
+  } else {
+    $after_openvpn_ensure = 'absent'
   }
 
   $after_openvpn_conf = @(EOT)

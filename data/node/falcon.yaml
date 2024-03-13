@@ -37,8 +37,8 @@ nest::fileserver: true
 nest::fscache: false
 nest::kexec: true
 nest::mta: postfix
-nest::openvpn: true
 nest::public_ssh: true
+nest::router: true
 
 # Protect service state
 nest::reset_filter_rules:

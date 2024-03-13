@@ -1,20 +1,15 @@
 class nest::base::puppet {
   tag 'init'
 
-  $dns_alt_names = $nest::openvpn ? {
-    true    => $nest::openvpn_servers.filter |$s| { $s !~ Stdlib::IP::Address },
-    default => [],
-  }
-
-  # lint:ignore:legacy_facts
-  if $facts['build'] == 'stage3' and $facts['domain'] {
-    $domain = $facts['domain']
+  if $nest::router {
+    $dns_alt_names = $nest::openvpn_servers.filter |$s| { $s !~ Stdlib::IP::Address }
   } else {
-    $domain = 'nest'
+    $dns_alt_names = []
   }
-  # lint:endignore
 
-  $fqdn = "${trusted['certname']}.${domain}"
+  $fqdn_yaml = {
+    'fqdn' => "${trusted['certname']}.nest",
+  }.stdlib::to_yaml
 
   case $facts['os']['family'] {
     'Gentoo': {
@@ -51,11 +46,11 @@ class nest::base::puppet {
 
       # My hosts take on the domain name of the network to which they're attached.
       # Provide a stable, canonical value for Puppet.
-      file { '/etc/puppetlabs/facter/facts.d/nest.yaml':
+      file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
         mode    => '0644',
         owner   => 'root',
         group   => 'root',
-        content => "---\ndomain: '${domain}'\nfqdn: '${fqdn}'\n",
+        content => $fqdn_yaml,
       }
 
       if $facts['build'] or $facts['running_live'] {
@@ -103,7 +98,7 @@ class nest::base::puppet {
       }
 
       # XXX: Cleanup old fqdn external fact
-      file { '/etc/puppetlabs/facter/facts.d/fqdn.yaml':
+      file { '/etc/puppetlabs/facter/facts.d/nest.yaml':
         ensure => absent,
       }
     }
@@ -131,7 +126,7 @@ class nest::base::puppet {
         ;
 
         'C:/ProgramData/PuppetLabs/facter/facts.d/fqdn.yaml':
-          content => "---\nfqdn: '${fqdn}'\n",
+          content => $fqdn_yaml,
         ;
       }
 

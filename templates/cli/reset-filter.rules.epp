@@ -27,6 +27,7 @@ P /boot/**
 - /home/
 - /root/
 - /srv/
+- /var/lib/misc/dnsmasq.leases
 P /var/log/**
 P /var/tmp/**
 
