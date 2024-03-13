@@ -7,5 +7,5 @@ metadata:
     storageclass.kubernetes.io/is-default-class: 'true'
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: eagle.eyrie
+  server: eagle.nest
   share: /export
