@@ -95,52 +95,52 @@ nest::service::gitlab_runner::instances:
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
     destination: '127.0.0.1:6789'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   ombi.nest:
     destination: '127.0.0.1:3579'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   plex.nest:
     destination: '127.0.0.1:32400'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
     websockets: true
 
   puppet.nest:
     destination: '127.0.0.1:8180'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   puppetdb.nest:
     destination: '127.0.0.1:8080'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   radarr.nest:
     destination: '127.0.0.1:7878'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   sonarr.nest:
     destination: '127.0.0.1:8989'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false
 
   gitlab.james.tl:
     destination: '127.0.0.1:8000'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     encoded_slashes: true
     timeout: 300
     websockets: true
 
   registry.gitlab.james.tl:
     destination: '127.0.0.1:5050'
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
 
   cursivemoves.nest:
     destination: ['pixel7pro.nest:8080 lbset=0', 'streamer.nest:8080 lbset=1']
-    ip: '172.22.0.1'
+    ip: '172.22.4.2'
     ssl: false

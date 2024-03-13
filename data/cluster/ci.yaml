@@ -4,7 +4,7 @@ nest::classes:
 
 nest::distcc_server: true
 
-nest::service::gitlab_runner::dns: '172.22.0.1'
+nest::service::gitlab_runner::dns: '172.22.4.2'
 nest::service::gitlab_runner::instances:
   shared:
     host: 'gitlab.james.tl'

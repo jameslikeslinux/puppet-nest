@@ -78,7 +78,8 @@ nest::host_records:
   storage3.nest: '172.22.4.19'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_servers:
-  - '172.22.4.2'
+  - 'falcon.nest'
+  - 'falcon.home'
   - 'nest.james.tl'
 
 nest::ssh_host_keys:
