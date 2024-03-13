@@ -1,3 +1,4 @@
 ---
 nest::dvorak: true
 nest::public_ssh: true
+nest::vpn_client: false
