@@ -8,8 +8,7 @@ class nest::base::bird {
   }
 
   if $bird_role {
-    $router_name = $facts['fqdn'] # lint:ignore:legacy_facts
-    $router_id   = $nest::host_records[$router_name]
+    $router_id = pick_default($nest::fixed_ips[$trusted['certname']], $nest::host_records[$facts['fqdn']])
 
     # This class owns this config for now
     file {

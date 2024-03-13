@@ -3,7 +3,7 @@ Nest::BirdRole $mode,
 Optional[String] $router_id = undef,
 | -%>
 log syslog all;
-<% if $router_id { -%>
+<% unless $router_id.empty { -%>
 
 router id <%= $router_id %>;
 <% } -%>
