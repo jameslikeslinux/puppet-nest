@@ -1,7 +1,10 @@
 ---
 nest::classes: ['nest::service::barrier']
+
 nest::autologin: xmonad
-nest::external_interfaces: ['eth0']
+nest::external_interfaces: ['enu1u4c2', 'wlan0']
+nest::vpn_client: false
+
 nest::service::barrier::server: false
 
 # Allow Roc audio streaming from home
