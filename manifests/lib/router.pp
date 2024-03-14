@@ -16,7 +16,7 @@ class nest::lib::router {
   }
 
   class { 'nest::service::dnsmasq':
-    interfaces      => ['tun0', 'br0'],
+    interfaces      => $nest::external_interfaces,
     bind_interfaces => true,
   }
 

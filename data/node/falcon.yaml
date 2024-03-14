@@ -14,6 +14,7 @@ nest::classes:
   - 'nest::service::reverse_proxy'
   - 'nest::tool::qemu'
 
+nest::external_interfaces: ['enp7s0f0', 'tun0', 'tun1'] # for dnsmasq
 nest::isolate_smt: true
 nest::kernel_cmdline:
   - 'console=ttyS1,115200n8'
