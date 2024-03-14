@@ -1,6 +1,6 @@
 [Match]
 Host=falcon
-Name=br0
+Name=enp7s0f0
 
 [Network]
 Address=172.22.4.2/24

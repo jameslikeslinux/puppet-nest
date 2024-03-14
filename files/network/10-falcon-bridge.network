@@ -1,6 +1,0 @@
-[Match]
-Host=falcon
-Name=en*u* nest
-
-[Network]
-Bridge=br0

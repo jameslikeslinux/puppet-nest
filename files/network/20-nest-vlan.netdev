@@ -1,6 +1,0 @@
-[NetDev]
-Kind=vlan
-Name=nest
-
-[VLAN]
-Id=4
