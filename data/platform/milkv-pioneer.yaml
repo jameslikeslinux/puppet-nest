@@ -16,7 +16,6 @@ nest::uboot_defconfig: 'sophgo_sg2042_defconfig'
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
-  - 'nvme.use_threaded_interrupts=1'
 
 nest::kernel_config:
   # Tuning
