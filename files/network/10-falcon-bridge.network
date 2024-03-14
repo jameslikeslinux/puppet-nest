@@ -1,0 +1,6 @@
+[Match]
+Host=falcon
+Name=en*u* enp7s0f0
+
+[Network]
+Bridge=br0
