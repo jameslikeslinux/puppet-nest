@@ -27,13 +27,12 @@ nest::service::reverse_proxy::hosts:
     destination: '172.22.0.1:8000'
     ip: ['45.77.109.122', '2001:19f0:1000:22c0::122']
     encoded_slashes: true
-    timeout: 600
+    timeout: 300
     websockets: true
 
   registry.gitlab.james.tl:
     destination: '172.22.0.1:5050'
     ip: ['45.77.109.122', '2001:19f0:1000:22c0::122']
-    timeout: 600
 
   requests.thesatelliteoflove.net:
     destination: 'ombi.nest'
