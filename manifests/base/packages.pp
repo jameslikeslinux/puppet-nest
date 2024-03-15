@@ -13,6 +13,7 @@ class nest::base::packages {
         'dev-libs/libisoburn',
         'net-analyzer/openbsd-netcat',
         'net-dns/bind-tools',
+        'net-misc/iperf',
         'net-misc/whois',
         'sys-apps/ethtool',
         'sys-apps/gptfdisk',
