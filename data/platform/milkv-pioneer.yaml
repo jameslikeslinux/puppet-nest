@@ -27,7 +27,7 @@ nest::kernel_config:
   CONFIG_RISCV_SBI_CPUIDLE: y # not supported yet
 
   # Device drivers
-  CONFIG_IXGBE: m
+  CONFIG_AQTION: m
   CONFIG_DRM_AMDGPU: m
 
   # Selects ZLIB_DEFLATE for ZFS
