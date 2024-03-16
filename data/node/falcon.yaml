@@ -23,9 +23,13 @@ nest::kernel_cmdline:
   - 'intel_iommu=on'
   - 'pci-stub.ids=10de:0fbc,1912:0014'
   - 'intel_idle.max_cstate=2'
+
+nest::kernel_tag: 'stable/v6.8.1'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
+  CONFIG_DRM_XE: m
+  CONFIG_DRM_XE_FORCE_PROBE: '*'
 
 nest::dvorak: true
 nest::monitor_layout: ['DP-2@0', 'DP-1@2560']
