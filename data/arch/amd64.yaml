@@ -20,8 +20,8 @@ nest::kernel_config:
   CONFIG_IRQ_REMAP: y
 
   # Device drivers
-  CONFIG_AQTION: m
   CONFIG_IGB: m
+  CONFIG_IXGBE: m
   CONFIG_IWLWIFI: m
   CONFIG_IWLMVM: m
   CONFIG_IPMI_HANDLER: m
