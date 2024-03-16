@@ -6,6 +6,12 @@ defaults:
   data_hash: yaml_data
 
 hierarchy:
+  - name: 'Platforms'
+    paths:
+      - "platform/%{facts.profile.platform}.yaml"
+  - name: 'Architectures'
+    paths:
+      - "arch/%{facts.profile.architecture}.yaml"
   - name: 'Builds'
     paths:
       - "build/%{facts.os.family}/%{facts.build}/%{facts.build}.yaml"

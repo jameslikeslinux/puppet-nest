@@ -109,5 +109,6 @@ class nest (
     $concurrency = $facts['processors']['count']
   }
 
-  contain $classes
+  $knockouts = $classes.filter |$c| { $c =~ /^--/ }
+  contain $classes.filter |$c| { !($c in $knockouts or "--${c}" in $knockouts) }
 }
