@@ -90,13 +90,6 @@ class nest::base::firewall {
           remote_ip    => '172.22.4.0/24',
         ;
       }
-
-      # XXX Cleanup
-      windows_firewall::exception { 'eyrie-icmp':
-        ensure       => absent,
-        display_name => 'Eyrie ICMP',
-        protocol     => 'ICMPv4',
-      }
     }
   }
 }

@@ -91,13 +91,6 @@ class nest::base::ssh {
           remote_ip    => '172.22.4.0/24',
         ;
       }
-
-      # XXX cleanup
-      windows_firewall::exception { 'eyrie-ssh':
-        ensure       => absent,
-        display_name => 'Eyrie SSH',
-        protocol     => 'TCP',
-      }
     }
   }
 
