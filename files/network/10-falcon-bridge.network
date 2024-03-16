@@ -1,6 +1,6 @@
 [Match]
 Host=falcon
-Name=en*u* enp7s0f0
+Name=enp*s0f* en*u*
 
 [Network]
 Bridge=br0
