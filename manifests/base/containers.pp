@@ -17,9 +17,6 @@ class nest::base::containers {
     driver = "${storage_driver}"
     graphroot = "/var/lib/containers/storage"
     runroot = "/run/containers/storage"
-
-    [storage.options]
-    pull_options = { enable_partial_images = "true" }
     | STORAGE_CONF
 
   # Preselect optional dependencies

@@ -34,7 +34,7 @@ stages:
                    -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
                    $qemu_args
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
-    - 'buildah push --compression-format zstd:chunked "${CI_REGISTRY_IMAGE}:${CPU}"'
+    - 'buildah push --compression-format zstd "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
     - if: '$BUILD && $BUILD != $CPU'
       when: never
