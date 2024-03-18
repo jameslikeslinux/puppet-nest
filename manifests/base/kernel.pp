@@ -98,19 +98,21 @@ class nest::base::kernel {
     makeargs  => "ARCH=${arch}",
     notify    => Class['nest::base::dracut'], # in case module-rebuild is noop
   }
-  ~>
+  ->
+  nest::lib::package { 'sys-fs/zfs-kmod':
+    ensure => latest,
+    binpkg => false,
+    build  => !!$facts['build'],
+    notify => Class['nest::base::dracut'],
+  }
+  ->
   exec { 'module-rebuild':
     command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
     noop        => !$facts['build'] or str2bool($facts['skip_module_rebuild']),
     refreshonly => true,
     timeout     => 0,
+    subscribe   => Nest::Lib::Build['kernel'],
     notify      => Class['nest::base::dracut'],
-  }
-  ->
-  nest::lib::package { 'sys-fs/zfs-kmod':
-    ensure => latest,
-    binpkg => false,
-    noop   => !$facts['build'],
   }
 
   # Sources w/o config, just like a provided package
