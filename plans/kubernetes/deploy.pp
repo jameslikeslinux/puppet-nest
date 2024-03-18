@@ -130,4 +130,9 @@ plan nest::kubernetes::deploy (
   }
 
   run_command("${helm_cmd}${redirect}", 'localhost', "${cmd_verb} ${service} from Helm chart ${chart_real}")
+
+  # Give time for VIP to propagate
+  if $wait {
+    ctrl::sleep(10)
+  }
 }

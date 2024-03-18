@@ -21,6 +21,9 @@ plan nest::kubernetes::deploy_dashboard (
     manifest => 'nest/kubernetes/manifests/dashboard-users.yaml',
   })
 
+  # Wait for auth token
+  ctrl::sleep(10)
+
   $check_for_token_cmd = 'grep -q token: $KUBECONFIG'
   $has_token = run_command($check_for_token_cmd, 'localhost', 'Check if kubeconfig contains auth token', {
     _catch_errors => true,
