@@ -5,6 +5,7 @@ nest::classes:
 
 nest::fscache: false
 nest::puppet: false
+nest::soc: 'sun50i_a64'
 nest::uboot_defconfig: 'sopine_baseboard_defconfig'
 
 nest::kernel_cmdline:
@@ -13,5 +14,3 @@ nest::kernel_cmdline:
 nest::kernel_config:
   # Device drivers ('y' for early boot)
   CONFIG_DMA_SUN6I: y
-
-nest::base::firmware::arm::soc: 'sun50i_a64'

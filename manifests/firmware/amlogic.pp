@@ -9,12 +9,9 @@ class nest::firmware::amlogic {
     ref => 'radxa',
   }
   ~>
-  exec { 'amlogic-firmware-build':
-    command     => "/usr/bin/make distclean fip BOARD=${board} UBOOT_BIN=/usr/src/u-boot/u-boot.bin",
-    cwd         => '/usr/src/fip',
-    timeout     => 0,
-    refreshonly => true,
-    noop        => !$facts['build'],
-    subscribe   => Class['nest::firmware::uboot'],
+  nest::lib::build { 'amlogic-firmware':
+    args      => "distclean fip BOARD=${board} UBOOT_BIN=/usr/src/u-boot/u-boot.bin",
+    dir       => '/usr/src/fip',
+    subscribe => Class['nest::firmware::uboot'],
   }
 }
