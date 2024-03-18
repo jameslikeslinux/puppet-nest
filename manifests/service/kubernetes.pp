@@ -14,8 +14,12 @@ class nest::service::kubernetes (
     ensure => installed,
   }
   ->
-  file { '/etc/crio/crio.conf.d/10-crun.conf':
-    source => 'puppet:///modules/nest/kubernetes/crio-crun.conf',
+  file {
+    '/etc/crio/crio.conf.d':
+      ensure => directory;
+    '/etc/crio/crio.conf.d/10-crun.conf':
+      source => 'puppet:///modules/nest/kubernetes/crio-crun.conf',
+    ;
   }
   ~>
   service { 'crio':
