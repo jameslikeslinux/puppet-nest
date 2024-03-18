@@ -24,3 +24,7 @@ nest::kernel_config:
   CONFIG_DRM_I2C_NXP_TDA998X: m
   CONFIG_DRM_TILCDC: m
   CONFIG_SND_SOC_DAVINCI_MCASP: m
+
+nest::uboot_config:
+  # Unused feature; shrink SPL to fit in SRAM
+  CONFIG_SPL_YMODEM_SUPPORT: n
