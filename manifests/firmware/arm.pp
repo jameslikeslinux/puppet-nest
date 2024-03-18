@@ -2,7 +2,7 @@ class nest::firmware::arm {
   if $nest::soc == 'rk3399' {
     nest::lib::toolchain { 'arm-none-eabi':
       gcc_only => true,
-      before   => Nest::Lib::Build['arm-trusted-firmware']
+      before   => Nest::Lib::Build['arm-trusted-firmware'],
     }
   }
 

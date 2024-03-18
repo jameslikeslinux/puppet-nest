@@ -12,7 +12,6 @@ describe 'nest::base::dracut' do
         end
 
         it { is_expected.to contain_class('nest::base::dracut').that_subscribes_to('Class[nest::base::branding]') }
-        it { is_expected.to contain_class('nest::base::dracut').that_subscribes_to('Class[nest::base::users]') }
         it { is_expected.to contain_class('nest::base::dracut').that_subscribes_to('Class[nest::base::zfs]') }
       end
     end

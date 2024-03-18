@@ -2,7 +2,6 @@ define nest::lib::package (
   Boolean                  $binpkg  = true,
   String                   $ensure  = 'installed',
   Hash                     $env     = {},
-  Boolean                  $noop    = false,
   String                   $package = $name,
   Optional[Nest::UseFlags] $use     = undef,
   Boolean                  $world   = true,
@@ -61,14 +60,12 @@ define nest::lib::package (
     ensure          => $ensure,
     install_options => $usepkg_option + $oneshot_option,
     name            => $package,
-    noop            => $noop,
   }
   ->
   file_line { "emerge-select-${name}":
     ensure => $world_ensure,
     path   => '/var/lib/portage/world',
     line   => $package,
-    noop   => $noop,
     tag    => 'profile',
   }
 }
