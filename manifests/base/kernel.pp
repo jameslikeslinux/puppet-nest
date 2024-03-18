@@ -101,7 +101,7 @@ class nest::base::kernel {
   ~>
   exec { 'module-rebuild':
     command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
-    noop        => str2bool($facts['skip_module_rebuild']),
+    noop        => !$facts['build'] or str2bool($facts['skip_module_rebuild']),
     refreshonly => true,
     timeout     => 0,
     notify      => Class['nest::base::dracut'],
@@ -110,6 +110,7 @@ class nest::base::kernel {
   nest::lib::package { 'sys-fs/zfs-kmod':
     ensure => latest,
     binpkg => false,
+    noop   => !$facts['build'],
   }
 
   # Sources w/o config, just like a provided package
