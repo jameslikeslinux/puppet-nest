@@ -7,6 +7,9 @@ class nest::base::dracut {
     'nest::base::zfs',      # zpool.cache, etc
   ] ~> Class['nest::base::dracut']
 
+  # For securing emergency shell
+  User['root'] ~> Class['nest::base::dracut']
+
   if $facts['force_kernel_install'] {
     notify { 'forcing-kernel-install': }
   }
