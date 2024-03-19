@@ -74,6 +74,7 @@ nest::kernel_config:
   CONFIG_BT: m
   CONFIG_BT_HIDP: m
   CONFIG_BT_HCIBTUSB: m
+  CONFIG_RFKILL: m
 
   # Device drivers
   CONFIG_INPUT_EVDEV: m
@@ -82,5 +83,5 @@ nest::kernel_config:
   CONFIG_MEDIA_USB_SUPPORT: y
   CONFIG_USB_VIDEO_CLASS: m
   CONFIG_SND_USB_AUDIO: m
-  CONFIG_UHID: m        # for bluetooth input
-  CONFIG_USB_HIDDEV: y  # for USB keyboards
+  CONFIG_UHID: m        # for Bluetooth input
+  CONFIG_USB_HIDDEV: y  # for USB input devices
