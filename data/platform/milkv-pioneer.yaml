@@ -16,6 +16,7 @@ nest::uboot_defconfig: 'sophgo_sg2042_defconfig'
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
+  - 'nvme_core.default_ps_max_latency_us=0' # workaround I/O timeouts
 
 nest::kernel_config:
   # Tuning
