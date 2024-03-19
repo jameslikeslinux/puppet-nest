@@ -17,8 +17,12 @@ class nest::base::bootloader::spec {
       timeout ${nest::boot_menu_delay}
       | LOADER_CONF
 
-    file { '/boot/loader/loader.conf':
-      content => $loader_conf,
+    file {
+      '/boot/loader':
+        ensure => directory;
+      '/boot/loader/loader.conf':
+        content => $loader_conf,
+      ;
     }
 
     file {
