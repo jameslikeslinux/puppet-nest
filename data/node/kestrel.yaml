@@ -3,6 +3,10 @@ nest::classes:
   - 'nest::service::gitlab_runner'
   - 'nest::tool::qemu'
 
+nest::dvorak: true
+nest::monitor_layout: ['DP-3@0', 'HDMI-1@2560']
+nest::primary_monitor: 'HDMI-1'
+nest::text_scaling_factor: 1.1
 nest::vpn_client: false
 
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
