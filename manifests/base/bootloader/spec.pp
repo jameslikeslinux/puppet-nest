@@ -1,4 +1,5 @@
 class nest::base::bootloader::spec {
+  tag 'boot'
   tag 'kernel'
 
   $image = $facts['profile']['architecture'] ? {
