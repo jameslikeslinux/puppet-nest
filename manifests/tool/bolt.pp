@@ -12,7 +12,7 @@ class nest::tool::bolt (
       force  => true,
     }
     ->
-    package { ['bolt', 'ed25519', 'bcrypt_pbkdf']:
+    package { ['bolt', 'ed25519', 'bcrypt_pbkdf', 'toml-rb']:
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }
