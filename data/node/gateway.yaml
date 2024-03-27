@@ -6,6 +6,9 @@ nest::classes:
 nest::bootloader: grub
 nest::dvorak: true
 
+nest::reset_filter_rules:
+  - 'P /etc/letsencrypt/**'
+
 nest::service::apache::manage_firewall: true
 
 nest::service::gateway::port_forwards:
