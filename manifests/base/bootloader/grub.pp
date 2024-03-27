@@ -1,4 +1,5 @@
 class nest::base::bootloader::grub {
+  tag 'boot'
   tag 'kernel'
 
   nest::lib::package_use { 'sys-boot/grub':
