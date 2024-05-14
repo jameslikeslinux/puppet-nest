@@ -25,6 +25,7 @@ nest::kernel_config:
 
   # Device drivers
   CONFIG_AQTION: m
+  CONFIG_DRM_AMDGPU: m
 
   # Selects ZLIB_DEFLATE for ZFS
   CONFIG_CRYPTO_DEFLATE: m
