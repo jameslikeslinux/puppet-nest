@@ -1,11 +1,10 @@
-diff --git a/lib/puppet/provider/service/init.rb b/lib/puppet/provider/service/init.rb
-index 88e7242545..b86fa5448e 100644
---- a/lib/puppet/provider/service/init.rb
-+++ b/lib/puppet/provider/service/init.rb
-@@ -22,8 +22,8 @@ Puppet::Type.type(:service).provide :init, :parent => :base do
+diff -ur puppet-8.6.0.orig/lib/puppet/provider/service/init.rb puppet-8.6.0/lib/puppet/provider/service/init.rb
+--- puppet-8.6.0.orig/lib/puppet/provider/service/init.rb	2024-05-18 15:57:13.508546938 -0400
++++ puppet-8.6.0/lib/puppet/provider/service/init.rb	2024-05-18 16:00:06.292796545 -0400
+@@ -22,8 +22,8 @@
  
    # Debian and Ubuntu should use the Debian provider.
-   confine :false => ['Debian', 'Ubuntu'].include?(Puppet.runtime[:facter].value('os.name'))
+   confine :false => %w[Debian Ubuntu].include?(Puppet.runtime[:facter].value('os.name'))
 -  # RedHat systems should use the RedHat provider.
 -  confine :false => Puppet.runtime[:facter].value('os.family') == 'RedHat'
 +  # Gentoo and RedHat systems should use the systemd provider.
@@ -13,11 +12,10 @@ index 88e7242545..b86fa5448e 100644
  
    # We can't confine this here, because the init path can be overridden.
    # confine :exists => defpath
-diff --git a/lib/puppet/provider/service/systemd.rb b/lib/puppet/provider/service/systemd.rb
-index de6acefc92..e415f2259f 100644
---- a/lib/puppet/provider/service/systemd.rb
-+++ b/lib/puppet/provider/service/systemd.rb
-@@ -13,8 +13,7 @@ Puppet::Type.type(:service).provide :systemd, :parent => :base do
+diff -ur puppet-8.6.0.orig/lib/puppet/provider/service/systemd.rb puppet-8.6.0/lib/puppet/provider/service/systemd.rb
+--- puppet-8.6.0.orig/lib/puppet/provider/service/systemd.rb	2024-05-18 15:57:13.508546938 -0400
++++ puppet-8.6.0/lib/puppet/provider/service/systemd.rb	2024-05-19 12:48:17.611118204 -0400
+@@ -13,8 +13,7 @@
  
    commands :systemctl => "systemctl"
  
@@ -25,5 +23,5 @@ index de6acefc92..e415f2259f 100644
 -
 +  defaultfor 'os.family' => :gentoo
    defaultfor 'os.family' => [:archlinux]
-   defaultfor 'os.family' => :redhat, 'os.release.major' => ["7", "8", "9"]
-   defaultfor 'os.family' => :redhat, 'os.name' => :fedora
+   defaultfor 'os.family' => :redhat
+   notdefaultfor 'os.name' => :redhat, 'os.release.major' => (4..6).to_a # Use the "RedHat" service provider
