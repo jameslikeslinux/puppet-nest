@@ -29,6 +29,7 @@ class nest::gui::sway {
     #!/bin/bash
     export GDK_DPI_SCALE=${dpi_scale}
     export QT_FONT_DPI=${dpi}
+    export WLR_LIBINPUT_NO_DEVICES=1
     export WLR_NO_HARDWARE_CURSORS=${no_hardware_cursors}
     export XCURSOR_SIZE=24
     export XDG_SESSION_DESKTOP=sway
