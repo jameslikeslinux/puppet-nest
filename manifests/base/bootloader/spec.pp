@@ -47,13 +47,6 @@ class nest::base::bootloader::spec {
       ;
     }
 
-    # XXX USE flags set in profile
-    # Remove after Mar 2024 build deployed
-    nest::lib::package { 'sys-kernel/installkernel':
-      use   => ['dracut', 'systemd-boot'],
-      world => false,
-    }
-    ->
     exec { 'kernel-install':
       command     => "/usr/bin/kernel-install add ${nest::kernel_version} ${image}",
       refreshonly => true,
