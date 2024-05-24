@@ -1,5 +1,6 @@
 define nest::lib::toolchain (
   Enum['present', 'absent'] $ensure   = present,
+  Hash                      $env      = {},
   Optional[String]          $gcc_conf = undef,
   Boolean                   $gcc_only = false,
 ) {
@@ -8,10 +9,17 @@ define nest::lib::toolchain (
       include 'nest::lib::crossdev'
 
       if $gcc_conf {
-        $extra_econf = "EXTRA_ECONF=${gcc_conf.shellquote}"
-        $gcc_conf_args = "--genv ${extra_econf.shellquote}"
+        $env_real = $env + { 'EXTRA_ECONF' => $gcc_conf }
       } else {
+        $env_real = $env
+      }
+
+      $env_args = $env_real.map |$k,$v| { "${k}=${v.shellquote}" }.join(' ')
+
+      if $env_args.empty {
         $gcc_conf_args = ''
+      } else {
+        $gcc_conf_args = "--genv ${env_args.shellquote}"
       }
 
       if $gcc_only {
