@@ -2,12 +2,6 @@ class nest::base::bootloader::spec {
   tag 'boot'
   tag 'kernel'
 
-  $image = $facts['profile']['architecture'] ? {
-    'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
-    'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
-    default => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/Image",
-  }
-
   if $facts['mountpoints']['/boot'] {
     # For nest::base::bootloader::kernel_cmdline
     include 'nest::base::bootloader'
@@ -48,7 +42,7 @@ class nest::base::bootloader::spec {
     }
 
     exec { 'kernel-install':
-      command     => "/usr/bin/kernel-install add ${nest::kernel_version} ${image}",
+      command     => "/usr/bin/kernel-install add ${nest::kernel_version} ${nest::base::bootloader::kernel_image}",
       refreshonly => true,
       timeout     => 0,
       subscribe   => Class['nest::base::dracut'],

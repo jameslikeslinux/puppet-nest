@@ -43,6 +43,12 @@ class nest::base::bootloader {
     'init=/lib/systemd/systemd',
   ].flatten.join(' ').strip
 
+  $kernel_image = $facts['profile']['architecture'] ? {
+    'amd64' => '/usr/src/linux/arch/x86/boot/bzImage',
+    'arm'   => '/usr/src/linux/arch/arm/boot/zImage',
+    default => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/Image",
+  }
+
   case $nest::bootloader {
     'grub': {
       contain 'nest::base::bootloader::grub'

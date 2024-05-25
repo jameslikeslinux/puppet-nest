@@ -135,21 +135,14 @@ class nest::base::bootloader::grub {
     }
 
     # Install stuff normally handled by kernel-install(8)
-    exec {
-      default:
-        refreshonly => true,
-        subscribe   => File['/boot/grub']
-      ;
-
-      'kernel-install':
-        command => '/usr/bin/make install',
-        cwd     => '/usr/src/linux',
-      ;
-
-      'dracut':
-        command   => "/usr/bin/dracut --force --kver ${nest::kernel_version}",
-        subscribe => Class['nest::base::dracut'],
-      ;
+    file { "/boot/vmlinuz-${nest::kernel_version}":
+      source => $nest::base::bootloader::kernel_image,
+    }
+    ~>
+    exec { 'dracut':
+      command     => "/usr/bin/dracut --force --kver ${nest::kernel_version}",
+      refreshonly => true,
+      subscribe   => Class['nest::base::dracut'],
     }
     ~>
     exec { 'grub-mkconfig':
