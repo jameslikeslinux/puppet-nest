@@ -35,6 +35,6 @@ class nest::base::cli {
     mode    => '0755',
     owner   => 'root',
     group   => 'root',
-    content => "#!/bin/zsh\nexec xorriso \"\${@:#--}\"\n",
+    content => "#!/bin/zsh\nexec /usr/bin/xorriso \"\${@:#--}\"\n",
   }
 }
