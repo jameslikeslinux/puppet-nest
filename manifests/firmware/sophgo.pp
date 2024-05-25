@@ -35,7 +35,7 @@ class nest::firmware::sophgo {
       $uboot_ensure    = absent
       $uboot_source    = undef
       $uroot_ensure    = present
-      $uroot_image     = $nest::base::bootloader::spec::image
+      $uroot_image     = $nest::base::bootloader::kernel_image
       $uroot_source    = '/usr/src/u-root/initramfs.cpio'
 
       Class['nest::base::bootloader::uroot']
