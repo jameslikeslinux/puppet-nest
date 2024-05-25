@@ -45,17 +45,10 @@ define nest::lib::toolchain (
           "/etc/portage/package.env/cross-${name}",
           "/etc/portage/package.use/cross-${name}",
           "/etc/portage/profile/package.use.force/cross-${name}",
+          "/etc/portage/profile/package.use.mask/cross-${name}",
         ]:
           ensure => file,
         ;
-      }
-
-      # Bare-metal toolchains mask various USE flags
-      if $name =~ /-(eabi|elf)$/ {
-        file { "/etc/portage/profile/package.use.mask/cross-${name}":
-          ensure  => file,
-          require => Exec["crossdev-install-${name}"],
-        }
       }
 
       if $facts['llvm_clang'] {
