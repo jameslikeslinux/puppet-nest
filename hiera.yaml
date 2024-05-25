@@ -24,6 +24,10 @@ hierarchy:
     paths:
       - "private/platform/%{facts.profile.platform}.yaml"
       - "platform/%{facts.profile.platform}.yaml"
+  - name: 'CPUs'
+    paths:
+      - "private/cpu/%{facts.profile.cpu}.yaml"
+      - "cpu/%{facts.profile.cpu}.yaml"
   - name: 'Architectures'
     paths:
       - "private/arch/%{facts.profile.architecture}.yaml"
