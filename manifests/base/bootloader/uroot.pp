@@ -14,7 +14,7 @@ class nest::base::bootloader::uroot {
     dir     => '/usr/src/u-root',
     command => [
       'go build',
-      './u-root -uinitcmd="boot" -o initramfs.cpio core boot',
+      './u-root -uinitcmd="boot -remove= -reuse=" -o initramfs.cpio core boot',
     ],
   }
 }
