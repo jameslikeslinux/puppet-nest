@@ -36,7 +36,8 @@ stages:
                    -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
     - 'buildah push --compression-format zstd "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
-    - if: '$BUILD && $BUILD != $CPU'
+    - if: '$BUILD == $CPU'
+    - if: '$BUILD'
       when: never
     - when: always
 
