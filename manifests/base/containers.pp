@@ -90,4 +90,16 @@ class nest::base::containers {
     content => $subuidgid_content,
     require => Class['nest::base::users'], # overwrite generated entries
   }
+
+  #
+  # XXX Cleanup
+  #
+  service { 'podman-firewalld-reload':
+    ensure => stopped,
+    enable => false,
+  }
+  ->
+  file { '/etc/systemd/system/podman-firewalld-reload.service':
+    ensure => absent,
+  }
 }
