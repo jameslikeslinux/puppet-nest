@@ -2,9 +2,13 @@
 # Transforms ['a@0', 'b@1920', 'c@3840'] -> ['a', 'b', 'c']
 monitor_layout = @monitor_layout.map { |monitor| monitor.sub(/@\d+$/, '') }
 
+# Transforms ['HDMI-A-1'] -> ['HDMI-1']
+monitor_layout = monitor_layout.map { |monitor| monitor.sub(/^HDMI-[A-Z]-/, 'HDMI-') }
+primary_monitor = @primary_monitor.sub(/^HDMI-[A-Z]-/, 'HDMI-') if @primary_monitor
+
 after_primary = false
 monitor_layout.each_with_index do |monitor, i|
-  if monitor == @primary_monitor
+  if monitor == primary_monitor
     option = "\"Primary\" \"yes\""
     after_primary = true
   elsif after_primary
