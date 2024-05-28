@@ -27,6 +27,7 @@ class nest::base::packages {
         'sys-fs/mtools',
         'sys-fs/squashfs-tools',
         'sys-libs/nss_wrapper',
+        'sys-cluster/kubectl',
         'sys-process/htop',
         'sys-process/iotop',
         'sys-process/lsof',
@@ -46,13 +47,6 @@ class nest::base::packages {
             ensure => installed,
             use    => '-server',
           }
-        }
-      }
-
-      unless $facts['profile']['architecture'] == 'riscv' {
-        # !!! [0219 21:56:00] Unsupported host arch. Must be x86_64, 386, arm, arm64, s390x or ppc64le.
-        nest::lib::package { 'sys-cluster/kubectl':
-          ensure => installed,
         }
       }
 
