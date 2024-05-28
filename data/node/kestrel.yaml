@@ -3,6 +3,7 @@ nest::classes:
   - 'nest::service::gitlab_runner'
   - 'nest::tool::qemu'
 
+nest::autologin: sway
 nest::dvorak: true
 nest::monitor_layout: ['DP-3@0', 'HDMI-A-1@2560']
 nest::primary_monitor: 'HDMI-A-1'
