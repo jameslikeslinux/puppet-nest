@@ -77,7 +77,7 @@ nest::service::gitlab_runner::instances:
   builder:
     host: 'gitlab.james.tl'
     limit: 2
-    cap_add: ['SYS_CHROOT']
+    privileged: true
     security_options: ['seccomp=unconfined']
     volumes:
       - '/nest:/nest'
