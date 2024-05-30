@@ -10,4 +10,3 @@ nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   runner:
     cap_add: ['SYS_CHROOT']
-    zfs: true

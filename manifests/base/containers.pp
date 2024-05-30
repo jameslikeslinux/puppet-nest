@@ -1,5 +1,5 @@
 class nest::base::containers {
-  unless $facts['is_container'] or $facts['running_live'] {
+  unless $facts['is_container'] or $facts['running_live'] or $facts['mountpoints']['/var/lib/containers'] {
     zfs { 'containers':
       name       => "${trusted['certname']}/containers",
       mountpoint => '/var/lib/containers',

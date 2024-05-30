@@ -52,8 +52,6 @@ define nest::lib::gitlab_runner (
     true    => [
       '--docker-devices', '/dev/zfs',
       '--docker-privileged',
-      '--docker-volumes', '/var/lib/containers/storage:/var/lib/containers/storage',
-      '--env', 'STORAGE_DRIVER=zfs',
     ],
     default => [],
   }
