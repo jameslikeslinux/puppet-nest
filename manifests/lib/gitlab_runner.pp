@@ -9,6 +9,8 @@ define nest::lib::gitlab_runner (
   Array[String]     $cap_add          = [],
   Array[String]     $security_options = [],
   Array[String]     $volumes          = [],
+  Boolean           $buildah          = false,
+  Boolean           $portage          = false,
   Boolean           $privileged       = false,
   Boolean           $zfs              = false,
 ) {
@@ -42,18 +44,37 @@ define nest::lib::gitlab_runner (
     ['--docker-volumes', $volume]
   }
 
+  if $buildah {
+    $buildah_args = [
+      '--docker-cap-add', 'SYS_CHROOT',
+      '--env', 'STORAGE_DRIVER=vfs',
+    ]
+  } else {
+    $buildah_args = []
+  }
+
+  if $portage {
+    $portage_args = [
+      '--docker-cap-add', 'SYS_PTRACE',
+      '--docker-security-opt', 'seccomp=unconfined',
+    ]
+  } else {
+    $portage_args = []
+  }
+
   if $privileged {
     $privileged_args = ['--docker-privileged']
   } else {
     $privileged_args = []
   }
 
-  $zfs_args = $zfs ? {
-    true    => [
+  if $zfs {
+    $zfs_args = [
       '--docker-devices', '/dev/zfs',
       '--docker-privileged',
-    ],
-    default => [],
+    ]
+  } else {
+    $zfs_args = []
   }
 
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
@@ -74,6 +95,8 @@ define nest::lib::gitlab_runner (
     $cap_add_args,
     $security_opt_args,
     $volume_args,
+    $buildah_args,
+    $portage_args,
     $privileged_args,
     $zfs_args,
     '--url', "https://${host}/",

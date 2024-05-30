@@ -67,7 +67,7 @@ nest::service::gitlab::default_theme: 2
 nest::service::gitlab_runner::instances:
   runner:
     host: 'gitlab.james.tl'
-    cap_add: ['SYS_CHROOT']
+    buildah: true
     volumes:
       - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
       - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
@@ -77,8 +77,8 @@ nest::service::gitlab_runner::instances:
   builder:
     host: 'gitlab.james.tl'
     limit: 2
-    privileged: true
-    security_options: ['seccomp=unconfined']
+    buildah: true
+    portage: true
     volumes:
       - '/nest:/nest'
       - '/falcon:/falcon'

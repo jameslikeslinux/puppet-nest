@@ -14,8 +14,8 @@ nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   builder:
     limit: 2
-    privileged: true
-    security_options: ['seccomp=unconfined']
+    buildah: true
+    portage: true
     volumes:
       - '/nest:/nest'
       - '/falcon:/falcon'
