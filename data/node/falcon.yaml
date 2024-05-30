@@ -68,24 +68,15 @@ nest::service::gitlab_runner::instances:
   runner:
     host: 'gitlab.james.tl'
     buildah: true
-    volumes:
-      - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
-      - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
-      - '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro'
-      - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
+    qemu: true
 
   builder:
     host: 'gitlab.james.tl'
     limit: 2
     buildah: true
+    nest: true
     portage: true
-    volumes:
-      - '/nest:/nest'
-      - '/falcon:/falcon'
-      - '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro'
-      - '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro'
-      - '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro'
-      - '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro'
+    qemu: true
 
   r10k:
     default_image: 'registry.gitlab.james.tl/nest/tools/r10k:haswell'

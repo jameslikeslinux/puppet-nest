@@ -10,8 +10,10 @@ define nest::lib::gitlab_runner (
   Array[String]     $security_options = [],
   Array[String]     $volumes          = [],
   Boolean           $buildah          = false,
+  Boolean           $nest             = false,
   Boolean           $portage          = false,
   Boolean           $privileged       = false,
+  Boolean           $qemu             = false,
   Boolean           $zfs              = false,
 ) {
   # Required for /srv/gitlab-runner and container
@@ -53,6 +55,15 @@ define nest::lib::gitlab_runner (
     $buildah_args = []
   }
 
+  if $nest {
+    $nest_args = [
+      '--docker-volumes', '/nest:/nest',
+      '--docker-volumes', '/falcon:/falcon',
+    ]
+  } else {
+    $nest_args = []
+  }
+
   if $portage {
     $portage_args = [
       '--docker-cap-add', 'SYS_PTRACE',
@@ -66,6 +77,17 @@ define nest::lib::gitlab_runner (
     $privileged_args = ['--docker-privileged']
   } else {
     $privileged_args = []
+  }
+
+  if $qemu {
+    $qemu_args = [
+      '--docker-volumes', '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro',
+      '--docker-volumes', '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro',
+      '--docker-volumes', '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro',
+      '--docker-volumes', '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro',
+    ]
+  } else {
+    $qemu_args = []
   }
 
   if $zfs {
@@ -96,8 +118,10 @@ define nest::lib::gitlab_runner (
     $security_opt_args,
     $volume_args,
     $buildah_args,
+    $nest_args,
     $portage_args,
     $privileged_args,
+    $qemu_args,
     $zfs_args,
     '--url', "https://${host}/",
     '--token', $registration_token,
