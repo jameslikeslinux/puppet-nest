@@ -1,23 +1,10 @@
 class nest::base::containers {
-  if $facts['is_container'] or $facts['running_live'] {
-    $storage_driver = 'vfs'
-  } else {
-    $storage_driver = 'zfs'
-
-    unless $facts['mountpoints']['/var/lib/containers'] {
-      zfs { 'containers':
-        name       => "${trusted['certname']}/containers",
-        mountpoint => '/var/lib/containers',
-      }
+  unless $facts['is_container'] or $facts['running_live'] {
+    zfs { 'containers':
+      name       => "${trusted['certname']}/containers",
+      mountpoint => '/var/lib/containers',
     }
   }
-
-  $storage_conf = @("STORAGE_CONF")
-    [storage]
-    driver = "${storage_driver}"
-    graphroot = "/var/lib/containers/storage"
-    runroot = "/run/containers/storage"
-    | STORAGE_CONF
 
   # Preselect optional dependencies
   nest::lib::package { [
@@ -48,11 +35,6 @@ class nest::base::containers {
 
     '/etc/containers/registries.conf':
       source => 'puppet:///modules/nest/containers/registries.conf',
-    ;
-
-    '/etc/containers/storage.conf':
-      content => $storage_conf,
-      replace => !$facts['is_container'],
     ;
 
     '/etc/systemd/system/podman.service.d':
