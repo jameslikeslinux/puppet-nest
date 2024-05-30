@@ -2,20 +2,17 @@
 #
 # @param version Helm chart version to install
 plan nest::kubernetes::deploy_dashboard (
-  String $version = '7.0.0-alpha1',
+  String $version = '7.4.0',
 ) {
-  # Post-install hooks fail on slow cluster so try several times
-  ctrl::do_until(limit => 3) || {
-    run_plan('nest::kubernetes::deploy', {
-      service       => 'kubernetes-dashboard',
-      app           => 'kubernetes-dashboard',
-      namespace     => 'kubernetes-dashboard',
-      repo_name     => 'kubernetes-dashboard',
-      repo_url      => 'https://kubernetes.github.io/dashboard/',
-      version       => $version,
-      _catch_errors => true,
-    }) !~ Error
-  }
+  run_plan('nest::kubernetes::deploy', {
+    service   => 'kubernetes-dashboard',
+    app       => 'kubernetes-dashboard',
+    namespace => 'kubernetes-dashboard',
+    repo_name => 'kubernetes-dashboard',
+    repo_url  => 'https://kubernetes.github.io/dashboard/',
+    version   => $version,
+    wait      => true,
+  })
 
   run_plan('nest::kubernetes::apply', {
     manifest => 'nest/kubernetes/manifests/dashboard-users.yaml',

@@ -12,31 +12,21 @@ values:
         logsAutoRefreshTimeInterval: 5
         resourceAutoRefreshTimeInterval: 30 # default 5
     ingress:
+      enabled: true
       hosts:
         - "%{nest::kubernetes::service}.eyrie"
         - kubernetes.eyrie
-  api:
-    containers:
-      args:
-        - --enable-skip-login
-        - --token-ttl=0
+  cert-manager:
+    enabled: true
+  metrics-server:
+    enabled: true
   nginx:
+    enabled: true
     controller:
       service:
         type: LoadBalancer
 
 patches:
-  10-cluster-role:
-    patch:
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRole
-      metadata:
-        name: "%{nest::kubernetes::service}"
-      rules:
-        # Allow full read-only access
-        - apiGroups: ['*']
-          resources: ['*']
-          verbs: ['get', 'list', 'watch']
   10-nest:
     patch:
       apiVersion: v1

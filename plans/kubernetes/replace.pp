@@ -1,7 +1,7 @@
-# Apply Kubernetes manifest
+# Replace Kubernetes manifest
 
 # @param manifest Path or URL to the Kubernetes manifest to deploy
-plan nest::kubernetes::apply (
+plan nest::kubernetes::replace (
   String $manifest
 ) {
   if $manifest =~ Stdlib::HTTPUrl {
@@ -10,5 +10,5 @@ plan nest::kubernetes::apply (
     $manifest_real = find_file($manifest)
   }
 
-  run_command("kubectl apply -f ${manifest_real}", 'localhost', "Apply Kubernetes manifest ${manifest}")
+  run_command("kubectl replace -f ${manifest_real}", 'localhost', "Replace Kubernetes manifest ${manifest}")
 }

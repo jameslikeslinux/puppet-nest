@@ -26,11 +26,12 @@ class nest::kubernetes {
     default       => undef,
   }
 
-  $registry_auths = base64('encode', stdlib::to_json({
+  $registry_auths = stdlib::to_json({
     'auths' => lookup('nest::registry_tokens').reduce({}) |$result, $token| {
       $result + { $token[0] => { 'auth' => base64('encode', $token[1]).chomp } }
     },
-  }))
+  })
+  $registry_auths_base64 = base64('encode', $registry_auths)
 
   if $app == 'vaultwarden' {
     $vaultwarden_db_url = base64('encode', "mysql://${service}:${db_password}@${service}-mariadb/${service}")

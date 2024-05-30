@@ -15,7 +15,7 @@ resources:
         name: "%{nest::kubernetes::service}-registry-auths"
         namespace: "%{nest::kubernetes::namespace}"
       data:
-        .dockerconfigjson: "%{nest::kubernetes::registry_auths}"
+        .dockerconfigjson: "%{nest::kubernetes::registry_auths_base64}"
       type: kubernetes.io/dockerconfigjson
     - apiVersion: batch/v1
       kind: CronJob

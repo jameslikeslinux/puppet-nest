@@ -3,6 +3,8 @@ resources:
   backup: {}
 
 values:
+  imagePullSecrets:
+    registry-auths: "%{nest::kubernetes::registry_auths}"
   installation:
     calicoNetwork:
       ipPools:

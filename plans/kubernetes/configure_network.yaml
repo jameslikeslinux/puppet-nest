@@ -10,7 +10,7 @@ steps:
       namespace: 'metallb-system'
       repo_name: 'metallb'
       repo_url: 'https://metallb.github.io/metallb'
-      version: '0.13.12'
+      version: '0.14.5'
 
   - description: 'Wait for MetalLB controller'
     plan: 'nest::kubernetes::wait'
@@ -23,4 +23,3 @@ steps:
     plan: 'nest::kubernetes::apply'
     parameters:
       manifest: 'nest/kubernetes/manifests/metallb-config.yaml'
-
