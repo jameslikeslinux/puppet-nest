@@ -2,6 +2,8 @@
 resources: {}
 
 values:
+  wordpressPassword: 'wordpress' # throwaway
+  allowEmptyPassword: false
   resources:
     requests:
       memory: '200Mi'
@@ -9,16 +11,19 @@ values:
     fsGroup: 1000
   containerSecurityContext:
     runAsUser: 1000
+    runAsGroup: 1000
   livenessProbe:
     initialDelaySeconds: 600
-  wordpressPassword: 'wordpress' # throwaway
-  allowEmptyPassword: false
   mariadb:
     auth:
       database: "%{nest::kubernetes::service}"
       username: "%{nest::kubernetes::service}"
       password: "%{nest::kubernetes::db_password}"
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
+  networkPolicy:
+    extraIngress:
+      - ports:
+        - port: 22
 
 patches:
   10-nest:
