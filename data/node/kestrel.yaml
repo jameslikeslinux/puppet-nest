@@ -18,3 +18,15 @@ nest::service::gitlab_runner::instances:
     nest: true
     portage: true
     qemu: true
+
+  chromium:
+    buildah: true
+    nest: true
+    portage: true
+    qemu: true
+
+  ghc:
+    buildah: true
+    nest: true
+    portage: true
+    qemu: true

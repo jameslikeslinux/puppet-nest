@@ -1,0 +1,7 @@
+---
+nest::service::gitlab_runner::instances:
+  chromium:
+    buildah: true
+    nest: true
+    portage: true
+    qemu: true
