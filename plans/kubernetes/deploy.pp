@@ -10,6 +10,7 @@
 # @param repo_name Optional name of the Helm repo to add
 # @param repo_url Optional URL of the Helm repo to add
 # @param version Optional Helm chart version
+# @param restore Masks backup job during restore deployment
 # @param wait Wait for resources to become available
 # @param subcharts Additional apps and services to deploy with this one
 # @param parent Private. The parent service this one is being rendered for.
@@ -24,6 +25,7 @@ plan nest::kubernetes::deploy (
   Optional[String] $repo_name = undef,
   Optional[String] $repo_url  = undef,
   Optional[String] $version   = undef,
+  Boolean          $restore   = false,
   Boolean          $wait      = false,
   Array[Hash]      $subcharts = [],
   Optional[String] $parent    = undef,
@@ -53,7 +55,13 @@ plan nest::kubernetes::deploy (
 
     include nest::bolt # for lookups
 
-    $resources = lookup('resources')
+    if $restore {
+      $backup_resources = ['backup']
+    } else {
+      $backup_resources = []
+    }
+
+    $resources = lookup('resources') - $backup_resources
     $values    = lookup('values')
     $patches   = lookup('patches')
 

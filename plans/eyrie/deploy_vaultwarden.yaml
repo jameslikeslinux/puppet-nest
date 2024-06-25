@@ -30,6 +30,7 @@ steps:
         - service: "${name}-mariadb"
           app: 'mariadb'
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
+      restore: $restore
       wait: $restore
 
   - description: 'Restore the instance'
