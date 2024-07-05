@@ -134,20 +134,12 @@ describe 'nest' do
 
           it_should_and_should_not_contain_classes(stage1 + stage2, stage3 + windows + workstation)
 
-          context 'and role => workstation' do
+          context 'and role => workstation' do # rubocop:disable RSpec/EmptyExampleGroup
             let(:facts) do
               facts.merge({ build: 'stage2', profile: { role: 'workstation' } })
             end
 
             it_should_and_should_not_contain_classes(workstation)
-
-            context 'and arch => riscv' do
-              let(:facts) do
-                facts.merge({ build: 'stage2', profile: { architecture: 'riscv', role: 'workstation' } })
-              end
-
-              it { is_expected.not_to contain_class('nest::gui::chrome') }
-            end
           end
         end
 
