@@ -22,7 +22,7 @@ values:
   smtp:
     host: smtp.gmail.com
     username:
-      value: system@james.tl
+      value: "%{lookup('nest::service::bitwarden::smtp_username')}"
     password:
       value: "%{lookup('nest::service::bitwarden::smtp_password')}"
   service:

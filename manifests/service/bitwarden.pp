@@ -1,6 +1,7 @@
 class nest::service::bitwarden (
   String $admin_token,
   String $database_password,
+  String $smtp_username,
   String $smtp_password,
 ) {
   nest::lib::srv { 'bitwarden': }
@@ -25,9 +26,9 @@ class nest::service::bitwarden (
       'SIGNUPS_ALLOWED=false',
       'SHOW_PASSWORD_HINT=false',
       'SMTP_HOST=smtp.gmail.com',
-      'SMTP_FROM=bitwarden@thesatelliteoflove.net',
+      'SMTP_FROM=bitwarden@james.tl',
       'SMTP_FROM_NAME=Bitwarden',
-      'SMTP_USERNAME=system@james.tl',
+      "SMTP_USERNAME=${smtp_username}",
       "SMTP_PASSWORD=${smtp_password}",
       'WEBSOCKET_ENABLED=true',
     ],
