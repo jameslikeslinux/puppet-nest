@@ -6,6 +6,7 @@ class nest::service::gitlab (
   Stdlib::Port      $web_port               = 80,
   Stdlib::Port      $registry_port          = 5050,
   Optional[Integer] $default_theme          = undef,
+  Optional[String]  $gmail_username         = undef,
   Optional[String]  $gmail_password         = undef,
   Integer           $puma_workers           = $nest::concurrency,
 ) inherits nest {

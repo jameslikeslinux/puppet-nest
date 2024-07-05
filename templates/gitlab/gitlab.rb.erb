@@ -35,31 +35,32 @@ gitlab_rails['gitlab_default_projects_features_snippets'] = false
 gitlab_rails['gitlab_default_projects_features_builds'] = false
 gitlab_rails['gitlab_default_projects_features_container_registry'] = false
 
-<% if @gmail_password -%>
+<% if @gmail_username && @gmail_password -%>
 # Gmail outbound
 # See: https://docs.gitlab.com/omnibus/settings/smtp.html#gmail
 gitlab_rails['smtp_enable'] = true
 gitlab_rails['smtp_address'] = 'smtp.gmail.com'
 gitlab_rails['smtp_port'] = 587
-gitlab_rails['smtp_user_name'] = 'gitlab@james.tl'
+gitlab_rails['smtp_user_name'] = '<%= @gmail_username %>'
 gitlab_rails['smtp_password'] = '<%= @gmail_password %>'
 gitlab_rails['smtp_domain'] = 'smtp.gmail.com'
 gitlab_rails['smtp_authentication'] = 'login'
 gitlab_rails['smtp_enable_starttls_auto'] = true
 gitlab_rails['smtp_tls'] = false
 gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+gitlab_rails['gitlab_email_from'] = 'gitlab@james.tl'
 
 # Gmail inbound
 # See: https://docs.gitlab.com/ee/administration/incoming_email.html#gmail
 gitlab_rails['incoming_email_enabled'] = true
 gitlab_rails['incoming_email_address'] = 'gitlab+%{key}@james.tl'
-gitlab_rails['incoming_email_email'] = 'gitlab@james.tl'
+gitlab_rails['incoming_email_email'] = '<%= @gmail_username %>'
 gitlab_rails['incoming_email_password'] = '<%= @gmail_password %>'
 gitlab_rails['incoming_email_host'] = 'imap.gmail.com'
 gitlab_rails['incoming_email_port'] = 993
 gitlab_rails['incoming_email_ssl'] = true
 gitlab_rails['incoming_email_start_tls'] = false
-gitlab_rails['incoming_email_mailbox_name'] = 'inbox'
+gitlab_rails['incoming_email_mailbox_name'] = 'GitLab'
 gitlab_rails['incoming_email_idle_timeout'] = 60
 gitlab_rails['incoming_email_expunge_deleted'] = true
 
