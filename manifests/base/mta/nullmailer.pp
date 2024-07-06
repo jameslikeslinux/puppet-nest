@@ -4,7 +4,7 @@ class nest::base::mta::nullmailer (
   case $ensure {
     'present': {
       if $nest::gmail_username and $nest::gmail_password {
-        $remotes_content = "smtp.gmail.com smtp --user=${nest::gmail_username} --pass=${nest::gmail_password} --port=587 --starttls\n"
+        $remotes_content = "smtp-relay.gmail.com smtp --user=${nest::gmail_username} --pass=${nest::gmail_password} --port=587 --starttls\n"
       } else {
         $remotes_content = "smtp.nest\n"
       }

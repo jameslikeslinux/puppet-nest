@@ -36,8 +36,8 @@ class nest::base::mta::postfix (
   case $ensure {
     'present': {
       if $nest::gmail_username and $nest::gmail_password {
-        $relayhost                  = '[smtp.gmail.com]:587'
-        $saslpass                   = "[smtp.gmail.com]:587 ${nest::gmail_username}:${nest::gmail_password}\n"
+        $relayhost                  = '[smtp-relay.gmail.com]:587'
+        $saslpass                   = "[smtp-relay.gmail.com]:587 ${nest::gmail_username}:${nest::gmail_password}\n"
         $smtp_sasl_auth_enable      = 'yes'
         $smtp_sasl_password_maps    = 'hash:/etc/postfix/saslpass'
         $smtp_sasl_security_options = 'noanonymous'
