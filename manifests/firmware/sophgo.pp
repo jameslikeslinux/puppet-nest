@@ -29,7 +29,7 @@ class nest::firmware::sophgo {
     }
 
     'u-root': {
-      include nest::base::bootloader::uroot # safe for stage2
+      include nest::base::bootloader # safe for stage2
 
       $conf_ini_kernel = ''
       $uboot_ensure    = absent
