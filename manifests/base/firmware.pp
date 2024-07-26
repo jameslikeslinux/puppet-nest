@@ -28,6 +28,7 @@ class nest::base::firmware {
         purge   => true,
         force   => true,
         ignore  => ['.*', '*.dts', 'Makefile'],
+        require => Class['nest::base::kernel'],
       }
     }
   }
