@@ -12,4 +12,10 @@ class nest::node::falcon {
       gcc_only => true,
     ;
   }
+
+  nest::lib::package { 'app-emulation/vendor-reset':
+    ensure  => installed,
+    require => Class['nest::base::kernel'], # for CONFIG_FUNCTION_TRACER
+    notify  => Class['nest::base::dracut'], # package installs module-load config
+  }
 }

@@ -36,6 +36,7 @@ nest::kernel_cmdline:
   - 'hugepages=10240'
   - 'intel_iommu=on'
   - 'intel_idle.max_cstate=2'
+  - 'pci-stub.ids=1002:7340,1002:ab38,1912:0014'
 
 nest::kernel_tag: 'stable/v6.8.1'
 nest::kernel_config:
@@ -43,6 +44,10 @@ nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n
   CONFIG_DRM_XE: m
   CONFIG_DRM_XE_FORCE_PROBE: '*'
+  CONFIG_FUNCTION_TRACER: y # for vendor-reset
+
+nest::package_keywords:
+  app-emulation/vendor-reset: {}
 
 # Protect service state
 nest::reset_filter_rules:
