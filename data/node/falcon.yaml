@@ -15,8 +15,8 @@ nest::classes:
   - 'nest::tool::qemu'
 
 nest::dvorak: true
-nest::monitor_layout: ['DP-2@0', 'DP-1@2560']
-nest::primary_monitor: 'DP-1'
+nest::monitor_layout: ['DP-4@0', 'DP-2@2560']
+nest::primary_monitor: 'DP-2'
 nest::text_scaling_factor: 1.1
 
 nest::bird_role: server
@@ -35,7 +35,6 @@ nest::kernel_cmdline:
   - 'console=tty0'
   - 'hugepages=10240'
   - 'intel_iommu=on'
-  - 'pci-stub.ids=10de:0fbc,1912:0014'
   - 'intel_idle.max_cstate=2'
 
 nest::kernel_tag: 'stable/v6.8.1'
