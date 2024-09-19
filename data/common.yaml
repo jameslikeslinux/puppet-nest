@@ -114,6 +114,7 @@ nest::package_keywords:
   sys-apps/systemd: {}
   sys-fs/zfs: {}
   sys-fs/zfs-kmod: {}
+  sys-kernel/dracut: {}
 
   # For Puppet
   dev-ruby/sys-filesystem:
