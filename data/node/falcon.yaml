@@ -37,7 +37,7 @@ nest::kernel_cmdline:
   - 'hugepages=10240'
   - 'intel_iommu=on'
   - 'intel_idle.max_cstate=2'
-  - 'pci-stub.ids=1002:7340,1002:ab38,1912:0014'
+  - 'pci-stub.ids=10de:2882,10de:22be,1912:0014'
 
 nest::kernel_tag: 'stable/v6.8.1'
 nest::kernel_config:
