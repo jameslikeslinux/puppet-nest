@@ -116,6 +116,13 @@ nest::package_keywords:
   sys-fs/zfs-kmod: {}
   sys-kernel/dracut: {}
 
+  # For distcc, match version deployed on riscv
+  cross-riscv64-unknown-linux-gnu/binutils: {}
+  cross-riscv64-unknown-linux-gnu/gcc: {}
+  cross-riscv64-unknown-linux-gnu/gdb: {}
+  cross-riscv64-unknown-linux-gnu/glibc: {}
+  cross-riscv64-unknown-linux-gnu/linux-headers: {}
+
   # For Puppet
   dev-ruby/sys-filesystem:
     version: '~1.4.4'
