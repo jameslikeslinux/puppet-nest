@@ -14,6 +14,7 @@ nest::soc: 'sg2042'
 nest::kernel_cmdline:
   - 'console=ttyS0,115200n8'
   - 'console=tty0'
+  - 'module_blacklist=amdgpu' # XXX until bug is fixed with CONFIG_RISCV_ISA_V
 
 nest::kernel_config:
   # Tuning
