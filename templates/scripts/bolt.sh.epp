@@ -24,7 +24,7 @@ exec podman run --rm -it -e TERM \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \
     -e KUBECONFIG -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
-    nest/tools/bolt:<%= $facts['profile']['cpu'] %> \
+    nest/tools/bolt:<%= $nest::canonical_cpu %> \
     bolt "$@"
 
 # vim: filetype=bash

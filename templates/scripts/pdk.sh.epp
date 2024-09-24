@@ -11,7 +11,7 @@
 
 exec podman run --rm -it -e TERM \
     -v "$(pwd):/module" \
-    nest/tools/pdk:<%= $facts['profile']['cpu'] %> \
+    nest/tools/pdk:<%= $nest::canonical_cpu %> \
     pdk "$@"
 
 # vim: filetype=bash

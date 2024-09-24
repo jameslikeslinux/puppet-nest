@@ -109,6 +109,12 @@ class nest (
     $concurrency = $facts['processors']['count']
   }
 
+  if $facts['profile'] and $facts['profile']['cpu'] {
+    $canonical_cpu = regsubst($facts['profile']['cpu'], '_.*$', '') # filter RISC-V extensions
+  } else {
+    $canonical_cpu = undef
+  }
+
   $knockouts = $classes.filter |$c| { $c =~ /^--/ }
   contain $classes.filter |$c| { !($c in $knockouts or "--${c}" in $knockouts) }
 }
