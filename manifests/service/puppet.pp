@@ -136,12 +136,12 @@ class nest::service::puppet (
   #
   nest::lib::container { 'puppetboard':
     pod   => 'puppet',
-    image => 'ghcr.io/voxpupuli/puppetboard:5.2.0',
+    image => 'ghcr.io/voxpupuli/puppetboard:5.4.0',
     env   => [
       'PUPPETDB_HOST=puppet',
       'ENABLE_CATALOG=True',
       'DEFAULT_ENVIRONMENT=main',
-      'UNRESPONSIVE_HOURS=24',
+      'UNRESPONSIVE_HOURS=8760', # 1 year
       "SECRET_KEY=${puppetboard_secret_key.unwrap}",
     ],
   }
