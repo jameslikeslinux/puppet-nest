@@ -97,6 +97,14 @@ class nest::gui::chrome (
           force  => true,
         }
       }
+
+      # For casting
+      unless $facts['build'] == 'stage1' { # firewalld not installed yet
+        firewalld_service { 'mdns':
+          ensure => present,
+          zone   => 'home',
+        }
+      }
     }
 
     'windows': {
