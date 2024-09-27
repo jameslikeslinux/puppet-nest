@@ -45,6 +45,11 @@ class nest::base::firewall {
         ;
       }
 
+      firewalld_service { 'mdns':
+        ensure => present,
+        zone   => 'home',
+      }
+
       firewalld_policy { 'nat':
         ensure        => present,
         ingress_zones => 'internal',
