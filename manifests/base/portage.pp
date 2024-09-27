@@ -162,7 +162,7 @@ class nest::base::portage {
     content => "FEATURES=\"-buildpkg\"\n",
   }
 
-  # Workaround systemd-boot build problem when using distcc
+  # Workaround build problems when using distcc
   file { '/etc/portage/env/no-distcc.conf':
     mode    => '0644',
     owner   => 'root',
@@ -170,7 +170,10 @@ class nest::base::portage {
     content => "FEATURES=\"-distcc\"\n",
   }
   ->
-  package_env { 'sys-apps/systemd':
+  package_env { [
+    'sci-libs/lapack',  # fails to verify fortran
+    'sys-apps/systemd', # fails to build systemd-boot
+  ]:
     env => 'no-distcc.conf',
   }
 
