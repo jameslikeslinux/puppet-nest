@@ -15,3 +15,4 @@ nest::classes:
   - 'nest::gui::chrome'
   - 'nest::gui::firefox'
   - 'nest::gui::terminals'
+  - 'nest::gui::xorg'

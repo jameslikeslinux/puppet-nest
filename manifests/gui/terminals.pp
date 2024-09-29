@@ -37,6 +37,11 @@ class nest::gui::terminals {
     }
 
     'windows': {
+      package { 'xterm':
+        ensure   => installed,
+        provider => 'cygwin',
+      }
+
       package { 'alacritty':
         ensure => installed,
       }
