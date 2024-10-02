@@ -64,7 +64,9 @@ describe 'nest' do
     'nest::base::vmware',
     'nest::gui::chrome',
     'nest::gui::firefox',
+    'nest::gui::fonts',
     'nest::gui::terminals',
+    'nest::gui::xorg',
   ]
 
   workstation = [

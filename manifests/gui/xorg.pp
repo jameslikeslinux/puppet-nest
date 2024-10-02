@@ -104,7 +104,10 @@ class nest::gui::xorg {
     }
 
     'windows': {
-      package { 'xorg-server':
+      package { [
+        'xorg-server',
+        'xset',
+      ]:
         ensure   => installed,
         provider => 'cygwin',
       }
@@ -117,6 +120,10 @@ class nest::gui::xorg {
       package { 'xinit':
         ensure   => installed,
         provider => 'cygwin',
+      }
+      ->
+      file { 'C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/XWin Server.lnk':
+        source => 'C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Cygwin-X/XWin Server.lnk',
       }
     }
   }

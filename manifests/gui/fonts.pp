@@ -1,15 +1,47 @@
 class nest::gui::fonts {
-  nest::lib::package { 'media-fonts/corefonts':
-    ensure => installed,
-    use    => 'tahoma',
-  }
+  case $facts['os']['family'] {
+    'Gentoo': {
+      $fontconfig_local_conf = '/etc/fonts/local.conf'
 
-  nest::lib::package { [
-    'media-fonts/fontawesome',
-    'media-fonts/liberation-fonts', # primarily for GitHub, tbh
-    'media-fonts/noto-emoji',
-  ]:
-    ensure => installed,
+      File {
+        owner => 'root',
+        group => 'root',
+        mode  => '0644',
+      }
+
+      nest::lib::package { 'media-fonts/corefonts':
+        ensure => installed,
+        use    => 'tahoma',
+      }
+      # fontconfig is pulled in by the portage profile, and all packages
+      # depend on the portage profile, so this is just an easy way to
+      # establish that relationship.
+      -> File[$fontconfig_local_conf]
+
+      nest::lib::package { [
+        'media-fonts/fontawesome',
+        'media-fonts/liberation-fonts', # primarily for GitHub, tbh
+        'media-fonts/noto-emoji',
+      ]:
+        ensure => installed,
+      }
+    }
+
+    'windows': {
+      $fontconfig_local_conf = 'C:/tools/cygwin/etc/fonts/local.conf'
+
+      File {
+        owner => 'Administrators',
+        group => 'None',
+        mode  => '0644',
+      }
+
+      file { 'C:/tools/cygwin/usr/share/fonts/hack':
+        ensure  => directory,
+        source  => 'puppet:///modules/nest/fonts/hack',
+        recurse => true,
+      }
+    }
   }
 
   # The intention here is to express configurations that are related to the
@@ -17,15 +49,7 @@ class nest::gui::fonts {
   # RGB LCDs; however, this could be made configurable in Hiera with some
   # module parameters.  User preference type configurations, like hinting,
   # belong in the user's home directory (~/.config/fontconfig/fonts.conf)
-  file { '/etc/fonts/local.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    source  => 'puppet:///modules/nest/fonts/local.conf',
-
-    # fontconfig is pulled in by the portage profile, and all packages
-    # depend on the portage profile, so this is just an easy way to
-    # establish that relationship.
-    require => Nest::Lib::Package['media-fonts/corefonts'],
+  file { $fontconfig_local_conf:
+    source => 'puppet:///modules/nest/fonts/local.conf',
   }
 }
