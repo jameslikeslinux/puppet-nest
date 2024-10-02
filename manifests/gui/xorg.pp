@@ -125,6 +125,14 @@ class nest::gui::xorg {
       file { 'C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/XWin Server.lnk':
         source => 'C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Cygwin-X/XWin Server.lnk',
       }
+
+      file { 'C:/tools/cygwin/etc/X11/Xresources':
+        mode    => '0644',
+        owner   => 'Administrators',
+        group   => 'None',
+        content => "Xft.dpi: ${nest::dpi}\n",
+        require => Package['xinit'],
+      }
     }
   }
 }
