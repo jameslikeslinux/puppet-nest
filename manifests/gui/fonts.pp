@@ -28,6 +28,8 @@ class nest::gui::fonts {
     }
 
     'windows': {
+      require 'nest::gui::xorg'
+
       $fontconfig_local_conf = 'C:/tools/cygwin/etc/fonts/local.conf'
 
       File {
