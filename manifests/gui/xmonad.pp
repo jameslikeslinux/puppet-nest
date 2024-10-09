@@ -1,9 +1,4 @@
 class nest::gui::xmonad {
-  nest::lib::repo { 'haskell':
-    url      => 'https://gitlab.james.tl/nest/gentoo/haskell.git',
-    unstable => true,
-  }
-
   nest::lib::package { 'x11-misc/rofi':
     ensure => installed,
     use    => 'windowmode',

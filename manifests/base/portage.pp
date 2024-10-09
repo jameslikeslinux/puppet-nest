@@ -143,10 +143,21 @@ class nest::base::portage {
       default => true,
     ;
 
+    'haskell':
+      url      => 'https://gitlab.james.tl/nest/gentoo/haskell.git',
+      unstable => true,
+    ;
+
     'nest':
       url      => 'https://gitlab.james.tl/nest/overlay.git',
       unstable => true,
     ;
+  }
+
+  file { '/etc/portage/package.unmask/ghc-9.8':
+    ensure  => link,
+    target  => '/var/db/repos/haskell/scripts/package.unmask/ghc-9.8',
+    require => Nest::Lib::Repo['haskell'],
   }
 
 
