@@ -167,8 +167,9 @@ nest::package_keywords:
   # July 2024 upgrade
   dev-libs/wayland:
     version: '~1.23.0'
+  # Oct 2024 upgrade
   dev-util/intel_clc:
-    version: '~24.1.2'
+    version: '~24.2.3'
 
 nest::uboot_tag: 'u-boot/v2024.01-rc1'
 nest::kernel_tag: 'stable/v6.8.1'
