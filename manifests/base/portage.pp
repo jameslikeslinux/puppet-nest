@@ -154,9 +154,9 @@ class nest::base::portage {
     ;
   }
 
-  file { '/etc/portage/package.unmask/ghc-9.8':
+  file { '/etc/portage/package.unmask/ghc-9.6':
     ensure  => link,
-    target  => '/var/db/repos/haskell/scripts/package.unmask/ghc-9.8',
+    target  => '/var/db/repos/haskell/scripts/package.unmask/ghc-9.6',
     require => Nest::Lib::Repo['haskell'],
   }
 
