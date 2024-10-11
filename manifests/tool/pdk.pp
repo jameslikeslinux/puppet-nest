@@ -2,6 +2,7 @@ class nest::tool::pdk {
   if $facts['build'] == 'pdk' {
     $pdk_version        = '3.3.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
+    $pdk_gem_dir        = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/pdk-${pdk_version}"
 
     package { 'pdk':
       ensure          => $pdk_version,
@@ -9,10 +10,20 @@ class nest::tool::pdk {
       provider        => gem,
     }
     ->
-    file_line { 'pdk-gem-path':
-      path  => "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/pdk-${pdk_version}/lib/pdk/util/ruby_version.rb",
-      line  => '[bundler_basedir]',
-      match => 'absolute_path.*join.*bundler_basedir',
+    file_line {
+      # The default path is bundler_basedir/../../.. which doesn't work
+      'pdk-gem-path':
+        path  => "${pdk_gem_dir}/lib/pdk/util/ruby_version.rb",
+        line  => '[bundler_basedir]',
+        match => 'absolute_path.*join.*bundler_basedir',
+      ;
+
+      # Yes, install missing gems into the container image
+      'pdk-bundler-install-remote':
+        path  => "${pdk_gem_dir}/lib/pdk/util/bundler.rb",
+        line  => 'update_lock!(only: { json: nil }, local: false)',
+        match => 'update_lock.*json.*local',
+      ;
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file { '/usr/local/bin/pdk':
