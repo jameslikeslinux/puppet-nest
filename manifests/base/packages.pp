@@ -32,6 +32,7 @@ class nest::base::packages {
         'sys-process/iotop',
         'sys-process/lsof',
         'www-client/elinks',
+        'x11-apps/xauth',
         'x11-misc/xsel',
       ]:
         ensure => installed,
