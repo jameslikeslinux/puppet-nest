@@ -5,7 +5,6 @@ nest::classes:
 
 nest::autologin: sway
 nest::dvorak: true
-nest::fscache: false # due to zvol bug
 nest::monitor_layout: ['DP-3@0', 'HDMI-A-1@2560']
 nest::primary_monitor: 'HDMI-A-1'
 nest::swap_alt_win: true
