@@ -1,0 +1,6 @@
+[Match]
+Host=kestrel
+Name=enP2*s0
+
+[Network]
+Bond=bond0

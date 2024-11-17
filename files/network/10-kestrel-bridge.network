@@ -1,0 +1,6 @@
+[Match]
+Host=kestrel
+Name=enP1*s0 en*u*
+
+[Network]
+Bridge=br0

@@ -1,0 +1,10 @@
+[Match]
+Host=kestrel
+
+[NetDev]
+Kind=bond
+Name=bond0
+
+[Bond]
+Mode=balance-alb
+MIIMonitorSec=1
