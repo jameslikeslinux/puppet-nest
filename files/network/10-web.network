@@ -1,9 +1,0 @@
-[Match]
-Host=web
-Name=en*
-
-[Network]
-DHCP=yes
-
-[DHCP]
-RouteMetric=10
