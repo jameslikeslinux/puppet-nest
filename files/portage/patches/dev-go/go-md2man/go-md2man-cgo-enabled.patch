@@ -1,0 +1,11 @@
+t --- go-md2man-2.0.3/Makefile   2023-10-10 20:05:46.000000000 +0200
++++ Makefile   2024-10-21 21:29:36.307238898 +0200
+@@ -16,7 +16,7 @@
+ 
+ bin/go-md2man: actual_build_flags := $(BUILD_FLAGS) -o bin/go-md2man
+ bin/go-md2man: bin
+-   @CGO_ENABLED=0 go build $(actual_build_flags)
++   @CGO_ENABLED=1 go build $(actual_build_flags)
+ 
+ bin:
+    @mkdir ./bin
