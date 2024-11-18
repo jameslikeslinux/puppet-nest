@@ -28,6 +28,8 @@ nest::package_keywords:
   # I always want the latest of these
   app-editors/vscode: {}
   app-misc/ddcutil: {}
+  dev-libs/wayland: {} # for sway
+  dev-util/intel_clc: {} # for mesa
   gui-apps/foot: {}
   gui-apps/gtkgreet: {}
   gui-apps/waybar: {}
@@ -35,6 +37,7 @@ nest::package_keywords:
   gui-libs/wlroots: {}
   gui-wm/sway: {}
   media-fonts/fontawesome: {}
+  media-libs/mesa: {}
   media-video/pipewire: {}
   media-video/wireplumber: {}
   net-im/zoom: {}
