@@ -15,7 +15,7 @@ plan nest::kubernetes::setup (
     namespace => 'tigera-operator',
     repo_name => 'projectcalico',
     repo_url  => 'https://docs.tigera.io/calico/charts',
-    version   => '3.28.0',
+    version   => '3.29.0',
     wait      => true,
   })
 

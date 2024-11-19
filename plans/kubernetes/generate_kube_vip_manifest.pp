@@ -7,7 +7,7 @@
 plan nest::kubernetes::generate_kube_vip_manifest (
   TargetSpec              $targets,
   Stdlib::IP::Address::V4 $vip,
-  String                  $version = 'v0.6.4',
+  String                  $version = 'v0.8.6',
 ) {
   parallelize(get_targets($targets)) |$t| {
     # XXX Generalize this
