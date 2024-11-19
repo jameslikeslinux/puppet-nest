@@ -10,11 +10,14 @@ resources:
       database-url: "%{nest::kubernetes::vaultwarden_db_url}"
 
 values:
+  image:
+    tag: '1.32.5'
   adminToken:
     value: "%{nest::kubernetes::vaultwarden_admin_token_hash}"
   data:
     name: vaultwarden-data
     size: 10Gi
+    accessMode: ReadWriteOnce
   database:
     type: mysql
     existingSecret: "%{nest::kubernetes::service}-secrets"
