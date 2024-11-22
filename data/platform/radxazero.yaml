@@ -8,7 +8,6 @@ nest::fscache: false
 nest::puppet: false
 nest::uboot_defconfig: 'radxa-zero_defconfig'
 nest::wifi: true
-nest::wifi_power_save: false
 
 nest::kernel_cmdline:
   - 'console=ttyAML0,115200n8'
