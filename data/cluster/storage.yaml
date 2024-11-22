@@ -3,12 +3,8 @@ nest::classes:
   - 'nest::service::kubernetes'
 
 nest::bird_role: worker
-nest::external_interfaces: ['usb0']
+nest::external_interfaces: ['bond0']
 nest::vpn_client: false
-nest::wifi: false
-
-nest::kernel_cmdline:
-  - 'module_blacklist=brcmfmac'
 
 nest::reset_filter_rules:
   - '- /etc/kubernetes/'

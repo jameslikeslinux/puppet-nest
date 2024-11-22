@@ -1,0 +1,13 @@
+[Match]
+Host=storage*
+
+[NetDev]
+Kind=bond
+Name=bond0
+
+[Bond]
+Mode=active-backup
+ARPIntervalSec=1
+ARPIPTargets=172.22.4.1 172.22.4.2
+ARPAllTargets=any
+FailOverMACPolicy=active
