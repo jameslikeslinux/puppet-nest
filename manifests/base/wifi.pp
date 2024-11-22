@@ -56,7 +56,7 @@ class nest::base::wifi {
     }
 
     # For better stability and interactivity
-    if $facts['profile']['platform'] =~ /^raspberrypi/ {
+    if !$nest::wifi_power_save {
       file { '/etc/systemd/system/wifi-power-save-off@.service':
         mode   => '0644',
         owner  => 'root',
@@ -68,6 +68,32 @@ class nest::base::wifi {
       ->
       service { 'wifi-power-save-off@wlan0':
         enable => true,
+      }
+
+      unless $facts['is_container'] {
+        exec { 'iw-wlan0-power_save-off':
+          command     => '/usr/sbin/iw dev wlan0 set power_save off',
+          refreshonly => true,
+          subscribe   => Service['wifi-power-save-off@wlan0'],
+        }
+      }
+    } else {
+      service { 'wifi-power-save-off@wlan0':
+        enable => false,
+      }
+      ->
+      file { '/etc/systemd/system/wifi-power-save-off@.service':
+        ensure => absent,
+      }
+      ~>
+      nest::lib::systemd_reload { 'wifi': }
+
+      unless $facts['is_container'] {
+        exec { 'iw-wlan0-power_save-on':
+          command     => '/usr/sbin/iw dev wlan0 set power_save on',
+          refreshonly => true,
+          subscribe   => Service['wifi-power-save-off@wlan0'],
+        }
       }
     }
   } else {

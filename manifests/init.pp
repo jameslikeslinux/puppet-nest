@@ -52,6 +52,7 @@ class nest (
   String                            $uroot_branch        = 'u-root/main',
   Enum['tcp', 'udp']                $vpn_transport       = udp,
   Boolean                           $wifi                = false,
+  Boolean                           $wifi_power_save     = true,
   Optional[Sensitive[Hash]]         $wlans               = undef,
 
   # Mail settings
