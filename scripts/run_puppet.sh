@@ -2,11 +2,9 @@
 #
 # run_puppet
 #
-# Initiate a Puppet run via systemd,
-# handling environment variables as necessary
+# Initiate a Puppet run without background agent conflicts
 #
 
-systemctl import-environment FACTER_build FACTER_skip_module_rebuild
-systemctl restart --wait puppet-run; rc=$?
-systemctl unset-environment FACTER_build FACTER_skip_module_rebuild
-exit $rc
+systemctl -q is-active puppet-run.timer && systemctl stop puppet-run
+puppet agent --test || [ $? -eq 2 ]
+exit $?
