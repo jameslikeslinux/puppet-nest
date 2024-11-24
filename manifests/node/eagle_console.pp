@@ -1,4 +1,6 @@
 class nest::node::eagle_console {
+  include nest::tool::arduino
+
   # Avoid using UART on this node
   file_line {
     default:
@@ -38,5 +40,34 @@ class nest::node::eagle_console {
     'net-dialup/minicom',
   ]:
     ensure => installed,
+  }
+
+
+  # Deploy Arduino sketch
+  unless $facts['is_container'] {
+    Exec {
+      cwd         => '/root',
+      environment => ['HOME=/root'],
+      require     => Class['nest::tool::arduino'],
+    }
+
+    file { '/root/PowerSupplyControl':
+      ensure  => directory,
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      source  => 'puppet:///modules/nest/arduino/PowerSupplyControl',
+      recurse => true,
+    }
+    ~>
+    exec { 'arduino-cli-compile-PowerSupplyControl':
+      command     => '/usr/local/bin/arduino-cli compile --fqbn arduino:avr:uno PowerSupplyControl',
+      refreshonly => true,
+    }
+    ~>
+    exec { 'arduino-cli-upload-PowerSupplyControl':
+      command     => '/usr/local/bin/arduino-cli upload -p /dev/ttyACM0 --fqbn arduino:avr:uno PowerSupplyControl',
+      refreshonly => true,
+    }
   }
 }
