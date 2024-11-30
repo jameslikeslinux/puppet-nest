@@ -50,14 +50,16 @@ plan nest::eyrie::manage_eagle (
       }
     }
   } else {
-    $pson = run_command("gpioget 0 ${pson_pin}", 'eagle-console', "Get current power status", {
+    $pson = run_command("gpioget 0 ${pson_pin}", 'eagle-console', 'Get current power status', {
       _run_as => 'root',
     }).first.value['stdout'].str2bool
 
     case $power {
       'off': {
         if $pson {
-          run_command("gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && gpioset 0 ${pscontrol_pin}=0", 'eagle-console', 'Power off the chassis', {
+          $command = "gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && \
+                      gpioset 0 ${pscontrol_pin}=0"
+          run_command($command, 'eagle-console', 'Power off the chassis', {
             _run_as => 'root',
           })
         } else {
@@ -67,7 +69,9 @@ plan nest::eyrie::manage_eagle (
 
       'on': {
         if !$pson {
-          run_command("gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && gpioset 0 ${pscontrol_pin}=0", 'eagle-console', 'Power on the chassis', {
+          $command = "gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && \
+                      gpioset 0 ${pscontrol_pin}=0"
+          run_command($command, 'eagle-console', 'Power on the chassis', {
             _run_as => 'root',
           })
         } else {
@@ -77,7 +81,11 @@ plan nest::eyrie::manage_eagle (
 
       'reset': {
         if $pson {
-          run_command("gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && gpioset -m time -s 1 0 ${pscontrol_pin}=0 && gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && gpioset 0 ${pscontrol_pin}=0", 'eagle-console', 'Reset off the chassis', {
+          $command = "gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && \
+                      gpioset -m time -s 1 0 ${pscontrol_pin}=0 && \
+                      gpioset -m time -u 200000 0 ${pscontrol_pin}=1 && \
+                      gpioset 0 ${pscontrol_pin}=0"
+          run_command($command, 'eagle-console', 'Reset off the chassis', {
             _run_as => 'root',
           })
         } else {
