@@ -17,6 +17,7 @@ values:
   data:
     name: vaultwarden-data
     size: 10Gi
+    class: ceph-filesystem
     accessMode: ReadWriteOnce
   database:
     type: mysql

@@ -3,6 +3,8 @@ resources:
   backup: {}
 
 values:
+  global:
+    defaultStorageClass: ceph-block
   image:
     tag: '11.4.4'
   auth:
