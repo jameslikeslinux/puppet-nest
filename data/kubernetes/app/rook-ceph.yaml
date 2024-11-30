@@ -1,0 +1,22 @@
+---
+resources:
+  backup: {}
+
+values:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+              - storage
+  tolerations: &tolerations
+    - key: role
+      operator: Equal
+      value: storage
+      effect: NoSchedule
+  csi:
+    provisionerTolerations: *tolerations
+    provisionerNodeAffinity: role=storage
+    pluginTolerations: *tolerations

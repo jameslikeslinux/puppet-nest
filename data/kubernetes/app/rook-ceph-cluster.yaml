@@ -1,0 +1,98 @@
+---
+resources:
+  backup: {}
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: ceph-dashboard-cert
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: ceph-dashboard-cert
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames:
+        - ceph.eyrie
+
+values:
+  cephClusterSpec:
+    cephVersion:
+      # Workaround known issue with 18.2.4 on ARM64
+      # See: https://github.com/rook/rook/issues/14502
+      image: quay.io/ceph/ceph:v18.2.2
+    dashboard:
+      ssl: false
+    placement:
+      all: &placement
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: role
+                  operator: In
+                  values:
+                    - storage
+        tolerations:
+          - key: role
+            operator: Equal
+            value: storage
+            effect: NoSchedule
+    storage:
+      useAllDevices: false
+      devices:
+        - name: /dev/zvol/data/crypt/ceph
+  ingress:
+    dashboard:
+      host:
+        name: ceph.eyrie
+      tls:
+        - hosts:
+          - ceph.eyrie
+          secretName: ceph-dashboard-cert
+      ingressClassName: nginx
+
+patches:
+  # Force these services onto storage nodes
+  # (patch because it's not easy to access with values)
+  10-placement:
+    - patch:
+      - op: add
+        path: '/spec/metadataServer/placement'
+        value: *placement
+      target:
+        group: ceph.rook.io
+        version: v1
+        kind: CephFilesystem
+    - patch:
+      - op: add
+        path: '/spec/gateway/placement'
+        value: *placement
+      target:
+        group: ceph.rook.io
+        version: v1
+        kind: CephObjectStore
+
+  # Remove resource requirements on these small, dedicated nodes
+  10-resources:
+    - patch:
+        - op: remove
+          path: '/spec/resources'
+      target:
+        group: ceph.rook.io
+        version: v1
+        kind: CephCluster
+    - patch:
+        - op: remove
+          path: '/spec/metadataServer/resources'
+      target:
+        group: ceph.rook.io
+        version: v1
+        kind: CephFilesystem
+    - patch:
+        - op: remove
+          path: '/spec/gateway/resources'
+      target:
+        group: ceph.rook.io
+        version: v1
+        kind: CephObjectStore

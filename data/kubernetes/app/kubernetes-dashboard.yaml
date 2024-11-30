@@ -16,23 +16,9 @@ values:
       hosts:
         - "%{nest::kubernetes::service}.eyrie"
         - kubernetes.eyrie
-  cert-manager:
-    enabled: true
+      ingressClassName: nginx
+      issuer:
+        name: eyrie-ca
+        scope: cluster
   metrics-server:
     enabled: true
-  nginx:
-    enabled: true
-    controller:
-      service:
-        type: LoadBalancer
-
-patches:
-  10-nest:
-    patch:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: "%{nest::kubernetes::service}-nginx-controller"
-        namespace: "%{nest::kubernetes::namespace}"
-        labels:
-          'james.tl/nest': 'dns-only'
