@@ -44,9 +44,6 @@ steps:
   - description: 'Configure storage'
     plan: nest::kubernetes::configure_storage
 
-  - description: 'Configure Ceph'
-    plan: nest::kubernetes::configure_ceph
-
   - description: 'Configure ingress'
     plan: nest::kubernetes::configure_ingress
 
