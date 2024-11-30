@@ -17,6 +17,19 @@ values:
       value: storage
       effect: NoSchedule
   csi:
+    # For the StorageClass commented out in rook-ceph-cluster
+    # See: https://rook.github.io/docs/rook/latest-release/Storage-Configuration/NFS/nfs-csi-driver/
+    # nfs:
+    #   enabled: true
+
+    # Drop unrealistic resource requests
+    csiRBDProvisionerResource: '{}'
+    csiRBDPluginResource: '{}'
+    csiCephFSProvisionerResource: '{}'
+    csiCephFSPluginResource: '{}'
+    csiNFSProvisionerResource: '{}'
+    csiNFSPluginResource: '{}'
+
     provisionerTolerations: *tolerations
     provisionerNodeAffinity: role=storage
     pluginTolerations: *tolerations
