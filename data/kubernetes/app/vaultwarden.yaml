@@ -18,7 +18,7 @@ values:
     name: vaultwarden-data
     size: 10Gi
     class: ceph-filesystem
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
   database:
     type: mysql
     existingSecret: "%{nest::kubernetes::service}-secrets"
