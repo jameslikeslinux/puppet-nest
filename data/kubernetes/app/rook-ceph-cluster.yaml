@@ -21,11 +21,9 @@ values:
       # Workaround known issue with 18.2.4 on ARM64
       # See: https://github.com/rook/rook/issues/14502
       image: quay.io/ceph/ceph:v18.2.2
-    dashboard:
-      ssl: false
     placement:
       all: &placement
-        nodeAffinity:
+        nodeAffinity: &affinity
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
@@ -33,7 +31,7 @@ values:
                   operator: In
                   values:
                     - storage
-        tolerations:
+        tolerations: &tolerations
           - key: role
             operator: Equal
             value: storage
@@ -44,6 +42,10 @@ values:
         - name: /dev/zvol/data/crypt/ceph
   ingress:
     dashboard:
+      annotations:
+       nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+       nginx.ingress.kubernetes.io/server-snippet: |
+         proxy_ssl_verify off;
       host:
         name: ceph.eyrie
       tls:
@@ -51,6 +53,10 @@ values:
           - ceph.eyrie
           secretName: ceph-dashboard-cert
       ingressClassName: nginx
+  toolbox:
+    enabled: true
+    tolerations: *tolerations
+    affinity: *affinity
 
 patches:
   # Force these services onto storage nodes

@@ -1,3 +1,7 @@
 ---
 resources:
   backup: {}
+
+values:
+  controller:
+    allowSnippetAnnotations: true
