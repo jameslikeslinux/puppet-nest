@@ -1,5 +1,6 @@
 ---
 nest::classes:
+  - 'nest::base::certificates'
   - 'nest::base::cygwin'
   - 'nest::base::eyaml'
   - 'nest::base::firewall'

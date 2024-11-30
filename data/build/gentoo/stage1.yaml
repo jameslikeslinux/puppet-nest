@@ -2,6 +2,7 @@
 nest::classes:
   - 'nest::base::bird'
   - 'nest::base::branding'
+  - 'nest::base::certificates'
   - 'nest::base::cli'
   - 'nest::base::containers'
   - 'nest::base::distcc'

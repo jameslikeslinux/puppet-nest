@@ -4,6 +4,7 @@ describe 'nest' do
   stage1 = [
     'nest::base::bird',
     'nest::base::branding',
+    'nest::base::certificates',
     'nest::base::cli',
     'nest::base::containers',
     'nest::base::distcc',
@@ -50,6 +51,7 @@ describe 'nest' do
   ]
 
   windows = [
+    'nest::base::certificates',
     'nest::base::cygwin',
     'nest::base::eyaml',
     'nest::base::firewall',

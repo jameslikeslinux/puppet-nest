@@ -51,6 +51,14 @@ class nest::gui::firefox {
         '/usr/lib64/firefox/defaults/pref/all-nest.js':
           ensure => absent,
         ;
+
+        # Load CA certs from system store
+        # Also works for Chromium
+        # See: https://superuser.com/a/1836165
+        '/usr/lib64/libnssckbi.so':
+          ensure => link,
+          target => '/usr/lib64/pkcs11/p11-kit-trust.so',
+        ;
       }
     }
 

@@ -38,7 +38,7 @@ mod 'portage', :git => 'git@gitlab.james.tl:nest/forks/puppet-portage.git', :bra
 mod 'puppetlabs-registry', '5.0.1'
 
 # Required by puppetlabs-powershell
-mod 'puppetlabs-pwshlib', '1.0.0'
+mod 'puppetlabs-pwshlib', '1.2.2'
 
 # Required by theforeman-puppet
 mod 'puppet-extlib', '7.0.0'
