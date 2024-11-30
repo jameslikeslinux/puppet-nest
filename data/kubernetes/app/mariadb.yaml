@@ -4,7 +4,6 @@ resources:
 
 values:
   global:
-    defaultStorageClass: ceph-block
   image:
     tag: '11.4.4'
   auth:
@@ -13,6 +12,8 @@ values:
     password: "%{nest::kubernetes::db_password}"
     rootPassword: "%{lookup('nest::service::mysql::root_password')}"
   primary:
+    persistence:
+      storageClass: ceph-block
     # Increase check intervals for slow workers
     livenessProbe:
       initialDelaySeconds: 300

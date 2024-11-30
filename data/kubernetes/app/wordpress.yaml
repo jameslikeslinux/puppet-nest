@@ -2,10 +2,8 @@
 resources: {}
 
 values:
-  global:
-    defaultStorageClass: ceph-filesystem
   image:
-    tag: '6.7.0'
+    tag: '6.7.1'
   wordpressPassword: 'wordpress' # throwaway
   allowEmptyPassword: false
   resources:
@@ -16,6 +14,10 @@ values:
   containerSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
+  persistence:
+    storageClass: ceph-filesystem
+    accessModes:
+      - ReadWriteMany
   # Increase check intervals for slow workers
   livenessProbe:
     initialDelaySeconds: 600
