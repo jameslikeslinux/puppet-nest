@@ -80,6 +80,8 @@ values:
       useAllDevices: false
       devices:
         - name: /dev/zvol/data/crypt/ceph
+  dashboard:
+    prometheusEndpoint: http://rook-ceph-monitoring-kube-prometheus:9090
   ingress:
     dashboard:
       annotations:

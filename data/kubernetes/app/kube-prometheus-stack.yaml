@@ -16,7 +16,7 @@ resources:
         name: eyrie-ca
         kind: ClusterIssuer
       dnsNames:
-        - grafana.eyrie
+        - "%{nest::kubernetes::namespace}-grafana.eyrie"
 
 values:
   grafana:
@@ -24,20 +24,13 @@ values:
       enabled: true
       ingressClassName: nginx
       hosts:
-        - grafana.eyrie
+        -  "%{nest::kubernetes::namespace}-grafana.eyrie"
       tls:
         - hosts:
-            - grafana.eyrie
+            -  "%{nest::kubernetes::namespace}-grafana.eyrie"
           secretName: grafana-cert
-  prometheusOperator:
-    namespaces:
-      releaseNamespace: true
-      additional:
-        - rook-ceph
   prometheus:
     prometheusSpec:
-      requests:
-        memory: 1Gi
       storageSpec:
        volumeClaimTemplate:
          spec:

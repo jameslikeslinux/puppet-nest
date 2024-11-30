@@ -33,5 +33,5 @@ values:
     provisionerTolerations: *tolerations
     provisionerNodeAffinity: role=storage
 
-    monitoring:
-      enabled: true
+  monitoring:
+    enabled: true

@@ -47,9 +47,6 @@ steps:
   - description: 'Configure ingress'
     plan: nest::kubernetes::configure_ingress
 
-  - description: 'Configure monitoring'
-    plan: nest::kubernetes::configure_monitoring
-
   - description: 'Configure Ceph'
     plan: nest::kubernetes::configure_ceph
 
