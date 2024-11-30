@@ -22,3 +22,14 @@ values:
         scope: cluster
   metrics-server:
     enabled: true
+
+patches:
+  # Remove unrealistic resources requests
+  10-resources:
+    - patch:
+        - op: remove
+          path: '/spec/template/spec/containers/0/resources'
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
