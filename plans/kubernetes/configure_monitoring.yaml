@@ -1,0 +1,13 @@
+---
+description: 'Configure monitoring'
+
+steps:
+  - description: 'Install kube-prometheus-stack'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'kube-prometheus-stack'
+      app: 'kube-prometheus-stack'
+      namespace: 'monitoring'
+      repo_name: 'prometheus-community'
+      repo_url: 'https://prometheus-community.github.io/helm-charts'
+      version: '66.3.0'

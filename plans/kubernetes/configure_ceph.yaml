@@ -1,0 +1,24 @@
+---
+description: 'Configure Ceph'
+
+steps:
+  - description: 'Install Rook Ceph operator'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'rook-ceph'
+      app: 'rook-ceph'
+      namespace: 'rook-ceph'
+      repo_name: 'rook-release'
+      repo_url: 'https://charts.rook.io/release'
+      version: '1.15.5'
+      wait: true
+
+  - description: 'Install Rook Ceph cluster'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'rook-ceph-cluster'
+      app: 'rook-ceph-cluster'
+      namespace: 'rook-ceph'
+      repo_name: 'rook-release'
+      repo_url: 'https://charts.rook.io/release'
+      version: '1.15.5'

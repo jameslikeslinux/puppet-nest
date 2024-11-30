@@ -2,23 +2,12 @@
 description: 'Configure storage'
 
 steps:
-  - description: 'Install Rook Ceph operator'
+  - description: 'Install NFS CSI driver'
     plan: 'nest::kubernetes::deploy'
     parameters:
-      service: 'rook-ceph'
-      app: 'rook-ceph'
-      namespace: 'rook-ceph'
-      repo_name: 'rook-release'
-      repo_url: 'https://charts.rook.io/release'
-      version: '1.15.5'
-      wait: true
-
-  - description: 'Install Rook Ceph cluster'
-    plan: 'nest::kubernetes::deploy'
-    parameters:
-      service: 'rook-ceph-cluster'
-      app: 'rook-ceph-cluster'
-      namespace: 'rook-ceph'
-      repo_name: 'rook-release'
-      repo_url: 'https://charts.rook.io/release'
-      version: '1.15.5'
+      service: 'csi-driver-nfs'
+      app: 'csi-driver-nfs'
+      namespace: 'kube-system'
+      repo_name: 'csi-driver-nfs'
+      repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
+      version: '4.9.0'

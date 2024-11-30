@@ -1,0 +1,48 @@
+---
+resources:
+  # Disable Nest backup
+  backup: {}
+
+  # Define cert for Grafana
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: grafana-cert
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: grafana-cert
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames:
+        - grafana.eyrie
+
+values:
+  grafana:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.eyrie
+      tls:
+        - hosts:
+            - grafana.eyrie
+          secretName: grafana-cert
+  prometheusOperator:
+    namespaces:
+      releaseNamespace: true
+      additional:
+        - rook-ceph
+  prometheus:
+    prometheusSpec:
+      requests:
+        memory: 1Gi
+      storageSpec:
+       volumeClaimTemplate:
+         spec:
+           storageClassName: eagle
+           accessModes: ["ReadWriteOnce"]
+           resources:
+             requests:
+               storage: 50Gi
