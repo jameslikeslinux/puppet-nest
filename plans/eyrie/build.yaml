@@ -29,8 +29,15 @@ steps:
     plan: nest::kubernetes::join_node
     parameters:
       control_plane: eyrie-control-plane
-      taints: role=storage:NoSChedule
+      taints: role=storage:NoSchedule
     targets: eyrie-storage
+
+  - description: 'Join monitor nodes'
+    plan: nest::kubernetes::join_node
+    parameters:
+      control_plane: eyrie-control-plane
+      taints: role=monitor:NoSchedule
+    targets: eyrie-monitor
 
   - description: 'Rebalance CoreDNS'
     plan: nest::kubernetes::restart_deployment

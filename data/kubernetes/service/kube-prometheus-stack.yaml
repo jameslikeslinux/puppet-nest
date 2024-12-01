@@ -7,12 +7,12 @@
           - key: role
             operator: In
             values:
-              - storage # the only nodes with enough memory atm
+              - monitor
 
 .tolerations: &tolerations
   - key: role
     operator: Equal
-    value: storage
+    value: monitor
     effect: NoSchedule
 
 resources:
