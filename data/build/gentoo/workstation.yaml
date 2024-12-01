@@ -72,6 +72,9 @@ nest::package_keywords:
   dev-cpp/gulrak-filesystem:
     version: '~1.5.10'
 
+nest::kernel_cmdline:
+  - 'preempt=full' # prioritize interactivity
+
 nest::kernel_config:
   # Networking
   CONFIG_BT: m

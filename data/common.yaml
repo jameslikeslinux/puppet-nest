@@ -181,6 +181,9 @@ nest::kernel_config:
   # Support distcc
   CONFIG_GCC_PLUGINS: n
 
+  # Kernel
+  CONFIG_PREEMPT_DYNAMIC: y
+
   # Networking
   CONFIG_IPV6: y
   CONFIG_NETFILTER: y
