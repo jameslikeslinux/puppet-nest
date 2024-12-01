@@ -80,14 +80,11 @@ values:
       useAllDevices: false
       devices:
         - name: /dev/zvol/data/crypt/ceph
-  dashboard:
-    prometheusEndpoint: http://rook-ceph-monitoring-kube-prometheus:9090
+    dashboard:
+      prometheusEndpoint: http://rook-ceph-monitoring-kube-prometheus:9090
+      ssl: false
   ingress:
     dashboard:
-      annotations:
-       nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-       nginx.ingress.kubernetes.io/server-snippet: |
-         proxy_ssl_verify off;
       host:
         name: ceph.eyrie
       tls:
