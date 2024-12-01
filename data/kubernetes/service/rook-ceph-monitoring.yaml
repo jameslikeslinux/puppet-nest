@@ -26,8 +26,7 @@ values:
   prometheus:
     prometheusSpec:
       serviceMonitorSelector:
-        matchLabels:
-          team: rook # read ServiceMonitors created by rook-ceph-operator
+        matchLabels: null # select all ServiceMonitors in the namespace
       affinity: *affinity
       tolerations: *tolerations
 
