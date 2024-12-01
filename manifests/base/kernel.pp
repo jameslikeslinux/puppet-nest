@@ -53,6 +53,7 @@ class nest::base::kernel {
         '-Wno-dangling-pointer',
         '-Wno-enum-int-mismatch',
         '-Wno-implicit-fallthrough',
+        '-Wno-implicit-function-declaration',
         '-Wno-int-in-bool-context',
         '-Wno-stringop-overread',
         '-Wno-tautological-compare',
