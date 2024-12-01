@@ -1,0 +1,65 @@
+---
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+              - storage # the only nodes with enough memory atm
+
+.tolerations: &tolerations
+  - key: role
+    operator: Equal
+    value: storage
+    effect: NoSchedule
+
+resources:
+  # Define cert for Grafana
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: grafana-cert
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: grafana-cert
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames:
+        - grafana.eyrie
+
+values:
+  kubeStateMetrics:
+    enabled: true
+  nodeExporter:
+    enabled: true
+  prometheusOperator:
+    affinity: *affinity
+    tolerations: *tolerations
+  prometheus:
+    prometheusSpec:
+      affinity: *affinity
+      tolerations: *tolerations
+
+  # Subcharts
+  # See: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
+  # See: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+  kube-state-metrics:
+    affinity: *affinity
+    tolerations: *tolerations
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.eyrie
+      tls:
+        - hosts:
+            - grafana.eyrie
+          secretName: grafana-cert
+    affinity: *affinity
+    tolerations: *tolerations

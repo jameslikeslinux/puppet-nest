@@ -16,26 +16,13 @@
     effect: NoSchedule
 
 values:
-  alertmanager:
-    alertmanagerSpec:
-      affinity: *affinity
-      tolerations: *tolerations
   prometheusOperator:
     affinity: *affinity
     tolerations: *tolerations
   prometheus:
     prometheusSpec:
       serviceMonitorSelector:
-        matchLabels: null # select all ServiceMonitors in the namespace
+        matchLabels:
+          team: rook # read ServiceMonitors created by rook-ceph-operator
       affinity: *affinity
       tolerations: *tolerations
-
-  # Subcharts
-  # See: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
-  # See: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
-  kube-state-metrics:
-    affinity: *affinity
-    tolerations: *tolerations
-  grafana:
-    affinity: *affinity
-    tolerations: *tolerations
