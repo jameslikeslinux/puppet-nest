@@ -17,7 +17,7 @@ values:
       # Tune storage retention, thus memory, for small nodes
       additionalArgs:
         - name: 'storage.tsdb.retention.size'
-          value: '2GB'
+          value: '1GB'
       storageSpec:
        volumeClaimTemplate:
          spec:
