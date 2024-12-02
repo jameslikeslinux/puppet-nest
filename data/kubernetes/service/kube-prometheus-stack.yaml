@@ -16,15 +16,15 @@
     effect: NoSchedule
 
 resources:
-  # Define cert for Grafana
-  certificate:
+  # Define certs for Grafana
+  certs:
     apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
-      name: grafana-cert
+      name: grafana-certs
       namespace: "%{nest::kubernetes::namespace}"
     spec:
-      secretName: grafana-cert
+      secretName: grafana-certs
       issuerRef:
         name: eyrie-ca
         kind: ClusterIssuer
@@ -60,6 +60,6 @@ values:
       tls:
         - hosts:
             - grafana.eyrie
-          secretName: grafana-cert
+          secretName: grafana-certs
     affinity: *affinity
     tolerations: *tolerations
