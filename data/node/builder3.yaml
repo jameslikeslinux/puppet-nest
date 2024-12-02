@@ -1,10 +1,16 @@
 ---
 nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
 nest::kernel_defconfig: 'rockchip_linux_defconfig'
-nest::kernel_tag: 'radxa/v6.1.84'
+nest::kernel_tag: 'radxa/v5.10.160'
 nest::uboot_defconfig: 'rock5a-rk3588s_defconfig'
 
 nest::kernel_config:
-  # Workaround build failures in old BSP kernel
-  CONFIG_ARCH_SUNXI: n
-  CONFIG_ROCKCHIP_DW_HDMI: n
+  # For 5.x compatibility
+  CONFIG_GCC_PLUGINS: null
+  CONFIG_SYSFB_SIMPLEFB: null
+  CONFIG_DRM_SIMPLEDRM: null
+
+  # Match defconfig
+  CONFIG_USB_USBNET: y
+  CONFIG_USB_NET_RNDIS_HOST: y
+  CONFIG_CRYPTO_DES: y
