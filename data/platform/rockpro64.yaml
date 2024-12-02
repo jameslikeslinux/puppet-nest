@@ -6,6 +6,7 @@ nest::classes:
 nest::fscache: false
 nest::soc: 'rk3399'
 nest::uboot_defconfig: 'rockpro64-rk3399_defconfig'
+nest::wifi: true
 
 nest::kernel_cmdline:
   - 'console=ttyS2,115200n8'
