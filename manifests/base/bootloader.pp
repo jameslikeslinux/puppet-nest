@@ -31,8 +31,6 @@ class nest::base::bootloader {
     # See also: nest::base::zfs for workarounds
     'vm.swappiness=100',
     'zswap.enabled=1',
-    'zswap.compressor=lzo-rle',
-    'zswap.zpool=z3fold',
     'zswap.max_pool_percent=100',
 
     # For iotop

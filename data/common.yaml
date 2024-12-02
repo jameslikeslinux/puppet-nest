@@ -269,7 +269,7 @@ nest::kernel_config:
   # For zswap
   CONFIG_SWAP: y
   CONFIG_ZSWAP: y
-  CONFIG_Z3FOLD: y
+  CONFIG_ZSMALLOC: y
 
   # For systemd
   CONFIG_CHECKPOINT_RESTORE: y
