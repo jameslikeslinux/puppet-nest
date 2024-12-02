@@ -1,8 +1,9 @@
 ---
 nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
-nest::kernel_tag: 'radxa/v6.1.43'
+nest::kernel_tag: 'radxa/v5.10.160'
 nest::uboot_defconfig: 'rock5a-rk3588s_defconfig'
 
 nest::kernel_config:
-  # Build failures
-  CONFIG_VIDEO_MAX96712: n
+  # Workaround build failures in old BSP kernel
+  CONFIG_ARCH_SUNXI: n
+  CONFIG_ROCKCHIP_DW_HDMI: n
