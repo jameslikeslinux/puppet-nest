@@ -7,4 +7,4 @@ nest::vpn_client: false
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   runner:
-    cap_add: ['SYS_CHROOT']
+    buildah: true
