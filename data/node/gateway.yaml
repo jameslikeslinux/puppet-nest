@@ -54,6 +54,7 @@ nest::service::reverse_proxy::hosts:
     docroot: '/nest/www/james.tl'
     ip: ['45.77.109.122', '2001:19f0:1000:22c0::122']
     priority: '20'  # higher priority
+    proxy_ssl: true
     serve_local: true
     timeout: 600
 
@@ -62,5 +63,6 @@ nest::service::reverse_proxy::hosts:
     docroot: '/nest/www/thestaticvoid.com'
     ip: ['45.77.109.122', '2001:19f0:1000:22c0::122']
     serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
+    proxy_ssl: true
     serve_local: true
     timeout: 600

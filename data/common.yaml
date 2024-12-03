@@ -88,8 +88,8 @@ nest::host_records:
   kubernetes-dashboard.eyrie: '172.21.0.0'
   ceph.eyrie: '172.21.0.0'
   grafana.eyrie: '172.21.0.0'
-  thestaticvoid.eyrie: '172.21.0.1'
-  portfolio.eyrie: '172.21.0.2'
+  thestaticvoid.eyrie: '172.21.0.0'
+  portfolio.eyrie: '172.21.0.0'
   bitwarden.eyrie: '172.21.0.0'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_servers:

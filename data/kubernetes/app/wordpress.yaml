@@ -1,11 +1,17 @@
 ---
-resources: {}
-
 values:
   image:
     tag: '6.7.1'
   wordpressPassword: 'wordpress' # throwaway
   allowEmptyPassword: false
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    hostname: "%{nest::kubernetes::service}.eyrie"
+    annotations:
+      cert-manager.io/cluster-issuer: eyrie
+    tls: true
   resources:
     requests:
       memory: '200Mi'
