@@ -28,7 +28,7 @@ resources:
     spec:
       secretName: ceph-dashboard-certs
       issuerRef:
-        name: eyrie-ca
+        name: eyrie
         kind: ClusterIssuer
       dnsNames:
         - ceph.eyrie

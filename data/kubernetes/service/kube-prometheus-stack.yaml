@@ -26,7 +26,7 @@ resources:
     spec:
       secretName: grafana-certs
       issuerRef:
-        name: eyrie-ca
+        name: eyrie
         kind: ClusterIssuer
       dnsNames:
         - grafana.eyrie

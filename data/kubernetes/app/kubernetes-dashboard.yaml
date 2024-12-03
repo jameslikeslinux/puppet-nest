@@ -18,7 +18,7 @@ values:
         - kubernetes.eyrie
       ingressClassName: nginx
       issuer:
-        name: eyrie-ca
+        name: eyrie
         scope: cluster
   metrics-server:
     enabled: true

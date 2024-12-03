@@ -1,4 +1,4 @@
-class nest::base::certificates {
+class nest::base::certs {
   case $facts['os']['family'] {
     'Gentoo': {
       # See: https://wiki.gentoo.org/wiki/Certificates
@@ -12,11 +12,11 @@ class nest::base::certificates {
         group  => 'root',
       }
 
-      file { '/usr/local/share/ca-certificates/Eyrie_Root_CA.crt':
+      file { '/usr/local/share/ca-certificates/eyrie.crt':
         mode   => '0644',
         owner  => 'root',
         group  => 'root',
-        source => 'puppet:///modules/nest/certificates/Eyrie_Root_CA.crt',
+        source => 'puppet:///modules/nest/certs/eyrie.crt',
       }
       ~>
       exec { 'update-ca-certificates':
@@ -26,13 +26,13 @@ class nest::base::certificates {
     }
 
     'windows': {
-      $eyrie_root_ca = 'C:/tools/cygwin/etc/pki/ca-trust/source/anchors/Eyrie_Root_CA.crt'
+      $eyrie_crt = 'C:/tools/cygwin/etc/pki/ca-trust/source/anchors/eyrie.crt'
 
-      file { $eyrie_root_ca:
+      file { $eyrie_crt:
         mode   => '0644',
         owner  => 'Administrators',
         group  => 'None',
-        source => 'puppet:///modules/nest/certificates/Eyrie_Root_CA.crt',
+        source => 'puppet:///modules/nest/certs/eyrie.crt',
       }
       ~>
       exec { 'update-ca-trust':
@@ -44,9 +44,9 @@ class nest::base::certificates {
       }
 
       exec { 'certutil-addstore-eyrie-root':
-        command  => "C:/Windows/System32/certutil.exe -addstore Root ${eyrie_root_ca}",
-        unless   => "if ((C:/Windows/System32/certutil.exe -verify ${eyrie_root_ca} | Select-String -Pattern UNTRUSTED).Length -gt 0) { exit 1 }",
-        require  => File['C:/tools/cygwin/etc/pki/ca-trust/source/anchors/Eyrie_Root_CA.crt'],
+        command  => "C:/Windows/System32/certutil.exe -addstore Root ${eyrie_crt}",
+        unless   => "if ((C:/Windows/System32/certutil.exe -verify ${eyrie_crt} | Select-String -Pattern UNTRUSTED).Length -gt 0) { exit 1 }",
+        require  => File['C:/tools/cygwin/etc/pki/ca-trust/source/anchors/eyrie.crt'],
         provider => powershell,
       }
     }
