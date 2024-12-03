@@ -16,7 +16,7 @@ class GetKubernetesServices < TaskHelper
         {
           name: service['metadata']['annotations']['meta.helm.sh/release-name'],
           uri: "#{service['metadata']['name']}.#{service['metadata']['namespace']}.svc.cluster.local",
-          config: { ssh: { proxyjump: 'jump.eyrie' } },
+          config: { ssh: { proxyjump: 'jump.eyrie', user: 'james' } },
         }
       end
     }
