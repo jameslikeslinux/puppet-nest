@@ -3,3 +3,4 @@ values:
   controller:
     ingressClassResource:
       default: true
+    replicaCount: 2
