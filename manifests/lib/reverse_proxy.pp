@@ -6,6 +6,7 @@ define nest::lib::reverse_proxy (
   Optional[Integer]        $port            = undef,
   Boolean                  $preserve_host   = false,
   Optional[String]         $priority        = undef,
+  Boolean                  $proxy_ssl       = false,
   String                   $servername      = $name,
   Array[String]            $serveraliases   = [],
   Boolean                  $serve_local     = false,
@@ -14,12 +15,20 @@ define nest::lib::reverse_proxy (
   Variant[Boolean, String] $websockets      = false,
   String                   $docroot         = "/srv/www/${servername}",
 ) {
+  if $proxy_ssl {
+    $http_proto = 'https'
+    $ws_proto   = 'wss'
+  } else {
+    $http_proto = 'http'
+    $ws_proto   = 'ws'
+  }
+
   if $destination =~ String {
-    $url      = "http://${destination}/"
+    $url      = "${http_proto}://${destination}/"
     $balancer = ''
   } else {
     $url      = "balancer://${name}/"
-    $members  = $destination.map |$d| { "    BalancerMember http://${d}" }
+    $members  = $destination.map |$d| { "    BalancerMember ${http_proto}://${d}" }
     $balancer = @("BALANCER")
       <Proxy balancer://${name}>
       ${members.join("\n")}
@@ -87,7 +96,7 @@ define nest::lib::reverse_proxy (
 
     $websocket_rewrites = [{
       'rewrite_cond' => ['%{HTTP:Upgrade} =websocket [NC]'],
-      'rewrite_rule' => ["^/(.*)$ ws://${wsdestination}/\$1 [P,L]"],
+      'rewrite_rule' => ["^/(.*)$ ${ws_proto}://${wsdestination}/\$1 [P,L]"],
     }]
   } else {
     $websocket_rewrites = []
@@ -116,6 +125,7 @@ define nest::lib::reverse_proxy (
       'proxy_pass'            => $proxy_pass,
       'proxy_preserve_host'   => $preserve_host,
       'rewrites'              => $websocket_rewrites,
+      'ssl_proxyengine'       => $proxy_ssl,
       'custom_fragment'       => "${balancer}${certbot_exception}",
     } + $extra_params,
   }

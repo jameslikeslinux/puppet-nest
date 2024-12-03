@@ -1,5 +1,19 @@
 ---
 resources:
+  certs:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: "%{nest::kubernetes::service}-certs"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: "%{nest::kubernetes::service}-certs"
+      issuerRef:
+        name: eyrie
+        kind: ClusterIssuer
+      dnsNames:
+        - "%{nest::kubernetes::service}.eyrie"
+
   secrets:
     apiVersion: v1
     kind: Secret
@@ -14,11 +28,12 @@ values:
     tag: '1.32.5'
   adminToken:
     value: "%{nest::kubernetes::vaultwarden_admin_token_hash}"
-  data:
-    name: vaultwarden-data
-    size: 10Gi
-    class: ceph-filesystem
-    accessMode: ReadWriteMany
+  storage:
+    data:
+      name: vaultwarden-data
+      size: 10Gi
+      class: ceph-filesystem
+      accessMode: ReadWriteMany
   database:
     type: mysql
     existingSecret: "%{nest::kubernetes::service}-secrets"
@@ -29,8 +44,10 @@ values:
       value: "%{lookup('nest::service::bitwarden::smtp_username')}"
     password:
       value: "%{lookup('nest::service::bitwarden::smtp_password')}"
-  service:
-    type: LoadBalancer
+  ingress:
+    enabled: true
+    hostname: "%{nest::kubernetes::service}.eyrie"
+    tlsSecret: "%{nest::kubernetes::service}-certs"
 
 patches:
   10-nest:

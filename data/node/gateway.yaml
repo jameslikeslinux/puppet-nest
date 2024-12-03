@@ -46,7 +46,7 @@ nest::service::reverse_proxy::hosts:
   vault.thesatelliteoflove.net:
     destination: 'bitwarden.eyrie'
     ip: ['45.77.109.122', '2001:19f0:1000:22c0::122']
-    websockets: 'bitwarden.eyrie:3012'
+    proxy_ssl: true
 
   # Wordpress sites
   james.tl:
