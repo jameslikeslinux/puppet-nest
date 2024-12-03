@@ -12,17 +12,3 @@ values:
     enabled: false
   nodeExporter:
     enabled: false
-  prometheus:
-    prometheusSpec:
-      # Tune storage retention, thus memory, for small nodes
-      additionalArgs:
-        - name: 'storage.tsdb.retention.size'
-          value: '1GB'
-      storageSpec:
-       volumeClaimTemplate:
-         spec:
-           storageClassName: eagle
-           accessModes: ["ReadWriteOnce"]
-           resources:
-             requests:
-               storage: 10Gi

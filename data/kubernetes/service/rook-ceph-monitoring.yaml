@@ -11,8 +11,7 @@
 
 .tolerations: &tolerations
   - key: role
-    operator: Equal
-    value: storage
+    operator: Exists
     effect: NoSchedule
 
 values:
@@ -26,3 +25,16 @@ values:
           team: rook # read ServiceMonitors created by rook-ceph-operator
       affinity: *affinity
       tolerations: *tolerations
+
+      # Tune storage retention, thus memory, for small nodes
+      additionalArgs:
+        - name: 'storage.tsdb.retention.size'
+          value: '1GB'
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: eagle
+            accessModes: ['ReadWriteOnce']
+            resources:
+              requests:
+                storage: 10Gi

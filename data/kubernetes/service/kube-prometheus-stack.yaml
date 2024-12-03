@@ -11,8 +11,7 @@
 
 .tolerations: &tolerations
   - key: role
-    operator: Equal
-    value: monitor
+    operator: Exists
     effect: NoSchedule
 
 resources:
@@ -43,6 +42,19 @@ values:
     prometheusSpec:
       affinity: *affinity
       tolerations: *tolerations
+
+      # Tune storage retention, thus memory, for small nodes
+      additionalArgs:
+        - name: 'storage.tsdb.retention.size'
+          value: '1GB'
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: data-crypt
+            accessModes: ['ReadWriteOnce']
+            resources:
+              requests:
+                storage: 10Gi
 
   # Subcharts
   # See: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml

@@ -11,3 +11,14 @@ steps:
       repo_name: 'csi-driver-nfs'
       repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
       version: '4.9.0'
+      wait: true
+
+  - description: 'Install LocalPV-ZFS CSI driver'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'zfs-localpv'
+      app: 'zfs-localpv'
+      namespace: 'kube-system'
+      repo_name: 'openebs-zfslocalpv'
+      repo_url: 'https://openebs.github.io/zfs-localpv'
+      version: '2.6.2'

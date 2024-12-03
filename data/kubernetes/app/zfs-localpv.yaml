@@ -1,0 +1,35 @@
+---
+resources:
+  # Disable Nest backup
+  backup: {}
+
+  data:
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+     name: data
+    allowVolumeExpansion: true
+    parameters:
+     fstype: zfs
+     poolname: data/kubernetes
+    provisioner: zfs.csi.openebs.io
+    volumeBindingMode: WaitForFirstConsumer
+
+  data-crypt:
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+     name: data-crypt
+    allowVolumeExpansion: true
+    parameters:
+     fstype: zfs
+     poolname: data/crypt/kubernetes
+    provisioner: zfs.csi.openebs.io
+    volumeBindingMode: WaitForFirstConsumer
+
+values:
+  zfsNode:
+    tolerations:
+      - key: role
+        operator: Exists
+        effect: NoSchedule
