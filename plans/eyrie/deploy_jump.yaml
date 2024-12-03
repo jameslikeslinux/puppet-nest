@@ -1,0 +1,10 @@
+---
+description: 'Deploy jump'
+
+steps:
+  - description: 'Deploy jump'
+    plan: nest::kubernetes::deploy
+    parameters:
+      service: 'jump'
+      app: 'nest'
+      chart: './files/kubernetes/chart'

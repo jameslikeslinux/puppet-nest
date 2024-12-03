@@ -91,6 +91,7 @@ nest::host_records:
   thestaticvoid.eyrie: '172.21.0.0'
   portfolio.eyrie: '172.21.0.0'
   bitwarden.eyrie: '172.21.0.0'
+  jump.eyrie: '172.21.0.1'
 nest::nestfs_hostname: 'falcon.nest'
 nest::openvpn_servers:
   - 'falcon.nest'
