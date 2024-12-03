@@ -141,6 +141,6 @@ plan nest::kubernetes::deploy (
 
   # Give time for VIP to propagate
   if $wait {
-    ctrl::sleep(30)
+    ctrl::sleep(10)
   }
 }

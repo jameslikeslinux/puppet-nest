@@ -12,6 +12,11 @@ parameters:
     type: String
     default: 'default'
 
+  init:
+    description: 'Deploy initial revision without backup or restore'
+    type: Boolean
+    default: false
+
   restore:
     description: 'Load content and data from backup'
     type: Boolean
@@ -30,8 +35,8 @@ steps:
         - service: "${name}-mariadb"
           app: 'mariadb'
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
-      restore: $restore
-      wait: $restore
+      restore: $init or $restore
+      wait: $init or $restore
 
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_vaultwarden

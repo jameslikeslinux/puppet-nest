@@ -2,6 +2,11 @@
 description: 'Deploy TheStaticVoid blog'
 
 parameters:
+  init:
+    description: 'Deploy initial revision without backup or restore'
+    type: Boolean
+    default: false
+
   restore:
     description: 'Load content and data from backup'
     type: Boolean
@@ -12,4 +17,5 @@ steps:
     plan: nest::eyrie::deploy_wordpress
     parameters:
       name: 'thestaticvoid'
+      init: $init
       restore: $restore

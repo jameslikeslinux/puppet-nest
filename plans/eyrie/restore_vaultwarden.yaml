@@ -14,7 +14,7 @@ steps:
   - description: "Restore Vaultwarden instance"
     plan: nest::vaultwarden::restore
     parameters:
-      targets: "${name}.eyrie" # use fqdn; new service might not be in Bolt inventory
+      targets: $name
       name: $name
       db_host: "${name}-mariadb"
       restore: $restore
