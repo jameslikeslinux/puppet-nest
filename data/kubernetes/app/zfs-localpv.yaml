@@ -7,11 +7,11 @@ resources:
     apiVersion: storage.k8s.io/v1
     kind: StorageClass
     metadata:
-     name: data
+      name: data
     allowVolumeExpansion: true
     parameters:
-     fstype: zfs
-     poolname: data/kubernetes
+      fstype: zfs
+      poolname: data/kubernetes
     provisioner: zfs.csi.openebs.io
     volumeBindingMode: WaitForFirstConsumer
 
@@ -19,11 +19,24 @@ resources:
     apiVersion: storage.k8s.io/v1
     kind: StorageClass
     metadata:
-     name: data-crypt
+      name: data-crypt
     allowVolumeExpansion: true
     parameters:
-     fstype: zfs
-     poolname: data/crypt/kubernetes
+      fstype: zfs
+      poolname: data/crypt/kubernetes
+    provisioner: zfs.csi.openebs.io
+    volumeBindingMode: WaitForFirstConsumer
+
+  # Especially for Rook Ceph
+  # See: https://github.com/openebs/zfs-localpv/blob/develop/docs/raw-block-volume.md
+  data-crypt-block:
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: data-crypt-block
+    allowVolumeExpansion: true
+    parameters:
+      poolname: data/crypt/kubernetes
     provisioner: zfs.csi.openebs.io
     volumeBindingMode: WaitForFirstConsumer
 

@@ -10,8 +10,7 @@
               - storage
   tolerations: &tolerations
     - key: role
-      operator: Equal
-      value: storage
+      operator: Exists
       effect: NoSchedule
 
 resources:
@@ -33,56 +32,69 @@ resources:
       dnsNames:
         - ceph.eyrie
 
-  # Deploy NFS server for apps incompatible with CephFS
-  # See: https://rook.github.io/docs/rook/latest-release/Storage-Configuration/NFS/nfs-csi-driver/
-  # nfs:
-  #   apiVersion: ceph.rook.io/v1
-  #   kind: CephNFS
-  #   metadata:
-  #     name: ceph-nfs
-  #     namespace: "%{nest::kubernetes::namespace}"
-  #   spec:
-  #     server:
-  #       active: 1
-  #       placement: *placement
-  # storageclass:
-  #   apiVersion: storage.k8s.io/v1
-  #   kind: StorageClass
-  #   metadata:
-  #     name: ceph-nfs
-  #   provisioner: rook-ceph.nfs.csi.ceph.com # csi-provisioner-name
-  #   parameters:
-  #     nfsCluster: ceph-nfs
-  #     server: rook-ceph-nfs-ceph-nfs-a
-  #     clusterID: "%{nest::kubernetes::namespace}"
-  #     fsName: ceph-filesystem
-  #     pool: ceph-filesystem-data0
-  #     csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
-  #     csi.storage.k8s.io/provisioner-secret-namespace: "%{nest::kubernetes::namespace}"
-  #     csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
-  #     csi.storage.k8s.io/controller-expand-secret-namespace: "%{nest::kubernetes::namespace}"
-  #     csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
-  #     csi.storage.k8s.io/node-stage-secret-namespace: "%{nest::kubernetes::namespace}"
-  #   reclaimPolicy: Delete
-  #   allowVolumeExpansion: true
-
 values:
+  # Expose resources for prometheus
   monitoring:
     enabled: true
+
   cephClusterSpec:
     cephVersion:
       # Workaround known issue with 18.2.4 on ARM64
       # See: https://github.com/rook/rook/issues/14502
       image: quay.io/ceph/ceph:v18.2.2
+
+    # Run on storage nodes
     placement:
       all: *placement
-    storage:
-      useAllDevices: false
-      devices:
-        - name: /dev/zvol/data/crypt/ceph
+
     dashboard:
       prometheusEndpoint: http://rook-ceph-monitoring-kube-prometheus:9090
       ssl: false
+
+    # Run mon and osd on local storage, declaratively
+    # See: https://rook.io/docs/rook/latest/CRDs/Cluster/pvc-cluster/#local-storage-example
+    # See: https://github.com/rook/rook/blob/master/deploy/examples/cluster-on-local-pvc.yaml
+    mon:
+      count: 3
+      allowMultiplePerNode: false
+      volumeClaimTemplate:
+        spec:
+          storageClassName: data-crypt
+          resources:
+            requests:
+              storage: 10Gi
+    storage:
+      useAllNodes: false # use storageClassDeviceSets
+      storageClassDeviceSets:
+        - name: set1 # operator expects this name e.g. set2, set3
+          count: 4   # number of storage nodes
+          portable: false
+          # Do not schedule multiple OSD prep pods to the same node.  After the
+          # PVs are provisioned, the storage driver will control the scheduling.
+          # See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#more-practical-use-cases
+          preparePlacement:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - rook-ceph-osd
+                          - rook-ceph-osd-prepare
+                  topologyKey: kubernetes.io/hostname
+          volumeClaimTemplates:
+            - spec:
+                resources:
+                  requests:
+                    storage: 64Gi
+                storageClassName: data-crypt-block
+                volumeMode: Block
+                accessModes:
+                  - ReadWriteOnce
+    # end: storage
+  # end: cephClusterSpec
+
   ingress:
     dashboard:
       host:
@@ -92,6 +104,7 @@ values:
           - ceph.eyrie
           secretName: ceph-dashboard-certs
       ingressClassName: nginx
+
   toolbox:
     enabled: true
     tolerations: *tolerations
