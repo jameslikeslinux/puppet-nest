@@ -39,6 +39,13 @@ steps:
       taints: role=monitor:NoSchedule
     targets: eyrie-monitor
 
+  - description: 'Join workstation nodes'
+    plan: nest::kubernetes::join_node
+    parameters:
+      control_plane: eyrie-control-plane
+      taints: role=workstation:NoSchedule
+    targets: eyrie-workstations
+
   - description: 'Rebalance CoreDNS'
     plan: nest::kubernetes::restart_deployment
     parameters:

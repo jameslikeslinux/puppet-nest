@@ -166,6 +166,13 @@ groups:
             target_mapping:
               name: certname
               uri: facts.fqdn
+      - name: 'eyrie-workstations'
+        targets:
+          - _plugin: puppetdb
+            query: "nodes { inventory { facts.profile.role = 'workstation' } and resources { type = 'Class' and title = 'Nest::Service::Kubernetes' } }"
+            target_mapping:
+              name: certname
+              uri: facts.fqdn
 
   - name: 'puppet-server'
     targets:

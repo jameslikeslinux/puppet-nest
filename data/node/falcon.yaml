@@ -4,6 +4,7 @@ nest::classes:
   - 'nest::service::barrier'
   - 'nest::service::gitlab'
   - 'nest::service::gitlab_runner'
+  - 'nest::service::kubernetes'
   - 'nest::service::libvirt'
   - 'nest::service::nzbget'
   - 'nest::service::ombi'
