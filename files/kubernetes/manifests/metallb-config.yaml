@@ -31,3 +31,18 @@ spec:
     - key: kubernetes.io/hostname
       operator: In
       values: [eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6]
+---
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  name: kestrel
+  namespace: metallb-system
+spec:
+  myASN: 65000
+  peerASN: 65000
+  peerAddress: 172.22.4.3
+  nodeSelectors:
+  - matchExpressions:
+    - key: kubernetes.io/hostname
+      operator: In
+      values: [eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6, falcon]

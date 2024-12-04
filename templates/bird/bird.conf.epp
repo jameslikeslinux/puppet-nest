@@ -63,6 +63,10 @@ protocol bgp falcon from nest {
     neighbor 172.22.4.2;
 }
 
+protocol bgp kestrel from nest {
+    neighbor 172.22.4.3;
+}
+
 protocol bgp workers from nest {
     neighbor range 172.22.4.0/22;
 }
@@ -106,9 +110,9 @@ protocol bgp nest {
     };
 }
 <% } else { -%>
-protocol bgp falcon {
+template bgp nest {
     local as 65000;
-    neighbor 172.22.4.2 as 65000;
+    neighbor as 65000;
     direct;
 
     ipv4 {
@@ -116,5 +120,13 @@ protocol bgp falcon {
         export none;
         add paths;
     };
+}
+
+protocol bgp falcon from nest {
+    neighbor 172.22.4.2;
+}
+
+protocol bgp kestrel from nest {
+    neighbor 172.22.4.3;
 }
 <% } -%>

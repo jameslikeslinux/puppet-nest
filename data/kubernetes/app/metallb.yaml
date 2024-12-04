@@ -1,3 +1,10 @@
 ---
 resources:
   backup: {}
+
+values:
+  speaker:
+    tolerations:
+      - key: role
+        operator: Exists
+        effect: NoSchedule
