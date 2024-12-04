@@ -33,15 +33,25 @@ class nest::kubernetes {
   })
   $registry_auths_base64 = base64('encode', $registry_auths)
 
-  if $app == 'vaultwarden' {
-    $vaultwarden_db_url = base64('encode', "mysql://${service}:${db_password}@${service}-mariadb/${service}")
+  $ssh_private_keys = lookup('nest::ssh_private_keys')
+  $ssh_private_key = pick_default($ssh_private_keys[$service], $ssh_private_keys[$app])
+  if $ssh_private_key {
+    $ssh_private_key_base64 = base64('encode', $ssh_private_key)
+  } else {
+    $ssh_private_key_base64 = undef
+  }
 
-    # See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token
-    $vaultwarden_admin_token      = lookup('nest::service::bitwarden::admin_token')
-    $vaultwarden_admin_token_hash = generate(
-      '/bin/sh',
-      '-c',
-      "echo -n ${vaultwarden_admin_token.shellquote} | argon2 `openssl rand -base64 32` -e -id -k 65540 -t 3 -p 4",
-    ).chomp
+  case $app {
+    'vaultwarden': {
+      $vaultwarden_db_url = base64('encode', "mysql://${service}:${db_password}@${service}-mariadb/${service}")
+
+      # See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token
+      $vaultwarden_admin_token      = lookup('nest::service::bitwarden::admin_token')
+      $vaultwarden_admin_token_hash = generate(
+        '/bin/sh',
+        '-c',
+        "echo -n ${vaultwarden_admin_token.shellquote} | argon2 `openssl rand -base64 32` -e -id -k 65540 -t 3 -p 4",
+      ).chomp
+    }
   }
 }

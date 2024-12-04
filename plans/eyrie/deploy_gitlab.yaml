@@ -28,6 +28,17 @@ parameters:
     default: ''
 
 steps:
+  # This is a separate deployment because the gitlab chart looks for Secrets as
+  # part of a helm install hook. Our secrets need to exist first.
+  - description: 'Deploy secrets'
+    plan: nest::kubernetes::deploy
+    parameters:
+      namespace: $namespace
+      service: "${name}-secrets"
+      app: 'gitlab-secrets'
+      chart: './files/kubernetes/chart'
+      wait: true
+
   - description: 'Deploy the instance'
     plan: nest::kubernetes::deploy
     parameters:

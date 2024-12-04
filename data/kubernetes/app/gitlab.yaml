@@ -29,6 +29,9 @@ values:
       configureCertmanager: false
       tls:
         secretName: "%{nest::kubernetes::service}-certs"
+    shell:
+      hostKeys:
+        secret: "%{nest::kubernetes::service}-secrets-gitlab-shell-host-keys"
     storageClass: data-crypt
   certmanager:
     installCRDs: false
