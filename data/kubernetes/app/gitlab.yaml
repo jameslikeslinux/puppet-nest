@@ -1,0 +1,88 @@
+---
+resources:
+  backup: {}
+
+  certs:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: "%{nest::kubernetes::service}-certs"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: "%{nest::kubernetes::service}-certs"
+      issuerRef:
+        name: eyrie
+        kind: ClusterIssuer
+      dnsNames:
+        - "%{nest::kubernetes::service}.eyrie"
+        - "*.%{nest::kubernetes::service}.eyrie"
+
+values:
+  global:
+    edition: ce
+    hosts:
+      domain: "%{nest::kubernetes::service}.eyrie"
+      gitlab:
+        name: "%{nest::kubernetes::service}.eyrie"
+      ssh: "%{nest::kubernetes::service}.eyrie"
+    ingress:
+      configureCertmanager: false
+      class: nginx
+      tls:
+        secretName: "%{nest::kubernetes::service}-certs"
+    storageClass: data-crypt
+  certmanager:
+    installCRDs: false
+    install: false
+  nginx-ingress:
+    enabled: false
+  prometheus:
+    server:
+      persistentVolume:
+        storageClass: data-crypt
+  gitlab:
+    gitaly:
+      persistence:
+        storageClass: data-crypt
+  gitlab-runner:
+    install: false
+  minio:
+    ingress:
+      tls:
+        secretName: "%{nest::kubernetes::service}-certs"
+    persistence:
+      storageClass: data-crypt
+  registry:
+    ingress:
+      tls:
+        secretName: "%{nest::kubernetes::service}-certs"
+
+patches:
+  # Supposedly there are global values for this, but I can't get them to work
+  # and it doesn't expose tolerations in all cases anyway.
+  # See: https://docs.gitlab.com/charts/charts/gitlab/index.html#affinity
+  10-placement:
+    # Patching multiple generic resources
+    # See: https://stackoverflow.com/a/74860413
+    patch:
+      kind: not-important
+      metadata:
+        name: not-important
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: role
+                        operator: In
+                        values:
+                          - workstation
+            tolerations:
+              - key: role
+                operator: Exists
+                effect: NoSchedule
+    target:
+      kind: (Deployment|StatefulSet|Job)
