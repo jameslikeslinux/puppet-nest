@@ -56,7 +56,7 @@ values:
     controller:
       service:
         annotations:
-          'metallb.universe.tf/1loadBalancerIPs': "%{nest::kubernetes::load_balancer_ip}"
+          'metallb.universe.tf/loadBalancerIPs': "%{nest::kubernetes::load_balancer_ip}"
   registry:
     ingress:
       tls:
