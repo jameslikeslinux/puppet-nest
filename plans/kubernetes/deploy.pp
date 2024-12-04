@@ -47,6 +47,13 @@ plan nest::kubernetes::deploy (
     $chart_real = $chart
   }
 
+  # Because YAML plans
+  if $render_to and $render_to != '' {
+    $render_to_real = $render_to
+  } else {
+    $render_to_real = undef
+  }
+
   apply('localhost') {
     $kubernetes_service        = $service
     $kubernetes_app            = $app
@@ -92,7 +99,7 @@ plan nest::kubernetes::deploy (
   $helm_cmd = [
     'helm',
 
-    $render_to ? {
+    $render_to_real ? {
       undef   => ['upgrade', '--install'],
       default => ['template', '--kube-version', '1.28.2'],
     },
@@ -118,19 +125,19 @@ plan nest::kubernetes::deploy (
       default => ['--version', $version],
     },
 
-    ($wait and !$render_to) ? {
+    ($wait and !$render_to_real) ? {
       true    => ['--wait', '--timeout', '1h'],
       default => [],
     },
   ].flatten.shellquote
 
-  if $render_to {
+  if $render_to_real {
     if $append {
       $redirect_op = '>>'
     } else {
       $redirect_op = '>'
     }
-    $redirect = " ${redirect_op} ${render_to.shellquote}"
+    $redirect = " ${redirect_op} ${render_to_real.shellquote}"
     $cmd_verb = 'Render'
   } else {
     $redirect = ''

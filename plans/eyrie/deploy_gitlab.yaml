@@ -24,8 +24,8 @@ parameters:
 
   render_to:
     description: 'Render the template to a file'
-    type: Optional[String]
-    default: null
+    type: String
+    default: ''
 
 steps:
   - description: 'Deploy the instance'
@@ -48,4 +48,4 @@ steps:
   #   plan: nest::eyrie::restore_gitlab
   #   parameters:
   #     name: $name
-  #     restore: $restore and !$render_to
+  #     restore: $restore and $render_to == ''
