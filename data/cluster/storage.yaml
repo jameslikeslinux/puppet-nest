@@ -5,11 +5,3 @@ nest::classes:
 nest::bird_role: worker
 nest::external_interfaces: ['bond0']
 nest::vpn_client: false
-
-nest::reset_filter_rules:
-  - '- /etc/kubernetes/'
-  - 'P /opt/cni/**'
-  - '- /var/lib/calico/'
-  - '- /var/lib/cni/'
-  - '- /var/lib/crio/'
-  - '- /var/lib/etcd/'

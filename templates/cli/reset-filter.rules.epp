@@ -32,9 +32,17 @@ P /var/lib/bluetooth/**
 P /var/log/**
 P /var/tmp/**
 
-# Kernel rules (updates managed in another step)
+# Kernel (updates managed in another step)
 - /lib/modules/
 - /usr/src/linux/
+
+# Kubernetes
+- /etc/kubernetes/
+P /opt/cni/**
+- /var/lib/calico/
+- /var/lib/cni/
+- /var/lib/crio/
+- /var/lib/etcd/
 <% unless $rules.empty { -%>
 
 # Host-specific rules
