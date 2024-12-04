@@ -22,6 +22,11 @@ parameters:
     type: Boolean
     default: false
 
+  render_to:
+    description: 'Render the template to a file'
+    type: Optional[String]
+    default: null
+
 steps:
   - description: 'Deploy the instance'
     plan: nest::kubernetes::deploy
@@ -37,10 +42,10 @@ steps:
       #     chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
       restore: $init or $restore
       wait: $init or $restore
-      #render_to: gitlab.yaml
+      render_to: $render_to
 
   # - description: 'Restore the instance'
   #   plan: nest::eyrie::restore_gitlab
   #   parameters:
   #     name: $name
-  #     restore: $restore
+  #     restore: $restore and !$render_to

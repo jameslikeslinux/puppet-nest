@@ -148,9 +148,12 @@ patches:
         kind: Deployment
         labelSelector: 'james.tl/nest'
     - patch:
+        # Request a specific IP
         - op: add
           path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
           value: "%{nest::kubernetes::load_balancer_ip}"
+        # FQDN associated with above IP, for reference
+        # See: e9ea565cee69dd2dae607d9a207ce3eb3aae02b4
         - op: add
           path: '/metadata/labels/james.tl~1fqdn'
           value: "%{nest::kubernetes::fqdn}"

@@ -27,15 +27,12 @@ values:
       ssh: "%{nest::kubernetes::service}.eyrie"
     ingress:
       configureCertmanager: false
-      class: nginx
       tls:
         secretName: "%{nest::kubernetes::service}-certs"
     storageClass: data-crypt
   certmanager:
     installCRDs: false
     install: false
-  nginx-ingress:
-    enabled: false
   prometheus:
     server:
       persistentVolume:
@@ -52,6 +49,11 @@ values:
         secretName: "%{nest::kubernetes::service}-certs"
     persistence:
       storageClass: data-crypt
+  nginx-ingress:
+    controller:
+      service:
+        annotations:
+          'metallb.universe.tf/1loadBalancerIPs': "%{nest::kubernetes::load_balancer_ip}"
   registry:
     ingress:
       tls:
