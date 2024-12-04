@@ -27,5 +27,11 @@ values:
     provisionerTolerations: *tolerations
     provisionerNodeAffinity: role=storage
 
+    # Allow Ceph on all workers
+    pluginTolerations:
+      - key: role
+        operator: Exists
+        effect: NoSchedule
+
   monitoring:
     enabled: true
