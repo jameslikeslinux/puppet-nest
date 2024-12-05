@@ -61,11 +61,9 @@ class nest::service::kubernetes (
   }
 
   # Allow forwarding and control access between networks used by Kubernetes
-  firewalld_zone { 'kubernetes':
-    ensure     => present,
-    interfaces => $nest::external_interfaces,
+  Firewalld_zone <| title == 'external' |> {
     masquerade => true,
-    sources    => [
+    sources    +> [
       '10.96.0.0/12',   # K8s service network
       '192.168.0.0/16', # Calico pod network
       '172.22.0.0/24',  # Nest VPN
@@ -73,23 +71,17 @@ class nest::service::kubernetes (
     ],
     target     => 'default',
   }
-  ->
-  exec { 'firewalld-kubernetes-add-forward':
-    command => nest::firewall_cmd('--zone=kubernetes --add-forward'),
-    unless  => nest::firewall_cmd('--zone=kubernetes --query-forward'),
-    notify  => Class['firewalld::reload'],
-  }
 
   Firewalld_port {
-    zone => 'kubernetes',
+    zone => 'external',
   }
 
   Firewalld_service {
-    zone => 'kubernetes',
+    zone => 'external',
   }
 
   Firewalld_rich_rule {
-    zone => 'kubernetes',
+    zone => 'external',
   }
 
   if $control_plane {
@@ -108,7 +100,7 @@ class nest::service::kubernetes (
 
     firewalld_service { 'nfs':
       ensure => present,
-      zone   => 'kubernetes',
+      zone   => 'external',
     }
 
     file {
