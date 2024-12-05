@@ -1,7 +1,8 @@
 class nest::service::kubernetes (
   Boolean $control_plane = false,
 ) {
-  include 'nest'
+  include nest
+  include nest::base::bird
 
   File {
     mode  => '0644',
