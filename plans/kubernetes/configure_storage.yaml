@@ -1,6 +1,17 @@
 ---
 description: 'Configure storage'
 
+parameters:
+  nfs:
+    description: 'Deploy NFS driver'
+    type: Boolean
+    default: true
+
+  zfs:
+    description: 'Deploy ZFS driver'
+    type: Boolean
+    default: true
+
 steps:
   - description: 'Install NFS CSI driver'
     plan: 'nest::kubernetes::deploy'
@@ -12,6 +23,7 @@ steps:
       repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
       version: '4.9.0'
       wait: true
+      deploy: $nfs
 
   - description: 'Install LocalPV-ZFS CSI driver'
     plan: 'nest::kubernetes::deploy'
@@ -22,3 +34,4 @@ steps:
       repo_name: 'openebs-zfslocalpv'
       repo_url: 'https://openebs.github.io/zfs-localpv'
       version: '2.6.2'
+      deploy: $zfs

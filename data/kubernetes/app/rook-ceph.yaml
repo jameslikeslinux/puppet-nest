@@ -3,14 +3,8 @@ resources:
   backup: {}
 
 values:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-          - key: role
-            operator: In
-            values:
-              - storage
+  nodeSelector:
+    role: storage
   tolerations: &tolerations
     - key: role
       operator: Exists

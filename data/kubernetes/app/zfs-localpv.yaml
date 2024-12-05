@@ -40,6 +40,21 @@ resources:
     provisioner: zfs.csi.openebs.io
     volumeBindingMode: WaitForFirstConsumer
 
+  nest-crypt-block:
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: nest-crypt-block
+    allowVolumeExpansion: true
+    parameters:
+      poolname: nest/crypt/kubernetes
+    provisioner: zfs.csi.openebs.io
+    allowedTopologies:
+      - matchLabelExpressions:
+        - key: kubernetes.io/hostname
+          values:
+            - falcon
+
 values:
   zfsNode:
     tolerations:
