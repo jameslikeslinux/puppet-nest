@@ -64,8 +64,9 @@ nest::distcc_hosts:
   falcon.nest: 16
 nest::fixed_ips:
   osprey: '172.22.4.5'
-  control1: '172.22.4.8'
-  control2: '172.22.4.9'
+  control1: '172.22.4.7'
+  control2: '172.22.4.8'
+  control3: '172.22.4.9'
   eagle: '172.22.4.10'
   eaglet1: '172.22.4.11'
   eaglet2: '172.22.4.12'
