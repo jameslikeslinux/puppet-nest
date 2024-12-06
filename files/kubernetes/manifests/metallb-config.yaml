@@ -30,7 +30,7 @@ spec:
   - matchExpressions:
     - key: kubernetes.io/hostname
       operator: In
-      values: [eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6]
+      values: [eagle, eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6]
 ---
 apiVersion: metallb.io/v1beta2
 kind: BGPPeer
@@ -45,4 +45,4 @@ spec:
   - matchExpressions:
     - key: kubernetes.io/hostname
       operator: In
-      values: [eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6, falcon]
+      values: [eagle, eaglet1, eaglet2, eaglet3, eaglet4, eaglet5, eaglet6, falcon]

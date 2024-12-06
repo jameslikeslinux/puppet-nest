@@ -36,15 +36,15 @@ template bgp control_plane {
 }
 
 protocol bgp control1 from control_plane {
-    neighbor 172.22.4.8;
+    neighbor 172.22.4.7;
 }
 
 protocol bgp control2 from control_plane {
-    neighbor 172.22.4.9;
+    neighbor 172.22.4.8;
 }
 
-protocol bgp eagle from control_plane {
-    neighbor 172.22.4.10;
+protocol bgp control3 from control_plane {
+    neighbor 172.22.4.9;
 }
 <% } elsif $mode == 'control-plane' { -%>
 template bgp nest {
@@ -86,15 +86,15 @@ template bgp kube_vip {
 }
 
 protocol bgp control1 from kube_vip {
-    neighbor 172.22.4.8;
+    neighbor 172.22.4.7;
 }
 
 protocol bgp control2 from kube_vip {
-    neighbor 172.22.4.9;
+    neighbor 172.22.4.8;
 }
 
-protocol bgp eagle from kube_vip {
-    neighbor 172.22.4.10;
+protocol bgp control3 from kube_vip {
+    neighbor 172.22.4.9;
 }
 <% } elsif $mode == 'server' { -%>
 protocol bgp nest {

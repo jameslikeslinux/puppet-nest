@@ -162,11 +162,11 @@ class nest::service::kubernetes (
       dest   => '172.21.0.0/16',
     ;
 
-    # Allow external access
+    # Allow internal networks
     'nest':
       source => '172.22.0.0/24';
-    'falcon':
-      source => '172.22.4.2',
+    'eyrie':
+      source => '172.22.4.0/24',
     ;
   }
 

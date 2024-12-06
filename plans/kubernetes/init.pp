@@ -49,6 +49,9 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
+  # Wait for control plane to settle
+  ctrl::sleep(30)
+
   $kubeadm_token_cmd = 'kubeadm token create --print-join-command'
   $kubeadm_join_cmd = run_command($kubeadm_token_cmd, $init_node, 'Get kubeadm join command', {
     _run_as => 'root',
@@ -73,4 +76,7 @@ plan nest::kubernetes::init (
   run_command($copy_kubeconfig_cmd, $init_node, 'Copy kubeconfig to Nest home', {
     _run_as => 'root',
   })
+
+  # Wait for control plane to settle
+  ctrl::sleep(30)
 }
