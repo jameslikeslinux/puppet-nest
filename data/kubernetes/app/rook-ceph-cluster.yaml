@@ -351,4 +351,5 @@ values:
   toolbox:
     enabled: true
     tolerations: *tolerations
-    affinity: *affinity
+    affinity:
+      nodeAffinity: *affinity

@@ -11,12 +11,12 @@ values:
       effect: NoSchedule
   csi:
     # Drop unrealistic resource requests
-    csiRBDProvisionerResource: '{}'
-    csiRBDPluginResource: '{}'
-    csiCephFSProvisionerResource: '{}'
-    csiCephFSPluginResource: '{}'
-    csiNFSProvisionerResource: '{}'
-    csiNFSPluginResource: '{}'
+    csiRBDProvisionerResource: '[]'
+    csiRBDPluginResource: '[]'
+    csiCephFSProvisionerResource: '[]'
+    csiCephFSPluginResource: '[]'
+    csiNFSProvisionerResource: '[]'
+    csiNFSPluginResource: '[]'
 
     provisionerTolerations: *tolerations
     provisionerNodeAffinity: role=storage
