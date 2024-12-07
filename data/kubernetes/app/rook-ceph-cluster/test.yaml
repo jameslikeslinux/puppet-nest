@@ -1,0 +1,68 @@
+---
+node_role: workstation
+ssd_volume_size: 10Gi
+hdd_volume_size: 100Gi
+service_name: "%{nest::kubernetes::service}-test"
+
+resources:
+  # Override .mgr pool failure domain
+  # See: https://github.com/rook/rook/blob/master/deploy/examples/pool-builtin-mgr.yaml
+  pool-builtin-mgr:
+    apiVersion: ceph.rook.io/v1
+    kind: CephBlockPool
+    metadata:
+      name: builtin-mgr
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      name: .mgr
+      enableCrushUpdates: true # avoid race with CephCluster
+      failureDomain: osd
+      replicated:
+        size: 3
+
+values:
+  cephClusterSpec:
+    dashboard:
+      prometheusEndpoint: http://ceph-monitoring-test-prometheus:9090
+    mon:
+      allowMultiplePerNode: true
+    mgr:
+      allowMultiplePerNode: true
+
+patches:
+  20-pools:
+    # Block
+    - patch:
+        - op: replace
+          path: '/spec/failureDomain'
+          value: osd
+      target:
+        kind: CephBlockPool
+    - patch:
+        - op: replace
+          path: '/metadata/annotations/storageclass.kubernetes.io~1is-default-class'
+          value: 'false'
+      target:
+        kind: StorageClass
+
+    # Filesystem
+    - patch:
+        - op: replace
+          path: '/spec/dataPools/0/failureDomain'
+          value: osd
+        - op: add
+          path: '/spec/metadataPool/failureDomain'
+          value: osd
+      target:
+        kind: CephFilesystem
+
+    # Object
+    - patch:
+        - op: replace
+          path: '/spec/dataPool/failureDomain'
+          value: osd
+        - op: replace
+          path: '/spec/metadataPool/failureDomain'
+          value: osd
+      target:
+        kind: CephObjectStore

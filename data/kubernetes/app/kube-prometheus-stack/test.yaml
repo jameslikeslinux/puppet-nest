@@ -1,0 +1,9 @@
+---
+node_role: workstation
+
+values:
+  fullnameOverride: "%{nest::kubernetes::service}-test"
+  grafana:
+    fullnameOverride: "%{nest::kubernetes::service}-test-grafana"
+  kube-state-metrics:
+    fullnameOverride: "%{nest::kubernetes::service}-test-kube-state-metrics"

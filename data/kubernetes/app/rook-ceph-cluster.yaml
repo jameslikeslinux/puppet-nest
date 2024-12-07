@@ -1,4 +1,11 @@
 ---
+node_role: storage
+ssd_volume_size: 64Gi
+ssd_volume_storage_class: data-crypt-block
+hdd_volume_size: 256Gi
+hdd_volume_storage_class: nest-crypt-block
+service_name: "%{nest::kubernetes::service}"
+
 .placement: &placement
   nodeAffinity: &affinity
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -7,7 +14,7 @@
           - key: role
             operator: In
             values:
-              - storage
+              - "%{lookup('node_role')}"
   tolerations: &tolerations
     - key: role
       operator: Exists
@@ -22,17 +29,19 @@ resources:
     apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
-      name: ceph-dashboard-certs
+      name: "%{nest::kubernetes::service}-dashboard-certs"
       namespace: "%{nest::kubernetes::namespace}"
     spec:
-      secretName: ceph-dashboard-certs
+      secretName: "%{nest::kubernetes::service}-dashboard-certs"
       issuerRef:
         name: eyrie
         kind: ClusterIssuer
       dnsNames:
-        - ceph.eyrie
+        - "%{lookup('service_name')}.eyrie"
 
 values:
+  clusterName: "%{lookup('service_name')}"
+
   # Expose resources for prometheus
   monitoring:
     enabled: true
@@ -43,7 +52,7 @@ values:
       # See: https://github.com/rook/rook/issues/14502
       image: quay.io/ceph/ceph:v18.2.2
 
-    # Run on storage nodes
+    # Run on specified node_role
     placement:
       all: *placement
 
@@ -51,15 +60,13 @@ values:
     resources: null
 
     dashboard:
-      prometheusEndpoint: http://rook-ceph-monitoring-kube-prometheus:9090
+      prometheusEndpoint: http://ceph-monitoring-prometheus:9090
       ssl: false
 
     # Run mon and osd on local storage, declaratively
     # See: https://rook.io/docs/rook/latest/CRDs/Cluster/pvc-cluster/#local-storage-example
     # See: https://github.com/rook/rook/blob/master/deploy/examples/cluster-on-local-pvc.yaml
     mon:
-      count: 3
-      allowMultiplePerNode: false
       volumeClaimTemplate:
         spec:
           storageClassName: data-crypt
@@ -71,9 +78,9 @@ values:
       onlyApplyOSDPlacement: true # control placement per set
       storageClassDeviceSets:
         - name: set1 # operator expects this name e.g. set2, set3
-          count: 3   # number of storage nodes
+          count: 3
           portable: false
-          placement: &storage_osd_placement
+          placement: &ssd_osd_placement
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
@@ -81,22 +88,22 @@ values:
                     - key: role
                       operator: In
                       values:
-                        - storage
+                        - "%{lookup('node_role')}"
             tolerations: *tolerations
-            # Do not schedule multiple OSD pods to the same node. In practice,
-            # the storage driver will win, but here in case the storageClass changes.
-            # See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#more-practical-use-cases
+            # Avoid scheduling multiple OSD pods to the same node
             podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app
-                        operator: In
-                        values:
-                          - rook-ceph-osd
-                          - rook-ceph-osd-prepare
-                  topologyKey: kubernetes.io/hostname
-          preparePlacement: *storage_osd_placement
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - rook-ceph-osd
+                            - rook-ceph-osd-prepare
+                    topologyKey: kubernetes.io/hostname
+          preparePlacement: *ssd_osd_placement
           volumeClaimTemplates:
             - metadata:
                 name: data
@@ -105,15 +112,15 @@ values:
               spec:
                 resources:
                   requests:
-                    storage: 64Gi
-                storageClassName: data-crypt-block
+                    storage: "%{lookup('ssd_volume_size')}"
+                storageClassName: "%{lookup('ssd_volume_storage_class')}"
                 volumeMode: Block
                 accessModes:
                   - ReadWriteOnce
         - name: set2
           count: 3
           portable: false
-          placement: &workstation_osd_placement
+          placement: &hdd_osd_placement
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
@@ -136,7 +143,7 @@ values:
                             - rook-ceph-osd
                             - rook-ceph-osd-prepare
                     topologyKey: kubernetes.io/hostname
-          preparePlacement: *workstation_osd_placement
+          preparePlacement: *hdd_osd_placement
           volumeClaimTemplates:
             - metadata:
                 name: data
@@ -145,207 +152,22 @@ values:
               spec:
                 resources:
                   requests:
-                    storage: 256Gi
-                storageClassName: nest-crypt-block
+                    storage: "%{lookup('hdd_volume_size')}"
+                storageClassName: "%{lookup('hdd_volume_storage_class')}"
                 volumeMode: Block
                 accessModes:
                   - ReadWriteOnce
     # end: storage
   # end: cephClusterSpec
 
-  # Customize Block Pool
-  # Copied from default at https://github.com/rook/rook/blob/master/deploy/charts/rook-ceph-cluster/values.yaml
-  # and modified to use SSD deviceClass
-  cephBlockPools:
-    - name: ceph-blockpool
-      # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Block-Storage/ceph-block-pool-crd.md#spec for available configuration
-      spec:
-        failureDomain: host
-        replicated:
-          size: 3
-        deviceClass: ssd
-        # Enables collecting RBD per-image IO statistics by enabling dynamic OSD performance counters. Defaults to false.
-        # For reference: https://docs.ceph.com/docs/latest/mgr/prometheus/#rbd-io-statistics
-        # enableRBDStats: true
-      storageClass:
-        enabled: true
-        name: ceph-block
-        annotations: {}
-        labels: {}
-        isDefault: true
-        reclaimPolicy: Delete
-        allowVolumeExpansion: true
-        volumeBindingMode: "Immediate"
-        mountOptions: []
-        # see https://kubernetes.io/docs/concepts/storage/storage-classes/#allowed-topologies
-        allowedTopologies: []
-        #        - matchLabelExpressions:
-        #            - key: rook-ceph-role
-        #              values:
-        #                - storage-node
-        # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Block-Storage-RBD/block-storage.md#provision-storage for available configuration
-        parameters:
-          # (optional) mapOptions is a comma-separated list of map options.
-          # For krbd options refer
-          # https://docs.ceph.com/docs/latest/man/8/rbd/#kernel-rbd-krbd-options
-          # For nbd options refer
-          # https://docs.ceph.com/docs/latest/man/8/rbd-nbd/#options
-          # mapOptions: lock_on_read,queue_depth=1024
-
-          # (optional) unmapOptions is a comma-separated list of unmap options.
-          # For krbd options refer
-          # https://docs.ceph.com/docs/latest/man/8/rbd/#kernel-rbd-krbd-options
-          # For nbd options refer
-          # https://docs.ceph.com/docs/latest/man/8/rbd-nbd/#options
-          # unmapOptions: force
-
-          # RBD image format. Defaults to "2".
-          imageFormat: "2"
-
-          # RBD image features, equivalent to OR'd bitfield value: 63
-          # Available for imageFormat: "2". Older releases of CSI RBD
-          # support only the `layering` feature. The Linux kernel (KRBD) supports the
-          # full feature complement as of 5.4
-          imageFeatures: layering
-
-          # These secrets contain Ceph admin credentials.
-          csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
-          csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
-          csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
-          csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
-          csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
-          csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
-          # Specify the filesystem type of the volume. If not specified, csi-provisioner
-          # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
-          # in hyperconverged settings where the volume is mounted on the same node as the osds.
-          csi.storage.k8s.io/fstype: ext4
-
-  # Customize Filesystem
-  # Copied from default at https://github.com/rook/rook/blob/master/deploy/charts/rook-ceph-cluster/values.yaml
-  # and modified to use SSD deviceClass, disable MDS resources, and add MDS placement
-  cephFileSystems:
-    - name: ceph-filesystem
-      # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Shared-Filesystem/ceph-filesystem-crd.md#filesystem-settings for available configuration
-      spec:
-        metadataPool:
-          replicated:
-            size: 3
-        dataPools:
-          - failureDomain: host
-            replicated:
-              size: 3
-            # Optional and highly recommended, 'data0' by default, see https://github.com/rook/rook/blob/master/Documentation/CRDs/Shared-Filesystem/ceph-filesystem-crd.md#pools
-            name: data0
-            deviceClass: ssd
-        metadataServer:
-          activeCount: 1
-          activeStandby: true
-          # resources:
-          #   limits:
-          #     memory: "4Gi"
-          #   requests:
-          #     cpu: "1000m"
-          #     memory: "4Gi"
-          priorityClassName: system-cluster-critical
-          placement: *placement
-      storageClass:
-        enabled: true
-        isDefault: false
-        name: ceph-filesystem
-        # (Optional) specify a data pool to use, must be the name of one of the data pools above, 'data0' by default
-        pool: data0
-        reclaimPolicy: Delete
-        allowVolumeExpansion: true
-        volumeBindingMode: "Immediate"
-        annotations: {}
-        labels: {}
-        mountOptions: []
-        # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Shared-Filesystem-CephFS/filesystem-storage.md#provision-storage for available configuration
-        parameters:
-          # The secrets contain Ceph admin credentials.
-          csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
-          csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
-          csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
-          csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
-          csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
-          csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
-          # Specify the filesystem type of the volume. If not specified, csi-provisioner
-          # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
-          # in hyperconverged settings where the volume is mounted on the same node as the osds.
-          csi.storage.k8s.io/fstype: ext4
-
-  # Customize Object Store
-  # Copied from default at https://github.com/rook/rook/blob/master/deploy/charts/rook-ceph-cluster/values.yaml
-  # and modified to use HDD deviceClass, disable RGW resources, and add RGW placement
-  cephObjectStores:
-    - name: ceph-objectstore
-      # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Object-Storage/ceph-object-store-crd.md#object-store-settings for available configuration
-      spec:
-        metadataPool:
-          failureDomain: host
-          replicated:
-            size: 3
-        dataPool:
-          failureDomain: osd
-          erasureCoded:
-            dataChunks: 2
-            codingChunks: 1
-          deviceClass: hdd
-        preservePoolsOnDelete: true
-        gateway:
-          port: 80
-          # resources:
-          #   limits:
-          #     memory: "2Gi"
-          #   requests:
-          #     cpu: "1000m"
-          #     memory: "1Gi"
-          # securePort: 443
-          # sslCertificateRef:
-          instances: 1
-          priorityClassName: system-cluster-critical
-          placement:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                     - key: role
-                       operator: In
-                       values:
-                         - workstation
-            tolerations: *tolerations
-      storageClass:
-        enabled: true
-        name: ceph-bucket
-        reclaimPolicy: Delete
-        volumeBindingMode: "Immediate"
-        annotations: {}
-        labels: {}
-        # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-claim.md#storageclass for available configuration
-        parameters:
-          # note: objectStoreNamespace and objectStoreName are configured by the chart
-          region: us-east-1
-      ingress:
-        # Enable an ingress for the ceph-objectstore
-        enabled: false
-        # annotations: {}
-        # host:
-        #   name: objectstore.example.com
-        #   path: /
-        # tls:
-        # - hosts:
-        #     - objectstore.example.com
-        #   secretName: ceph-objectstore-tls
-        # ingressClassName: nginx
-
   ingress:
     dashboard:
       host:
-        name: ceph.eyrie
+        name: "%{lookup('service_name')}.eyrie"
       tls:
         - hosts:
-          - ceph.eyrie
-          secretName: ceph-dashboard-certs
+          - "%{lookup('service_name')}.eyrie"
+          secretName: "%{nest::kubernetes::service}-dashboard-certs"
       ingressClassName: nginx
 
   toolbox:
@@ -353,3 +175,97 @@ values:
     tolerations: *tolerations
     affinity:
       nodeAffinity: *affinity
+
+patches:
+  10-pools:
+    # Block
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-blockpool"
+        - op: replace
+          path: '/spec/deviceClass'
+          value: ssd
+      target:
+        kind: CephBlockPool
+        name: ceph-blockpool
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-block"
+        - op: replace
+          path: '/parameters/pool'
+          value: "%{lookup('service_name')}-blockpool"
+      target:
+        kind: StorageClass
+        name: ceph-block
+
+    # Filesystem
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-filesystem"
+        - op: replace
+          path: '/spec/dataPools/0/deviceClass'
+          value: ssd
+        - op: add
+          path: '/spec/metadataServer/placement'
+          value: *placement
+        - op: remove
+          path: '/spec/metadataServer/resources'
+      target:
+        kind: CephFilesystem
+        name: ceph-filesystem
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-filesystem-csi"
+        - op: replace
+          path: '/spec/filesystemName'
+          value: "%{lookup('service_name')}-filesystem"
+      target:
+        kind: CephFilesystemSubVolumeGroup
+        name: ceph-filesystem-csi
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-filesystem"
+        - op: replace
+          path: '/parameters/fsName'
+          value: "%{lookup('service_name')}-filesystem"
+        - op: replace
+          path: '/parameters/pool'
+          value: "%{lookup('service_name')}-filesystem-data0"
+      target:
+        kind: StorageClass
+        name: ceph-filesystem
+
+    # Object
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-objectstore"
+        - op: replace
+          path: '/spec/dataPool/deviceClass'
+          value: hdd
+        - op: replace
+          path: '/spec/dataPool/failureDomain'
+          value: osd
+        - op: add
+          path: '/spec/gateway/placement'
+          value: *placement
+        - op: remove
+          path: '/spec/gateway/resources'
+      target:
+        kind: CephObjectStore
+        name: ceph-objectstore
+    - patch:
+        - op: replace
+          path: '/metadata/name'
+          value: "%{lookup('service_name')}-bucket"
+        - op: replace
+          path: '/parameters/objectStoreName'
+          value: "%{lookup('service_name')}-objectstore"
+      target:
+        kind: StorageClass
+        name: ceph-bucket

@@ -1,0 +1,13 @@
+---
+node_role: storage
+volume_storage_class: eagle
+
+resources:
+  certs: {}
+
+values:
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelector:
+        matchLabels:
+          team: rook # read ServiceMonitors created by rook-ceph-operator

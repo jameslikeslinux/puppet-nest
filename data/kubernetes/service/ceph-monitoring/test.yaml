@@ -1,0 +1,3 @@
+---
+node_role: workstation
+volume_storage_class: data-crypt

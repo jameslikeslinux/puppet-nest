@@ -1,77 +1,25 @@
 ---
-.affinity: &affinity
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-          - key: role
-            operator: In
-            values:
-              - monitor
-
-.tolerations: &tolerations
-  - key: role
-    operator: Exists
-    effect: NoSchedule
-
-resources:
-  # Define certs for Grafana
-  certs:
-    apiVersion: cert-manager.io/v1
-    kind: Certificate
-    metadata:
-      name: grafana-certs
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      secretName: grafana-certs
-      issuerRef:
-        name: eyrie
-        kind: ClusterIssuer
-      dnsNames:
-        - grafana.eyrie
+grafana_service_name: grafana
 
 values:
-  kubeStateMetrics:
-    enabled: true
-  nodeExporter:
-    enabled: true
-  prometheusOperator:
-    affinity: *affinity
-    tolerations: *tolerations
-  prometheus:
-    prometheusSpec:
-      affinity: *affinity
-      tolerations: *tolerations
-
-      # Tune storage retention, thus memory, for small nodes
-      additionalArgs:
-        - name: 'storage.tsdb.retention.size'
-          value: '1GB'
-      storageSpec:
-        volumeClaimTemplate:
-          spec:
-            storageClassName: data-crypt
-            accessModes: ['ReadWriteOnce']
-            resources:
-              requests:
-                storage: 10Gi
-
-  # Subcharts
-  # See: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
-  # See: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
-  kube-state-metrics:
-    affinity: *affinity
-    tolerations: *tolerations
   grafana:
     enabled: true
-    ingress:
+  kubeStateMetrics:
+    enabled: true
+  coreDns:
+    enabled: true
+  kubeApiServer:
+    enabled: true
+  kubeControllerManager:
+    enabled: true
+  kubeEtcd:
+    enabled: true
+  kubeProxy:
+    enabled: true
+  kubeScheduler:
+    enabled: true
+  kubelet:
+    enabled: true
+  prometheusOperator:
+    kubeletService:
       enabled: true
-      ingressClassName: nginx
-      hosts:
-        - grafana.eyrie
-      tls:
-        - hosts:
-            - grafana.eyrie
-          secretName: grafana-certs
-    affinity: *affinity
-    tolerations: *tolerations

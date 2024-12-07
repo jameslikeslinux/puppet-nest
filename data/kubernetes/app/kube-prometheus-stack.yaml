@@ -1,14 +1,104 @@
 ---
+grafana_service_name: "%{nest::kubernetes::service}"
+node_role: monitor
+storage_retention_size: 1GB
+volume_storage_class: data-crypt
+volume_size: 10Gi
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+              - "%{lookup('node_role')}"
+
+.tolerations: &tolerations
+  - key: role
+    operator: Exists
+    effect: NoSchedule
+
 resources:
   # Disable Nest backup
   backup: {}
 
+  # Define certs for Grafana
+  certs:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: "%{nest::kubernetes::service}-grafana-certs"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      secretName: "%{nest::kubernetes::service}-grafana-certs"
+      issuerRef:
+        name: eyrie
+        kind: ClusterIssuer
+      dnsNames:
+        - "%{lookup('grafana_service_name')}.eyrie"
+
 values:
+  fullnameOverride: "%{nest::kubernetes::service}"
   alertmanager:
     enabled: false
   grafana:
     enabled: false
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - "%{lookup('grafana_service_name')}.eyrie"
+      tls:
+        - hosts:
+            - "%{lookup('grafana_service_name')}.eyrie"
+          secretName: "%{nest::kubernetes::service}-grafana-certs"
+    rbac:
+      create: true
+    affinity: *affinity
+    tolerations: *tolerations
   kubeStateMetrics:
     enabled: false
+  kube-state-metrics:
+    rbac:
+      create: true
+    affinity: *affinity
+    tolerations: *tolerations
   nodeExporter:
     enabled: false
+  coreDns:
+    enabled: false
+  kubeApiServer:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubelet:
+    enabled: false
+  prometheusOperator:
+    kubeletService:
+      enabled: false
+    affinity: *affinity
+    tolerations: *tolerations
+  prometheus:
+    prometheusSpec:
+      affinity: *affinity
+      tolerations: *tolerations
+      # Tune storage retention, thus memory, for small nodes
+      additionalArgs:
+        - name: 'storage.tsdb.retention.size'
+          value: "%{lookup('storage_retention_size')}"
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: "%{lookup('volume_storage_class')}"
+            accessModes: ['ReadWriteOnce']
+            resources:
+              requests:
+                storage: "%{lookup('volume_size')}"

@@ -11,10 +11,14 @@ defaults:
 hierarchy:
   - name: 'Kubernetes Services'
     paths:
+      - "bolt-private/kubernetes/service/%{nest::kubernetes::service}/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/service/%{nest::kubernetes::service}/%{nest::kubernetes::namespace}.yaml"
       - "bolt-private/kubernetes/service/%{nest::kubernetes::service}.yaml"
       - "kubernetes/service/%{nest::kubernetes::service}.yaml"
   - name: 'Kubernetes Apps'
     paths:
+      - "bolt-private/kubernetes/app/%{nest::kubernetes::app}/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/app/%{nest::kubernetes::app}/%{nest::kubernetes::namespace}.yaml"
       - "bolt-private/kubernetes/app/%{nest::kubernetes::app}.yaml"
       - "kubernetes/app/%{nest::kubernetes::app}.yaml"
   - name: 'Kubernetes Common'
