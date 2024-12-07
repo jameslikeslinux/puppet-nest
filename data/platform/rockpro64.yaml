@@ -3,6 +3,7 @@ nest::classes:
   - 'nest::firmware::arm'
   - 'nest::firmware::uboot'
 
+nest::dtb_file: 'rockchip/rk3399-rockpro64.dtb'
 nest::fscache: false
 nest::soc: 'rk3399'
 nest::uboot_defconfig: 'rockpro64-rk3399_defconfig'
