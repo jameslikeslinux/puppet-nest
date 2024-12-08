@@ -35,6 +35,7 @@ class nest (
   Integer[0]                        $boot_menu_delay     = 3,
   Optional[Integer]                 $cpus                = undef,
   Optional[String]                  $dtb_file            = undef,
+  Optional[String]                  $dtb_overlay         = undef,
   Array[String]                     $external_interfaces = [],
   Boolean                           $isolate_smt         = false,
   Enum['persistent', 'volatile']    $journal             = persistent,

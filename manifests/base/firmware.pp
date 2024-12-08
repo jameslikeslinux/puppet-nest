@@ -11,13 +11,46 @@ class nest::base::firmware {
       default           => "/boot/${soc_vendor}",
     }
 
-    file {
-      $dtb_root:
-        ensure => directory;
-      "${dtb_root}/${basename($nest::dtb_file)}":
-        source  => "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/dts/${nest::dtb_file}",
+    file { $dtb_root:
+      ensure => directory,
+    }
+
+    $dtb_dest   = "${dtb_root}/${basename($nest::dtb_file)}"
+    $dtb_source = "/usr/src/linux/arch/${facts['profile']['architecture']}/boot/dts/${nest::dtb_file}"
+
+    if $nest::dtb_overlay {
+      $dtso_content = @("DTSO")
+        /dts-v1/;
+        /plugin/;
+
+        ${nest::dtb_overlay}
+        |-DTSO
+
+      file { '/boot/nest.dtso':
+        content => $dtso_content,
+      }
+      ~>
+      exec { 'dtc-overlay':
+        command     => '/usr/src/linux/scripts/dtc/dtc -O dtb -o /boot/nest.dtbo -b 0 -@ /boot/nest.dtso',
+        refreshonly => true,
+        require     => Class['nest::base::kernel'],
+      }
+      ~>
+      exec { 'fdtoverlay':
+        command => "/usr/src/linux/scripts/dtc/fdtoverlay -i ${dtb_source} -o ${dtb_dest} /boot/nest.dtbo",
+      }
+    } else {
+      file { [
+        '/boot/nest.dtso',
+        '/boot/nest.dtbo',
+      ]:
+        ensure => absent,
+      }
+
+      file { $dtb_dest:
+        source  => $dtb_source,
         require => Class['nest::base::kernel'],
-      ;
+      }
     }
 
     if $facts['profile']['platform'] and $facts['profile']['platform'] =~ /^raspberrypi/ {

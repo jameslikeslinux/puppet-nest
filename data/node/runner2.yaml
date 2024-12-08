@@ -1,0 +1,10 @@
+---
+nest::dtb_overlay: |
+  / {
+      fragment@0 {
+          target-path = "/usb@fe900000/usb@fe900000";
+          __overlay__ {
+              dr_mode = "peripheral";
+          };
+      };
+  };
