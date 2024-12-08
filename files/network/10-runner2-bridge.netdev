@@ -1,6 +1,0 @@
-[Match]
-Host=runner2
-
-[NetDev]
-Kind=bridge
-Name=br0
