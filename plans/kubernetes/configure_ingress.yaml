@@ -25,6 +25,9 @@ steps:
       wait: true
 
   - description: 'Configure self-signed CA'
-    plan: 'nest::kubernetes::apply'
+    plan: 'nest::kubernetes::deploy'
     parameters:
-      manifest: 'nest/kubernetes/manifests/cert-manager-config.yaml'
+      service: 'cert-manager-config'
+      app: 'scratch'
+      namespace: 'cert-manager'
+      chart: './files/kubernetes/chart'

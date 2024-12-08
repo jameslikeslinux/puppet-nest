@@ -71,10 +71,4 @@ plan nest::kubernetes::join_node (
   run_command('rm -f /root/kubeadm-config.yaml', $targets, 'Remove kubeadm config file', {
     _run_as => 'root',
   })
-
-  run_plan('nest::kubernetes::wait', {
-    kind      => daemonset,
-    name      => 'calico-node',
-    namespace => 'calico-system',
-  })
 }

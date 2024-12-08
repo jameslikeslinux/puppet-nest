@@ -1,0 +1,12 @@
+---
+resources:
+  bgp:
+    # Use the internal API because this config needs to be present before the
+    # API server works. Normally this is done with calicoctl, but I want Helm
+    # managing everything.
+    apiVersion: crd.projectcalico.org/v1
+    kind: BGPConfiguration
+    metadata:
+      name: default
+    spec:
+      listenPort: 1790 # avoid conflicts with kube-vip and MetalLB

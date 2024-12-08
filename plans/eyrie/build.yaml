@@ -14,11 +14,6 @@ steps:
       vip: 172.21.255.255
     targets: eyrie-control-plane
 
-  - description: 'Setup container networking'
-    plan: nest::kubernetes::setup
-    parameters:
-      control_plane: eyrie-control-plane
-
   - description: 'Join worker nodes'
     plan: nest::kubernetes::join_node
     parameters:
@@ -46,12 +41,6 @@ steps:
       taints: role=workstation:NoSchedule
     targets: eyrie-workstations
 
-  - description: 'Rebalance CoreDNS'
-    plan: nest::kubernetes::restart_deployment
-    parameters:
-      name: coredns
-      namespace: kube-system
-
   - description: 'Configure network'
     plan: nest::kubernetes::configure_network
 
@@ -64,8 +53,8 @@ steps:
   - description: 'Configure monitoring'
     plan: nest::kubernetes::configure_monitoring
 
-  - description: 'Configure Ceph'
-    plan: nest::kubernetes::configure_ceph
-
   - description: 'Deploy Kubernetes Dashboard'
     plan: nest::kubernetes::deploy_dashboard
+
+  - description: 'Configure Ceph'
+    plan: nest::kubernetes::configure_ceph

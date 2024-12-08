@@ -1,7 +1,39 @@
 ---
 description: 'Configure Kubernetes network'
 
+parameters:
+  calico:
+    description: 'Deploy Calico'
+    type: Boolean
+    default: true
+
+  metallb:
+    description: 'Deploy MetalLB'
+    type: Boolean
+    default: true
+
 steps:
+  - description: 'Install Calico'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'calico'
+      app: 'tigera-operator'
+      namespace: 'tigera-operator'
+      repo_name: 'projectcalico'
+      repo_url: 'https://docs.tigera.io/calico/charts'
+      version: '3.29.0'
+      wait: true
+      deploy: $calico
+
+  - description: 'Configure Calico'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'calico-config'
+      app: 'scratch'
+      namespace: 'tigera-operator'
+      chart: './files/kubernetes/chart'
+      deploy: $calico
+
   - description: 'Install MetalLB'
     plan: 'nest::kubernetes::deploy'
     parameters:
@@ -11,15 +43,14 @@ steps:
       repo_name: 'metallb'
       repo_url: 'https://metallb.github.io/metallb'
       version: '0.14.8'
-
-  - description: 'Wait for MetalLB controller'
-    plan: 'nest::kubernetes::wait'
-    parameters:
-      kind: deployment
-      name: 'metallb-controller'
-      namespace: 'metallb-system'
+      wait: true
+      deploy: $metallb
 
   - description: 'Configure MetalLB'
-    plan: 'nest::kubernetes::apply'
+    plan: 'nest::kubernetes::deploy'
     parameters:
-      manifest: 'nest/kubernetes/manifests/metallb-config.yaml'
+      service: 'metallb-config'
+      app: 'scratch'
+      namespace: 'metallb-system'
+      chart: './files/kubernetes/chart'
+      deploy: $metallb
