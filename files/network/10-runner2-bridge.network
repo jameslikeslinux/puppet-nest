@@ -1,0 +1,6 @@
+[Match]
+Host=runner2
+Name=en* usb* wlan*
+
+[Network]
+Bridge=br0
