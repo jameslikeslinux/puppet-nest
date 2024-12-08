@@ -1,8 +1,12 @@
 ---
+nest::classes:
+  - 'nest::node::runner2'
+
+# Enable USB-C device mode
 nest::dtb_overlay: |
   / {
       fragment@0 {
-          target-path = "/usb@fe900000/usb@fe900000";
+          target-path = "/usb@fe800000/usb@fe800000";
           __overlay__ {
               dr_mode = "peripheral";
           };
