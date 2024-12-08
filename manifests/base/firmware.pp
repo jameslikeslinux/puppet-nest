@@ -37,7 +37,8 @@ class nest::base::firmware {
       }
       ~>
       exec { 'fdtoverlay':
-        command => "/usr/src/linux/scripts/dtc/fdtoverlay -i ${dtb_source} -o ${dtb_dest} /boot/nest.dtbo",
+        command     => "/usr/src/linux/scripts/dtc/fdtoverlay -i ${dtb_source} -o ${dtb_dest} /boot/nest.dtbo",
+        refreshonly => true,
       }
     } else {
       file { [
