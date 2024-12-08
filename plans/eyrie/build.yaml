@@ -61,11 +61,11 @@ steps:
   - description: 'Configure ingress'
     plan: nest::kubernetes::configure_ingress
 
-  - description: 'Configure Ceph'
-    plan: nest::kubernetes::configure_ceph
-
   - description: 'Configure monitoring'
     plan: nest::kubernetes::configure_monitoring
+
+  - description: 'Configure Ceph'
+    plan: nest::kubernetes::configure_ceph
 
   - description: 'Deploy Kubernetes Dashboard'
     plan: nest::kubernetes::deploy_dashboard

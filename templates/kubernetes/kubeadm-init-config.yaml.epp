@@ -26,11 +26,11 @@ certificateKey: <%= $certificate_key.unwrap %>
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 
-# Allow the use of swap (compressed memory) for non-k8s workloads
-# See: https://kubernetes.io/blog/2021/08/09/run-nodes-with-swap-alpha/
+# Allow the use of swap (compressed memory)
+# See: https://kubernetes.io/blog/2024/03/12/kubernetes-1-30-upcoming-changes/#node-memory-swap-support-kep-2400-https-kep-k8s-io-2400
 failSwapOn: false
-featureGates:
-  NodeSwap: true
+memorySwap:
+  swapBehavior: LimitedSwap
 
 # Recommended on slow hosts for large image pulls
 # See: https://github.com/cri-o/cri-o/blob/main/tutorials/kubernetes.md
