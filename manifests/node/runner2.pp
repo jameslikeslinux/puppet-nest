@@ -19,8 +19,8 @@ class nest::node::runner2 {
     notify  => Service['dnsmasq'],
   }
 
-  Firewalld_zone <| title == 'external' |> {
-    sources +> '172.22.99.0/24',
+  Firewalld_zone <| title == 'internal' |> {
+    masquerade => true,
   }
 
   firewalld_service { ['dhcp', 'dns']:
