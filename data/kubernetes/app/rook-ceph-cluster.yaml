@@ -5,6 +5,9 @@ ssd_volume_storage_class: data-crypt-block
 hdd_volume_size: 256Gi
 hdd_volume_storage_class: nest-crypt-block
 service_name: "%{nest::kubernetes::service}"
+cert_issuer: eyrie-ca
+cert_issuer_kind: ClusterIssuer
+ingress_class: nginx
 
 .placement: &placement
   nodeAffinity: &affinity
@@ -34,10 +37,10 @@ resources:
     spec:
       secretName: "%{nest::kubernetes::service}-dashboard-certs"
       issuerRef:
-        name: eyrie
-        kind: ClusterIssuer
+        name: "%{lookup('cert_issuer')}"
+        kind: "%{lookup('cert_issuer_kind')}"
       dnsNames:
-        - "%{lookup('service_name')}.eyrie"
+        - "%{nest::kubernetes::fqdn}"
 
 values:
   clusterName: "%{lookup('service_name')}"
@@ -163,12 +166,12 @@ values:
   ingress:
     dashboard:
       host:
-        name: "%{lookup('service_name')}.eyrie"
+        name: "%{nest::kubernetes::fqdn}"
       tls:
         - hosts:
-          - "%{lookup('service_name')}.eyrie"
+          - "%{nest::kubernetes::fqdn}"
           secretName: "%{nest::kubernetes::service}-dashboard-certs"
-      ingressClassName: nginx
+      ingressClassName: "%{lookup('ingress_class')}"
 
   toolbox:
     enabled: true

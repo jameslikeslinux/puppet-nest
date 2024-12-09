@@ -9,7 +9,7 @@ resources:
     spec:
       secretName: "%{nest::kubernetes::service}-certs"
       issuerRef:
-        name: eyrie
+        name: eyrie-ca
         kind: ClusterIssuer
       dnsNames:
         - "%{nest::kubernetes::service}.eyrie"

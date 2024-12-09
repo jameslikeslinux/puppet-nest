@@ -1,6 +1,10 @@
 ---
+service_name: "ingress-%{nest::kubernetes::namespace}"
+class_name: "nginx-%{nest::kubernetes::namespace}"
+
 values:
   controller:
     ingressClassResource:
-      default: true
-    replicaCount: 2
+      name: "%{lookup('class_name')}"
+      controllerValue: "k8s.io/ingress-%{lookup('class_name')}"
+    ingressClass: "%{lookup('class_name')}"

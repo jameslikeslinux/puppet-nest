@@ -77,6 +77,9 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
+  # Wait for control plane to settle
+  ctrl::sleep(30)
+
   # Configure CoreDNS to forward requests to Nest nameserver. CoreDNS won't
   # start without the Calico pod network so updating this config before Calico
   # deploys guarantees CoreDNS will launch with the right config the first time.

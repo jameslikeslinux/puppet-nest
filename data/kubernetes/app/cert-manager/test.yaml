@@ -1,0 +1,33 @@
+---
+node_role: workstation
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+              - "%{lookup('node_role')}"
+
+.tolerations: &tolerations
+  - key: role
+    operator: Exists
+    effect: NoSchedule
+
+values:
+  global:
+    leaderElection:
+      namespace: "%{nest::kubernetes::namespace}"
+  extraArgs:
+    - "--namespace=%{nest::kubernetes::namespace}"
+  fullnameOverride: "%{nest::kubernetes::service}-test"
+  affinity: *affinity
+  tolerations: *tolerations
+  cainjector:
+    affinity: *affinity
+    tolerations: *tolerations
+  webhook:
+    affinity: *affinity
+    tolerations: *tolerations

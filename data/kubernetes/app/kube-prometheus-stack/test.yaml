@@ -1,9 +1,12 @@
 ---
+cert_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
+cert_issuer_kind: Issuer
+ingress_class: "nginx-%{nest::kubernetes::namespace}"
 node_role: workstation
 
 values:
-  fullnameOverride: "%{nest::kubernetes::service}-test"
+  fullnameOverride: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
   grafana:
-    fullnameOverride: "%{nest::kubernetes::service}-test-grafana"
+    fullnameOverride: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}-grafana"
   kube-state-metrics:
-    fullnameOverride: "%{nest::kubernetes::service}-test-kube-state-metrics"
+    fullnameOverride: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}-kube-state-metrics"

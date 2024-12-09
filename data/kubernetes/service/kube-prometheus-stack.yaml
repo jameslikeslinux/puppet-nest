@@ -1,25 +1,38 @@
 ---
-grafana_service_name: grafana
+service_name: "grafana-%{nest::kubernetes::namespace}"
 
 values:
+  # Scrape existing cluster services
   grafana:
     enabled: true
   kubeStateMetrics:
     enabled: true
   coreDns:
     enabled: true
+    service:
+      enabled: false
   kubeApiServer:
     enabled: true
   kubeControllerManager:
     enabled: true
+    service:
+      enabled: false
   kubeEtcd:
     enabled: true
+    service:
+      enabled: false
   kubeProxy:
     enabled: true
+    service:
+      enabled: false
   kubeScheduler:
     enabled: true
+    service:
+      enabled: false
   kubelet:
     enabled: true
+    service:
+      enabled: false
   prometheusOperator:
     kubeletService:
-      enabled: true
+      enabled: false

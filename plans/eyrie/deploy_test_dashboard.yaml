@@ -1,0 +1,20 @@
+---
+description: 'Deploy test Kubernetes Dashboard'
+
+parameters:
+  render_to:
+    description: 'Just render the template'
+    type: String
+    default: ''
+
+steps:
+  - description: 'Deploy test Kubernetes Dashboard'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'kubernetes-dashboard'
+      app: 'kubernetes-dashboard'
+      namespace: 'test'
+      repo_name: 'kubernetes-dashboard'
+      repo_url: 'https://kubernetes.github.io/dashboard/'
+      version: '7.10.0'
+      render_to: $render_to

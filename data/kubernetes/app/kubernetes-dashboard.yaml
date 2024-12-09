@@ -1,39 +1,13 @@
 ---
+ingress_class: "nginx-%{nest::kubernetes::namespace}"
+ingress_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
+ingress_issuer_scope: default
+
 resources:
   backup: {}
 
-  account:
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: james
-      namespace: "%{nest::kubernetes::namespace}"
-
-  role:
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-      name: james-admin
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: cluster-admin
-    subjects:
-      - kind: ServiceAccount
-        name: james
-        namespace: "%{nest::kubernetes::namespace}"
-
-  secret:
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: james-token
-      namespace: "%{nest::kubernetes::namespace}"
-      annotations:
-        kubernetes.io/service-account.name: james
-    type: kubernetes.io/service-account-token
-
 values:
+  fullnameOverride: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
   app:
     settings:
       global:
@@ -45,14 +19,11 @@ values:
     ingress:
       enabled: true
       hosts:
-        - "%{nest::kubernetes::service}.eyrie"
-        - kubernetes.eyrie
-      ingressClassName: nginx
+        - "%{nest::kubernetes::fqdn}"
+      ingressClassName: "%{lookup('ingress_class')}"
       issuer:
-        name: eyrie
-        scope: cluster
-  metrics-server:
-    enabled: true
+        name: "%{lookup('ingress_issuer')}"
+        scope: "%{lookup('ingress_issuer_scope')}"
 
 patches:
   # Remove unrealistic resources requests

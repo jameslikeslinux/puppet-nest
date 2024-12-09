@@ -1,7 +1,3 @@
 ---
 resources:
   backup: {}
-
-values:
-  crds:
-    enabled: true

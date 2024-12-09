@@ -1,7 +1,10 @@
 ---
-grafana_service_name: "%{nest::kubernetes::service}"
+service_name: "%{nest::kubernetes::service}"
+cert_issuer: eyrie-ca
+cert_issuer_kind: ClusterIssuer
+ingress_class: nginx
 node_role: monitor
-storage_retention_size: 1GB
+storage_retention_size: 2GB
 volume_storage_class: data-crypt
 volume_size: 10Gi
 
@@ -34,25 +37,24 @@ resources:
     spec:
       secretName: "%{nest::kubernetes::service}-grafana-certs"
       issuerRef:
-        name: eyrie
-        kind: ClusterIssuer
+        name: "%{lookup('cert_issuer')}"
+        kind: "%{lookup('cert_issuer_kind')}"
       dnsNames:
-        - "%{lookup('grafana_service_name')}.eyrie"
+        - "%{nest::kubernetes::fqdn}"
 
 values:
-  fullnameOverride: "%{nest::kubernetes::service}"
   alertmanager:
     enabled: false
   grafana:
     enabled: false
     ingress:
       enabled: true
-      ingressClassName: nginx
+      ingressClassName: "%{lookup('ingress_class')}"
       hosts:
-        - "%{lookup('grafana_service_name')}.eyrie"
+        - "%{nest::kubernetes::fqdn}"
       tls:
         - hosts:
-            - "%{lookup('grafana_service_name')}.eyrie"
+            - "%{nest::kubernetes::fqdn}"
           secretName: "%{nest::kubernetes::service}-grafana-certs"
     rbac:
       create: true

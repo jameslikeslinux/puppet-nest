@@ -1,0 +1,12 @@
+[Match]
+Host=kestrel
+Name=bond*
+
+[Network]
+DHCP=yes
+
+[DHCP]
+RouteMetric=10
+
+[DHCPv4]
+UseDNS=no

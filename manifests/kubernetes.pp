@@ -6,9 +6,11 @@ class nest::kubernetes {
   $parent_service = pick_default($::kubernetes_parent_service)
   # lint:endignore
 
-  if $service {
-    $cron_job_offset  = stdlib::seeded_rand(60, $service)
-    $fqdn             = "${service}.eyrie"
+  $service_name = lookup('service_name', default_value => $service)
+
+  if $service_name {
+    $cron_job_offset  = stdlib::seeded_rand(60, $service_name)
+    $fqdn             = "${service_name}.eyrie"
     $load_balancer_ip = lookup('nest::host_records')[$fqdn]
   } else {
     $cron_job_offset  = 0

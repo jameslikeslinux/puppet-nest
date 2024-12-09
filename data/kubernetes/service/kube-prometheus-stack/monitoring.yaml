@@ -1,4 +1,29 @@
 ---
+service_name: grafana
+
 values:
   nodeExporter:
     enabled: true
+
+  # Enable cluster scrape services
+  coreDns:
+    service:
+      enabled: true
+  kubeControllerManager:
+    service:
+      enabled: true
+  kubeEtcd:
+    service:
+      enabled: true
+  kubeProxy:
+    service:
+      enabled: true
+  kubeScheduler:
+    service:
+      enabled: true
+  kubelet:
+    service:
+      enabled: true
+  prometheusOperator:
+    kubeletService:
+      enabled: true

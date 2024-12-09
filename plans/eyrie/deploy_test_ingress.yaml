@@ -1,0 +1,60 @@
+---
+description: 'Deploy test ingress'
+
+parameters:
+  nginx:
+    description: 'Deploy ingress-nginx'
+    type: Boolean
+    default: true
+
+  certmanager:
+    description: 'Deploy cert-manager'
+    type: Boolean
+    default: true
+
+  ca:
+    description: 'Deploy CA config'
+    type: Boolean
+    default: true
+
+  render_to:
+    description: 'Just render the template'
+    type: String
+    default: ''
+
+steps:
+  - description: 'Deploy test ingress-nginx'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'ingress-nginx'
+      app: 'ingress-nginx'
+      namespace: 'test'
+      repo_name: 'ingress-nginx'
+      repo_url: 'https://kubernetes.github.io/ingress-nginx'
+      version: '4.11.3'
+      wait: true
+      deploy: $nginx
+      render_to: $render_to
+
+  - description: 'Deploy test cert-manager'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'cert-manager'
+      app: 'cert-manager'
+      namespace: 'test'
+      repo_name: 'jetstack'
+      repo_url: 'https://charts.jetstack.io'
+      version: '1.16.2'
+      wait: true
+      deploy: $certmanager
+      render_to: $render_to
+
+  - description: 'Configure test CA'
+    plan: 'nest::kubernetes::deploy'
+    parameters:
+      service: 'eyrie-ca'
+      app: 'scratch'
+      namespace: 'test'
+      chart: './files/kubernetes/chart'
+      deploy: $ca
+      render_to: $render_to

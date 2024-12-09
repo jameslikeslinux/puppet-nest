@@ -30,7 +30,7 @@ steps:
     parameters:
       service: 'zfs-localpv'
       app: 'zfs-localpv'
-      namespace: 'kube-system'
+      namespace: 'openebs'
       repo_name: 'openebs-zfslocalpv'
       repo_url: 'https://openebs.github.io/zfs-localpv'
       version: '2.6.2'

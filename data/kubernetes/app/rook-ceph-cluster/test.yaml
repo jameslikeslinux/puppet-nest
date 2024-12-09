@@ -2,7 +2,10 @@
 node_role: workstation
 ssd_volume_size: 10Gi
 hdd_volume_size: 100Gi
-service_name: "%{nest::kubernetes::service}-test"
+service_name: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
+cert_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
+cert_issuer_kind: Issuer
+ingress_class: "nginx-%{nest::kubernetes::namespace}"
 
 resources:
   # Override .mgr pool failure domain
@@ -23,7 +26,7 @@ resources:
 values:
   cephClusterSpec:
     dashboard:
-      prometheusEndpoint: http://ceph-monitoring-test-prometheus:9090
+      prometheusEndpoint: "http://ceph-monitoring-%{nest::kubernetes::namespace}-prometheus:9090"
     mon:
       allowMultiplePerNode: true
     mgr:

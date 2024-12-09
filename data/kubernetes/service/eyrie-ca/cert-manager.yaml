@@ -1,0 +1,15 @@
+---
+common_name: Eyrie
+service_name: "%{nest::kubernetes::service}"
+issuer_kind: ClusterIssuer
+ca_issuer: selfsigned
+
+resources:
+  selfsigned:
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: "%{lookup('ca_issuer')}"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      selfSigned: {}

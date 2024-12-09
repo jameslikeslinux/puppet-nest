@@ -38,6 +38,13 @@ steps:
     run_as: root
     targets: $control_plane
 
+  # Cleanup old kube-proxy IPVS rules
+  - description: 'Clear IPVS'
+    command: 'ipvsadm --clear'
+    catch_errors: true
+    run_as: root
+    targets: "${control_plane} ${workers}"
+
   - description: 'Remove Kubeconfig'
     command: "rm -f '/nest/home/kubeconfigs/${name}.conf'"
     targets: localhost

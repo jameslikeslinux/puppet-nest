@@ -1,0 +1,32 @@
+---
+service_name: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
+issuer_kind: Issuer
+ca_issuer: "%{nest::kubernetes::service}"
+
+resources:
+  cert:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: "%{lookup('service_name')}"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      isCA: true
+      commonName: "%{lookup('common_name')}"
+      secretName: "%{lookup('service_name')}-certs"
+      privateKey:
+        algorithm: ECDSA
+        size: 256
+      issuerRef:
+        name: "%{lookup('ca_issuer')}"
+        kind: ClusterIssuer
+        group: cert-manager.io
+
+  issuer:
+    apiVersion: cert-manager.io/v1
+    kind: "%{lookup('issuer_kind')}"
+    metadata:
+      name: "%{lookup('service_name')}"
+    spec:
+      ca:
+        secretName: "%{lookup('service_name')}-certs"

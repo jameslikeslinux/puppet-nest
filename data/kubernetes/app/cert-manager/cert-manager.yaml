@@ -1,0 +1,6 @@
+---
+values:
+  crds:
+    enabled: true
+  extraArgs:
+    - --controllers=*,-issuers

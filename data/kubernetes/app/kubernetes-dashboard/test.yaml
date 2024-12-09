@@ -1,0 +1,25 @@
+---
+node_role: workstation
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+              - "%{lookup('node_role')}"
+
+.tolerations: &tolerations
+  - key: role
+    operator: Exists
+    effect: NoSchedule
+
+values:
+  app:
+    affinity: *affinity
+    tolerations: *tolerations
+  kong:
+    affinity: *affinity
+    tolerations: *tolerations

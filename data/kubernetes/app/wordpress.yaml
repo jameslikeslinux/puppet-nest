@@ -10,7 +10,7 @@ values:
     enabled: true
     hostname: "%{nest::kubernetes::service}.eyrie"
     annotations:
-      cert-manager.io/cluster-issuer: eyrie
+      cert-manager.io/cluster-issuer: eyrie-ca
     tls: true
   resources:
     requests:

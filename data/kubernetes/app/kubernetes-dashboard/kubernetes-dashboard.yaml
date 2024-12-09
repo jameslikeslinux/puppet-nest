@@ -1,0 +1,7 @@
+---
+ingress_class: nginx
+ingress_issuer: eyrie-ca
+ingress_issuer_scope: cluster
+
+values:
+  fullnameOverride: "%{nest::kubernetes::service}"

@@ -41,20 +41,20 @@ steps:
       taints: role=workstation:NoSchedule
     targets: eyrie-workstations
 
-  - description: 'Configure network'
-    plan: nest::kubernetes::configure_network
+  - description: 'Deploy network'
+    plan: nest::kubernetes::deploy_network
 
-  - description: 'Configure storage'
-    plan: nest::kubernetes::configure_storage
+  - description: 'Deploy storage'
+    plan: nest::kubernetes::deploy_storage
 
-  - description: 'Configure ingress'
-    plan: nest::kubernetes::configure_ingress
+  - description: 'Deploy ingress'
+    plan: nest::kubernetes::deploy_ingress
 
-  - description: 'Configure monitoring'
-    plan: nest::kubernetes::configure_monitoring
+  - description: 'Deploy monitoring'
+    plan: nest::kubernetes::deploy_monitoring
 
   - description: 'Deploy Kubernetes Dashboard'
     plan: nest::kubernetes::deploy_dashboard
 
-  - description: 'Configure Ceph'
-    plan: nest::kubernetes::configure_ceph
+  - description: 'Deploy Ceph'
+    plan: nest::kubernetes::deploy_ceph
