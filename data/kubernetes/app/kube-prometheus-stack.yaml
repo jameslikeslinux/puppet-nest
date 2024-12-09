@@ -1,4 +1,5 @@
 ---
+fullname: "%{nest::kubernetes::service}"
 service_name: "%{nest::kubernetes::service}"
 cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
@@ -43,10 +44,12 @@ resources:
         - "%{nest::kubernetes::fqdn}"
 
 values:
+  fullnameOverride: "%{lookup('fullname')}"
   alertmanager:
     enabled: false
   grafana:
     enabled: false
+    fullnameOverride: "%{lookup('fullname')}-grafana"
     ingress:
       enabled: true
       ingressClassName: "%{lookup('ingress_class')}"
@@ -63,6 +66,7 @@ values:
   kubeStateMetrics:
     enabled: false
   kube-state-metrics:
+    fullnameOverride: "%{lookup('fullname')}-kube-state-metrics"
     rbac:
       create: true
     affinity: *affinity
