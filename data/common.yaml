@@ -216,6 +216,7 @@ nest::kernel_config:
   CONFIG_PREEMPT_DYNAMIC: y
 
   # Networking
+  CONFIG_TCP_MD5SIG: y
   CONFIG_IPV6: y
   CONFIG_NETFILTER: y
   CONFIG_NETFILTER_ADVANCED: y
