@@ -3,9 +3,9 @@ default:
   interruptible: true
 
 stages:
+  - 'Deploy'
   - 'Test'
   - 'Build'
-  - 'Deploy'
 
 'Validate':
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
