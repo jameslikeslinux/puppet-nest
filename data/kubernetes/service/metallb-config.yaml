@@ -56,7 +56,6 @@ resources:
       myASN: 65000
       peerASN: 65000
       peerAddress: 172.22.4.2
-      password: falcon
 
   kestrel_peer:
     apiVersion: metallb.io/v1beta2
@@ -68,4 +67,3 @@ resources:
       myASN: 65000
       peerASN: 65000
       peerAddress: 172.22.4.3
-      password: kestrel

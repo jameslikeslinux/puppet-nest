@@ -61,12 +61,10 @@ template bgp nest {
 
 protocol bgp falcon from nest {
     neighbor 172.22.4.2;
-    password "falcon";
 }
 
 protocol bgp kestrel from nest {
     neighbor 172.22.4.3;
-    password "kestrel";
 }
 
 protocol bgp workers from nest {
@@ -103,7 +101,6 @@ protocol bgp nest {
     local as 65000;
     neighbor range 172.22.4.0/24 as 65000;
     direct;
-    password "<%= $trusted['certname'] %>";
     rr client;
 
     ipv4 {
@@ -127,11 +124,9 @@ template bgp nest {
 
 protocol bgp falcon from nest {
     neighbor 172.22.4.2;
-    password "falcon";
 }
 
 protocol bgp kestrel from nest {
     neighbor 172.22.4.3;
-    password "kestrel";
 }
 <% } -%>
