@@ -1,6 +1,13 @@
 ---
 description: 'Deploy test monitoring'
 
+parameters:
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
+
 steps:
   - description: 'Deploy test kube-prometheus stack'
     plan: 'nest::kubernetes::deploy'
@@ -11,3 +18,4 @@ steps:
       repo_name: 'prometheus-community'
       repo_url: 'https://prometheus-community.github.io/helm-charts'
       version: '66.3.0'
+      deploy: $deploy

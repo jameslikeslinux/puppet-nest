@@ -2,6 +2,11 @@
 description: 'Deploy jump'
 
 parameters:
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
   namespace:
     description: 'Namespace to deploy to'
     type: String
@@ -19,5 +24,6 @@ steps:
       service: 'jump'
       app: 'nest'
       chart: './files/kubernetes/chart'
+      deploy: $deploy
       namespace: $namespace
       render_to: $render_to

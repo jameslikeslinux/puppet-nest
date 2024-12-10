@@ -2,6 +2,11 @@
 description: 'Deploy test Kubernetes Dashboard'
 
 parameters:
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
   render_to:
     description: 'Just render the template'
     type: String
@@ -17,4 +22,5 @@ steps:
       repo_name: 'kubernetes-dashboard'
       repo_url: 'https://kubernetes.github.io/dashboard/'
       version: '7.10.0'
+      deploy: $deploy
       render_to: $render_to

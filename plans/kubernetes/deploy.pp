@@ -4,6 +4,7 @@
 # @param app Name of the app to install
 # @param append How `render_to` should be written out
 # @param chart Chart name if it doesn't match `app`
+# @param deploy Run or skip the deployment
 # @param hooks Enable or disable install hooks
 # @param namespace Namespace to manage
 # @param render_to Just save the fully-rendered chart to this yaml file
@@ -19,6 +20,7 @@ plan nest::kubernetes::deploy (
   String           $app       = $service,
   Boolean          $append    = false,
   String           $chart     = $app,
+  Boolean          $deploy    = true,
   Boolean          $hooks     = true,
   Optional[String] $namespace = undef,
   Optional[String] $render_to = undef,
@@ -29,7 +31,6 @@ plan nest::kubernetes::deploy (
   Boolean          $wait      = false,
   Array[Hash]      $subcharts = [],
   Optional[String] $parent    = undef,
-  Boolean          $deploy    = true,
 ) {
   if $deploy {
     $subcharts.each |$subchart| {

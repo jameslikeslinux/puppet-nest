@@ -1,0 +1,43 @@
+---
+description: 'Deploy the Eyrie test environment'
+
+parameters:
+  system:
+    description: 'Deploy system'
+    type: Boolean
+    default: true
+
+  apps:
+    description: 'Deploy apps'
+    type: Boolean
+    default: true
+
+
+steps:
+  # System components
+  - description: 'Deploy test ingress'
+    plan: nest::eyrie::deploy_test_ingress
+    parameters:
+      deploy: $system
+
+  - description: 'Deploy test monitoring'
+    plan: nest::eyrie::deploy_test_monitoring
+    parameters:
+      deploy: $system
+
+  - description: 'Deploy test Kubernetes Dashboard'
+    plan: nest::eyrie::deploy_test_dashboard
+    parameters:
+      deploy: $system
+
+  - description: 'Deploy test Ceph'
+    plan: nest::eyrie::deploy_test_ceph
+    parameters:
+      deploy: $system
+
+  # Test applications
+  - description: 'Deploy test jump'
+    plan: nest::eyrie::deploy_jump
+    parameters:
+      namespace: 'test'
+      deploy: $apps
