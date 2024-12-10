@@ -6,7 +6,7 @@ cert_issuer_kind: ClusterIssuer
 ingress_class: nginx
 node_role: monitor
 storage_retention_size: 2GB
-volume_storage_class: data-crypt
+storage_class: data-crypt
 volume_size: 10Gi
 
 .affinity: &affinity
@@ -14,13 +14,11 @@ volume_size: 10Gi
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: role
-            operator: In
-            values:
-              - "%{lookup('node_role')}"
+          - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+            operator: Exists
 
 .tolerations: &tolerations
-  - key: role
+  - key: "node-role.kubernetes.io/%{lookup('node_role')}"
     operator: Exists
     effect: NoSchedule
 
@@ -103,7 +101,7 @@ values:
       storageSpec:
         volumeClaimTemplate:
           spec:
-            storageClassName: "%{lookup('volume_storage_class')}"
+            storageClassName: "%{lookup('storage_class')}"
             accessModes: ['ReadWriteOnce']
             resources:
               requests:

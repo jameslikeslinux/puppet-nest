@@ -2,15 +2,15 @@
 #
 # @param targets Nodes to join
 # @param control_plane Node that controls the workers
-# @param taints List of taints to start the nodes with
+# @param labels List of labels to start the nodes with
 #
 # @see https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#join-nodes
 plan nest::kubernetes::join_node (
   TargetSpec $targets,
   TargetSpec $control_plane,
-  Variant[Nest::KubernetesTaint, Array[Nest::KubernetesTaint]] $taints = [],
+  Variant[Nest::KubernetesLabel, Array[Nest::KubernetesLabel]] $labels = [],
 ) {
-  $taints_list = [$taints].flatten
+  $labels_list = [$labels].flatten
 
   run_command('systemctl start crio', $targets, 'Start CRI-O', {
     _run_as => 'root',
@@ -47,7 +47,7 @@ plan nest::kubernetes::join_node (
     api_server   => $api_server,
     token        => $token,
     ca_cert_hash => $ca_cert_hash,
-    taints       => $taints_list,
+    taints       => $labels_list.filter |$label| { $label =~ /:(NoSchedule|PreferNoSchedule|NoExecute)$/ },
   })
   write_file($kubeadm_config, '/root/kubeadm-config.yaml', $targets, {
     _run_as => 'root',
@@ -58,12 +58,12 @@ plan nest::kubernetes::join_node (
   })
 
   parallelize(get_targets($targets)) |$target| {
-    $taints_list.each |$taint| {
-      if $taint =~ /^(\w+)(=(\w+))?/ {
+    $labels_list.each |$label| {
+      if $label =~ /^([^=:]+)(?:=([^:]+))?/ {
         $key = $1
-        $value = $3
-        $label_cmd = "kubectl label nodes ${target.name} ${key}=${value}"
-        run_command($label_cmd, 'localhost', "Label node ${target.name} with ${key}=${value}")
+        $value = $2
+        $label_cmd = "kubectl label nodes ${target.name} ${key.shellquote}=${value.shellquote}"
+        run_command($label_cmd, 'localhost', "Label node ${target.name} with ${key}='${value}'")
       }
     }
   }

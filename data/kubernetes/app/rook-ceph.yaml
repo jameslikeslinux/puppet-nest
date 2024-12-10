@@ -4,9 +4,9 @@ resources:
 
 values:
   nodeSelector:
-    role: storage
+    'node-role.kubernetes.io/storage': ''
   tolerations: &tolerations
-    - key: role
+    - key: 'node-role.kubernetes.io/storage'
       operator: Exists
       effect: NoSchedule
   csi:
@@ -19,11 +19,11 @@ values:
     csiNFSPluginResource: '[]'
 
     provisionerTolerations: *tolerations
-    provisionerNodeAffinity: role=storage
+    provisionerNodeAffinity: node-role.kubernetes.io/storage
 
-    # Allow Ceph on all workers
+    # Allow Ceph on workstations
     pluginTolerations:
-      - key: role
+      - key: 'node-role.kubernetes.io/workstation'
         operator: Exists
         effect: NoSchedule
 

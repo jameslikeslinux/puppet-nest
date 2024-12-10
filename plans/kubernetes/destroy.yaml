@@ -14,17 +14,17 @@ parameters:
     type: Stdlib::IP::Address::V4
     description: 'Address control plane is reachable on'
 
-  workers:
+  nodes:
     type: TargetSpec
     default: []
-    description: 'Workers to reset'
+    description: 'Nodes to reset'
 
 steps:
-  - description: 'Remove worker nodes'
-    plan: nest::kubernetes::remove_worker
+  - description: 'Remove nodes'
+    plan: nest::kubernetes::remove_node
     parameters:
       drain: false
-    targets: $workers
+    targets: $nodes
 
   - description: 'Reset control plane'
     command: 'kubeadm reset --force'
@@ -43,7 +43,7 @@ steps:
     command: 'ipvsadm --clear'
     catch_errors: true
     run_as: root
-    targets: "${control_plane} ${workers}"
+    targets: "${control_plane} ${nodes}"
 
   - description: 'Remove Kubeconfig'
     command: "rm -f '/nest/home/kubeconfigs/${name}.conf'"

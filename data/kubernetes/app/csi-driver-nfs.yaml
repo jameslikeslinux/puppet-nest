@@ -12,3 +12,10 @@ resources:
     parameters:
       server: eagle.nest
       share: /export
+
+values:
+  node:
+    tolerations:
+      - key: node-role.kubernetes.io/storage
+        operator: Exists
+        effect: NoSchedule

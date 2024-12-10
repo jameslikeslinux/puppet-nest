@@ -58,6 +58,12 @@ resources:
 values:
   zfsNode:
     tolerations:
-      - key: role
+      - key: node-role.kubernetes.io/monitor
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/storage
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/workstation
         operator: Exists
         effect: NoSchedule

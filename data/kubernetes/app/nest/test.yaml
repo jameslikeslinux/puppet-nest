@@ -1,4 +1,5 @@
 ---
+node_platform: haswell
 node_role: workstation
 
 .affinity: &affinity
@@ -14,18 +15,17 @@ node_role: workstation
     operator: Exists
     effect: NoSchedule
 
-values:
-  global:
-    leaderElection:
-      namespace: "%{nest::kubernetes::namespace}"
-  extraArgs:
-    - "--namespace=%{nest::kubernetes::namespace}"
-  fullnameOverride: "%{nest::kubernetes::service}-test"
-  affinity: *affinity
-  tolerations: *tolerations
-  cainjector:
-    affinity: *affinity
-    tolerations: *tolerations
-  webhook:
-    affinity: *affinity
-    tolerations: *tolerations
+patches:
+  10-nest:
+    - patch:
+        - op: add
+          path: '/spec/template/spec/affinity'
+          value: *affinity
+        - op: add
+          path: '/spec/template/spec/tolerations'
+          value: *tolerations
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        labelSelector: 'james.tl/nest'

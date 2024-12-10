@@ -2,7 +2,7 @@
   String $api_server,
   String $token,
   String $ca_cert_hash,
-  Array[Nest::KubernetesTaint] $taints,
+  Array[Nest::KubernetesLabel] $taints,
 | -%>
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -19,10 +19,14 @@ nodeRegistration:
 <% } else { -%>
   taints:
 <% $taints.each |$t| {
-    if $t =~ /^(\w+)(=(\w+))?:(\w+)$/ { -%>
+    if $t =~ /^([^=:]+)(?:=([^:]+))?:(NoSchedule|PreferNoSchedule|NoExecute)$/ { -%>
     - key: <%= $1 %>
-      value: <%= $3 %>
-      effect: <%= $4 %>
-<%  }
+  <%- if $2 { -%>
+      value: <%= $2 %>
+  <%- } -%>
+      effect: <%= $3 %>
+<%  } else {
+      fail("Label ${t} does not contain a taint")
+    }
   }
 } -%>

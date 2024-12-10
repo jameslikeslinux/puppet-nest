@@ -1,4 +1,6 @@
 ---
+node_role: workstation
+
 resources:
   backup: {}
 
@@ -81,12 +83,10 @@ patches:
                 requiredDuringSchedulingIgnoredDuringExecution:
                   nodeSelectorTerms:
                     - matchExpressions:
-                      - key: role
-                        operator: In
-                        values:
-                          - workstation
+                      - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+                        operator: Exists
             tolerations:
-              - key: role
+              - key: "node-role.kubernetes.io/%{lookup('node_role')}"
                 operator: Exists
                 effect: NoSchedule
     target:

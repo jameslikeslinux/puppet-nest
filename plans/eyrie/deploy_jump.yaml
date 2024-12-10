@@ -1,6 +1,17 @@
 ---
 description: 'Deploy jump'
 
+parameters:
+  namespace:
+    description: 'Namespace to deploy to'
+    type: String
+    default: 'default'
+
+  render_to:
+    description: 'Render the template to a file'
+    type: String
+    default: ''
+
 steps:
   - description: 'Deploy jump'
     plan: nest::kubernetes::deploy
@@ -8,3 +19,5 @@ steps:
       service: 'jump'
       app: 'nest'
       chart: './files/kubernetes/chart'
+      namespace: $namespace
+      render_to: $render_to

@@ -18,27 +18,28 @@ steps:
     plan: nest::kubernetes::join_node
     parameters:
       control_plane: eyrie-control-plane
+      labels: node-role.kubernetes.io/worker
     targets: eyrie-workers
 
   - description: 'Join storage nodes'
     plan: nest::kubernetes::join_node
     parameters:
       control_plane: eyrie-control-plane
-      taints: role=storage:NoSchedule
+      labels: node-role.kubernetes.io/storage:NoSchedule
     targets: eyrie-storage
 
   - description: 'Join monitor nodes'
     plan: nest::kubernetes::join_node
     parameters:
       control_plane: eyrie-control-plane
-      taints: role=monitor:NoSchedule
+      labels: node-role.kubernetes.io/monitor:NoSchedule
     targets: eyrie-monitor
 
   - description: 'Join workstation nodes'
     plan: nest::kubernetes::join_node
     parameters:
       control_plane: eyrie-control-plane
-      taints: role=workstation:NoSchedule
+      labels: node-role.kubernetes.io/workstation:NoSchedule
     targets: eyrie-workstations
 
   - description: 'Deploy network'

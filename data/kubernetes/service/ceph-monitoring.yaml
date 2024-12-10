@@ -1,6 +1,6 @@
 ---
 node_role: storage
-volume_storage_class: eagle
+storage_class: eagle
 
 resources:
   certs: {}

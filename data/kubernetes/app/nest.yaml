@@ -1,0 +1,36 @@
+---
+resources:
+  deployment:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: "%{nest::kubernetes::service}"
+      namespace: "%{nest::kubernetes::namespace}"
+      labels:
+        'james.tl/nest': 'stage1'
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          service: "%{nest::kubernetes::service}"
+      template:
+        metadata:
+          labels:
+            service: "%{nest::kubernetes::service}"
+        spec:
+          containers: []
+          volumes: []
+
+  service:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: "%{nest::kubernetes::service}"
+      namespace: "%{nest::kubernetes::namespace}"
+      labels:
+        'james.tl/nest': 'stage1'
+    spec:
+      type: LoadBalancer
+      selector:
+        service: "%{nest::kubernetes::service}"
+      ports: []

@@ -7,6 +7,8 @@ lookup_options:
   patches:
     merge: hash
 
+node_platform: cortex-a53
+
 resources:
   backup:
     - apiVersion: v1
@@ -32,7 +34,7 @@ resources:
               spec:
                 containers:
                   - name: nest
-                    image: registry.gitlab.james.tl/nest/puppet:cortex-a53
+                    image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
                     imagePullPolicy: Always
                     command:
                       - bolt
@@ -88,7 +90,7 @@ patches:
           path: '/spec/template/spec/containers/-'
           value:
             name: nest
-            image: registry.gitlab.james.tl/nest/stage1:cortex-a53-server
+            image: "registry.gitlab.james.tl/nest/stage1:%{lookup('node_platform')}-server"
             imagePullPolicy: Always
             command: ['/usr/bin/sshd', '-D', '-e']
             securityContext:
