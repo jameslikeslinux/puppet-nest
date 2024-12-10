@@ -101,6 +101,7 @@ protocol bgp nest {
     local as 65000;
     neighbor range 172.22.4.0/24 as 65000;
     direct;
+    passive;
     rr client;
 
     ipv4 {
