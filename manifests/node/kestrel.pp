@@ -2,7 +2,6 @@ class nest::node::kestrel {
   # Workaround usbnet hang at boot
   # See: https://gitlab.james.tl/nest/puppet/-/issues/64
   file { '/usr/local/bin/usb_resetter':
-    ensure => present,
     mode   => '0755',
     owner  => 'root',
     group  => 'root',
