@@ -4,6 +4,7 @@ class nest::tool::bolt (
   Optional[String]  $ca = undef,
 ) {
   if $facts['build'] == 'bolt' {
+    $bolt_version       = '4.0.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
 
     # Gem conflicts with system gems who cares
@@ -12,9 +13,17 @@ class nest::tool::bolt (
       force  => true,
     }
     ->
-    package { ['bolt', 'ed25519', 'bcrypt_pbkdf', 'toml-rb']:
-      install_options => ['--bindir', '/usr/local/bin'],
-      provider        => gem,
+    package {
+      default:
+        install_options => ['--bindir', '/usr/local/bin'],
+        provider        => gem,
+      ;
+      ['ed25519', 'bcrypt_pbkdf', 'toml-rb']:
+        ensure => installed,
+      ;
+      'bolt':
+        ensure => $bolt_version,
+      ;
     }
 
     # For vaultwarden token hashing
