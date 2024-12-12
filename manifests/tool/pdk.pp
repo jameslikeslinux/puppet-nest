@@ -4,10 +4,18 @@ class nest::tool::pdk {
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
     $pdk_gem_dir        = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/pdk-${pdk_version}"
 
-    package { 'pdk':
-      ensure          => $pdk_version,
+    Package {
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
+    }
+
+    # Required by pdk-templates-3.4.0 but not specified by the gem
+    package { 'puppet_litmus':
+      ensure => installed,
+    }
+    ->
+    package { 'pdk':
+      ensure => $pdk_version,
     }
     ->
     file_line {
