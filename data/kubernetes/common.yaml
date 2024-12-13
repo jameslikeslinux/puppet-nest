@@ -1,11 +1,6 @@
 ---
-lookup_options:
-  resources:
-    merge: hash
-  values:
-    merge: deep
-  patches:
-    merge: hash
+include:
+  - 'nest::kubernetes'
 
 node_platform: cortex-a53
 

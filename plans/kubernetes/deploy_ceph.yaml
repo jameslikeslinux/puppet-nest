@@ -18,8 +18,8 @@ steps:
     parameters:
       service: 'rook'
       app: 'rook-ceph'
+      chart: 'rook-release/rook-ceph'
       namespace: 'rook-ceph'
-      repo_name: 'rook-release'
       repo_url: 'https://charts.rook.io/release'
       version: '1.15.5'
       wait: true
@@ -30,14 +30,14 @@ steps:
     parameters:
       service: 'ceph'
       app: 'rook-ceph-cluster'
+      chart: 'rook-release/rook-ceph-cluster'
       namespace: 'rook-ceph'
-      repo_name: 'rook-release'
       repo_url: 'https://charts.rook.io/release'
       version: '1.15.5'
       subcharts:
         - service: 'ceph-monitoring'
           app: 'kube-prometheus-stack'
-          repo_name: 'prometheus-community'
+          chart: 'prometheus-community/kube-prometheus-stack'
           repo_url: 'https://prometheus-community.github.io/helm-charts'
           version: '66.3.0'
       wait: true

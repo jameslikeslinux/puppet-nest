@@ -1,4 +1,7 @@
 ---
+include:
+  - 'nest::service::bitwarden'
+
 resources:
   certs:
     apiVersion: cert-manager.io/v1
@@ -21,13 +24,13 @@ resources:
       name: "%{nest::kubernetes::service}-secrets"
       namespace: "%{nest::kubernetes::namespace}"
     data:
-      database-url: "%{nest::kubernetes::vaultwarden_db_url}"
+      database-url: "%{nest::service::bitwarden::database_url}"
 
 values:
   image:
     tag: '1.32.5'
   adminToken:
-    value: "%{nest::kubernetes::vaultwarden_admin_token_hash}"
+    value: "%{nest::service::bitwarden::admin_token_hash}"
   storage:
     data:
       name: vaultwarden-data

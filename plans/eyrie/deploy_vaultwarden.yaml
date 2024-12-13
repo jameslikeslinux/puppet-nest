@@ -29,7 +29,7 @@ steps:
       namespace: $namespace
       service: $name
       app: 'vaultwarden'
-      repo_name: 'guerzon'
+      chart: 'guerzon/vaultwarden'
       repo_url: 'https://guerzon.github.io/vaultwarden'
       subcharts:
         - service: "${name}-mariadb"

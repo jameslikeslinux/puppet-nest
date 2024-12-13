@@ -18,8 +18,8 @@ steps:
     parameters:
       service: 'kubernetes-dashboard'
       app: 'kubernetes-dashboard'
+      chart: 'kubernetes-dashboard/kubernetes-dashboard'
       namespace: 'test'
-      repo_name: 'kubernetes-dashboard'
       repo_url: 'https://kubernetes.github.io/dashboard/'
       version: '7.10.0'
       deploy: $deploy

@@ -1,10 +1,8 @@
 class nest::kubernetes {
-  # lint:ignore:top_scope_facts
-  $service        = pick_default($::kubernetes_service)
-  $app            = pick_default($::kubernetes_app)
-  $namespace      = pick_default($::kubernetes_namespace, 'default')
-  $parent_service = pick_default($::kubernetes_parent_service)
-  # lint:endignore
+  $service        = $kubecm::deploy::release
+  $app            = $kubecm::deploy::chart
+  $namespace      = $kubecm::deploy::namespace
+  $parent_service = $kubecm::deploy::parent
 
   $service_name = lookup('service_name', default_value => $service)
 
@@ -41,19 +39,5 @@ class nest::kubernetes {
     $ssh_private_key_base64 = base64('encode', $ssh_private_key)
   } else {
     $ssh_private_key_base64 = undef
-  }
-
-  case $app {
-    'vaultwarden': {
-      $vaultwarden_db_url = base64('encode', "mysql://${service}:${db_password}@${service}-mariadb/${service}")
-
-      # See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token
-      $vaultwarden_admin_token      = lookup('nest::service::bitwarden::admin_token')
-      $vaultwarden_admin_token_hash = generate(
-        '/bin/sh',
-        '-c',
-        "echo -n ${vaultwarden_admin_token.shellquote} | argon2 `openssl rand -base64 32` -e -id -k 65540 -t 3 -p 4",
-      ).chomp
-    }
   }
 }

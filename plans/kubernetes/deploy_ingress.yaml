@@ -23,8 +23,8 @@ steps:
     parameters:
       service: 'ingress-nginx'
       app: 'ingress-nginx'
+      chart: 'ingress-nginx/ingress-nginx'
       namespace: 'ingress-nginx'
-      repo_name: 'ingress-nginx'
       repo_url: 'https://kubernetes.github.io/ingress-nginx'
       version: '4.11.3'
       wait: true
@@ -35,8 +35,8 @@ steps:
     parameters:
       service: 'cert-manager'
       app: 'cert-manager'
+      chart: 'jetstack/cert-manager'
       namespace: 'cert-manager'
-      repo_name: 'jetstack'
       repo_url: 'https://charts.jetstack.io'
       version: '1.16.2'
       wait: true
@@ -48,5 +48,4 @@ steps:
       service: 'eyrie-ca'
       app: 'scratch'
       namespace: 'cert-manager'
-      chart: './files/kubernetes/chart'
       deploy: $ca

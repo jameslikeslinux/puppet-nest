@@ -18,8 +18,8 @@ steps:
     parameters:
       service: 'csi-driver-nfs'
       app: 'csi-driver-nfs'
+      chart: 'csi-driver-nfs/csi-driver-nfs'
       namespace: 'kube-system'
-      repo_name: 'csi-driver-nfs'
       repo_url: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
       version: '4.9.0'
       wait: true
@@ -30,8 +30,8 @@ steps:
     parameters:
       service: 'zfs-localpv'
       app: 'zfs-localpv'
+      chart: 'openebs-zfslocalpv/zfs-localpv'
       namespace: 'openebs'
-      repo_name: 'openebs-zfslocalpv'
       repo_url: 'https://openebs.github.io/zfs-localpv'
       version: '2.6.2'
       deploy: $zfs

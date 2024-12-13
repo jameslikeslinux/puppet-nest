@@ -36,7 +36,6 @@ steps:
       namespace: $namespace
       service: "${name}-secrets"
       app: 'gitlab-secrets'
-      chart: './files/kubernetes/chart'
       wait: true
 
   - description: 'Deploy the instance'
@@ -45,7 +44,7 @@ steps:
       namespace: $namespace
       service: $name
       app: 'gitlab'
-      repo_name: 'gitlab'
+      chart: 'gitlab/gitlab'
       repo_url: 'https://charts.gitlab.io/'
       # subcharts:
       #   - service: "${name}-mariadb"

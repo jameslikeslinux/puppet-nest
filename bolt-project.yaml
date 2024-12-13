@@ -11,6 +11,10 @@ log:
     level: fatal
 
 modules:
+  - name: kubecm
+    git: git@gitlab.james.tl:james/kubecm.git
+    ref: main
+    resolve: false
   - name: reboot
     git: git@gitlab.james.tl:nest/forks/puppet-reboot.git
     ref: main

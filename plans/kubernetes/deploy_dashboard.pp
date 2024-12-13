@@ -7,8 +7,8 @@ plan nest::kubernetes::deploy_dashboard (
   run_plan('nest::kubernetes::deploy', {
     service   => 'kubernetes-dashboard',
     app       => 'kubernetes-dashboard',
+    chart     => 'kubernetes-dashboard/kubernetes-dashboard',
     namespace => 'kubernetes-dashboard',
-    repo_name => 'kubernetes-dashboard',
     repo_url  => 'https://kubernetes.github.io/dashboard/',
     version   => $version,
     wait      => true,

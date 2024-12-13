@@ -12,7 +12,6 @@ parameters:
     type: Boolean
     default: true
 
-
 steps:
   # System components
   - description: 'Deploy test ingress'

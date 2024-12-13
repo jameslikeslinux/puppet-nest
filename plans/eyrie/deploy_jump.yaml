@@ -23,7 +23,6 @@ steps:
     parameters:
       service: 'jump'
       app: 'nest'
-      chart: './files/kubernetes/chart'
       deploy: $deploy
       namespace: $namespace
       render_to: $render_to

@@ -18,8 +18,8 @@ steps:
     parameters:
       service: 'calico'
       app: 'tigera-operator'
+      chart: 'projectcalico/tigera-operator'
       namespace: 'tigera-operator'
-      repo_name: 'projectcalico'
       repo_url: 'https://docs.tigera.io/calico/charts'
       version: '3.29.0'
       wait: true
@@ -31,7 +31,6 @@ steps:
       service: 'calico-config'
       app: 'scratch'
       namespace: 'tigera-operator'
-      chart: './files/kubernetes/chart'
       deploy: $calico
 
   - description: 'Install MetalLB'
@@ -39,8 +38,8 @@ steps:
     parameters:
       service: 'metallb'
       app: 'metallb'
+      chart: 'metallb/metallb'
       namespace: 'metallb-system'
-      repo_name: 'metallb'
       repo_url: 'https://metallb.github.io/metallb'
       version: '0.14.8'
       wait: true
@@ -52,5 +51,4 @@ steps:
       service: 'metallb-config'
       app: 'scratch'
       namespace: 'metallb-system'
-      chart: './files/kubernetes/chart'
       deploy: $metallb
