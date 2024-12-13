@@ -22,6 +22,11 @@ parameters:
     type: Boolean
     default: false
 
+  render_to:
+    description: 'Just render the template'
+    type: String
+    default: ''
+
 steps:
   - description: 'Deploy the instance'
     plan: nest::kubernetes::deploy
@@ -37,6 +42,7 @@ steps:
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
       restore: $init or $restore
       wait: $init or $restore
+      render_to: $render_to
 
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_vaultwarden
