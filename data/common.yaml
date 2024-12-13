@@ -408,6 +408,7 @@ apache::mpm_module: 'worker'
 apache::mod::ssl::ssl_protocol: ['all', '-SSLv2', '-SSLv3', '-TLSv1', '-TLSv1.1']
 apache::servername: "%{facts.fqdn}"
 
+kubecm::deploy::build_dir: '/tmp/build' # isolated per bolt container
 kubecm::deploy::include_key: 'include'
 kubecm::deploy::resources_key: 'resources'
 kubecm::deploy::values_key: 'values'
