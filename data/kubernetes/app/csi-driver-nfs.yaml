@@ -3,7 +3,7 @@ resources:
   # Disable Nest backup
   backup: {}
 
-  storageclass:
+  config:
     apiVersion: storage.k8s.io/v1
     kind: StorageClass
     metadata:

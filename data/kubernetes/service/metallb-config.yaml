@@ -1,69 +1,64 @@
 ---
 resources:
-  default_pool:
-    apiVersion: metallb.io/v1beta1
-    kind: IPAddressPool
-    metadata:
-      name: default
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      addresses:
-        - 172.21.0.0/24
+  config:
+    - apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: default
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        addresses:
+          - 172.21.0.0/24
 
-  test_pool:
-    apiVersion: metallb.io/v1beta1
-    kind: IPAddressPool
-    metadata:
-      name: test
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      addresses:
-        - 172.21.1.0/24
+    - apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: test
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        addresses:
+          - 172.21.1.0/24
 
-  workers_advertisement:
-    apiVersion: metallb.io/v1beta1
-    kind: BGPAdvertisement
-    metadata:
-      name: workers
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      ipAddressPools:
-        - default
-      nodeSelectors:
-        - matchLabels:
-            'node-role.kubernetes.io/worker': ''
+    - apiVersion: metallb.io/v1beta1
+      kind: BGPAdvertisement
+      metadata:
+        name: workers
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        ipAddressPools:
+          - default
+        nodeSelectors:
+          - matchLabels:
+              'node-role.kubernetes.io/worker': ''
 
-  workstations_advertisement:
-    apiVersion: metallb.io/v1beta1
-    kind: BGPAdvertisement
-    metadata:
-      name: workstations
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      ipAddressPools:
-        - test
-      nodeSelectors:
-        - matchLabels:
-            'node-role.kubernetes.io/workstation': ''
+    - apiVersion: metallb.io/v1beta1
+      kind: BGPAdvertisement
+      metadata:
+        name: workstations
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        ipAddressPools:
+          - test
+        nodeSelectors:
+          - matchLabels:
+              'node-role.kubernetes.io/workstation': ''
 
-  falcon_peer:
-    apiVersion: metallb.io/v1beta2
-    kind: BGPPeer
-    metadata:
-      name: falcon
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      myASN: 65000
-      peerASN: 65000
-      peerAddress: 172.22.4.2
+    - apiVersion: metallb.io/v1beta2
+      kind: BGPPeer
+      metadata:
+        name: falcon
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        myASN: 65000
+        peerASN: 65000
+        peerAddress: 172.22.4.2
 
-  kestrel_peer:
-    apiVersion: metallb.io/v1beta2
-    kind: BGPPeer
-    metadata:
-      name: kestrel
-      namespace: "%{nest::kubernetes::namespace}"
-    spec:
-      myASN: 65000
-      peerASN: 65000
-      peerAddress: 172.22.4.3
+    - apiVersion: metallb.io/v1beta2
+      kind: BGPPeer
+      metadata:
+        name: kestrel
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        myASN: 65000
+        peerASN: 65000
+        peerAddress: 172.22.4.3

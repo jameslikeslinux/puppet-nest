@@ -3,57 +3,54 @@ resources:
   # Disable Nest backup
   backup: {}
 
-  data:
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-      name: data
-    allowVolumeExpansion: true
-    parameters:
-      fstype: zfs
-      poolname: data/kubernetes
-    provisioner: zfs.csi.openebs.io
-    volumeBindingMode: WaitForFirstConsumer
+  config:
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: data
+      allowVolumeExpansion: true
+      parameters:
+        fstype: zfs
+        poolname: data/kubernetes
+      provisioner: zfs.csi.openebs.io
+      volumeBindingMode: WaitForFirstConsumer
 
-  data-crypt:
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-      name: data-crypt
-    allowVolumeExpansion: true
-    parameters:
-      fstype: zfs
-      poolname: data/crypt/kubernetes
-    provisioner: zfs.csi.openebs.io
-    volumeBindingMode: WaitForFirstConsumer
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: data-crypt
+      allowVolumeExpansion: true
+      parameters:
+        fstype: zfs
+        poolname: data/crypt/kubernetes
+      provisioner: zfs.csi.openebs.io
+      volumeBindingMode: WaitForFirstConsumer
 
-  # Especially for Rook Ceph
-  # See: https://github.com/openebs/zfs-localpv/blob/develop/docs/raw-block-volume.md
-  data-crypt-block:
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-      name: data-crypt-block
-    allowVolumeExpansion: true
-    parameters:
-      poolname: data/crypt/kubernetes
-    provisioner: zfs.csi.openebs.io
-    volumeBindingMode: WaitForFirstConsumer
+    # Especially for Rook Ceph
+    # See: https://github.com/openebs/zfs-localpv/blob/develop/docs/raw-block-volume.md
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: data-crypt-block
+      allowVolumeExpansion: true
+      parameters:
+        poolname: data/crypt/kubernetes
+      provisioner: zfs.csi.openebs.io
+      volumeBindingMode: WaitForFirstConsumer
 
-  nest-crypt-block:
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-      name: nest-crypt-block
-    allowVolumeExpansion: true
-    parameters:
-      poolname: nest/crypt/kubernetes
-    provisioner: zfs.csi.openebs.io
-    allowedTopologies:
-      - matchLabelExpressions:
-        - key: kubernetes.io/hostname
-          values:
-            - falcon
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: nest-crypt-block
+      allowVolumeExpansion: true
+      parameters:
+        poolname: nest/crypt/kubernetes
+      provisioner: zfs.csi.openebs.io
+      allowedTopologies:
+        - matchLabelExpressions:
+          - key: kubernetes.io/hostname
+            values:
+              - falcon
 
 values:
   zfsNode:

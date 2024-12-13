@@ -1,6 +1,6 @@
 ---
 resources:
-  bgp:
+  config:
     # Use the internal API because this config needs to be present before the
     # API server works. Normally this is done with calicoctl, but I want Helm
     # managing everything.
