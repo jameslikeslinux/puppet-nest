@@ -56,9 +56,18 @@ class nest::service::kubernetes (
     ensure => installed,
   }
 
-  sysctl { 'net.ipv4.ip_forward':
-    ensure => present,
-    value  => '1',
+  sysctl {
+    'net.ipv4.ip_forward':
+      ensure => present,
+      value  => '1',
+    ;
+
+    # Increase max user instances for kubectl log following
+    # see: https://github.com/kairos-io/kairos/issues/2071
+    'fs.inotify.max_user_instances':
+      ensure => present,
+      value  => '8192', # default 128
+    ;
   }
 
   # Allow forwarding and control access between networks used by Kubernetes
