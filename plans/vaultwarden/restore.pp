@@ -31,6 +31,8 @@ plan nest::vaultwarden::restore (
       $srv_root,
     ].flatten.shellquote
 
-    run_command($restore_cmd, $targets, 'rsync')
+    run_command($restore_cmd, $targets, 'rsync', {
+      '_run_as' => 'root',
+    })
   }
 }
