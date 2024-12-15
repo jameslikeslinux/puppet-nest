@@ -1,31 +1,31 @@
-# Backup a Wordpress instance
+# Backup a WordPress instance
 #
-# @param targets Wordpress host
-# @param name Instance name
+# @param targets WordPress host
+# @param service WordPress service
 # @param db_host Database host
 # @param wp_root Path to directory containing 'wp-content'
 plan nest::wordpress::backup (
   TargetSpec $targets,
-  String $name,
+  String $service,
   Optional[String] $db_host = 'localhost',
   Optional[String] $wp_root = '/srv/wordpress',
 ) {
-  $password = lookup('nest::service::wordpress::database_passwords')[$name]
+  $password = lookup('nest::service::wordpress::database_passwords')[$service]
 
   run_plan('nest::mariadb::backup', {
     'targets'     => $targets,
     'host'        => $db_host,
-    'name'        => $name,
-    'user'        => $name,
+    'name'        => $service,
+    'user'        => $service,
     'password'    => Sensitive($password),
-    'destination' => "/nest/backup/${name}/wordpress.sql",
+    'destination' => "/nest/backup/${service}/wordpress.sql",
   })
 
   $backup_cmd = [
     'rsync', '-av', '--delete',
     '--exclude', 'wordpress.sql',
     "${wp_root}/",
-    "falcon:/nest/backup/${name}",
+    "falcon:/nest/backup/${service}",
   ].flatten.shellquote
 
   run_command($backup_cmd, $targets, 'rsync')

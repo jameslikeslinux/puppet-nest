@@ -2,8 +2,8 @@
 description: 'Deploy a GitLab instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'GitLab service to deploy'
     type: String
     default: 'gitlab'
 
@@ -11,6 +11,21 @@ parameters:
     description: 'Kubernetes namespace'
     type: String
     default: 'gitlab'
+
+  secrets:
+    description: 'Deploy secrets'
+    type: Boolean
+    default: true
+
+  gitlab:
+    description: 'Deploy GitLab'
+    type: Boolean
+    default: true
+
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
 
   init:
     description: 'Deploy initial revision without backup or restore'
@@ -34,22 +49,21 @@ steps:
     plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      service: "${name}-secrets"
+      service: "${service}-secrets"
       app: 'gitlab-secrets'
-      wait: true
+      deploy: $deploy and $secrets
+      wait: $render_to == ''
+      render_to: $render_to
 
   - description: 'Deploy the instance'
     plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      service: $name
+      service: $service
       app: 'gitlab'
       chart: 'gitlab/gitlab'
       repo_url: 'https://charts.gitlab.io/'
-      # subcharts:
-      #   - service: "${name}-mariadb"
-      #     app: 'mariadb'
-      #     chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
+      deploy: $deploy and $gitlab
       restore: $init or $restore
       wait: $init or $restore
       render_to: $render_to
@@ -57,5 +71,5 @@ steps:
   # - description: 'Restore the instance'
   #   plan: nest::eyrie::restore_gitlab
   #   parameters:
-  #     name: $name
-  #     restore: $restore and $render_to == ''
+  #     service: $service
+  #     restore: $restore

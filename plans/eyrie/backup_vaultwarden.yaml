@@ -2,20 +2,20 @@
 description: 'Backup a Vaultwarden instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'Vaultwarden service to backup'
     type: String
     default: 'bitwarden'
 
   service_name:
     description: 'Service name'
     type: String
-    default: $name
+    default: 'bitwarden'
 
 steps:
-  - description: "Backup ${name} Vaultwarden instance"
+  - description: "Backup ${service} Vaultwarden instance"
     plan: nest::vaultwarden::backup
     parameters:
       targets: $service_name
-      name: $name
-      db_host: "${name}-mariadb"
+      service: $service
+      db_host: "${service}-mariadb"

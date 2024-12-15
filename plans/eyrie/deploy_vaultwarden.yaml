@@ -2,8 +2,8 @@
 description: 'Deploy a Vaultwarden instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'Vaultwarden service to deploy'
     type: String
     default: 'bitwarden'
 
@@ -37,12 +37,12 @@ steps:
     plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      service: $name
+      service: $service
       app: 'vaultwarden'
       chart: 'guerzon/vaultwarden'
       repo_url: 'https://guerzon.github.io/vaultwarden'
       subcharts:
-        - service: "${name}-mariadb"
+        - service: "${service}-mariadb"
           app: 'mariadb'
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
       deploy: $deploy
@@ -53,5 +53,5 @@ steps:
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_vaultwarden
     parameters:
-      name: $name
+      service: $service
       restore: $restore

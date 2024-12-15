@@ -1,15 +1,20 @@
 ---
-description: 'Deploy a Wordpress instance'
+description: 'Deploy a WordPress instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'WordPress service to deploy'
     type: String
 
   namespace:
     description: 'Kubernetes namespace'
     type: String
     default: 'default'
+
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
 
   init:
     description: 'Deploy initial revision without backup or restore'
@@ -21,19 +26,26 @@ parameters:
     type: Boolean
     default: false
 
+  render_to:
+    description: 'Just render the template'
+    type: String
+    default: ''
+
 steps:
   - description: 'Deploy the instance'
     plan: nest::kubernetes::deploy
     parameters:
       namespace: $namespace
-      service: $name
+      service: $service
       app: 'wordpress'
       chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
+      deploy: $deploy
       restore: $init or $restore
       wait: $init or $restore
+      render_to: $render_to
 
   - description: 'Restore the instance'
     plan: nest::eyrie::restore_wordpress
     parameters:
-      name: $name
+      service: $service
       restore: $restore

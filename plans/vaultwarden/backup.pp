@@ -1,12 +1,12 @@
 # Backup a Vaultwarden instance
 #
 # @param targets Vaultwarden host
-# @param name Instance name
+# @param service Vaultwarden service
 # @param db_host Database host
 # @param srv_root Path to directory containing 'data'
 plan nest::vaultwarden::backup (
   TargetSpec $targets,
-  String $name,
+  String $service,
   Optional[String] $db_host  = 'localhost',
   Optional[String] $srv_root = '/srv/vaultwarden',
 ) {
@@ -15,17 +15,17 @@ plan nest::vaultwarden::backup (
   run_plan('nest::mariadb::backup', {
     'targets'     => $targets,
     'host'        => $db_host,
-    'name'        => $name,
-    'user'        => $name,
+    'name'        => $service,
+    'user'        => $service,
     'password'    => Sensitive($password),
-    'destination' => "/nest/backup/${name}/vaultwarden.sql",
+    'destination' => "/nest/backup/${service}/vaultwarden.sql",
   })
 
   $backup_cmd = [
     'rsync', '-av', '--delete',
     '--exclude', 'vaultwarden.sql',
     "${srv_root}/",
-    "falcon:/nest/backup/${name}",
+    "falcon:/nest/backup/${service}",
   ].flatten.shellquote
 
   run_command($backup_cmd, $targets, 'rsync', {

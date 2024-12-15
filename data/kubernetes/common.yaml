@@ -38,7 +38,7 @@ resources:
                     - plan
                     - run
                     - "nest::eyrie::backup_%{nest::kubernetes::app}"
-                    - "name=%{nest::kubernetes::service}"
+                    - "service=%{nest::kubernetes::service}"
                     - "service_name=%{nest::kubernetes::service_name}"
                   env:
                     - name: KUBECONFIG

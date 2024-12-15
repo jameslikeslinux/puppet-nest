@@ -2,8 +2,8 @@
 description: 'Restore a Vaultwarden instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'Vaultwarden service to restore'
     type: String
     default: 'bitwarden'
 
@@ -22,6 +22,6 @@ steps:
     plan: nest::vaultwarden::restore
     parameters:
       targets: $service_name
-      name: $name
-      db_host: "${name}-mariadb"
+      service: $service
+      db_host: "${service}-mariadb"
       restore: $restore

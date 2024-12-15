@@ -1,20 +1,25 @@
 ---
-description: 'Restore a Wordpress instance'
+description: 'Restore a WordPress instance'
 
 parameters:
-  name:
-    description: 'Instance name'
+  service:
+    description: 'WordPress service to restore'
     type: String
+
+  service_name:
+    description: 'Service name'
+    type: String
+
   restore:
     description: 'Safety gate'
     type: Boolean
     default: false
 
 steps:
-  - description: "Restore ${name} Wordpress instance"
+  - description: "Restore ${service} Wordpress instance"
     plan: nest::wordpress::restore
     parameters:
-      targets: $name
-      name: $name
-      db_host: "${name}-mariadb"
+      targets: $service_name
+      service: $service
+      db_host: "${service}-mariadb"
       restore: $restore

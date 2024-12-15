@@ -1,13 +1,13 @@
 # Restore a Vaultwarden instance
 #
 # @param targets Vaultwarden host
-# @param name Instance name
+# @param service Vaultwarden service
 # @param db_host Database host
 # @param srv_root Path to directory containing 'data'
 # @param restore Safety gate
 plan nest::vaultwarden::restore (
   TargetSpec       $targets,
-  String           $name,
+  String           $service,
   Optional[String] $db_host  = 'localhost',
   Optional[String] $srv_root = '/srv/vaultwarden',
   Boolean          $restore  = false,
@@ -18,16 +18,16 @@ plan nest::vaultwarden::restore (
     run_plan('nest::mariadb::restore', {
       'targets'  => $targets,
       'host'     => $db_host,
-      'name'     => $name,
-      'user'     => $name,
+      'name'     => $service,
+      'user'     => $service,
       'password' => Sensitive($password),
-      'source'   => "/nest/backup/${name}/vaultwarden.sql",
+      'source'   => "/nest/backup/${service}/vaultwarden.sql",
     })
 
     $restore_cmd = [
       'rsync', '-av', '--delete',
       '--exclude', 'vaultwarden.sql',
-      "falcon:/nest/backup/${name}/",
+      "falcon:/nest/backup/${service}/",
       $srv_root,
     ].flatten.shellquote
 
