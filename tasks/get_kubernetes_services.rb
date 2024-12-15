@@ -18,7 +18,8 @@ class GetKubernetesServices < TaskHelper
           config = {}
         else
           namespace = service['metadata']['namespace']
-          jump_service = services['items'].find { |s| s['metadata']['name'] == 'jump' && s['metadata']['namespace'] == namespace }
+          jump_namespace = namespace == 'test' ? 'test' : 'default'
+          jump_service = services['items'].find { |s| s['metadata']['name'] == 'jump' && s['metadata']['namespace'] == jump_namespace }
           uri = "#{service['metadata']['name']}.#{namespace}.svc.cluster.local"
           config = { ssh: { proxyjump: jump_service['metadata']['labels']['james.tl/fqdn'] } }
         end

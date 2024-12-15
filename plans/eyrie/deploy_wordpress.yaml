@@ -49,4 +49,4 @@ steps:
     parameters:
       service: $service
       service_name: $service
-      restore: $restore and $namespace == 'default'
+      restore: $restore and $namespace in ['default', 'private']

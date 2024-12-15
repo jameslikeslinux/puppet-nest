@@ -27,6 +27,11 @@ parameters:
     type: Boolean
     default: true
 
+  private:
+    description: 'Deploy private services'
+    type: Boolean
+    default: true
+
   init:
     description: 'Deploy initial revision without backup or restore'
     type: Boolean
@@ -63,3 +68,10 @@ steps:
       deploy: $deploy and $portfolio
       init: $init
       restore: $restore and $portfolio
+
+  - description: 'Deploy private services'
+    plan: private::eyrie::deploy
+    parameters:
+      deploy: $deploy and $private
+      init: $init
+      restore: $restore and $private
