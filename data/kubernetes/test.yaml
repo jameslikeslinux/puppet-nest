@@ -59,7 +59,7 @@ resources:
                     - name: eyaml-config
                       mountPath: '/etc/eyaml'
                       readOnly: true
-                    - name: james-ssh-key
+                    - name: eyrie-ssh-key
                       mountPath: '/home/james/.ssh/id_ed25519'
                       readOnly: true
               imagePullSecrets:
@@ -82,7 +82,7 @@ resources:
                   hostPath:
                     path: '/etc/eyaml'
                     type: Directory
-                - name: james-ssh-key
+                - name: eyrie-ssh-key
                   hostPath:
-                    path: '/home/james/.ssh/id_ed25519'
+                    path: '/home/james/.ssh/id_ed25519_eyrie'
                     type: File

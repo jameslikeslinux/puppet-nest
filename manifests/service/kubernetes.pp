@@ -186,4 +186,13 @@ class nest::service::kubernetes (
     source  => "https://github.com/projectcalico/calico/releases/download/v3.27.0/calicoctl-linux-${facts['profile']['architecture']}",
     replace => false,
   }
+
+  # For internal bolt usage
+  file { '/home/james/.ssh/id_ed25519_eyrie':
+    mode      => '0600',
+    owner     => 'james',
+    content   => $nest::ssh_private_keys['eyrie'],
+    show_diff => false,
+    require   => Class['nest::base::users'],
+  }
 }
