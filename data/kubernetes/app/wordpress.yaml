@@ -40,8 +40,7 @@ values:
       rootPassword: "%{lookup('nest::service::mysql::root_password')}"
     primary:
       persistence:
-        # ceph-block has significant IOPS penalty
-        storageClass: ceph-filesystem
+        storageClass: ceph-block
       # Increase check intervals for slow workers
       livenessProbe:
         initialDelaySeconds: 300

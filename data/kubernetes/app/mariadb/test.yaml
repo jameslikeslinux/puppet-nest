@@ -1,5 +1,5 @@
 ---
-storage_class: ceph-test-filesystem
+storage_class: ceph-test-block
 node_role: workstation
 node_platform: haswell
 

@@ -2,8 +2,7 @@
 include:
   - 'nest::service::mysql'
 
-# ceph-block has significant IOPS penalty
-storage_class: ceph-filesystem
+storage_class: ceph-block
 
 resources:
   registry_auths: {}
