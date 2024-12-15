@@ -1,4 +1,20 @@
 ---
+node_role: workstation
+node_platform: haswell
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+            operator: Exists
+
+.tolerations: &tolerations
+  - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+    operator: Exists
+    effect: NoSchedule
+
 resources:
   # Disable backups in test environment
   backup: {}
@@ -18,6 +34,7 @@ resources:
           ttlSecondsAfterFinished: 21600 # 6h; keep last two restore jobs in history
           template:
             spec:
+              affinity: *affinity
               containers:
                 - name: nest
                   image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
@@ -51,6 +68,7 @@ resources:
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
+              tolerations: *tolerations
               volumes:
                 - name: nest
                   hostPath:
