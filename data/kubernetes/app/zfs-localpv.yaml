@@ -1,6 +1,6 @@
 ---
 resources:
-  # Disable Nest backup
+  registry_auths: {}
   backup: {}
 
   config:

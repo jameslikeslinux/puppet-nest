@@ -23,7 +23,7 @@ volume_size: 10Gi
     effect: NoSchedule
 
 resources:
-  # Disable Nest backup
+  registry_auths: {}
   backup: {}
 
   # Define certs for Grafana

@@ -4,6 +4,7 @@ ingress_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
 ingress_issuer_scope: default
 
 resources:
+  registry_auths: {}
   backup: {}
 
 values:

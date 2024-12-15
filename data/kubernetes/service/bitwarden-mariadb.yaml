@@ -1,0 +1,6 @@
+include:
+  - 'nest::service::bitwarden'
+
+values:
+  auth:
+    password: "%{nest::service::bitwarden::database_password}"

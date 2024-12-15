@@ -1,0 +1,9 @@
+---
+values:
+  domain: "https://%{nest::kubernetes::fqdn}"
+  ipHeader: X-Forwarded-For
+  invitationOrgName: Bitwarden Test
+  signupsAllowed: false
+  smtp:
+    fromName: Bitwarden Test
+    from: "bitwarden@%{nest::kubernetes::fqdn}"

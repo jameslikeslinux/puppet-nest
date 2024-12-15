@@ -1,0 +1,70 @@
+---
+resources:
+  # Disable backups in test environment
+  backup: {}
+
+  # Enable scheduled restores
+  restore:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: "%{nest::kubernetes::service}-restore"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      schedule: "%{nest::kubernetes::cron_job_offset} 1-23/3 * * *"
+      timeZone: 'America/New_York'
+      jobTemplate:
+        spec:
+          ttlSecondsAfterFinished: 21600 # 6h; keep last two restore jobs in history
+          template:
+            spec:
+              containers:
+                - name: nest
+                  image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
+                  imagePullPolicy: Always
+                  command:
+                    - bolt
+                    - plan
+                    - run
+                    - "nest::eyrie::restore_%{nest::kubernetes::app}"
+                    - "name=%{nest::kubernetes::service}"
+                    - "service_name=%{nest::kubernetes::service_name}"
+                    - 'restore=true'
+                  env:
+                    - name: KUBECONFIG
+                      value: '/nest/home/kubeconfigs/eyrie.conf'
+                  volumeMounts:
+                    - name: nest
+                      mountPath: '/nest'
+                    - name: bolt-config
+                      mountPath: '/etc/puppetlabs/bolt'
+                      readOnly: true
+                    - name: eyaml-config
+                      mountPath: '/etc/eyaml'
+                      readOnly: true
+                    - name: james-ssh-key
+                      mountPath: '/home/james/.ssh/id_ed25519'
+                      readOnly: true
+              imagePullSecrets:
+                - name: "%{nest::kubernetes::service}-registry-auths"
+              restartPolicy: Never
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+              volumes:
+                - name: nest
+                  hostPath:
+                    path: '/nest'
+                    type: Directory
+                - name: bolt-config
+                  hostPath:
+                    path: '/etc/puppetlabs/bolt'
+                    type: Directory
+                - name: eyaml-config
+                  hostPath:
+                    path: '/etc/eyaml'
+                    type: Directory
+                - name: james-ssh-key
+                  hostPath:
+                    path: '/home/james/.ssh/id_ed25519'
+                    type: File

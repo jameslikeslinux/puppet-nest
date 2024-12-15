@@ -1,0 +1,25 @@
+---
+storage_class: ceph-test-filesystem
+node_role: workstation
+node_platform: haswell
+
+resources:
+  restore: {}
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+            operator: Exists
+
+.tolerations: &tolerations
+  - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+    operator: Exists
+    effect: NoSchedule
+
+values:
+  primary:
+    affinity: *affinity
+    tolerations: *tolerations

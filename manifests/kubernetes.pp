@@ -17,13 +17,8 @@ class nest::kubernetes {
   }
 
   $db_password = $app ? {
-    'mariadb'     => $parent_service ? {
-      'bitwarden' => lookup('nest::service::bitwarden::database_password'),
-      default     => undef,
-    },
-    'vaultwarden' => lookup('nest::service::bitwarden::database_password'),
-    'wordpress'   => lookup('nest::service::wordpress::database_passwords')[$service],
-    default       => undef,
+    'wordpress' => lookup('nest::service::wordpress::database_passwords')[$service],
+    default     => undef,
   }
 
   $registry_auths = stdlib::to_json({

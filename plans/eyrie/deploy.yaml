@@ -1,0 +1,41 @@
+---
+description: 'Deploy Eyrie services'
+
+parameters:
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
+  jump:
+    description: 'Deploy jump'
+    type: Boolean
+    default: true
+
+  vaultwarden:
+    description: 'Deploy Vaultwarden'
+    type: Boolean
+    default: true
+
+  init:
+    description: 'Deploy initial revision without backup or restore'
+    type: Boolean
+    default: false
+
+  restore:
+    description: 'Load content and data from backup'
+    type: Boolean
+    default: false
+
+steps:
+  - description: 'Deploy jump'
+    plan: nest::eyrie::deploy_jump
+    parameters:
+      deploy: $deploy and $jump
+
+  - description: 'Deploy Bitwarden'
+    plan: nest::eyrie::deploy_vaultwarden
+    parameters:
+      deploy: $deploy and $vaultwarden
+      init: $init
+      restore: $restore and $vaultwarden

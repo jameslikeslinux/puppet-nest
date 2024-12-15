@@ -24,7 +24,7 @@ ingress_class: nginx
       effect: NoSchedule
 
 resources:
-  # Disable Nest backup
+  registry_auths: {}
   backup: {}
 
   # Define certs for dashboard

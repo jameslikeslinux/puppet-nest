@@ -2,6 +2,12 @@
 include:
   - 'nest::service::bitwarden'
 
+service_name: "%{nest::kubernetes::service}"
+cert_issuer: eyrie-ca
+cert_issuer_kind: ClusterIssuer
+ingress_class: nginx
+storage_class: ceph-filesystem
+
 resources:
   certs:
     apiVersion: cert-manager.io/v1
@@ -12,10 +18,10 @@ resources:
     spec:
       secretName: "%{nest::kubernetes::service}-certs"
       issuerRef:
-        name: eyrie-ca
-        kind: ClusterIssuer
+        name: "%{lookup('cert_issuer')}"
+        kind: "%{lookup('cert_issuer_kind')}"
       dnsNames:
-        - "%{nest::kubernetes::service}.eyrie"
+        - "%{nest::kubernetes::fqdn}"
 
   secrets:
     apiVersion: v1
@@ -29,13 +35,19 @@ resources:
 values:
   image:
     tag: '1.32.5'
+  # Increase check intervals for slow workers and db initialization on ceph
+  livenessProbe:
+    initialDelaySeconds: 300
+    periodSeconds: 30
+  readinessProbe:
+    periodSeconds: 30
   adminToken:
     value: "%{nest::service::bitwarden::admin_token_hash}"
   storage:
     data:
       name: vaultwarden-data
       size: 10Gi
-      class: ceph-filesystem
+      class: "%{lookup('storage_class')}"
       accessMode: ReadWriteMany
   database:
     type: mysql
@@ -44,12 +56,13 @@ values:
   smtp:
     host: smtp-relay.gmail.com
     username:
-      value: "%{lookup('nest::service::bitwarden::smtp_username')}"
+      value: "%{nest::service::bitwarden::smtp_username}"
     password:
-      value: "%{lookup('nest::service::bitwarden::smtp_password')}"
+      value: "%{nest::service::bitwarden::smtp_password}"
   ingress:
     enabled: true
-    hostname: "%{nest::kubernetes::service}.eyrie"
+    class: "%{lookup('ingress_class')}"
+    hostname: "%{nest::kubernetes::fqdn}"
     tlsSecret: "%{nest::kubernetes::service}-certs"
 
 patches:

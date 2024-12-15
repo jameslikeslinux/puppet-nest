@@ -12,6 +12,11 @@ parameters:
     type: String
     default: 'default'
 
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
   init:
     description: 'Deploy initial revision without backup or restore'
     type: Boolean
@@ -40,6 +45,7 @@ steps:
         - service: "${name}-mariadb"
           app: 'mariadb'
           chart: 'oci://registry-1.docker.io/bitnamicharts/mariadb'
+      deploy: $deploy
       restore: $init or $restore
       wait: $init or $restore
       render_to: $render_to

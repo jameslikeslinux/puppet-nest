@@ -13,10 +13,20 @@ class GetKubernetesServices < TaskHelper
 
     {
       value: services['items'].map do |service|
+        if service['spec']['type'] == 'LoadBalancer'
+          uri = service['metadata']['labels']['james.tl/fqdn']
+          config = {}
+        else
+          namespace = service['metadata']['namespace']
+          jump_service = services['items'].find { |s| s['metadata']['name'] == 'jump' && s['metadata']['namespace'] == namespace }
+          uri = "#{service['metadata']['name']}.#{namespace}.svc.cluster.local"
+          config = { ssh: { proxyjump: jump_service['metadata']['labels']['james.tl/fqdn'] } }
+        end
+
         {
-          name: service['metadata']['annotations']['meta.helm.sh/release-name'],
-          uri: "#{service['metadata']['name']}.#{service['metadata']['namespace']}.svc.cluster.local",
-          config: { ssh: { proxyjump: 'jump.eyrie' } },
+          name: service['metadata']['labels']['james.tl/service_name'],
+          uri: uri,
+          config: config,
         }
       end
     }

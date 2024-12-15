@@ -1,5 +1,12 @@
 ---
+include:
+  - 'nest::service::mysql'
+
+# ceph-block has significant IOPS penalty
+storage_class: ceph-filesystem
+
 resources:
+  registry_auths: {}
   backup: {}
 
 values:
@@ -10,11 +17,11 @@ values:
     database: "%{nest::kubernetes::parent_service}"
     username: "%{nest::kubernetes::parent_service}"
     password: "%{nest::kubernetes::db_password}"
-    rootPassword: "%{lookup('nest::service::mysql::root_password')}"
+    rootPassword: "%{nest::service::mysql::root_password_unwrapped}"
   primary:
     persistence:
-      storageClass: ceph-block
-    # Increase check intervals for slow workers
+      storageClass: "%{lookup('storage_class')}"
+    # Increase check intervals for slow workers and db initialization on ceph
     livenessProbe:
       initialDelaySeconds: 300
       periodSeconds: 30
@@ -22,3 +29,5 @@ values:
     readinessProbe:
       periodSeconds: 30
       timeoutSeconds: 5
+    pdb:
+      create: false

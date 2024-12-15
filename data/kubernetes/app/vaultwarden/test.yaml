@@ -1,0 +1,25 @@
+---
+service_name: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
+cert_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
+cert_issuer_kind: Issuer
+ingress_class: "nginx-%{nest::kubernetes::namespace}"
+storage_class: ceph-test-filesystem
+node_role: workstation
+node_platform: haswell
+
+.affinity: &affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+            operator: Exists
+
+.tolerations: &tolerations
+  - key: "node-role.kubernetes.io/%{lookup('node_role')}"
+    operator: Exists
+    effect: NoSchedule
+
+values:
+  affinity: *affinity
+  tolerations: *tolerations

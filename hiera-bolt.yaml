@@ -21,6 +21,10 @@ hierarchy:
       - "kubernetes/app/%{nest::kubernetes::app}/%{nest::kubernetes::namespace}.yaml"
       - "bolt-private/kubernetes/app/%{nest::kubernetes::app}.yaml"
       - "kubernetes/app/%{nest::kubernetes::app}.yaml"
+  - name: 'Kubernetes Namespace'
+    paths:
+      - "bolt-private/kubernetes/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/%{nest::kubernetes::namespace}.yaml"
   - name: 'Kubernetes Common'
     paths:
       - "bolt-private/kubernetes/common.yaml"

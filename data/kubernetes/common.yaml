@@ -5,76 +5,79 @@ include:
 node_platform: cortex-a53
 
 resources:
+  registry_auths:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::kubernetes::service}-registry-auths"
+      namespace: "%{nest::kubernetes::namespace}"
+    data:
+      .dockerconfigjson: "%{nest::kubernetes::registry_auths_base64}"
+    type: kubernetes.io/dockerconfigjson
+
   backup:
-    - apiVersion: v1
-      kind: Secret
-      metadata:
-        name: "%{nest::kubernetes::service}-registry-auths"
-        namespace: "%{nest::kubernetes::namespace}"
-      data:
-        .dockerconfigjson: "%{nest::kubernetes::registry_auths_base64}"
-      type: kubernetes.io/dockerconfigjson
-    - apiVersion: batch/v1
-      kind: CronJob
-      metadata:
-        name: "%{nest::kubernetes::service}-backup"
-        namespace: "%{nest::kubernetes::namespace}"
-      spec:
-        schedule: "%{nest::kubernetes::cron_job_offset} */3 * * *"
-        timeZone: 'America/New_York'
-        jobTemplate:
-          spec:
-            ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
-            template:
-              spec:
-                containers:
-                  - name: nest
-                    image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
-                    imagePullPolicy: Always
-                    command:
-                      - bolt
-                      - plan
-                      - run
-                      - "nest::eyrie::backup_%{nest::kubernetes::app}"
-                      - "name=%{nest::kubernetes::service}"
-                    env:
-                      - name: KUBECONFIG
-                        value: '/nest/home/kubeconfigs/eyrie.conf'
-                    volumeMounts:
-                      - name: nest
-                        mountPath: '/nest'
-                      - name: bolt-config
-                        mountPath: '/etc/puppetlabs/bolt'
-                        readOnly: true
-                      - name: eyaml-config
-                        mountPath: '/etc/eyaml'
-                        readOnly: true
-                      - name: james-ssh-key
-                        mountPath: '/home/james/.ssh/id_ed25519'
-                        readOnly: true
-                imagePullSecrets:
-                  - name: "%{nest::kubernetes::service}-registry-auths"
-                restartPolicy: Never
-                securityContext:
-                  runAsUser: 1000
-                  runAsGroup: 1000
-                volumes:
-                  - name: nest
-                    hostPath:
-                      path: '/nest'
-                      type: Directory
-                  - name: bolt-config
-                    hostPath:
-                      path: '/etc/puppetlabs/bolt'
-                      type: Directory
-                  - name: eyaml-config
-                    hostPath:
-                      path: '/etc/eyaml'
-                      type: Directory
-                  - name: james-ssh-key
-                    hostPath:
-                      path: '/home/james/.ssh/id_ed25519'
-                      type: File
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: "%{nest::kubernetes::service}-backup"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      schedule: "%{nest::kubernetes::cron_job_offset} */3 * * *"
+      timeZone: 'America/New_York'
+      jobTemplate:
+        spec:
+          ttlSecondsAfterFinished: 21600 # 6h; keep last two backup jobs in history
+          template:
+            spec:
+              containers:
+                - name: nest
+                  image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
+                  imagePullPolicy: Always
+                  command:
+                    - bolt
+                    - plan
+                    - run
+                    - "nest::eyrie::backup_%{nest::kubernetes::app}"
+                    - "name=%{nest::kubernetes::service}"
+                    - "service_name=%{nest::kubernetes::service_name}"
+                  env:
+                    - name: KUBECONFIG
+                      value: '/nest/home/kubeconfigs/eyrie.conf'
+                  volumeMounts:
+                    - name: nest
+                      mountPath: '/nest'
+                    - name: bolt-config
+                      mountPath: '/etc/puppetlabs/bolt'
+                      readOnly: true
+                    - name: eyaml-config
+                      mountPath: '/etc/eyaml'
+                      readOnly: true
+                    - name: james-ssh-key
+                      mountPath: '/home/james/.ssh/id_ed25519'
+                      readOnly: true
+              imagePullSecrets:
+                - name: "%{nest::kubernetes::service}-registry-auths"
+              restartPolicy: Never
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+              volumes:
+                - name: nest
+                  hostPath:
+                    path: '/nest'
+                    type: Directory
+                - name: bolt-config
+                  hostPath:
+                    path: '/etc/puppetlabs/bolt'
+                    type: Directory
+                - name: eyaml-config
+                  hostPath:
+                    path: '/etc/eyaml'
+                    type: Directory
+                - name: james-ssh-key
+                  hostPath:
+                    path: '/home/james/.ssh/id_ed25519'
+                    type: File
 
 values: {}
 
@@ -149,11 +152,13 @@ patches:
         - op: add
           path: '/metadata/annotations/metallb.universe.tf~1loadBalancerIPs'
           value: "%{nest::kubernetes::load_balancer_ip}"
-        # FQDN associated with above IP, for reference
-        # See: e9ea565cee69dd2dae607d9a207ce3eb3aae02b4
+        # Labels used especially by tasks/get_kubernetes_services.rb
         - op: add
           path: '/metadata/labels/james.tl~1fqdn'
           value: "%{nest::kubernetes::fqdn}"
+        - op: add
+          path: '/metadata/labels/james.tl~1service_name'
+          value: "%{nest::kubernetes::service_name}"
         - op: add
           path: '/spec/ports/-'
           value:

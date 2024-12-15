@@ -40,3 +40,9 @@ steps:
     parameters:
       namespace: 'test'
       deploy: $apps
+
+  - description: 'Deploy test Bitwarden'
+    plan: nest::eyrie::deploy_vaultwarden
+    parameters:
+      namespace: 'test'
+      deploy: $apps

@@ -1,2 +1,5 @@
 ---
 service_name: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
+
+resources:
+  restore: {}

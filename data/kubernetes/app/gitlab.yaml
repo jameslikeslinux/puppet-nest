@@ -2,6 +2,7 @@
 node_role: workstation
 
 resources:
+  registry_auths: {}
   backup: {}
 
   certs:
