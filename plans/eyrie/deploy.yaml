@@ -12,8 +12,18 @@ parameters:
     type: Boolean
     default: true
 
-  vaultwarden:
-    description: 'Deploy Vaultwarden'
+  bitwarden:
+    description: 'Deploy Bitwarden'
+    type: Boolean
+    default: true
+
+  thestaticvoid:
+    description: 'Deploy TheStaticVoid blog'
+    type: Boolean
+    default: true
+
+  portfolio:
+    description: 'Deploy portfolio'
     type: Boolean
     default: true
 
@@ -36,6 +46,20 @@ steps:
   - description: 'Deploy Bitwarden'
     plan: nest::eyrie::deploy_vaultwarden
     parameters:
-      deploy: $deploy and $vaultwarden
+      deploy: $deploy and $bitwarden
       init: $init
-      restore: $restore and $vaultwarden
+      restore: $restore and $bitwarden
+
+  - description: 'Deploy TheStaticVoid blog'
+    plan: nest::eyrie::deploy_thestaticvoid
+    parameters:
+      deploy: $deploy and $thestaticvoid
+      init: $init
+      restore: $restore and $thestaticvoid
+
+  - description: 'Deploy portfolio'
+    plan: nest::eyrie::deploy_portfolio
+    parameters:
+      deploy: $deploy and $portfolio
+      init: $init
+      restore: $restore and $portfolio

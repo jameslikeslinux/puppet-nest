@@ -1,5 +1,4 @@
 ---
-node_platform: haswell
 node_role: workstation
 
 .affinity: &affinity

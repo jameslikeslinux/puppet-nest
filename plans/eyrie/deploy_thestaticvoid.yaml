@@ -2,6 +2,16 @@
 description: 'Deploy TheStaticVoid blog'
 
 parameters:
+  namespace:
+    description: 'Kubernetes namespace'
+    type: String
+    default: 'default'
+
+  deploy:
+    description: 'Run or skip the deployment'
+    type: Boolean
+    default: true
+
   init:
     description: 'Deploy initial revision without backup or restore'
     type: Boolean
@@ -12,10 +22,18 @@ parameters:
     type: Boolean
     default: false
 
+  render_to:
+    description: 'Just render the template'
+    type: String
+    default: ''
+
 steps:
-  - description: 'Deploy thestaticvoid Wordpress instance'
+  - description: 'Deploy thestaticvoid WordPress instance'
     plan: nest::eyrie::deploy_wordpress
     parameters:
-      name: 'thestaticvoid'
+      service: 'thestaticvoid'
+      namespace: $namespace
+      deploy: $deploy
       init: $init
       restore: $restore
+      render_to: $render_to

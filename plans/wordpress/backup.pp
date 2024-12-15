@@ -28,5 +28,7 @@ plan nest::wordpress::backup (
     "falcon:/nest/backup/${service}",
   ].flatten.shellquote
 
-  run_command($backup_cmd, $targets, 'rsync')
+  run_command($backup_cmd, $targets, 'rsync', {
+    '_run_as' => 'root',
+  })
 }

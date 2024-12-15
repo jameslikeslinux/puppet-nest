@@ -46,3 +46,15 @@ steps:
     parameters:
       namespace: 'test'
       deploy: $apps
+
+  - description: 'Deploy TheStaticVoid test blog'
+    plan: nest::eyrie::deploy_thestaticvoid
+    parameters:
+      namespace: 'test'
+      deploy: $apps
+
+  - description: 'Deploy test portfolio'
+    plan: nest::eyrie::deploy_portfolio
+    parameters:
+      namespace: 'test'
+      deploy: $apps

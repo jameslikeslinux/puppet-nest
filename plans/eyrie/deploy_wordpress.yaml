@@ -48,4 +48,5 @@ steps:
     plan: nest::eyrie::restore_wordpress
     parameters:
       service: $service
-      restore: $restore
+      service_name: $service
+      restore: $restore and $namespace == 'default'

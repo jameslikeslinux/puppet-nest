@@ -1,5 +1,5 @@
 # Replace Kubernetes manifest
-
+#
 # @param manifest Path or URL to the Kubernetes manifest to deploy
 plan nest::kubernetes::replace (
   String $manifest

@@ -1,4 +1,15 @@
 ---
+include:
+  - 'nest::service::wordpress'
+  - 'nest::service::mysql'
+
+service_name: "%{nest::kubernetes::service}"
+cert_issuer: eyrie-ca
+cert_issuer_kind: cluster-issuer
+ingress_class: nginx
+storage_class: ceph-filesystem
+db_storage_class: ceph-block
+
 values:
   image:
     tag: '6.7.1'
@@ -8,9 +19,10 @@ values:
     type: ClusterIP
   ingress:
     enabled: true
-    hostname: "%{nest::kubernetes::service}.eyrie"
+    ingressClassName: "%{lookup('ingress_class')}"
+    hostname: "%{nest::kubernetes::fqdn}"
     annotations:
-      cert-manager.io/cluster-issuer: eyrie-ca
+      "cert-manager.io/%{lookup('cert_issuer_kind')}": "%{lookup('cert_issuer')}"
     tls: true
   resources:
     requests:
@@ -21,7 +33,7 @@ values:
     runAsUser: 1000
     runAsGroup: 1000
   persistence:
-    storageClass: ceph-filesystem
+    storageClass: "%{lookup('storage_class')}"
     accessModes:
       - ReadWriteMany
   # Increase check intervals for slow workers
@@ -36,11 +48,11 @@ values:
     auth:
       database: "%{nest::kubernetes::service}"
       username: "%{nest::kubernetes::service}"
-      password: "%{nest::kubernetes::db_password}"
-      rootPassword: "%{lookup('nest::service::mysql::root_password')}"
+      password: "%{nest::service::wordpress::database_password}"
+      rootPassword: "%{nest::service::mysql::root_password}"
     primary:
       persistence:
-        storageClass: ceph-block
+        storageClass: "%{lookup('db_storage_class')}"
       # Increase check intervals for slow workers
       livenessProbe:
         initialDelaySeconds: 300

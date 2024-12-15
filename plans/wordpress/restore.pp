@@ -32,6 +32,8 @@ plan nest::wordpress::restore (
       $wp_root,
     ].flatten.shellquote
 
-    run_command($restore_cmd, $targets, 'rsync')
+    run_command($restore_cmd, $targets, 'rsync', {
+      '_run_as' => 'root',
+    })
   }
 }

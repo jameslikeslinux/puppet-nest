@@ -16,7 +16,7 @@ parameters:
     default: false
 
 steps:
-  - description: "Restore ${service} Wordpress instance"
+  - description: "Restore ${service} WordPress instance"
     plan: nest::wordpress::restore
     parameters:
       targets: $service_name

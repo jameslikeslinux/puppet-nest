@@ -16,11 +16,6 @@ class nest::kubernetes {
     $load_balancer_ip = undef
   }
 
-  $db_password = $app ? {
-    'wordpress' => lookup('nest::service::wordpress::database_passwords')[$service],
-    default     => undef,
-  }
-
   $registry_auths = stdlib::to_json({
     'auths' => lookup('nest::registry_tokens').reduce({}) |$result, $token| {
       $result + { $token[0] => { 'auth' => base64('encode', $token[1]).chomp } }
