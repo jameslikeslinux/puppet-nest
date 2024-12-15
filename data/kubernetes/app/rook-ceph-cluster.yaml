@@ -1,11 +1,11 @@
 ---
 node_role: storage
 ssd_node_role: "%{lookup('node_role')}"
-ssd_volume_size: 64Gi
 ssd_storage_class: data-crypt-block
+ssd_volume_size: 64Gi
 hdd_node_role: workstation
-hdd_volume_size: 256Gi
 hdd_storage_class: nest-crypt-block
+hdd_volume_size: 256Gi
 service_name: "%{nest::kubernetes::service}"
 cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
