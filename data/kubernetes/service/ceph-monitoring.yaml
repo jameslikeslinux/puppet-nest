@@ -11,3 +11,6 @@ values:
       serviceMonitorSelector:
         matchLabels:
           team: rook # read ServiceMonitors created by rook-ceph-operator
+      serviceMonitorNamespaceSelector:
+        matchLabels:
+          name: "%{nest::kubernetes::namespace}" # only in the deployed namespace
