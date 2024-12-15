@@ -1,5 +1,6 @@
 ---
 service_name: kubernetes
+default_namespace: default
 
 resources:
   account:

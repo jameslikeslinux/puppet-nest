@@ -12,7 +12,6 @@ values:
   app:
     settings:
       global:
-        clusterName: Eyrie
         itemsPerPage: 10
         labelsLimit: 3
         logsAutoRefreshTimeInterval: 5
