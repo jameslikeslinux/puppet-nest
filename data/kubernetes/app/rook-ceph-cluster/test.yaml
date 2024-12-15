@@ -8,6 +8,8 @@ cert_issuer_kind: Issuer
 ingress_class: "nginx-%{nest::kubernetes::namespace}"
 
 resources:
+  restore: {}
+
   # Override .mgr pool failure domain
   # See: https://github.com/rook/rook/blob/master/deploy/examples/pool-builtin-mgr.yaml
   pool-builtin-mgr:
