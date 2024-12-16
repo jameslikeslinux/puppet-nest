@@ -2,6 +2,8 @@
 lookup_options:
   nest::classes:
     merge: 'unique'
+  nest::cnames:
+    merge: 'hash'
   nest::distcc_hosts:
     merge: 'hash'
   nest::eyaml_private_key:
