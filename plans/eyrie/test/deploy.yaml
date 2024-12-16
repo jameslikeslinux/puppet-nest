@@ -12,6 +12,11 @@ parameters:
     type: Boolean
     default: true
 
+  init:
+    description: 'Deploy initial revision'
+    type: Boolean
+    default: false
+
 steps:
   # System components
   - description: 'Deploy test ingress'
@@ -46,15 +51,18 @@ steps:
     parameters:
       namespace: 'test'
       deploy: $apps
+      init: $init
 
   - description: 'Deploy TheStaticVoid test blog'
     plan: nest::eyrie::deploy_thestaticvoid
     parameters:
       namespace: 'test'
       deploy: $apps
+      init: $init
 
   - description: 'Deploy test portfolio'
     plan: nest::eyrie::deploy_portfolio
     parameters:
       namespace: 'test'
       deploy: $apps
+      init: $init

@@ -17,12 +17,7 @@ parameters:
     default: true
 
   init:
-    description: 'Deploy initial revision without backup or restore'
-    type: Boolean
-    default: false
-
-  restore:
-    description: 'Load content and data from backup'
+    description: 'Deploy initial revision'
     type: Boolean
     default: false
 
@@ -40,13 +35,6 @@ steps:
       app: 'wordpress'
       chart: 'oci://registry-1.docker.io/bitnamicharts/wordpress'
       deploy: $deploy
-      restore: $init or $restore
-      wait: $init or $restore
+      init: $init
+      wait: $init
       render_to: $render_to
-
-  - description: 'Restore the instance'
-    plan: nest::eyrie::wordpress::restore
-    parameters:
-      service: $service
-      service_name: $service
-      restore: $restore and $namespace in ['default', 'private']

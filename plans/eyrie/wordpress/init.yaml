@@ -1,0 +1,16 @@
+---
+description: 'Initialize a WordPress instance'
+
+parameters:
+  service:
+    description: 'WordPress service to restore'
+    type: String
+
+steps:
+  - description: "Restore ${service} WordPress instance"
+    plan: nest::wordpress::restore
+    parameters:
+      targets: 'localhost'
+      service: $service
+      db_host: "${service}-mariadb"
+      restore: true

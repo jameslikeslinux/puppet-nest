@@ -188,9 +188,9 @@ class nest::service::kubernetes (
   }
 
   # For internal bolt usage
-  file { '/home/james/.ssh/id_ed25519_eyrie':
+  file { '/root/.ssh/id_ed25519_eyrie':
     mode      => '0600',
-    owner     => 'james',
+    owner     => 'root',
     content   => $nest::ssh_private_keys['eyrie'],
     show_diff => false,
     require   => Class['nest::base::users'],

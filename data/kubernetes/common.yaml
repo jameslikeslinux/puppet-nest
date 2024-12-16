@@ -53,14 +53,11 @@ resources:
                       mountPath: '/etc/eyaml'
                       readOnly: true
                     - name: eyrie-ssh-key
-                      mountPath: '/home/james/.ssh/id_ed25519'
+                      mountPath: '/root/.ssh/id_ed25519'
                       readOnly: true
               imagePullSecrets:
                 - name: "%{nest::kubernetes::service}-registry-auths"
               restartPolicy: Never
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
               volumes:
                 - name: nest
                   hostPath:
@@ -76,7 +73,7 @@ resources:
                     type: Directory
                 - name: eyrie-ssh-key
                   hostPath:
-                    path: '/home/james/.ssh/id_ed25519_eyrie'
+                    path: '/root/.ssh/id_ed25519_eyrie'
                     type: File
 
 values: {}
@@ -89,7 +86,6 @@ patches:
           value:
             name: nest
             image: "registry.gitlab.james.tl/nest/stage1:%{lookup('node_platform')}-server"
-            imagePullPolicy: Always
             command: ['/usr/bin/sshd', '-D', '-e']
             securityContext:
               capabilities:
@@ -103,11 +99,10 @@ patches:
                 mountPath: '/etc/ssh/ssh_host_ed25519_key'
                 readOnly: true
               - name: eyrie-ssh-key
-                mountPath: '/home/james/.ssh/id_ed25519'
-                readOnly: true
-              - name: eyrie-ssh-key
                 mountPath: '/root/.ssh/id_ed25519'
                 readOnly: true
+              - name: "%{lookup('data_volume_name')}"
+                mountPath: "%{lookup('data_volume_mount_path')}"
             ports:
               - name: ssh
                 containerPort: 22
@@ -133,7 +128,7 @@ patches:
           value:
             name: eyrie-ssh-key
             hostPath:
-              path: '/home/james/.ssh/id_ed25519_eyrie'
+              path: '/root/.ssh/id_ed25519_eyrie'
               type: File
       target:
         group: apps
@@ -160,4 +155,56 @@ patches:
       target:
         version: v1
         kind: Service
+        labelSelector: 'james.tl/nest'
+
+  init:
+    - patch:
+        - op: add
+          path: '/spec/template/spec/initContainers/-'
+          value:
+            name: nest-init
+            image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
+            imagePullPolicy: Always
+            command:
+              - bolt
+              - plan
+              - run
+              - "nest::eyrie::%{nest::kubernetes::app}::init"
+              - "service=%{nest::kubernetes::service}"
+            volumeMounts:
+              - name: nest
+                mountPath: '/nest'
+              - name: bolt-config
+                mountPath: '/etc/puppetlabs/bolt'
+                readOnly: true
+              - name: eyaml-config
+                mountPath: '/etc/eyaml'
+                readOnly: true
+              - name: eyrie-ssh-key
+                mountPath: '/root/.ssh/id_ed25519'
+                readOnly: true
+              - name: "%{lookup('data_volume_name')}"
+                mountPath: "%{lookup('data_volume_mount_path')}"
+        - op: replace
+          path: '/spec/template/spec/imagePullSecrets'
+          value:
+            - name: "%{nest::kubernetes::service}-registry-auths"
+        - op: add
+          path: '/spec/template/spec/volumes/-'
+          value:
+            name: bolt-config
+            hostPath:
+              path: '/etc/puppetlabs/bolt'
+              type: Directory
+        - op: add
+          path: '/spec/template/spec/volumes/-'
+          value:
+            name: eyaml-config
+            hostPath:
+              path: '/etc/eyaml'
+              type: Directory
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
         labelSelector: 'james.tl/nest'

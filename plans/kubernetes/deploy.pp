@@ -8,10 +8,10 @@
 #                     a valid Puppet file source, or `undef` for no chart (just Hiera resources).
 # @param deploy     Run or skip the deployment
 # @param hooks      Enable or disable install hooks
+# @param init       Include init container and disable backup job
 # @param namespace  Kubernetes namespace to manage
 # @param render_to  Just save the fully-rendered chart to this yaml file
 # @param repo_url   Optional URL of the Helm repo to add
-# @param restore    Masks backup job during restore deployment
 # @param version    Optional Helm chart version
 # @param wait       Wait for resources to become available
 # @param subcharts  Additional charts to deploy as part of this one
@@ -21,6 +21,7 @@ plan nest::kubernetes::deploy (
   Optional[String] $chart     = undef,
   Boolean          $deploy    = true,
   Boolean          $hooks     = true,
+  Boolean          $init      = true,
   Optional[String] $namespace = undef,
   Optional[String] $render_to = undef,
   Optional[String] $repo_url  = undef,
@@ -36,11 +37,13 @@ plan nest::kubernetes::deploy (
     $render_to_real = undef
   }
 
-  # Don't trash backup during restore
-  if $restore {
+  # Initialize service and avoid trashing backups during restore
+  if $init {
     $remove_resources = ['backup']
+    $remove_patches   = []
   } else {
     $remove_resources = []
+    $remove_patches   = ['init']
   }
 
   # Give extra time for any VIPs to propagate
@@ -67,6 +70,7 @@ plan nest::kubernetes::deploy (
     hooks            => $hooks,
     namespace        => $namespace,
     remove_resources => $remove_resources,
+    remove_patches   => $remove_patches,
     render_to        => $render_to_real,
     repo_url         => $repo_url,
     version          => $version,

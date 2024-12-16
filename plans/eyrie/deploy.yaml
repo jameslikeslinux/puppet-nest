@@ -33,12 +33,7 @@ parameters:
     default: true
 
   init:
-    description: 'Deploy initial revision without backup or restore'
-    type: Boolean
-    default: false
-
-  restore:
-    description: 'Load content and data from backup'
+    description: 'Deploy initial revision'
     type: Boolean
     default: false
 
@@ -53,25 +48,21 @@ steps:
     parameters:
       deploy: $deploy and $bitwarden
       init: $init
-      restore: $restore and $bitwarden
 
   - description: 'Deploy TheStaticVoid blog'
     plan: nest::eyrie::deploy_thestaticvoid
     parameters:
       deploy: $deploy and $thestaticvoid
       init: $init
-      restore: $restore and $thestaticvoid
 
   - description: 'Deploy portfolio'
     plan: nest::eyrie::deploy_portfolio
     parameters:
       deploy: $deploy and $portfolio
       init: $init
-      restore: $restore and $portfolio
 
   - description: 'Deploy private services'
     plan: private::eyrie::deploy
     parameters:
       deploy: $deploy and $private
       init: $init
-      restore: $restore and $private

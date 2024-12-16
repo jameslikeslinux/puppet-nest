@@ -1,0 +1,17 @@
+---
+description: 'Initialize a Vaultwarden instance'
+
+parameters:
+  service:
+    description: 'Vaultwarden service to restore'
+    type: String
+    default: 'bitwarden'
+
+steps:
+  - description: "Restore Vaultwarden instance"
+    plan: nest::vaultwarden::restore
+    parameters:
+      targets: 'localhost'
+      service: $service
+      db_host: "${service}-mariadb"
+      restore: true

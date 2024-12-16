@@ -13,12 +13,7 @@ parameters:
     default: true
 
   init:
-    description: 'Deploy initial revision without backup or restore'
-    type: Boolean
-    default: false
-
-  restore:
-    description: 'Load content and data from backup'
+    description: 'Deploy initial revision'
     type: Boolean
     default: false
 
@@ -35,5 +30,4 @@ steps:
       namespace: $namespace
       deploy: $deploy
       init: $init
-      restore: $restore
       render_to: $render_to

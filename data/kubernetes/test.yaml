@@ -60,14 +60,11 @@ resources:
                       mountPath: '/etc/eyaml'
                       readOnly: true
                     - name: eyrie-ssh-key
-                      mountPath: '/home/james/.ssh/id_ed25519'
+                      mountPath: '/root/.ssh/id_ed25519'
                       readOnly: true
               imagePullSecrets:
                 - name: "%{nest::kubernetes::service}-registry-auths"
               restartPolicy: Never
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
               tolerations: *tolerations
               volumes:
                 - name: nest
@@ -84,5 +81,5 @@ resources:
                     type: Directory
                 - name: eyrie-ssh-key
                   hostPath:
-                    path: '/home/james/.ssh/id_ed25519_eyrie'
+                    path: '/root/.ssh/id_ed25519_eyrie'
                     type: File
