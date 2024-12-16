@@ -93,6 +93,8 @@ patches:
                   - SYS_CHROOT  # for sshd
                   - SYS_PTRACE
             volumeMounts:
+              - name: "%{lookup('data_volume_name')}"
+                mountPath: "%{lookup('data_volume_mount_path')}"
               - name: nest
                 mountPath: '/nest'
               - name: ssh-host-key
@@ -101,8 +103,6 @@ patches:
               - name: eyrie-ssh-key
                 mountPath: '/root/.ssh/id_ed25519'
                 readOnly: true
-              - name: "%{lookup('data_volume_name')}"
-                mountPath: "%{lookup('data_volume_mount_path')}"
             ports:
               - name: ssh
                 containerPort: 22
@@ -172,6 +172,8 @@ patches:
               - "nest::eyrie::%{nest::kubernetes::app}::init"
               - "service=%{nest::kubernetes::service}"
             volumeMounts:
+              - name: "%{lookup('data_volume_name')}"
+                mountPath: "%{lookup('data_volume_mount_path')}"
               - name: nest
                 mountPath: '/nest'
               - name: bolt-config
@@ -183,8 +185,6 @@ patches:
               - name: eyrie-ssh-key
                 mountPath: '/root/.ssh/id_ed25519'
                 readOnly: true
-              - name: "%{lookup('data_volume_name')}"
-                mountPath: "%{lookup('data_volume_mount_path')}"
         - op: replace
           path: '/spec/template/spec/imagePullSecrets'
           value:

@@ -2,3 +2,17 @@
 resources:
   registry_auths: {}
   backup: {}
+
+patches:
+  # Remove not-applicable data volume mount
+  30-nest:
+    - patch:
+        - op: remove
+          path: '/spec/template/spec/containers/0/volumeMounts/0'
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        labelSelector: 'james.tl/nest'
+
+  init: []
