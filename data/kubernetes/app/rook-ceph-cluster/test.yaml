@@ -7,6 +7,8 @@ service_name: "%{nest::kubernetes::service}-%{nest::kubernetes::namespace}"
 cert_issuer: "eyrie-ca-%{nest::kubernetes::namespace}"
 cert_issuer_kind: Issuer
 ingress_class: "nginx-%{nest::kubernetes::namespace}"
+objectstore_ingress_class: "nginx-%{nest::kubernetes::namespace}"
+objectstore_fqdn: "objectstore-%{nest::kubernetes::namespace}.eyrie"
 
 resources:
   restore: {}
@@ -25,6 +27,28 @@ resources:
       failureDomain: osd
       replicated:
         size: 3
+
+  objectstore-ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: "%{lookup('service_name')}-objectstore"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      ingressClassName: "%{lookup('objectstore_ingress_class')}"
+      rules:
+        - host: "%{lookup('objectstore_fqdn')}"
+          http: &objectstore_http
+            paths:
+              - path: /
+                backend:
+                  service:
+                    name: "rook-ceph-rgw-%{lookup('service_name')}-objectstore"
+                    port:
+                      number: 80
+                pathType: Prefix
+        - host: "*.%{lookup('objectstore_fqdn')}"
+          http: *objectstore_http
 
 values:
   cephClusterSpec:
@@ -70,5 +94,12 @@ patches:
         - op: replace
           path: '/spec/metadataPool/failureDomain'
           value: osd
+        - op: replace
+          path: '/spec/hosting'
+          value:
+            advertiseEndpoint:
+              dnsName: "%{lookup('objectstore_fqdn')}"
+              port: 80
+              useTls: false
       target:
         kind: CephObjectStore

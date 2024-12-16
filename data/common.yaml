@@ -61,6 +61,8 @@ nest::cnames:
   ceph-test.eyrie: 'ingress-test.eyrie'
   grafana-test.eyrie: 'ingress-test.eyrie'
   kubernetes-test.eyrie: 'ingress-test.eyrie'
+  objectstore-test.eyrie: 'ingress-test.eyrie'
+  .objectstore-test.eyrie: 'ingress-test.eyrie'
   portfolio-test.eyrie: 'ingress-test.eyrie'
   thestaticvoid-test.eyrie: 'ingress-test.eyrie'
 
