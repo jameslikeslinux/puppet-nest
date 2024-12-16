@@ -51,7 +51,7 @@ steps:
       render_to: $render_to
 
   - description: 'Restore the instance'
-    plan: nest::eyrie::restore_vaultwarden
+    plan: nest::eyrie::vaultwarden::restore
     parameters:
       service: $service
       service_name: $service

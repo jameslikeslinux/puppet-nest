@@ -49,7 +49,7 @@ steps:
       deploy: $deploy and $jump
 
   - description: 'Deploy Bitwarden'
-    plan: nest::eyrie::deploy_vaultwarden
+    plan: nest::eyrie::deploy_bitwarden
     parameters:
       deploy: $deploy and $bitwarden
       init: $init

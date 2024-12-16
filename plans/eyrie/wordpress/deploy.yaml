@@ -45,7 +45,7 @@ steps:
       render_to: $render_to
 
   - description: 'Restore the instance'
-    plan: nest::eyrie::restore_wordpress
+    plan: nest::eyrie::wordpress::restore
     parameters:
       service: $service
       service_name: $service

@@ -43,7 +43,7 @@ resources:
                     - bolt
                     - plan
                     - run
-                    - "nest::eyrie::restore_%{nest::kubernetes::app}"
+                    - "nest::eyrie::%{nest::kubernetes::app}::restore"
                     - "service=%{nest::kubernetes::service}"
                     - "service_name=%{nest::kubernetes::service_name}"
                     - 'restore=true'

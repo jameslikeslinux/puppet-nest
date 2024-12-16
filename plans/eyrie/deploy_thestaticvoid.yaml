@@ -29,7 +29,7 @@ parameters:
 
 steps:
   - description: 'Deploy thestaticvoid WordPress instance'
-    plan: nest::eyrie::deploy_wordpress
+    plan: nest::eyrie::wordpress::deploy
     parameters:
       service: 'thestaticvoid'
       namespace: $namespace

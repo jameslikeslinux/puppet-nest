@@ -29,7 +29,7 @@ parameters:
 
 steps:
   - description: 'Deploy portfolio WordPress instance'
-    plan: nest::eyrie::deploy_wordpress
+    plan: nest::eyrie::wordpress::deploy
     parameters:
       service: 'portfolio'
       namespace: $namespace

@@ -15,22 +15,22 @@ parameters:
 steps:
   # System components
   - description: 'Deploy test ingress'
-    plan: nest::eyrie::deploy_test_ingress
+    plan: nest::eyrie::test::deploy_ingress
     parameters:
       deploy: $system
 
   - description: 'Deploy test monitoring'
-    plan: nest::eyrie::deploy_test_monitoring
+    plan: nest::eyrie::test::deploy_monitoring
     parameters:
       deploy: $system
 
   - description: 'Deploy test Kubernetes Dashboard'
-    plan: nest::eyrie::deploy_test_dashboard
+    plan: nest::eyrie::test::deploy_dashboard
     parameters:
       deploy: $system
 
   - description: 'Deploy test Ceph'
-    plan: nest::eyrie::deploy_test_ceph
+    plan: nest::eyrie::test::deploy_ceph
     parameters:
       deploy: $system
 
@@ -42,7 +42,7 @@ steps:
       deploy: $apps
 
   - description: 'Deploy test Bitwarden'
-    plan: nest::eyrie::deploy_vaultwarden
+    plan: nest::eyrie::deploy_bitwarden
     parameters:
       namespace: 'test'
       deploy: $apps

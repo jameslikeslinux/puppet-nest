@@ -37,7 +37,7 @@ resources:
                     - bolt
                     - plan
                     - run
-                    - "nest::eyrie::backup_%{nest::kubernetes::app}"
+                    - "nest::eyrie::%{nest::kubernetes::app}::backup"
                     - "service=%{nest::kubernetes::service}"
                     - "service_name=%{nest::kubernetes::service_name}"
                   env:
