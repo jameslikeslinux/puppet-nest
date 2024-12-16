@@ -9,8 +9,6 @@ cert_issuer_kind: cluster-issuer
 ingress_class: nginx
 storage_class: ceph-filesystem
 db_storage_class: ceph-block
-data_volume_name: wordpress-data
-data_volume_mount_path: '/srv/wordpress'
 
 values:
   image:
@@ -86,3 +84,27 @@ patches:
           namespace: "%{nest::kubernetes::namespace}"
           labels:
             'james.tl/nest': 'stage1'
+
+  30-nest:
+    - patch:
+        - op: add
+          path: '/spec/template/spec/containers/1/volumeMounts/-'
+          value: &wordpress_data
+            name: wordpress-data
+            mountPath: '/srv/wordpress'
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        labelSelector: 'james.tl/nest'
+
+  30-nest-init:
+    - patch:
+        - op: add
+          path: '/spec/template/spec/initContainers/1/volumeMounts/-'
+          value: *wordpress_data
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        labelSelector: 'james.tl/nest'

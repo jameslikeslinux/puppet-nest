@@ -43,7 +43,7 @@ plan nest::kubernetes::deploy (
     $remove_patches   = []
   } else {
     $remove_resources = []
-    $remove_patches   = ['init']
+    $remove_patches   = ['20-nest-init', '30-nest-init']
   }
 
   # Give extra time for any VIPs to propagate

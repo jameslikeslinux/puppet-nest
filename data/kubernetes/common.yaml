@@ -93,8 +93,6 @@ patches:
                   - SYS_CHROOT  # for sshd
                   - SYS_PTRACE
             volumeMounts:
-              - name: "%{lookup('data_volume_name')}"
-                mountPath: "%{lookup('data_volume_mount_path')}"
               - name: nest
                 mountPath: '/nest'
               - name: ssh-host-key
@@ -157,7 +155,7 @@ patches:
         kind: Service
         labelSelector: 'james.tl/nest'
 
-  init:
+  20-nest-init:
     - patch:
         - op: add
           path: '/spec/template/spec/initContainers/-'
@@ -172,8 +170,6 @@ patches:
               - "nest::eyrie::%{nest::kubernetes::app}::init"
               - "service=%{nest::kubernetes::service}"
             volumeMounts:
-              - name: "%{lookup('data_volume_name')}"
-                mountPath: "%{lookup('data_volume_mount_path')}"
               - name: nest
                 mountPath: '/nest'
               - name: bolt-config
