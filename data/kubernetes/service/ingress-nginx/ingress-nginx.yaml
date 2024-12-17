@@ -1,6 +1,5 @@
 ---
 service_name: ingress
-class_name: nginx
 
 values:
   controller:

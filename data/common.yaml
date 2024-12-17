@@ -61,8 +61,6 @@ nest::cnames:
   ceph-test.eyrie: 'ingress-test.eyrie'
   grafana-test.eyrie: 'ingress-test.eyrie'
   kubernetes-test.eyrie: 'ingress-test.eyrie'
-  objectstore-test.eyrie: 'ingress-test.eyrie'
-  .objectstore-test.eyrie: 'ingress-test.eyrie'
   portfolio-test.eyrie: 'ingress-test.eyrie'
   thestaticvoid-test.eyrie: 'ingress-test.eyrie'
 
@@ -122,8 +120,15 @@ nest::host_records:
 
   # Test services
   ingress-test.eyrie: '172.21.1.0'
+  objectstore-test.eyrie: '172.21.1.0'
+  .objectstore-test.eyrie: '172.21.1.0'
   jump-test.eyrie: '172.21.1.1'
   gitlab-test.eyrie: '172.21.1.2'
+
+  # Workstation services
+  ingress-workstations.eyrie: '172.21.2.0'
+  objectstore.eyrie: '172.21.2.0'
+  .objectstore.eyrie: '172.21.2.0'
 
 nest::nestfs_hostname: 'falcon.nest'
 

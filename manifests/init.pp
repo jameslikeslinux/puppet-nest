@@ -12,11 +12,11 @@ class nest (
   Optional[Hash[String, String]] $ssh_private_keys  = undef,
 
   # Service discovery configuration
-  Hash[String, Stdlib::Fqdn]              $cnames       = {},
+  Hash[Stdlib::Fqdn, Stdlib::Fqdn]        $cnames       = {},
   Array[Stdlib::Host]                     $cups_servers = [],
   Hash[Stdlib::Host, Integer]             $distcc_hosts = {},
   Hash[Stdlib::Fqdn, Stdlib::IP::Address] $fixed_ips    = {},
-  Hash[Stdlib::Fqdn, Stdlib::IP::Address] $host_records = {},
+  Hash[String, Stdlib::IP::Address]       $host_records = {},
   Hash[Stdlib::Fqdn, Hash]                $hosts        = {},
 
   # Service toggles

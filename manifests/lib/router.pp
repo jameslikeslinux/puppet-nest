@@ -42,7 +42,16 @@ class nest::lib::router {
     ;
 
     '/etc/dnsmasq.d/host-records.conf':
-      content => $nest::host_records.map |$name, $ip| { "host-record=${name},${ip}\n" }.join(''),
+      content => $nest::host_records.map |$name, $ip| {
+        if $name =~ /^\.(.*)/ and $1 =~ Stdlib::Fqdn {
+          # Handle wildcard domains
+          "address=/${name}/${ip}\n"
+        } elsif $name =~ Stdlib::Fqdn {
+          "host-record=${name},${ip}\n"
+        } else {
+          fail("Host record '${name}' is not a valid FQDN")
+        }
+      }.join(''),
     ;
   }
 

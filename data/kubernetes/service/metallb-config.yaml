@@ -20,6 +20,15 @@ resources:
           - 172.21.1.0/24
 
     - apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: workstation
+        namespace: "%{nest::kubernetes::namespace}"
+      spec:
+        addresses:
+          - 172.21.2.0/24
+
+    - apiVersion: metallb.io/v1beta1
       kind: BGPAdvertisement
       metadata:
         name: workers
@@ -39,6 +48,7 @@ resources:
       spec:
         ipAddressPools:
           - test
+          - workstation
         nodeSelectors:
           - matchLabels:
               'node-role.kubernetes.io/workstation': ''
