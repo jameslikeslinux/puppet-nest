@@ -10,6 +10,8 @@ service_name: "%{nest::kubernetes::service}"
 cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
 ingress_class: nginx
+objectstore_ingress_class: nginx-workstation
+objectstore_fqdn: objectstore.eyrie
 
 .placement: &placement
   nodeAffinity: &affinity
@@ -41,6 +43,28 @@ resources:
         kind: "%{lookup('cert_issuer_kind')}"
       dnsNames:
         - "%{nest::kubernetes::fqdn}"
+
+  objectstore-ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: "%{lookup('service_name')}-objectstore"
+      namespace: "%{nest::kubernetes::namespace}"
+    spec:
+      ingressClassName: "%{lookup('objectstore_ingress_class')}"
+      rules:
+        - host: "%{lookup('objectstore_fqdn')}"
+          http: &objectstore_http
+            paths:
+              - path: /
+                backend:
+                  service:
+                    name: "rook-ceph-rgw-%{lookup('service_name')}-objectstore"
+                    port:
+                      number: 8080
+                pathType: Prefix
+        - host: "*.%{lookup('objectstore_fqdn')}"
+          http: *objectstore_http
 
 values:
   clusterName: "%{lookup('service_name')}"
@@ -256,11 +280,21 @@ patches:
         - op: replace
           path: '/spec/dataPool/failureDomain'
           value: osd
+        - op: replace
+          path: '/spec/gateway/port'
+          value: 8080
         - op: add
           path: '/spec/gateway/placement'
           value: *placement
         - op: remove
           path: '/spec/gateway/resources'
+        - op: replace
+          path: '/spec/hosting'
+          value:
+            advertiseEndpoint:
+              dnsName: "%{lookup('objectstore_fqdn')}"
+              port: 80
+              useTls: false
       target:
         kind: CephObjectStore
         name: ceph-objectstore
