@@ -35,6 +35,7 @@
 bolt-debug.log
 !/inventory.yaml
 /bolt-debug.log
+/build
 /.modules
 /.plan_cache.json
 /.rerun.json
