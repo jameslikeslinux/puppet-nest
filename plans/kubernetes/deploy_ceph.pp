@@ -31,7 +31,7 @@ plan nest::kubernetes::deploy_ceph (
         'chart'    => 'prometheus-community/kube-prometheus-stack',
         'repo_url' => 'https://prometheus-community.github.io/helm-charts',
         'version'  => '66.3.0',
-      }
+      },
     ],
     'deploy'    => $ceph,
   })
