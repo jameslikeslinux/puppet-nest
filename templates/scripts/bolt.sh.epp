@@ -23,6 +23,7 @@ exec podman run --rm -it -e TERM \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \
+    -v /run/podman/podman.sock:/run/podman/podman.sock:ro \
     -e KUBECONFIG -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
     nest/tools/bolt:<%= $nest::canonical_cpu %> \
     bolt "$@"

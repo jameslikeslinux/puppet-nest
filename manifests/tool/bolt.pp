@@ -6,6 +6,7 @@ class nest::tool::bolt (
   if $facts['build'] == 'bolt' {
     $bolt_version       = '4.0.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
+    $bolt_gem_dir       = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/bolt-${bolt_version}"
 
     # Gem conflicts with system gems who cares
     file { "/usr/lib64/ruby/gems/${ruby_minor_version}.0":
@@ -29,6 +30,21 @@ class nest::tool::bolt (
     # For vaultwarden token hashing
     nest::lib::package { 'app-crypt/argon2':
       ensure => installed,
+    }
+
+    # Force podman remote operations (bolt hardcodes podman)
+    file { '/usr/bin/podman':
+      ensure => link,
+      target => '/usr/bin/podman-remote',
+    }
+
+    # Fix podman json parsing
+    # Bolt expects pretty json that podman no longer provides
+    # Revert to inherited docker parsing function
+    exec { 'bolt-fix-podman-transport':
+      command => "/bin/sed -i '/^\\s*private def extract_json/,/^\\s*end/d' ${bolt_gem_dir}/lib/bolt/transport/podman/connection.rb",
+      onlyif  => "/bin/grep -q '^\\s*private def extract_json' ${bolt_gem_dir}/lib/bolt/transport/podman/connection.rb",
+      require => Package['bolt'],
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     if $ca {
