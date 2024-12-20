@@ -31,7 +31,6 @@ class nest::base::packages {
         'sys-process/htop',
         'sys-process/iotop',
         'sys-process/lsof',
-        'www-client/elinks',
         'x11-apps/xauth',
         'x11-misc/xsel',
       ]:
