@@ -38,7 +38,7 @@ class nest::base::packages {
       }
 
       unless $facts['profile']['architecture'] == 'arm' {
-        nest::lib::package { 'sys-devel/lld':
+        nest::lib::package { 'llvm-core/lld':
           ensure => installed,
         }
 
