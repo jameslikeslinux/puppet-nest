@@ -1,0 +1,12 @@
+diff -ur pixman-0.44.2.orig/meson.build pixman-0.44.2/meson.build
+--- pixman-0.44.2.orig/meson.build	2024-12-20 14:20:09.895695656 -0500
++++ pixman-0.44.2/meson.build	2024-12-20 14:21:08.455698081 -0500
+@@ -367,7 +367,7 @@
+ 
+ use_rvv = get_option('rvv')
+ have_rvv = false
+-rvv_flags = ['-march=rv64gcv1p0']
++rvv_flags = []
+ if not use_rvv.disabled()
+   if host_machine.cpu_family() == 'riscv64'
+     if cc.compiles('''
