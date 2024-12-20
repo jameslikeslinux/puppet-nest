@@ -1,0 +1,12 @@
+diff -ur helm-3.13.2.orig/Makefile helm-3.13.2/Makefile
+--- helm-3.13.2.orig/Makefile	2024-12-20 16:06:56.260118201 -0500
++++ helm-3.13.2/Makefile	2024-12-20 16:07:14.009333070 -0500
+@@ -24,7 +24,7 @@
+ TESTFLAGS   :=
+ LDFLAGS     := -w -s
+ GOFLAGS     :=
+-CGO_ENABLED ?= 0
++CGO_ENABLED ?= 1
+ 
+ # Rebuild the binary if any of these files change
+ SRC := $(shell find . -type f -name '*.go' -print) go.mod go.sum
