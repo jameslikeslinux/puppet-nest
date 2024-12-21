@@ -127,7 +127,7 @@ class nest::base::ssh {
   }
 
   # Deploy host private key to final stage images
-  if $nest::ssh_private_keys {
+  if $nest::ssh_private_keys['host'] {
     file { "${sshdir}/ssh_host_ed25519_key":
       mode      => '0600',
       content   => $nest::ssh_private_keys['host'],

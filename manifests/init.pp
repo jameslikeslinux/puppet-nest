@@ -5,11 +5,11 @@ class nest (
   Array[Stdlib::Host] $openvpn_servers,
 
   # Keys
-  String                         $eyaml_public_key,
-  Optional[Sensitive]            $eyaml_private_key = undef,
-  Optional[String]               $pw_hash           = undef,
-  Hash[String, String]           $ssh_host_keys     = {},
-  Optional[Hash[String, String]] $ssh_private_keys  = undef,
+  String               $eyaml_public_key,
+  Optional[Sensitive]  $eyaml_private_key = undef,
+  Optional[String]     $pw_hash           = undef,
+  Hash[String, String] $ssh_host_keys     = {},
+  Hash[String, String] $ssh_private_keys  = {},
 
   # Service discovery configuration
   Hash[Stdlib::Fqdn, Stdlib::Fqdn]        $cnames       = {},

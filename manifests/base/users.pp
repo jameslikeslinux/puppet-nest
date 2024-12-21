@@ -143,19 +143,17 @@ class nest::base::users {
       subscribe   => Class['nest::base::puppet'],
     }
 
-    if $nest::ssh_private_keys {
-      if $nest::ssh_private_keys[$user] {
-        file { "${home_dir}/.ssh/id_ed25519":
-          mode      => '0600',
-          owner     => $user,
-          content   => $nest::ssh_private_keys[$user],
-          show_diff => false,
-          require   => Vcsrepo[$home_dir],
-        }
-      } else {
-        file { "${home_dir}/.ssh/id_ed25519":
-          ensure => absent,
-        }
+    if $nest::ssh_private_keys[$user] {
+      file { "${home_dir}/.ssh/id_ed25519":
+        mode      => '0600',
+        owner     => $user,
+        content   => $nest::ssh_private_keys[$user],
+        show_diff => false,
+        require   => Vcsrepo[$home_dir],
+      }
+    } else {
+      file { "${home_dir}/.ssh/id_ed25519":
+        ensure => absent,
       }
     }
   }
