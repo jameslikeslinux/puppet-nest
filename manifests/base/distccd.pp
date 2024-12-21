@@ -17,7 +17,7 @@ class nest::base::distccd {
   }
 
   if $nest::distcc_server {
-    nest::lib::package { 'sys-devel/clang':
+    nest::lib::package { 'llvm-core/clang':
       ensure => installed,
     }
 
