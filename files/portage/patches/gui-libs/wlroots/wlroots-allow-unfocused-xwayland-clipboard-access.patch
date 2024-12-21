@@ -1,7 +1,7 @@
-diff -ur wlroots-0.17.1.orig/xwayland/selection/incoming.c wlroots-0.17.1/xwayland/selection/incoming.c
---- wlroots-0.17.1.orig/xwayland/selection/incoming.c	2024-03-09 12:20:32.885007617 -0500
-+++ wlroots-0.17.1/xwayland/selection/incoming.c	2024-03-09 12:22:36.329311698 -0500
-@@ -464,13 +464,6 @@
+diff -ur wlroots-0.18.2.orig/xwayland/selection/incoming.c wlroots-0.18.2/xwayland/selection/incoming.c
+--- wlroots-0.18.2.orig/xwayland/selection/incoming.c	2024-12-21 17:17:15.917202394 -0500
++++ wlroots-0.18.2/xwayland/selection/incoming.c	2024-12-21 17:17:30.183301167 -0500
+@@ -463,13 +463,6 @@
  			xwm_selection_transfer_destroy(transfer);
  		}
  	} else if (event->target == xwm->atoms[TARGETS]) {
@@ -15,15 +15,16 @@ diff -ur wlroots-0.17.1.orig/xwayland/selection/incoming.c wlroots-0.17.1/xwayla
  		// This sets the Wayland clipboard (by calling wlr_seat_set_selection)
  		xwm_selection_get_targets(selection);
  	} else if (transfer) {
-diff -ur wlroots-0.17.1.orig/xwayland/selection/outgoing.c wlroots-0.17.1/xwayland/selection/outgoing.c
---- wlroots-0.17.1.orig/xwayland/selection/outgoing.c	2024-03-09 12:20:32.885007617 -0500
-+++ wlroots-0.17.1/xwayland/selection/outgoing.c	2024-03-09 12:22:41.153323575 -0500
-@@ -409,17 +409,6 @@
- 		return;
- 	}
+Only in wlroots-0.18.2/xwayland/selection: incoming.c.orig
+diff -ur wlroots-0.18.2.orig/xwayland/selection/outgoing.c wlroots-0.18.2/xwayland/selection/outgoing.c
+--- wlroots-0.18.2.orig/xwayland/selection/outgoing.c	2024-12-21 17:17:15.917202394 -0500
++++ wlroots-0.18.2/xwayland/selection/outgoing.c	2024-12-21 17:18:11.497587043 -0500
+@@ -413,17 +413,6 @@
+ 	bool dnd_allowed = selection == &xwm->dnd_selection
+ 		&& (xwm->drag_focus != NULL || xwm->drop_focus != NULL);
  
 -	// No xwayland surface focused, deny access to clipboard
--	if (xwm->focus_surface == NULL && xwm->drag_focus == NULL) {
+-	if (xwm->focus_surface == NULL && !dnd_allowed) {
 -		if (wlr_log_get_verbosity() >= WLR_DEBUG) {
 -			char *selection_name = xwm_get_atom_name(xwm, selection->atom);
 -			wlr_log(WLR_DEBUG, "denying read access to selection %u (%s): "
