@@ -9,6 +9,7 @@ defaults:
     pkcs7_public_key: '/etc/eyaml/keys/public_key.pkcs7.pem'
 
 hierarchy:
+  # Kubernetes data
   - name: 'Kubernetes Services'
     paths:
       - "bolt-private/kubernetes/service/%{nest::kubernetes::service}/%{nest::kubernetes::namespace}.yaml"
@@ -29,6 +30,34 @@ hierarchy:
     paths:
       - "bolt-private/kubernetes/common.yaml"
       - "kubernetes/common.yaml"
+
+  # Generic build data
+  - name: 'Platforms'
+    paths:
+      - "bolt-private/platform/%{facts.profile.platform}.yaml"
+      - "platform/%{facts.profile.platform}.yaml"
+  - name: 'CPUs'
+    paths:
+      - "bolt-private/cpu/%{facts.profile.cpu}.yaml"
+      - "cpu/%{facts.profile.cpu}.yaml"
+  - name: 'Architectures'
+    paths:
+      - "bolt-private/arch/%{facts.profile.architecture}.yaml"
+      - "arch/%{facts.profile.architecture}.yaml"
+  - name: 'Builds'
+    paths:
+      - "bolt-private/build/%{facts.os.family}/%{facts.build}/%{facts.build}.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/%{facts.build}.yaml"
+      - "bolt-private/build/%{facts.os.family}/%{facts.build}/%{facts.profile.role}.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/%{facts.profile.role}.yaml"
+      - "bolt-private/build/%{facts.os.family}/%{facts.build}/stage3.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage3.yaml"
+      - "bolt-private/build/%{facts.os.family}/%{facts.build}/stage2.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage2.yaml"
+      - "bolt-private/build/%{facts.os.family}/%{facts.build}/stage1.yaml"
+      - "build/%{facts.os.family}/%{facts.build}/stage1.yaml"
+      - "bolt-private/build/%{facts.os.family}.yaml"
+      - "build/%{facts.os.family}.yaml"
   - name: 'Common'
     paths:
       - 'bolt-private/common.yaml'

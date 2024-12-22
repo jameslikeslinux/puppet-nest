@@ -33,6 +33,10 @@
 .plan_cache.json
 .rerun.json
 bolt-debug.log
+!/bin/
+/bin/*
+!/bin/build
+!/bin/bolt-wrapper
 !/inventory.yaml
 /bolt-debug.log
 /build

@@ -24,6 +24,7 @@ define nest::lib::repo (
 
     vcsrepo { "/var/db/repos/${name}":
       ensure   => present,
+      force    => true, # clone over existing content
       provider => git,
       source   => $url,
       depth    => 1,

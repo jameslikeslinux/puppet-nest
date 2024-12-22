@@ -9,6 +9,7 @@ define nest::lib::gitlab_runner (
   Array[String]     $cap_add          = [],
   Array[String]     $security_options = [],
   Array[String]     $volumes          = [],
+  Boolean           $bolt             = false,
   Boolean           $buildah          = false,
   Boolean           $nest             = false,
   Boolean           $portage          = false,
@@ -44,6 +45,23 @@ define nest::lib::gitlab_runner (
 
   $volume_args = $volumes.map |$volume| {
     ['--docker-volumes', $volume]
+  }
+
+  if $bolt {
+    $compatible_cpu = $facts['profile']['architecture'] ? {
+      'arm64' => 'cortex-a53',
+      default => $nest::canonical_cpu,
+    }
+
+    $bolt_args = [
+      '--docker-volumes', '/etc/eyaml:/etc/eyaml:ro',
+      '--docker-volumes', '/etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro',
+      '--docker-volumes', '/run/podman/podman.sock:/run/podman/podman.sock:ro',
+      '--env', 'CONTAINER_HOST=unix:///run/podman/podman.sock',
+      '--env', "CI_HOST_COMPATIBLE_CPU=${compatible_cpu}",
+    ]
+  } else {
+    $bolt_args = []
   }
 
   if $buildah {
@@ -117,6 +135,7 @@ define nest::lib::gitlab_runner (
     $cap_add_args,
     $security_opt_args,
     $volume_args,
+    $bolt_args,
     $buildah_args,
     $nest_args,
     $portage_args,

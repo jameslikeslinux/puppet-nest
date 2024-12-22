@@ -1,0 +1,5 @@
+---
+nest::classes:
+  - 'nest::base::distcc'
+  - 'nest::base::locale'
+  - 'nest::base::portage'

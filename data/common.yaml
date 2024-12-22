@@ -47,6 +47,8 @@ lookup_options:
 classes:
   - 'nest'
 
+nest::build::registry: 'registry.gitlab.james.tl'
+
 nest::cnames:
   # Prod kubernetes services
   bitwarden.eyrie: 'ingress.eyrie'

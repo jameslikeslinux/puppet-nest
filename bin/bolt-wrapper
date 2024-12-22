@@ -1,7 +1,7 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 #
 # Bolt wrapper
-# Trap exit signal and cleanup
+# Trap exit signals and cleanup
 #
 
 [[ $BOLT_CLEANUP_CMD ]] && trap "$BOLT_CLEANUP_CMD" EXIT INT TERM

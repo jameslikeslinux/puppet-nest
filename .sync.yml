@@ -1,6 +1,10 @@
 ---
 .gitignore:
   paths:
+    - '!/bin/'
+    - '/bin/*'
+    - '!/bin/build'
+    - '!/bin/bolt-wrapper'
     - '!/inventory.yaml'
     - '/bolt-debug.log'
     - '/build'

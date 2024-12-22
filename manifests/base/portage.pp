@@ -6,6 +6,13 @@ class nest::base::portage {
     eselect_ensure => installed,
   }
 
+  if $facts['build'] {
+    # Disable package rebuilds (from portage module) during build
+    Exec <| title == 'changed_makeconf' |> {
+      noop => true,
+    }
+  }
+
   # Remove unused directories created by Class[portage]
   File <|
     title == '/etc/portage/package.keywords' or

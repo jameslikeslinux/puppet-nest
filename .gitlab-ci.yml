@@ -11,13 +11,13 @@ stages:
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
   stage: 'Test'
   script:
-    - 'pdk validate --puppet-version=8.4.0'
+    - 'pdk validate'
 
 'Unit Test':
   image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
   stage: 'Test'
   script:
-    - 'pdk test unit --parallel --puppet-version=8.4.0 --verbose'
+    - 'pdk test unit --parallel --verbose'
 
 .template: &template
   image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'
@@ -26,7 +26,6 @@ stages:
     - 'eval $(ssh-agent -s)'
     - 'chmod 600 "$SSH_PRIVATE_KEY"'
     - 'ssh-add "$SSH_PRIVATE_KEY"'
-    - '[[ $CPU == cortex-* ]] && QEMU_ARCH=aarch64'
     - '[[ -f "/usr/bin/qemu-${QEMU_ARCH}" ]] && qemu_args="-v /usr/bin/qemu-${QEMU_ARCH}:/usr/bin/qemu-${QEMU_ARCH}:ro"'
     - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
     - 'buildah bud --build-arg BOLT_TAG="$CPU"
@@ -52,6 +51,14 @@ stages:
   tags: ['arm64']
   variables:
     CPU: 'cortex-a53'
+    QEMU_ARCH: 'aarch64'
+
+'Build rv64gc':
+  <<: *template
+  tags: ['riscv64']
+  variables:
+    CPU: 'rv64gc'
+    QEMU_ARCH: 'riscv64'
 
 'Deploy':
   stage: 'Deploy'
