@@ -29,11 +29,10 @@ exec podman run --rm -it -e TERM \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \
-    -e BOLT_CLEANUP_CMD \
     -e KUBECONFIG \
     -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
     $podman_sock \
     nest/tools/bolt:<%= $nest::canonical_cpu %> \
-    bolt-wrapper "$@"
+    bolt "$@"
 
 # vim: filetype=bash

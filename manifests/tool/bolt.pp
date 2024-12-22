@@ -32,13 +32,6 @@ class nest::tool::bolt (
       ensure => installed,
     }
 
-    file { '/usr/local/bin/bolt-wrapper':
-      mode   => '0755',
-      owner  => 'root',
-      group  => 'root',
-      source => 'puppet:///modules/nest/scripts/bolt-wrapper.sh',
-    }
-
     # Fix podman json parsing
     # Bolt expects pretty json that podman no longer provides
     # Revert to inherited docker parsing function
