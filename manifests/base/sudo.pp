@@ -17,7 +17,7 @@ class nest::base::sudo {
     ;
 
     '/etc/sudoers.d/10_env':
-      content => "Defaults env_keep += \"SSH_AUTH_SOCK SSH_CLIENT SSH_CONNECTION TMUX TMUX_PANE XAUTHORITY\"\n",
+      content => "Defaults env_keep += \"KUBECONFIG SSH_AUTH_SOCK SSH_CLIENT SSH_CONNECTION TMUX TMUX_PANE XAUTHORITY\"\n",
     ;
 
     '/etc/sudoers.d/10_wheel':

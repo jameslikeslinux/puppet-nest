@@ -15,6 +15,9 @@ fi
 
 name=$(ruby -ryaml -e 'puts YAML.load_file("bolt-project.yaml")["name"]')
 
+PODMAN_SOCK='/run/podman/podman.sock'
+[[ -S "$PODMAN_SOCK" ]] && podman_sock_vol="-v ${PODMAN_SOCK}:${PODMAN_SOCK}:ro"
+
 exec podman run --rm -it -e TERM \
     --net=host --dns=127.0.0.53 \
     -w "/modules/${name}" \
@@ -23,7 +26,7 @@ exec podman run --rm -it -e TERM \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \
-    -v /run/podman/podman.sock:/run/podman/podman.sock:ro \
+    $podman_sock_vol \
     -e KUBECONFIG -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
     nest/tools/bolt:<%= $nest::canonical_cpu %> \
     bolt "$@"
