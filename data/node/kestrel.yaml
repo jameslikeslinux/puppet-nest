@@ -16,7 +16,7 @@ nest::vpn_client: false
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   builder:
-    limit: 2
+    limit: 4
     bolt: true
     buildah: true
     nest: true
