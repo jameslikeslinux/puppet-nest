@@ -16,7 +16,10 @@ fi
 name=$(ruby -ryaml -e 'puts YAML.load_file("bolt-project.yaml")["name"]')
 
 PODMAN_SOCK='/run/podman/podman.sock'
-[[ -S "$PODMAN_SOCK" ]] && podman_sock_vol="-v ${PODMAN_SOCK}:${PODMAN_SOCK}:ro"
+if [[ -S "$PODMAN_SOCK" ]]; then
+    podman_sock="-e CONTAINER_HOST -v ${PODMAN_SOCK}:${PODMAN_SOCK}:ro"
+    export CONTAINER_HOST="unix://${PODMAN_SOCK}"
+fi
 
 exec podman run --rm -it -e TERM \
     --net=host --dns=127.0.0.53 \
@@ -26,9 +29,11 @@ exec podman run --rm -it -e TERM \
     -v /etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro \
     -v /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro \
     -v /nest/home/kubeconfigs:/nest/home/kubeconfigs \
-    $podman_sock_vol \
-    -e KUBECONFIG -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
+    -e BOLT_CLEANUP_CMD \
+    -e KUBECONFIG \
+    -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
+    $podman_sock \
     nest/tools/bolt:<%= $nest::canonical_cpu %> \
-    bolt "$@"
+    bolt-wrapper "$@"
 
 # vim: filetype=bash

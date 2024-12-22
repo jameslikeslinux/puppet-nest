@@ -32,10 +32,11 @@ class nest::tool::bolt (
       ensure => installed,
     }
 
-    # Force podman remote operations (bolt hardcodes podman)
-    file { '/usr/bin/podman':
-      ensure => link,
-      target => '/usr/bin/podman-remote',
+    file { '/usr/local/bin/bolt-wrapper':
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+      source => 'puppet:///modules/nest/scripts/bolt-wrapper.sh',
     }
 
     # Fix podman json parsing
