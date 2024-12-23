@@ -81,6 +81,9 @@ plan nest::build::stage0 (
     } else {
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
       run_command('emerge --sync', $target, 'Sync Portage tree')
+      run_command('emerge --oneshot --verbose dev-lang/ruby', $target, 'Install Ruby', _env_vars => {
+        'FEATURES' => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
+      })
       run_command('emerge --verbose app-admin/puppet app-portage/eix dev-ruby/sys-filesystem', $target, 'Install Puppet', _env_vars => {
         'ACCEPT_KEYWORDS' => '~*',
         'FEATURES'        => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
