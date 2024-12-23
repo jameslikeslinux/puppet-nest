@@ -70,6 +70,7 @@ nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   runner:
     buildah: true
+    podman: true
     qemu: true
 
   builder:
@@ -78,6 +79,7 @@ nest::service::gitlab_runner::instances:
     buildah: true
     nest: true
     portage: true
+    podman: true
     qemu: true
 
   chromium:

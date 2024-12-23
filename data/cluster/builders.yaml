@@ -14,5 +14,6 @@ nest::service::gitlab_runner::instances:
     bolt: true
     buildah: true
     nest: true
+    podman: true
     portage: true
     qemu: true

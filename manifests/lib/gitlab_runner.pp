@@ -12,6 +12,7 @@ define nest::lib::gitlab_runner (
   Boolean           $bolt             = false,
   Boolean           $buildah          = false,
   Boolean           $nest             = false,
+  Boolean           $podman           = false,
   Boolean           $portage          = false,
   Boolean           $privileged       = false,
   Boolean           $qemu             = false,
@@ -56,8 +57,6 @@ define nest::lib::gitlab_runner (
     $bolt_args = [
       '--docker-volumes', '/etc/eyaml:/etc/eyaml:ro',
       '--docker-volumes', '/etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro',
-      '--docker-volumes', '/run/podman/podman.sock:/run/podman/podman.sock:ro',
-      '--env', 'CONTAINER_HOST=unix:///run/podman/podman.sock',
       '--env', "CI_HOST_COMPATIBLE_CPU=${compatible_cpu}",
     ]
   } else {
@@ -80,6 +79,15 @@ define nest::lib::gitlab_runner (
     ]
   } else {
     $nest_args = []
+  }
+
+  if $podman {
+    $podman_args = [
+      '--docker-volumes', '/run/podman/podman.sock:/run/podman/podman.sock:ro',
+      '--env', 'CONTAINER_HOST=unix:///run/podman/podman.sock',
+    ]
+  } else {
+    $podman_args = []
   }
 
   if $portage {
@@ -138,6 +146,7 @@ define nest::lib::gitlab_runner (
     $bolt_args,
     $buildah_args,
     $nest_args,
+    $podman_args,
     $portage_args,
     $privileged_args,
     $qemu_args,
