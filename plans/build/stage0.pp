@@ -83,14 +83,16 @@ plan nest::build::stage0 (
     if empty($gentoo_stage3_tag) {
       run_command('eix-sync -aq', $target, 'Sync Portage repos')
     } else {
+      $portage_settings = {
+        'EMERGE_DEFAULT_OPTS' => $emerge_default_opts,
+        'FEATURES'            => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
+        'MAKEOPTS'            => $makeopts,
+      }
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
       run_command('emerge --sync', $target, 'Sync Portage tree')
-      run_command('emerge --oneshot --verbose dev-lang/ruby', $target, 'Install Ruby', _env_vars => {
-        'FEATURES' => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
-      })
-      run_command('emerge --verbose app-admin/puppet app-portage/eix dev-ruby/sys-filesystem', $target, 'Install Puppet', _env_vars => {
+      run_command('emerge --oneshot --verbose dev-lang/ruby', $target, 'Install Ruby', _env_vars => $portage_settings)
+      run_command('emerge --verbose app-admin/puppet app-portage/eix dev-ruby/sys-filesystem', $target, 'Install Puppet', _env_vars => $portage_settings + {
         'ACCEPT_KEYWORDS' => '~*',
-        'FEATURES'        => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
       })
       run_command('eix-update', $target, 'Update package database')
     }
