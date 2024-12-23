@@ -84,6 +84,7 @@ plan nest::build::stage0 (
       run_command('eix-sync -aq', $target, 'Sync Portage repos')
     } else {
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
+      run_command('rm -rf /var/db/repos/gentoo/.git', $target, 'Prepare Gentoo repo for rsync')
       run_command('emerge --sync', $target, 'Sync Portage tree')
       run_command('emerge --verbose app-admin/puppet app-portage/eix dev-ruby/sys-filesystem', $target, 'Install Puppet', _env_vars => {
         # Settings from Nest overlay
