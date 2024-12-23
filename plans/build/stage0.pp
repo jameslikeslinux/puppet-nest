@@ -33,11 +33,15 @@ plan nest::build::stage0 (
 
   if $deploy {
     if $registry_username {
-      $registry_password_real = pick(
-        $registry_password,
-        system::env('NEST_REGISTRY_PASSWORD'),
-        prompt('Registry password', 'sensitive' => true).unwrap,
-      )
+      $registry_password_env = system::env('NEST_REGISTRY_PASSWORD')
+      if $registry_password {
+        $registry_password_real = $registry_password
+      } elsif $registry_password_env {
+        $registry_password_real = $registry_password_env
+      } else {
+        $registry_password_real = prompt('Registry password', 'sensitive' => true).unwrap
+      }
+
       run_command("echo \$registry_password | podman login --username=${registry_username} --password-stdin ${registry}", 'localhost', 'Login to registry', _env_vars => {
         'registry_password' => $registry_password_real,
       })
