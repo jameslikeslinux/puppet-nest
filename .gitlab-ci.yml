@@ -20,20 +20,16 @@ stages:
     - 'pdk test unit --parallel --verbose'
 
 .template: &template
-  image: '${CI_REGISTRY}/nest/tools/buildah:${CI_HOST_CPU}'
   stage: 'Build'
   script:
-    - 'eval $(ssh-agent -s)'
-    - 'chmod 600 "$SSH_PRIVATE_KEY"'
-    - 'ssh-add "$SSH_PRIVATE_KEY"'
-    - '[[ -f "/usr/bin/qemu-${QEMU_ARCH}" ]] && qemu_args="-v /usr/bin/qemu-${QEMU_ARCH}:/usr/bin/qemu-${QEMU_ARCH}:ro"'
-    - 'buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"'
-    - 'buildah bud --build-arg BOLT_TAG="$CPU"
-                   --build-arg SSH_AUTH_SOCK="$SSH_AUTH_SOCK"
-                   -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro"
-                   $qemu_args
-                   -t "${CI_REGISTRY_IMAGE}:${CPU}" .'
-    - 'buildah push --compression-format zstd "${CI_REGISTRY_IMAGE}:${CPU}"'
+    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
+    - 'mkdir empty'
+    - 'podman build
+        --build-arg BOLT_TAG="$CPU"
+        --build-arg SSH_PRIVATE_KEY="$(< "$SSH_PRIVATE_KEY")"
+        -f Containerfile
+        -t "${CI_REGISTRY_IMAGE}:${CPU}" empty'
+    - 'podman push "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
     - if: '$BUILD == $CPU'
     - if: '$BUILD'
@@ -51,14 +47,12 @@ stages:
   tags: ['arm64']
   variables:
     CPU: 'cortex-a53'
-    QEMU_ARCH: 'aarch64'
 
 'Build rv64gc':
   <<: *template
   tags: ['riscv64']
   variables:
     CPU: 'rv64gc'
-    QEMU_ARCH: 'riscv64'
 
 'Deploy':
   stage: 'Deploy'
