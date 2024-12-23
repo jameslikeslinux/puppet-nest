@@ -25,10 +25,12 @@ stages:
     - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
     - 'mkdir empty'
     - 'podman build
-        --build-arg BOLT_TAG="$CPU"
-        --build-arg SSH_PRIVATE_KEY="$(< "$SSH_PRIVATE_KEY")"
-        -f Containerfile
-        -t "${CI_REGISTRY_IMAGE}:${CPU}" empty'
+        --build-arg=BOLT_TAG="$CPU"
+        --build-arg=SSH_PRIVATE_KEY="$(< "$SSH_PRIVATE_KEY")"
+        --file=Containerfile
+        --squash
+        --tag="${CI_REGISTRY_IMAGE}:${CPU}"
+        empty'
     - 'podman push "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
     - if: '$BUILD == $CPU'
