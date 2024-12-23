@@ -34,10 +34,10 @@ plan nest::build::stage0 (
   if $deploy {
     if $registry_username {
       $registry_password_env = system::env('NEST_REGISTRY_PASSWORD')
-      if $registry_password {
-        $registry_password_real = $registry_password
-      } elsif $registry_password_env {
+      if $registry_password_env {
         $registry_password_real = $registry_password_env
+      } elsif $registry_password {
+        $registry_password_real = $registry_password
       } else {
         $registry_password_real = prompt('Registry password', 'sensitive' => true).unwrap
       }
