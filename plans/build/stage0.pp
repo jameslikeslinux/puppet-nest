@@ -125,7 +125,7 @@ plan nest::build::stage0 (
 
     $debug_container = "${container}-debug"
     $debug_image = "${registry}/nest/stage0/debug:${tag}"
-    run_command("podman run --name=${debug_container} --volume=${debug_volume}:/usr/lib/.debug:ro ${image} cp -a /usr/lib/.debug/. /usr/lib/debug", 'localhost', 'Copy debug symbols')
+    run_command("podman volume export ${debug_volume} | podman run --name=${debug_container} ${image} tar -C /usr/lib/debug -x", 'localhost', 'Copy debug symbols')
     run_command("podman commit --change CMD=/bin/bash ${debug_container} ${debug_image}", 'localhost', 'Commit debug container')
     run_command("podman rm ${debug_container}", 'localhost', 'Remove debug container')
 
