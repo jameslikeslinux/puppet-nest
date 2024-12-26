@@ -44,9 +44,6 @@ lookup_options:
     merge: 'hash'
     convert_to: 'Sensitive'
 
-classes:
-  - 'nest'
-
 nest::build::registry: 'registry.gitlab.james.tl'
 
 nest::cnames:

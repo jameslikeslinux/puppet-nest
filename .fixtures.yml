@@ -11,6 +11,7 @@ fixtures:
     dnsquery: 'puppet/dnsquery'
     augeasproviders_core: 'puppet/augeasproviders_core'
     augeasproviders_sysctl: 'puppet/augeasproviders_sysctl'
+    mysql: 'puppetlabs/mysql'
     powershell: 'puppetlabs/powershell'
     nodejs: 'puppet/nodejs'
     windows_env: 'puppet/windows_env'

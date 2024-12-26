@@ -79,6 +79,7 @@ class nest (
   # Other nest classes
   Array[String] $classes = [],
 ) {
+  # Calculated values
   if $kernel_tag =~ /v([\d.]+(-rc\d+)?)/ {
     $kernel_version = $1
   } else {
@@ -117,6 +118,63 @@ class nest (
     $canonical_cpu = undef
   }
 
+  # Resource defaults
+  case $facts['os']['family'] {
+    'Gentoo': {
+      Firewalld_zone {
+        interfaces       => [],
+        sources          => [],
+        masquerade       => false,
+        purge_rich_rules => true,
+        purge_services   => true,
+        purge_ports      => true,
+      }
+
+      # MariaDB defaults
+      Mysql::Db {
+        charset => 'utf8mb3',
+        collate => 'utf8mb3_general_ci',
+      }
+
+      Service {
+        provider => 'systemd',
+      }
+
+      Sysctl {
+        target  => '/etc/sysctl.d/nest.conf',
+        require => File['/etc/sysctl.d'],
+      }
+
+      # Effectively disable resources that can't be managed in containers
+      if $facts['is_container'] {
+        Service <||> {
+          ensure => undef,
+        }
+
+        Sysctl <||> {
+          apply => false,
+        }
+      }
+    }
+
+    'windows': {
+      Concat {
+        # The default is usually 0644, but Windows keeps changing it to 0674, so
+        # just accept what it does.
+        mode => '0674',
+      }
+
+      Package {
+        provider => 'chocolatey',
+      }
+    }
+  }
+
+  # Defaults above are dynamically scoped to classes contained below
+  # See: https://www.puppet.com/docs/puppet/8/lang_scope.html#dynamic-scope
+
+  # Contain classes and process knockouts from Hiera such that
+  # Class['nest'] represents a complete configuration
   $knockouts = $classes.filter |$c| { $c =~ /^--/ }
   contain $classes.filter |$c| { !($c in $knockouts or "--${c}" in $knockouts) }
 }
