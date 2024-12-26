@@ -2,14 +2,6 @@ if $trusted['certname'] in ['bolt', 'puppetdb'] {
   fail("${trusted['certname']} is not allowed to use Puppet")
 }
 
-class choco {
-  include chocolatey
-
-  chocolateyfeature { 'useRememberedArgumentsForUpgrades':
-    ensure => enabled,
-  }
-}
-
 case $facts['os']['family'] {
   'Gentoo': {
     Firewalld_zone {
@@ -53,18 +45,6 @@ case $facts['os']['family'] {
       # The default is usually 0644, but Windows keeps changing it to 0674, so
       # just accept what it does.
       mode => '0674',
-    }
-
-    stage { 'first':
-      before => Stage['main'],
-    }
-
-    class { 'choco':
-      stage => 'first',
-    }
-
-    Package {
-      provider => 'chocolatey',
     }
   }
 }

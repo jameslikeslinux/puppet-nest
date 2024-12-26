@@ -8,8 +8,7 @@ networking:
   mac: "AA:AA:AA:AA:AA:AA"
   fqdn: "test.example.com"
 is_pe: false
-processors:
-  count: 8
+chocolateyversion: 1.2.1
 memory:
   system:
     total_bytes: 16484859904
@@ -25,4 +24,6 @@ portage_use: X a52 aac acl acpi activities alsa arm64 bluetooth branding bzip2 c
   semantic-desktop sound spell ssl startup-notification svg systemd test-rust tiff
   truetype udev udisks unicode upower usb vorbis vulkan wayland widgets wxwidgets
   x264 xattr xcb xft xml xv xvid zlib zsh-completion
+processors:
+  count: 8
 

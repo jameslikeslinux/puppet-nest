@@ -52,6 +52,7 @@ describe 'nest' do
 
   windows = [
     'nest::base::certs',
+    'nest::base::chocolatey',
     'nest::base::cygwin',
     'nest::base::eyaml',
     'nest::base::firewall',
