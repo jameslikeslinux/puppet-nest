@@ -9,11 +9,6 @@ class nest::tool::pdk {
       provider        => gem,
     }
 
-    # Required by pdk-templates-3.4.0 but not specified by the gem
-    package { 'puppet_litmus':
-      ensure => installed,
-    }
-    ->
     package { 'pdk':
       ensure => $pdk_version,
     }
@@ -31,13 +26,6 @@ class nest::tool::pdk {
         path  => "${pdk_gem_dir}/lib/pdk/util/bundler.rb",
         line  => 'update_lock!(only: { json: nil }, local: false)',
         match => 'update_lock.*json.*local',
-      ;
-
-      # Gem::Platform.match is deprecated; hide numerous warnings
-      'pdk-fix-deprecation-warning':
-        path  => "${pdk_gem_dir}/lib/pdk/util/puppet_version.rb",
-        line  => "spec_tuple.name == 'puppet' && Gem::Platform.match_spec?(spec_tuple)",
-        match => 'spec_tuple.*Gem::Platform\.match',
       ;
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
