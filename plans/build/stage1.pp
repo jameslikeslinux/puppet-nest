@@ -33,7 +33,7 @@ plan nest::build::stage1 (
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
 
-  if $profile =~ /([\w-]+)-(server|workstation)$/ {
+  if $profile =~ /^([\w-]+)-(server|workstation)$/ {
     $cpu = $1
     $role = $2
   } else {
