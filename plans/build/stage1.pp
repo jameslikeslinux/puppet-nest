@@ -7,29 +7,33 @@
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
+# @param id Build ID
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
+# @param qemu_archs CPU architectures to emulate
 # @param refresh Build from previous Stage 1 image
 # @param registry Container registry to push to
 # @param registry_username Username for registry
 # @param registry_password Password for registry
 plan nest::build::stage1 (
-  String           $container,
-  String           $profile,
-  Boolean          $build               = true,
-  Boolean          $deploy              = false,
-  Optional[String] $emerge_default_opts = undef,
-  Boolean          $init                = true,
-  Optional[String] $makeopts            = undef,
-  Boolean          $refresh             = false,
-  String           $registry            = lookup('nest::build::registry', default_value => 'localhost'),
-  Optional[String] $registry_username   = lookup('nest::build::registry_username', default_value => undef),
-  Optional[String] $registry_password   = lookup('nest::build::registry_password', default_value => undef),
+  String            $container,
+  String            $profile,
+  Boolean           $build               = true,
+  Boolean           $deploy              = false,
+  Optional[String]  $emerge_default_opts = undef,
+  Optional[Numeric] $id                  = undef,
+  Boolean           $init                = true,
+  Optional[String]  $makeopts            = undef,
+  Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  Boolean           $refresh             = false,
+  String            $registry            = lookup('nest::build::registry', default_value => 'localhost'),
+  Optional[String]  $registry_username   = lookup('nest::build::registry_username', default_value => undef),
+  Optional[String]  $registry_password   = lookup('nest::build::registry_password', default_value => undef),
 ) {
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
 
-  if $profile =~ /(\w+)-(server|workstation)$/ {
+  if $profile =~ /([\w-]+)-(server|workstation)$/ {
     $cpu = $1
     $role = $2
   } else {
@@ -77,6 +81,7 @@ plan nest::build::stage1 (
       --pull=always \
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
+      ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       --volume=${debug_volume}:/usr/lib/debug \
       --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
@@ -93,6 +98,7 @@ plan nest::build::stage1 (
 
     run_command('eix-sync -aq', $target, 'Sync Portage repos')
 
+    # Set and configure the desired profile
     run_command("eselect profile set nest:${cpu}/${role}", $target, 'Set profile')
 
     apply_prep($target)
@@ -109,6 +115,7 @@ plan nest::build::stage1 (
 
     run_command('emerge --info', $target, 'Show Portage configuration')
 
+    # Resolve circular dependencies
     if $role == 'workstation' and !$refresh {
       run_command('emerge --oneshot --verbose media-libs/harfbuzz media-libs/freetype media-libs/mesa', $target, 'Resolve media circular dependencies', _env_vars => {
         'USE' => '-cairo -harfbuzz -truetype -vaapi',
@@ -118,10 +125,12 @@ plan nest::build::stage1 (
       })
     }
 
+    # Make the system consistent with the profile
     run_command('emerge --deep --newuse --update --verbose --with-bdeps=y @world', $target, 'Install packages')
     run_command('emerge --depclean', $target, 'Remove unused packages')
 
-    apply($target, '_description' => 'Configure the stage') { include nest }
+    # Apply the main configuration
+    apply($target, '_description' => 'Configure the stage') { include nest }.nest::print_report
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }

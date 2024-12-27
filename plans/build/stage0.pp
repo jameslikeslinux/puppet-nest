@@ -7,26 +7,26 @@
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
-# @param gentoo_stage3_tag Use this Gentoo Stage 3 image as the base
+# @param from_image Build starting from this image
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
+# @param qemu_archs CPU architectures to emulate
 # @param registry Container registry to push to
 # @param registry_username Username for registry
 # @param registry_password Password for registry
-# @param stage0_tag Build using this Stage 0 image
 plan nest::build::stage0 (
   String           $container,
   String           $profile,
   Boolean          $build               = true,
   Boolean          $deploy              = false,
   Optional[String] $emerge_default_opts = undef,
-  String           $gentoo_stage3_tag   = '',
+  String           $from_image          = "nest/stage0:${profile}",
   Boolean          $init                = true,
   Optional[String] $makeopts            = undef,
+  Array[String]    $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
   String           $registry            = lookup('nest::build::registry', default_value => 'localhost'),
   Optional[String] $registry_username   = lookup('nest::build::registry_username', default_value => undef),
   Optional[String] $registry_password   = lookup('nest::build::registry_password', default_value => undef),
-  String           $stage0_tag          = $profile,
 ) {
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
@@ -49,12 +49,6 @@ plan nest::build::stage0 (
   }
 
   if $init {
-    if empty($gentoo_stage3_tag) {
-      $from_image = "nest/stage0:${stage0_tag}"
-    } else {
-      $from_image = "nest/gentoo/stage3:${gentoo_stage3_tag}"
-    }
-
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
 
@@ -66,6 +60,7 @@ plan nest::build::stage0 (
       --pull=always \
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
+      ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       --volume=${debug_volume}:/usr/lib/debug \
       --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
@@ -80,9 +75,7 @@ plan nest::build::stage0 (
 
     $target = get_target("podman://${container}")
 
-    if empty($gentoo_stage3_tag) {
-      run_command('eix-sync -aq', $target, 'Sync Portage repos')
-    } else {
+    if $from_image =~ /gentoo/ {
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
       run_command('rm -rf /var/db/repos/gentoo/.git', $target, 'Prepare Gentoo repo for rsync')
       run_command('emerge --sync', $target, 'Sync Portage tree')
@@ -96,6 +89,8 @@ plan nest::build::stage0 (
         'PKGDIR'              => "/nest/portage/packages/${profile}",
       })
       run_command('eix-update', $target, 'Update package database')
+    } else {
+      run_command('eix-sync -aq', $target, 'Sync Portage repos')
     }
 
     apply_prep($target)
@@ -107,7 +102,9 @@ plan nest::build::stage0 (
       'profile'             => {},
     })
 
-    apply($target, '_description' => 'Configure Portage') { include nest }.nest::print_report
+    apply($target, '_description' => 'Configure Portage') {
+      include nest
+    }.nest::print_report
 
     run_command("eselect profile set nest:${profile}/server", $target, 'Set profile')
     run_command('emerge --info', $target, 'Show Portage configuration')
