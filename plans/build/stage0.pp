@@ -53,7 +53,7 @@ plan nest::build::stage0 (
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
 
     # Note: initial LANG applies to all downstream containers
-    $podman_create_cmd = @("RUN"/L)
+    $podman_create_cmd = @("CREATE"/L)
       podman create \
       --env=LANG \
       --name=${container} \
@@ -65,7 +65,7 @@ plan nest::build::stage0 (
       --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
       sleep infinity
-      | RUN
+      | CREATE
 
     run_command($podman_create_cmd, 'localhost', 'Create build container')
   }

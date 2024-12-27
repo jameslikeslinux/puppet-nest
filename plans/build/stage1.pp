@@ -68,9 +68,19 @@ plan nest::build::stage1 (
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
-    run_command("podman run --name=${container} --rm --volume=${debug_volume}:/usr/lib/.debug ${from_image_debug} cp -a /usr/lib/debug/. /usr/lib/.debug", 'localhost', 'Repopulate debug volume')
 
-    $podman_create_cmd = @("RUN"/L)
+    $podman_debug_copy_cmd = @("COPY"/L)
+      podman run \
+      --name=${container} \
+      --pull=always \
+      --rm \
+      --volume=${debug_volume}:/usr/lib/.debug \
+      ${from_image_debug} \
+      cp -a /usr/lib/debug/. /usr/lib/.debug
+      | COPY
+    run_command($podman_debug_copy_cmd, 'localhost', 'Repopulate debug volume')
+
+    $podman_create_cmd = @("CREATE"/L)
       podman create \
       --name=${container} \
       --pull=always \
@@ -81,8 +91,7 @@ plan nest::build::stage1 (
       --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
       sleep infinity
-      | RUN
-
+      | CREATE
     run_command($podman_create_cmd, 'localhost', 'Create build container')
   }
 
