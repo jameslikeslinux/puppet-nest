@@ -132,7 +132,7 @@ plan nest::build::stage1 (
 
   if $deploy {
     $image = "${registry}/nest/stage1/${role}:${cpu}"
-    run_command("podman commit --change CMD=/bin/zsh --squash ${container} ${image}", 'localhost', 'Commit build container')
+    run_command("podman commit --change CMD=/bin/zsh ${container} ${image}", 'localhost', 'Commit build container')
 
     $debug_container = "${container}-debug"
     $debug_image = "${registry}/nest/stage1/${role}/debug:${cpu}"
