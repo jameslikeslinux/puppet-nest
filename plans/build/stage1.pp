@@ -68,12 +68,7 @@ plan nest::build::stage1 (
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
-
-    $podman_copy_debug_cmd = @("CMD"/L)
-      podman run --pull=always --rm ${from_image_debug} tar -C /usr/lib/debug -c . | \
-      podman run --interactive --name=${container} --rm --volume=${debug_volume}:/usr/lib/debug ${from_image} tar -C /usr/lib/debug -x
-      | CMD
-    run_command($podman_copy_debug_cmd, 'localhost', 'Repopulate debug volume')
+    run_command("podman run --name=${container} --rm --volume=${debug_volume}:/usr/lib/.debug ${from_image_debug} cp -a /usr/lib/debug/. /usr/lib/.debug", 'localhost', 'Repopulate debug volume')
 
     $podman_create_cmd = @("RUN"/L)
       podman create \
@@ -141,11 +136,7 @@ plan nest::build::stage1 (
 
     $debug_container = "${container}-debug"
     $debug_image = "${registry}/nest/stage1/${role}/debug:${cpu}"
-    $debug_copy_cmd = @("CMD"/L)
-      podman run --rm --volume=${debug_volume}:/usr/lib/debug:ro ${image} tar -C /usr/lib/debug -c . | \
-      podman run --interactive --name=${debug_container} ${image} tar -C /usr/lib/debug -x
-      | CMD
-    run_command($debug_copy_cmd, 'localhost', 'Copy debug symbols')
+    run_command("podman run --name=${debug_container} --volume=${debug_volume}:/usr/lib/.debug:ro ${image} cp -a /usr/lib/.debug/. /usr/lib/debug", 'localhost', 'Copy debug symbols')
     run_command("podman commit --change CMD=/bin/zsh ${debug_container} ${debug_image}", 'localhost', 'Commit debug container')
     run_command("podman rm ${debug_container}", 'localhost', 'Remove debug container')
 
