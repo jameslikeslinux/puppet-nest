@@ -7,20 +7,20 @@
 #
 
 if (( $# < 2 )); then
-    print "Usage: $0 BUILD TAG [args...]" >&2
+    print "Usage: $0 BUILD PROFILE [args...]" >&2
     print "  e.g. $0 stage1 haswell-workstation deploy=true" >&2
     exit 1
 fi
 
 build=$1; shift
-tag=$1; shift
+profile=$1; shift
 
 case $build in
     stage0|stage1|stage2)
-        container="nest-${build}-${tag}"
+        container="nest-${build}-${profile}"
         ;;
     stage3)
-        container="$tag"
+        container="$profile"
         ;;
     *)
         print "Invalid build: ${build}" >&2
@@ -33,4 +33,4 @@ cd "$(dirname $0)/.."
 [[ $UID -eq 0 ]] && runcmd='env' || runcmd='sudo'
 
 exec $runcmd BOLT_CLEANUP_CMD="podman stop ${container} >&/dev/null" \
-    ./bin/bolt-wrapper plan run nest::build::${build} container="$container" tag="$tag" "$@" --stream
+    ./bin/bolt-wrapper plan run nest::build::${build} container="$container" profile="$profile" "$@" --stream

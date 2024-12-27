@@ -43,8 +43,10 @@ class nest::tool::bolt (
   } elsif $facts['os']['family'] == 'Gentoo' {
     if $ca {
       $ca_content = $ca
+    } elsif $settings::ssldir == '/etc/puppetlabs/puppet/ssl' {
+      $ca_content = file('/etc/puppetlabs/puppet/ssl/cert/ca.pem')
     } else {
-      $ca_content = file("${settings::ssldir}/certs/ca.pem")
+      $ca_content = ''
     }
 
     file {
