@@ -93,17 +93,18 @@ plan nest::build::stage1 (
 
     run_command('eix-sync -aq', $target, 'Sync Portage repos')
 
-    # Set and configure the desired profile
+    # Profile controls Portage and Puppet configurations
     run_command("eselect profile set nest:${cpu}/${role}", $target, 'Set profile')
 
-    apply_prep($target)
-
-    add_facts($target, {
+    # Set up the build environment
+    $target.apply_prep
+    $target.add_facts({
       'build'               => 'stage1',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
     })
 
+    # Run Puppet to configure Portage and set up @world
     run_command('sh -c "echo profile > /.apply_tags"', $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet tags')

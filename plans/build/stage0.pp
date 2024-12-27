@@ -75,6 +75,7 @@ plan nest::build::stage0 (
 
     $target = get_target("podman://${container}")
 
+    # Prepare the base image for Puppet
     if $from_image =~ /gentoo/ {
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
       run_command('rm -rf /var/db/repos/gentoo/.git', $target, 'Prepare Gentoo repo for rsync')
@@ -93,19 +94,21 @@ plan nest::build::stage0 (
       run_command('eix-sync -aq', $target, 'Sync Portage repos')
     }
 
-    apply_prep($target)
-
-    add_facts($target, {
+    # Set up the build environment
+    $target.apply_prep
+    $target.add_facts({
       'build'               => 'init',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
       'profile'             => {},
     })
 
+    # Run Puppet to configure Portage, distcc, and locale
     apply($target, '_description' => 'Configure Portage') {
       include nest
     }.nest::print_report
 
+    # Rebuild the image with our profile
     run_command("eselect profile set nest:${profile}/server", $target, 'Set profile')
     run_command('emerge --info', $target, 'Show Portage configuration')
     run_command('emerge --emptytree --verbose @world', $target, 'Rebuild all packages')
