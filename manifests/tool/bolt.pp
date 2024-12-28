@@ -44,7 +44,7 @@ class nest::tool::bolt (
     if $ca {
       $ca_content = $ca
     } elsif $settings::ssldir == '/etc/puppetlabs/puppet/ssl' {
-      $ca_content = file('/etc/puppetlabs/puppet/ssl/cert/ca.pem')
+      $ca_content = file('/etc/puppetlabs/puppet/ssl/certs/ca.pem')
     } else {
       $ca_content = ''
     }
