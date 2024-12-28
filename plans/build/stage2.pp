@@ -1,9 +1,9 @@
-# @summary Build basic images intended for containers
+# @summary Build platform-specific images with kernels
 #
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param profile Build for this CPU architecture and role
+# @param profile Build for this platform and role
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -15,7 +15,7 @@
 # @param registry Container registry to push to
 # @param registry_username Username for registry
 # @param registry_password Password for registry
-plan nest::build::stage1 (
+plan nest::build::stage2 (
   String            $container,
   String            $profile,
   Boolean           $build               = true,
@@ -30,11 +30,15 @@ plan nest::build::stage1 (
   Optional[String]  $registry_username   = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password   = lookup('nest::build::registry_password', default_value => undef),
 ) {
-  $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
 
-  if $profile =~ /^([\w-]+)\/(server|workstation)$/ {
+  if $profile =~ /^([\w-]+)\/([\w-]+)\/(server|workstation)$/ {
     $cpu = $1
+    $platform = $2
+    $role = $3
+  } elsif $profile =~ /^([\w-]+)\/(server|workstation)$/ {
+    $cpu = $1
+    $platform = $1
     $role = $2
   } else {
     fail("Invalid profile: ${profile}")
@@ -59,26 +63,12 @@ plan nest::build::stage1 (
 
   if $init {
     if $refresh {
-      $from_image       = "nest/stage1/${role}:${cpu}"
-      $from_image_debug = "nest/stage1/${role}/debug:${cpu}"
+      $from_image = "nest/stage2/${role}:${platform}"
     } else {
-      $from_image       = "nest/stage0:${cpu}"
-      $from_image_debug = "nest/stage0/debug:${cpu}"
+      $from_image = "nest/stage1/${role}/debug:${cpu}"
     }
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
-    run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
-
-    $podman_debug_copy_cmd = @("COPY"/L)
-      podman run \
-      --name=${container} \
-      --pull=always \
-      --rm \
-      --volume=${debug_volume}:/usr/lib/.debug \
-      ${from_image_debug} \
-      cp -a /usr/lib/debug/. /usr/lib/.debug
-      | COPY
-    run_command($podman_debug_copy_cmd, 'localhost', 'Repopulate debug volume')
 
     $podman_create_cmd = @("CREATE"/L)
       podman create \
@@ -87,7 +77,6 @@ plan nest::build::stage1 (
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
       ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
-      --volume=${debug_volume}:/usr/lib/debug \
       --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
       sleep infinity
@@ -108,7 +97,7 @@ plan nest::build::stage1 (
     # Set up the build environment
     $target.apply_prep
     $target.add_facts({
-      'build'               => 'stage1',
+      'build'               => 'stage2',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
     })
@@ -120,18 +109,8 @@ plan nest::build::stage1 (
 
     run_command('emerge --info', $target, 'Show Portage configuration')
 
-    # Resolve circular dependencies
-    if $role == 'workstation' and !$refresh {
-      run_command('emerge --oneshot --verbose media-libs/harfbuzz media-libs/freetype media-libs/mesa', $target, 'Resolve media circular dependencies', _env_vars => {
-        'USE' => '-cairo -harfbuzz -truetype -vaapi',
-      })
-      run_command('emerge --oneshot --verbose x11-misc/xdg-utils', $target, 'Resolve Plasma circular dependencies', _env_vars => {
-        'USE' => '-plasma',
-      })
-    }
-
     # Make the system consistent with the profile
-    run_command('emerge --deep --newuse --update --verbose --with-bdeps=y @world', $target, 'Install packages')
+    run_command('emerge --deep --exclude=sys-fs/zfs-kmod --newuse --update --verbose --with-bdeps=y @world', $target, 'Install packages')
     run_command('emerge --depclean', $target, 'Remove unused packages')
 
     # Apply the main configuration
@@ -141,18 +120,11 @@ plan nest::build::stage1 (
   }
 
   if $deploy {
-    $image = "${registry}/nest/stage1/${role}:${cpu}"
+    $image = "${registry}/nest/stage2/${role}:${platform}"
     run_command("podman commit --change CMD=/bin/zsh ${container} ${image}", 'localhost', 'Commit build container')
-
-    $debug_container = "${container}-debug"
-    $debug_image = "${registry}/nest/stage1/${role}/debug:${cpu}"
-    run_command("podman run --name=${debug_container} --volume=${debug_volume}:/usr/lib/.debug:ro ${image} cp -a /usr/lib/.debug/. /usr/lib/debug", 'localhost', 'Copy debug symbols')
-    run_command("podman commit --change CMD=/bin/zsh ${debug_container} ${debug_image}", 'localhost', 'Commit debug container')
-    run_command("podman rm ${debug_container}", 'localhost', 'Remove debug container')
 
     unless $registry == 'localhost' {
       run_command("podman push ${image}", 'localhost', "Push ${image}")
-      run_command("podman push ${debug_image}", 'localhost', "Push ${debug_image}")
     }
   }
 }

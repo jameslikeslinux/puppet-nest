@@ -8,6 +8,7 @@ Facter.add('rpool') do
         Facter::Core::Execution.execute("/sbin/zfs list #{name}")
         break name if $CHILD_STATUS == 0
       end
+      nil
     else
       hostname
     end
