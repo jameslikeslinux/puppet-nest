@@ -31,6 +31,7 @@ nest::kexec: true
 nest::mta: postfix
 nest::public_ssh: true
 nest::router: true
+nest::srv_zpool: data/crypt
 
 nest::kernel_cmdline:
   - 'console=ttyS1,115200n8'

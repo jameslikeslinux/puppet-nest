@@ -47,6 +47,7 @@ class nest (
   Array[String]                     $reset_filter_rules  = [],
   String                            $rkbin_branch        = 'rockchip',
   Optional[String]                  $soc                 = undef,
+  Optional[String]                  $srv_zpool           = $facts['rpool'],
   Hash[String, Nest::Kconfig]       $uboot_config        = {},
   Optional[String]                  $uboot_defconfig     = undef,
   Optional[String]                  $uboot_tag           = undef,
