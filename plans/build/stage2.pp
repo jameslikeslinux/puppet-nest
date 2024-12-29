@@ -30,8 +30,6 @@ plan nest::build::stage2 (
   Optional[String]  $registry_username   = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password   = lookup('nest::build::registry_password', default_value => undef),
 ) {
-  $repos_volume = "${container}-repos" # cached between builds
-
   if $profile =~ /^([\w-]+)\/([\w-]+)\/(server|workstation)$/ {
     $cpu = $1
     $platform = $2
@@ -77,7 +75,6 @@ plan nest::build::stage2 (
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
       ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
-      --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
       sleep infinity
       | CREATE
