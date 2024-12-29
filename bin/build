@@ -14,16 +14,7 @@ fi
 
 build=$1; shift
 profile=$1; shift
-
-case $build in
-    stage[0-3])
-        container="nest-${build}-${profile//\//-}"
-        ;;
-    *)
-        print "Invalid build: ${build}" >&2
-        exit 1
-        ;;
-esac
+container="nest-${build}-${profile//\//-}"
 
 cd "$(dirname $0)/.."
 
