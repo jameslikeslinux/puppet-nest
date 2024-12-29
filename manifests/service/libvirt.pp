@@ -78,12 +78,13 @@ class nest::service::libvirt {
     notify  => Nest::Lib::Systemd_reload['libvirt'],
   }
 
-  ::nest::lib::systemd_reload { 'libvirt': }
+  nest::lib::systemd_reload { 'libvirt': }
 
   firewalld_zone { 'libvirt':
     purge_rich_rules => true,
     purge_services   => true,
     purge_ports      => true,
+    sources          => ['192.168.122.0/24'],
     require          => Package['app-emulation/libvirt'],
   }
 
