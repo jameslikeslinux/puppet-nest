@@ -80,12 +80,17 @@ class nest::service::libvirt {
 
   nest::lib::systemd_reload { 'libvirt': }
 
+  exec { 'prioritize-libvirt-firewalld-zone':
+    command => '/usr/bin/firewall-offline-cmd --zone=libvirt --set-priority=-10',
+    unless  => '/usr/bin/firewall-offline-cmd --zone=libvirt --get-priority | /usr/bin/grep -q -E -- -10',
+    notify  => Class['firewalld::reload'],
+    require => Package['app-emulation/libvirt'],
+  }
+  ->
   firewalld_zone { 'libvirt':
     purge_rich_rules => true,
     purge_services   => true,
     purge_ports      => true,
-    sources          => ['192.168.122.0/24'],
-    require          => Package['app-emulation/libvirt'],
   }
 
   if $nest::fileserver {
