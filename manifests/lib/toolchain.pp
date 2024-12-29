@@ -62,6 +62,20 @@ define nest::lib::toolchain (
             target => "${facts['llvm_clang']}++",
           ;
         }
+
+        if $facts['llvm_clang'] =~ /\/(\d+)\// {
+          $llvm_version = $1
+          file {
+            default:
+              ensure => link,
+              notify => Class['nest::base::distccd'];
+            "/usr/local/bin/${name}-clang-${llvm_version}":
+              target => $facts['llvm_clang'];
+            "/usr/local/bin/${name}-clang++-${llvm_version}":
+              target => "${facts['llvm_clang']}++",
+            ;
+          }
+        }
       }
     }
 
@@ -71,12 +85,15 @@ define nest::lib::toolchain (
         onlyif  => "/usr/bin/test -e /usr/bin/${name}-gcc",
       }
 
-      file { [
-        "/usr/local/bin/${name}-clang",
-        "/usr/local/bin/${name}-clang++",
-      ]:
-        ensure => absent,
-        notify => Class['nest::base::distccd'],
+      if defined(Tidy['/usr/local/bin']) {
+        Tidy <| title == '/usr/local/bin' |> {
+          matches +> ["${name}-clang*", "${name}-clang++*"],
+        }
+      } else {
+        tidy { '/usr/local/bin':
+          matches => ["${name}-clang*", "${name}-clang++*"],
+          recurse => 1,
+        }
       }
     }
   }
