@@ -43,6 +43,7 @@ P /opt/cni/**
 - /var/lib/cni/
 - /var/lib/crio/
 - /var/lib/etcd/
+- /var/lib/rook/
 <% unless $rules.empty { -%>
 
 # Host-specific rules
