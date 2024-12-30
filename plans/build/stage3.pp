@@ -94,7 +94,7 @@ plan nest::build::stage3 (
 
         "${hostroot}/etc/puppetlabs/puppet/ssl":
           ensure => directory,
-          mode   => '0750',
+          mode   => '0771',
           owner  => 'puppet',
           group  => 'puppet',
         ;
