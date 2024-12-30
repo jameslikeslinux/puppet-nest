@@ -5,8 +5,8 @@ class nest::base::portage {
     eselect_ensure => installed,
   }
 
+  # Disable package rebuilds (from portage module) during build
   if $facts['build'] {
-    # Disable package rebuilds (from portage module) during build
     Exec <| title == 'changed_makeconf' |> {
       noop => true,
     }
