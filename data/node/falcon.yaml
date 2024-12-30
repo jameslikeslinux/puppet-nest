@@ -41,7 +41,6 @@ nest::kernel_cmdline:
   - 'intel_idle.max_cstate=2'
   - 'pci-stub.ids=10de:2882,10de:22be,1912:0014'
 
-nest::kernel_tag: 'stable/v6.8.1'
 nest::kernel_config:
   CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE: y
   CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE: n

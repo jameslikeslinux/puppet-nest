@@ -1,4 +1,3 @@
 ---
 nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
-nest::kernel_tag: 'collabora/v6.12.0'
 nest::uboot_defconfig: 'rock5a-rk3588s_defconfig'
