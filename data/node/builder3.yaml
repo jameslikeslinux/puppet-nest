@@ -2,10 +2,3 @@
 nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
 nest::kernel_tag: 'collabora/v6.12.0'
 nest::uboot_defconfig: 'rock5a-rk3588s_defconfig'
-
-nest::package_keywords:
-  # For Linux 6.12 compatibility
-  sys-fs/zfs:
-    accept_keywords: '**'
-  sys-fs/zfs-kmod:
-    accept_keywords: '**'
