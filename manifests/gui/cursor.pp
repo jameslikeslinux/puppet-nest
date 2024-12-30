@@ -6,6 +6,7 @@ class nest::gui::cursor {
       owner     => 'root',
       group     => 'root',
       recurse   => true,
+      force     => true,
       purge     => true,
       backup    => false,
       show_diff => false,
