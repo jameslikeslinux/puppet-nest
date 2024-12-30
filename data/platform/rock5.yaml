@@ -6,7 +6,6 @@ nest::classes:
 nest::dtb_file: 'rockchip/rk3588-rock-5b.dtb'
 nest::fscache: false
 nest::kernel_tag: 'collabora/v6.6.0-rc1'
-nest::rkbin_branch: 'radxa'
 nest::uboot_defconfig: 'rock5b-rk3588_defconfig'
 nest::uboot_tag: 'collabora/v2023.10'
 
