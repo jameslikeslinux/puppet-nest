@@ -10,6 +10,7 @@ class nest::lib::crossdev {
       mode  => '0644',
       owner => 'root',
       group => 'root',
+      tag   => 'profile',
     ;
 
     [

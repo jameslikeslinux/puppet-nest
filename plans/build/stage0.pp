@@ -3,7 +3,7 @@
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param profile Build for this CPU architecture
+# @param cpu Build for this CPU architecture
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -16,11 +16,11 @@
 # @param registry_password Password for registry
 plan nest::build::stage0 (
   String           $container,
-  String           $profile,
+  String           $cpu,
   Boolean          $build               = true,
   Boolean          $deploy              = false,
   Optional[String] $emerge_default_opts = undef,
-  String           $from_image          = "nest/stage0:${profile}",
+  String           $from_image          = "nest/stage0:${cpu}",
   Boolean          $init                = true,
   Optional[String] $makeopts            = undef,
   Array[String]    $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
@@ -73,7 +73,7 @@ plan nest::build::stage0 (
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
-    $target = get_target("podman://${container}")
+    $target = Target.new(name => $container, uri => "podman://${container}")
 
     # Prepare the base image for Puppet
     if $from_image =~ /gentoo/ {
@@ -87,7 +87,7 @@ plan nest::build::stage0 (
         'EMERGE_DEFAULT_OPTS' => "${emerge_default_opts} --usepkg",
         'FEATURES'            => '-ipc-sandbox -pid-sandbox -network-sandbox -usersandbox',
         'MAKEOPTS'            => $makeopts,
-        'PKGDIR'              => "/nest/portage/packages/${profile}",
+        'PKGDIR'              => "/nest/portage/packages/${cpu}",
       })
       run_command('eix-update', $target, 'Update package database')
     } else {
@@ -97,7 +97,7 @@ plan nest::build::stage0 (
     # Set up the build environment
     $target.apply_prep
     $target.add_facts({
-      'build'               => 'init',
+      'build'               => 'stage0',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
       'profile'             => {},
@@ -109,7 +109,7 @@ plan nest::build::stage0 (
     }.nest::print_report
 
     # Rebuild the image with our profile
-    run_command("eselect profile set nest:${profile}/server", $target, 'Set profile')
+    run_command("eselect profile set nest:${cpu}/server", $target, 'Set profile')
     run_command('emerge --info', $target, 'Show Portage configuration')
     run_command('emerge --emptytree --verbose @world', $target, 'Rebuild all packages')
     run_command('emerge --depclean', $target, 'Remove unused packages')
@@ -118,11 +118,11 @@ plan nest::build::stage0 (
   }
 
   if $deploy {
-    $image = "${registry}/nest/stage0:${profile}"
+    $image = "${registry}/nest/stage0:${cpu}"
     run_command("podman commit --change CMD=/bin/bash --squash ${container} ${image}", 'localhost', 'Commit build container')
 
     $debug_container = "${container}-debug"
-    $debug_image = "${registry}/nest/stage0/debug:${profile}"
+    $debug_image = "${registry}/nest/stage0/debug:${cpu}"
     run_command("podman run --name=${debug_container} --volume=${debug_volume}:/usr/lib/.debug:ro ${image} cp -a /usr/lib/.debug/. /usr/lib/debug", 'localhost', 'Copy debug symbols')
     run_command("podman commit --change CMD=/bin/bash ${debug_container} ${debug_image}", 'localhost', 'Commit debug container')
     run_command("podman rm ${debug_container}", 'localhost', 'Remove debug container')

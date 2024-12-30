@@ -1,5 +1,5 @@
 class nest::base::puppet {
-  tag 'init'
+  tag 'profile'
 
   if $nest::router {
     $dns_alt_names = $nest::openvpn_servers.filter |$s| { $s !~ Stdlib::IP::Address }

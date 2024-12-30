@@ -3,7 +3,8 @@
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param profile Build for this CPU architecture and role
+# @param cpu Build for this CPU architecture
+# @param role Build for this Nest role
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -17,7 +18,8 @@
 # @param registry_password Password for registry
 plan nest::build::stage1 (
   String            $container,
-  String            $profile,
+  String            $cpu,
+  String            $role,
   Boolean           $build               = true,
   Boolean           $deploy              = false,
   Optional[String]  $emerge_default_opts = undef,
@@ -32,13 +34,6 @@ plan nest::build::stage1 (
 ) {
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
-
-  if $profile =~ /^([\w-]+)\/(server|workstation)$/ {
-    $cpu = $1
-    $role = $2
-  } else {
-    fail("Invalid profile: ${profile}")
-  }
 
   if $deploy {
     if $registry_username {
@@ -78,6 +73,7 @@ plan nest::build::stage1 (
       ${from_image_debug} \
       cp -a /usr/lib/debug/. /usr/lib/.debug
       | COPY
+
     run_command($podman_debug_copy_cmd, 'localhost', 'Repopulate debug volume')
 
     $podman_create_cmd = @("CREATE"/L)
@@ -92,18 +88,18 @@ plan nest::build::stage1 (
       ${from_image} \
       sleep infinity
       | CREATE
+
     run_command($podman_create_cmd, 'localhost', 'Create build container')
   }
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
-    $target = get_target("podman://${container}")
-
-    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    $target = Target.new(name => $container, uri => "podman://${container}")
 
     # Profile controls Portage and Puppet configurations
-    run_command("eselect profile set nest:${profile}", $target, 'Set profile')
+    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    run_command("eselect profile set nest:${cpu}/${role}", $target, 'Set profile')
 
     # Set up the build environment
     $target.apply_prep
@@ -117,7 +113,6 @@ plan nest::build::stage1 (
     run_command('sh -c "echo profile > /.apply_tags"', $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet tags')
-
     run_command('emerge --info', $target, 'Show Portage configuration')
 
     # Resolve circular dependencies

@@ -3,8 +3,10 @@
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param profile Build for this platform and role
+# @param platform Build for this platform
+# @param role Build this role
 # @param build Build the image
+# @param cpu Build for this CPU architecture
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
 # @param id Build ID
@@ -17,8 +19,10 @@
 # @param registry_password Password for registry
 plan nest::build::stage2 (
   String            $container,
-  String            $profile,
+  String            $platform,
+  String            $role,
   Boolean           $build               = true,
+  String            $cpu                 = $platform,
   Boolean           $deploy              = false,
   Optional[String]  $emerge_default_opts = undef,
   Optional[Numeric] $id                  = undef,
@@ -30,16 +34,10 @@ plan nest::build::stage2 (
   Optional[String]  $registry_username   = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password   = lookup('nest::build::registry_password', default_value => undef),
 ) {
-  if $profile =~ /^([\w-]+)\/([\w-]+)\/(server|workstation)$/ {
-    $cpu = $1
-    $platform = $2
-    $role = $3
-  } elsif $profile =~ /^([\w-]+)\/(server|workstation)$/ {
-    $cpu = $1
-    $platform = $1
-    $role = $2
+  if $cpu == $platform {
+    $profile = "${cpu}/${role}"
   } else {
-    fail("Invalid profile: ${profile}")
+    $profile = "${cpu}/${platform}/${role}"
   }
 
   if $deploy {
@@ -78,17 +76,17 @@ plan nest::build::stage2 (
       ${from_image} \
       sleep infinity
       | CREATE
+
     run_command($podman_create_cmd, 'localhost', 'Create build container')
   }
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
-    $target = get_target("podman://${container}")
-
-    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    $target = Target.new(name => $container, uri => "podman://${container}")
 
     # Profile controls Portage and Puppet configurations
+    run_command('eix-sync -aq', $target, 'Sync Portage repos')
     run_command("eselect profile set nest:${profile}", $target, 'Set profile')
 
     # Set up the build environment
@@ -104,9 +102,8 @@ plan nest::build::stage2 (
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet tags')
 
-    run_command('emerge --info', $target, 'Show Portage configuration')
-
     # Make the system consistent with the profile
+    run_command('emerge --info', $target, 'Show Portage configuration')
     run_command('emerge --deep --exclude=sys-fs/zfs-kmod --newuse --update --verbose --with-bdeps=y @world', $target, 'Install packages')
     run_command('emerge --depclean', $target, 'Remove unused packages')
 

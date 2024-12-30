@@ -4,8 +4,6 @@ name: nest
 disable-warnings:
   - project_shadows_module
 
-hiera-config: 'hiera-bolt.yaml'
-
 log:
   console:
     level: fatal

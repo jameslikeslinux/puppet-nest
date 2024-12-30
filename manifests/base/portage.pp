@@ -1,5 +1,4 @@
 class nest::base::portage {
-  tag 'init'
   tag 'profile'
 
   class { 'portage':

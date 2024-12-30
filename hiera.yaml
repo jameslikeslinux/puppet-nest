@@ -9,6 +9,28 @@ defaults:
     pkcs7_public_key: '/etc/eyaml/keys/public_key.pkcs7.pem'
 
 hierarchy:
+  # Kubernetes data
+  - name: 'Kubernetes Services'
+    paths:
+      - "private/kubernetes/service/%{nest::kubernetes::service}/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/service/%{nest::kubernetes::service}/%{nest::kubernetes::namespace}.yaml"
+      - "private/kubernetes/service/%{nest::kubernetes::service}.yaml"
+      - "kubernetes/service/%{nest::kubernetes::service}.yaml"
+  - name: 'Kubernetes Apps'
+    paths:
+      - "private/kubernetes/app/%{nest::kubernetes::app}/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/app/%{nest::kubernetes::app}/%{nest::kubernetes::namespace}.yaml"
+      - "private/kubernetes/app/%{nest::kubernetes::app}.yaml"
+      - "kubernetes/app/%{nest::kubernetes::app}.yaml"
+  - name: 'Kubernetes Namespace'
+    paths:
+      - "private/kubernetes/%{nest::kubernetes::namespace}.yaml"
+      - "kubernetes/%{nest::kubernetes::namespace}.yaml"
+  - name: 'Kubernetes Common'
+    paths:
+      - "private/kubernetes/common.yaml"
+      - "kubernetes/common.yaml"
+
   # Relating to specific instances
   - name: 'Nodes'
     paths:
@@ -46,6 +68,12 @@ hierarchy:
       - "build/%{facts.os.family}/%{facts.build}/stage1.yaml"
       - "private/build/%{facts.os.family}.yaml"
       - "build/%{facts.os.family}.yaml"
+  - name: 'Common'
+    paths:
+      - 'private/common.yaml'
+      - 'common.yaml'
+
+plan_hierarchy:
   - name: 'Common'
     paths:
       - 'private/common.yaml'

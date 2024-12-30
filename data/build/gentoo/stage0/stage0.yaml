@@ -1,3 +1,4 @@
+# This special stage is a subset of stage1, not its base.
 ---
 nest::classes:
   - 'nest::base::distcc'

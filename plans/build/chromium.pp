@@ -3,7 +3,7 @@
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param profile Build for this platform and role
+# @param cpu Build for this CPU
 # @param build Build the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
 # @param init Initialize the build container
@@ -11,7 +11,7 @@
 # @param qemu_archs CPU architectures to emulate
 plan nest::build::chromium (
   String            $container,
-  String            $profile,
+  String            $cpu,
   String            $version,
   Boolean           $build               = true,
   Optional[String]  $emerge_default_opts = undef,
@@ -19,8 +19,6 @@ plan nest::build::chromium (
   Optional[String]  $makeopts            = undef,
   Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
 ) {
-  $cpu = $profile
-
   # Volumes for caching data between builds
   $build_volume = "${container}-build"
   $repos_volume = "${container}-repos"
@@ -47,14 +45,14 @@ plan nest::build::chromium (
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
-    $target = get_target("podman://${container}")
+    $target = Target.new(name => $container, uri => "podman://${container}")
 
     run_command('eix-sync -aq', $target, 'Sync Portage repos')
 
     # Set up the build environment
     $target.apply_prep
     $target.add_facts({
-      'build'               => 'stage1',
+      'build'               => 'chromium',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
     })
