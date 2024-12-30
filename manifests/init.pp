@@ -29,6 +29,7 @@ class nest (
   Boolean $vpn_client    = true,
 
   # System settings
+  Optional[String]                  $arm_firmware_tag    = undef,
   Enum['off', 'sway', 'xmonad']     $autologin           = xmonad,
   Optional[Nest::BirdRole]          $bird_role           = undef,
   Enum['grub', 'systemd', 'u-root'] $bootloader          = systemd,
