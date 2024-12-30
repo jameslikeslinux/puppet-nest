@@ -34,6 +34,8 @@ plan nest::build::stage2 (
   Optional[String]  $registry_username   = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password   = lookup('nest::build::registry_password', default_value => undef),
 ) {
+  $target = Target.new(name => $container, uri => "podman://${container}")
+
   if $cpu == $platform {
     $profile = "${cpu}/${role}"
   } else {
@@ -82,8 +84,6 @@ plan nest::build::stage2 (
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
-
-    $target = Target.new(name => $container, uri => "podman://${container}")
 
     # Profile controls Portage and Puppet configurations
     run_command('eix-sync -aq', $target, 'Sync Portage repos')

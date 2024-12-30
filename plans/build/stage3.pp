@@ -32,6 +32,7 @@ plan nest::build::stage3 (
   Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
 ) {
   $ssh_auth_sock = system::env('SSH_AUTH_SOCK')
+  $target = Target.new(name => $hostname, uri => "podman://${container}")
 
   if $init {
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
@@ -46,6 +47,7 @@ plan nest::build::stage3 (
       podman create \
       --hostname=${hostname} \
       --name=${container} \
+      --no-hosts \
       --pull=always \
       --stop-signal=SIGKILL \
       --volume=/falcon:/falcon \
@@ -61,8 +63,6 @@ plan nest::build::stage3 (
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
-
-    $target = Target.new(name => $hostname, uri => "podman://${container}")
 
     apply_prep($target)
 
@@ -152,8 +152,6 @@ plan nest::build::stage3 (
 
   if $deploy {
     run_command("podman start ${container}", 'localhost', 'Start build container')
-
-    $target = Target.new(name => $hostname, uri => "podman://${container}")
 
     $rsync_script = @("RSYNC"/$)
       () {

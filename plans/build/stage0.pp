@@ -30,6 +30,7 @@ plan nest::build::stage0 (
 ) {
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
+  $target = Target.new(name => $container, uri => "podman://${container}")
 
   if $deploy {
     if $registry_username {
@@ -72,8 +73,6 @@ plan nest::build::stage0 (
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
-
-    $target = Target.new(name => $container, uri => "podman://${container}")
 
     # Prepare the base image for Puppet
     if $from_image =~ /gentoo/ {

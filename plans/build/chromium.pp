@@ -19,9 +19,9 @@ plan nest::build::chromium (
   Optional[String]  $makeopts            = undef,
   Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
 ) {
-  # Volumes for caching data between builds
   $build_volume = "${container}-build"
   $repos_volume = "${container}-repos"
+  $target = Target.new(name => $container, uri => "podman://${container}")
 
   if $init {
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
@@ -44,8 +44,6 @@ plan nest::build::chromium (
 
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
-
-    $target = Target.new(name => $container, uri => "podman://${container}")
 
     run_command('eix-sync -aq', $target, 'Sync Portage repos')
 

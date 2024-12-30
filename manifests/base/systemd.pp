@@ -22,17 +22,6 @@ class nest::base::systemd {
     }
   }
 
-  # Remove container hostnames that break systemd-resolved
-  if $facts['build'] == 'stage3' {
-    file_line { 'etc-hosts-container-entries':
-      ensure            => absent,
-      path              => '/etc/hosts',
-      match             => '^10\.88\.',
-      match_for_absence => true,
-      multiple          => true,
-    }
-  }
-
   file { '/etc/localtime':
     ensure => link,
     target => '/usr/share/zoneinfo/America/New_York',
