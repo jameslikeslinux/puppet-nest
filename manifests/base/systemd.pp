@@ -33,19 +33,9 @@ class nest::base::systemd {
     }
   }
 
-  # /etc/localtime is just a regular file in the Gentoo stage tarballs.  In
-  # that case, remove it and allow it to be set by the File['/etc/localtime']
-  # resource; otherwise, this lets me set the timezone manually when I travel
-  # without Puppet resetting it back.
-  exec { '/bin/rm -f /etc/localtime':
-    unless => '/usr/bin/test -L /etc/localtime',
-    before => File['/etc/localtime'],
-  }
-
   file { '/etc/localtime':
-    ensure  => link,
-    target  => '/usr/share/zoneinfo/America/New_York',
-    replace => false,
+    ensure => link,
+    target => '/usr/share/zoneinfo/America/New_York',
   }
 
   $nsswitch_changes = [
