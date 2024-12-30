@@ -127,12 +127,14 @@ plan nest::build::stage3 (
       run_command("eselect profile set nest:${profile}", $target, "Switch to profile ${profile}")
     }
 
-    # Configure Portage and Puppet
+    # Set up the build environment
     add_facts($target, {
       'build'               => 'stage3',
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
     })
+
+    # Configure Portage and Puppet
     run_command("sh -c 'echo profile > /.apply_tags'", $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet apply settings')
