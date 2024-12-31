@@ -12,11 +12,10 @@ class nest::firmware::zsbl {
 
   nest::lib::src_repo { '/usr/src/zsbl':
     url => 'https://gitlab.james.tl/nest/forks/zsbl.git',
-    ref => 'sophgo',
+    ref => 'sophgo-nest',
   }
   ~>
   nest::lib::build { 'zsbl':
-    args      => 'KCFLAGS="-U_FORTIFY_SOURCE -Wno-error"',
     defconfig => "${nest::soc}_defconfig",
     dir       => '/usr/src/zsbl',
     distcc    => false,
