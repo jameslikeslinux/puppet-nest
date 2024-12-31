@@ -1,6 +1,12 @@
 require 'spec_helper'
 
 describe 'nest' do
+  stage0 = [
+    'nest::base::distcc',
+    'nest::base::locale',
+    'nest::base::portage',
+  ]
+
   stage1 = [
     'nest::base::bird',
     'nest::base::branding',
@@ -116,6 +122,14 @@ describe 'nest' do
           it_should_and_should_not_contain_classes(workstation)
         end
 
+        context 'building stage0' do # rubocop:disable RSpec/EmptyExampleGroup
+          let(:facts) do
+            facts.merge({ build: 'stage0' })
+          end
+
+          it_should_and_should_not_contain_classes(stage0, stage1 + stage2 + stage3 + windows + workstation - stage0)
+        end
+
         context 'building stage1' do
           let(:facts) do
             facts.merge({ build: 'stage1' })
@@ -190,6 +204,14 @@ describe 'nest' do
           end
 
           it_should_and_should_not_contain_classes(stage1 + ['nest::tool::buildah'], stage2 + stage3 + windows + workstation)
+        end
+
+        context 'building chromium' do # rubocop:disable RSpec/EmptyExampleGroup
+          let(:facts) do
+            facts.merge({ build: 'chromium', profile: { role: 'workstation' } })
+          end
+
+          it_should_and_should_not_contain_classes(stage1 + workstation, stage2 + stage3 + windows)
         end
 
         context 'building pdk' do # rubocop:disable RSpec/EmptyExampleGroup
