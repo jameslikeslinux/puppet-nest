@@ -41,7 +41,7 @@ plan nest::build::stage3 (
   if $init {
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
 
-    if $ssh_auth_sock {
+    if !empty($ssh_auth_sock) and run_command("test -S ${ssh_auth_sock}", 'localhost', 'Check SSH_AUTH_SOCK', '_catch_errors' => true).ok {
       $ssh_auth_sock_volume = "--volume=${ssh_auth_sock}:${ssh_auth_sock}:ro"
     } else {
       $ssh_auth_sock_volume = ''
