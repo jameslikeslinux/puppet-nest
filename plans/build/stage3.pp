@@ -15,21 +15,23 @@
 # @param makeopts Override make flags (e.g. -j4)
 # @param profile Switch to this profile
 # @param qemu_archs CPU architectures to emulate
+# @param rsync_private_key_var Environment variable for rsync private key
 plan nest::build::stage3 (
   String            $container,
   String            $hostname,
   String            $platform,
   String            $role,
-  Boolean           $build               = true,
-  Optional[String]  $cluster             = undef,
-  Boolean           $deploy              = false,
-  Optional[String]  $emerge_default_opts = undef,
-  String            $hostroot            = "/nest/hosts/${hostname}",
-  Optional[Numeric] $id                  = undef,
-  Boolean           $init                = true,
-  Optional[String]  $makeopts            = undef,
-  Optional[String]  $profile             = undef,
-  Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  Boolean           $build                 = true,
+  Optional[String]  $cluster               = undef,
+  Boolean           $deploy                = false,
+  Optional[String]  $emerge_default_opts   = undef,
+  String            $hostroot              = "/nest/hosts/${hostname}",
+  Optional[Numeric] $id                    = undef,
+  Boolean           $init                  = true,
+  Optional[String]  $makeopts              = undef,
+  Optional[String]  $profile               = undef,
+  Array[String]     $qemu_archs            = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  String            $rsync_private_key_var = 'NEST_RSYNC_PRIVATE_KEY',
 ) {
   $ssh_auth_sock = system::env('SSH_AUTH_SOCK')
   $target = Target.new(name => $hostname, uri => "podman://${container}")
@@ -166,12 +168,12 @@ plan nest::build::stage3 (
           --info=stats2 \
           --one-file-system \
           / root@falcon:${hostroot.shellquote}
-      } =(print \$NEST_RSYNC_PRIVATE_KEY)
+      } =(print \$SSH_PRIVATE_KEY)
       | RSYNC
 
     run_command("zsh -c ${rsync_script.shellquote}", $target, 'Rsync the image', '_env_vars' => {
-      'NEST_RSYNC_PRIVATE_KEY' => system::env('NEST_RSYNC_PRIVATE_KEY'),
-      'SSH_AUTH_SOCK'          => $ssh_auth_sock,
+      'SSH_AUTH_SOCK'   => $ssh_auth_sock,
+      'SSH_PRIVATE_KEY' => system::env($rsync_private_key_var),
     })
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')

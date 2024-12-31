@@ -14,19 +14,21 @@
 # @param registry Container registry to push to
 # @param registry_username Username for registry
 # @param registry_password Password for registry
+# @param registry_password_var Environment variable for registry password
 plan nest::build::stage0 (
   String           $container,
   String           $cpu,
-  Boolean          $build               = true,
-  Boolean          $deploy              = false,
-  Optional[String] $emerge_default_opts = undef,
-  String           $from_image          = "nest/stage0:${cpu}",
-  Boolean          $init                = true,
-  Optional[String] $makeopts            = undef,
-  Array[String]    $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
-  String           $registry            = lookup('nest::build::registry', default_value => 'localhost'),
-  Optional[String] $registry_username   = lookup('nest::build::registry_username', default_value => undef),
-  Optional[String] $registry_password   = lookup('nest::build::registry_password', default_value => undef),
+  Boolean          $build                 = true,
+  Boolean          $deploy                = false,
+  Optional[String] $emerge_default_opts   = undef,
+  String           $from_image            = "nest/stage0:${cpu}",
+  Boolean          $init                  = true,
+  Optional[String] $makeopts              = undef,
+  Array[String]    $qemu_archs            = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  String           $registry              = lookup('nest::build::registry', default_value => 'localhost'),
+  Optional[String] $registry_username     = lookup('nest::build::registry_username', default_value => undef),
+  Optional[String] $registry_password     = lookup('nest::build::registry_password', default_value => undef),
+  String           $registry_password_var = 'NEST_REGISTRY_PASSWORD',
 ) {
   $debug_volume = "${container}-debug"
   $repos_volume = "${container}-repos" # cached between builds
@@ -34,7 +36,7 @@ plan nest::build::stage0 (
 
   if $deploy {
     if $registry_username {
-      $registry_password_env = system::env('NEST_REGISTRY_PASSWORD')
+      $registry_password_env = system::env($registry_password_var)
       if $registry_password_env {
         $registry_password_real = $registry_password_env
       } elsif $registry_password {
