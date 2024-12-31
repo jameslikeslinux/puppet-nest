@@ -8,7 +8,7 @@
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
-# @param qemu_archs CPU architectures to emulate
+# @param qemu_user_targets CPU architectures to emulate
 plan nest::build::chromium (
   String            $container,
   String            $cpu,
@@ -17,7 +17,7 @@ plan nest::build::chromium (
   Optional[String]  $emerge_default_opts = undef,
   Boolean           $init                = true,
   Optional[String]  $makeopts            = undef,
-  Array[String]     $qemu_archs          = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  Array[String]     $qemu_user_targets   = lookup('nest::build::qemu_user_targets', default_value => []),
 ) {
   $build_volume = "${container}-build"
   $repos_volume = "${container}-repos"
@@ -32,7 +32,7 @@ plan nest::build::chromium (
       --pull=always \
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
-      ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
+      ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       --volume=${build_volume}:/var/tmp/portage \
       --volume=${repos_volume}:/var/db/repos \
       nest/stage1/workstation:${cpu} \

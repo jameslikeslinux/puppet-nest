@@ -1,15 +1,11 @@
-class nest::tool::qemu {
+class nest::tool::qemu (
+  Array[String] $user_targets = [],
+) {
   # Avoid conflicts with volume-mapped /usr/bin/qemu-* user binaries
   unless $facts['is_container'] {
     nest::lib::package { 'app-emulation/qemu':
       ensure => installed,
-      use    => [
-        'static-user',
-        'qemu_user_targets_arm',
-        'qemu_user_targets_aarch64',
-        'qemu_user_targets_riscv64',
-        'qemu_user_targets_x86_64',
-      ],
+      use    => ['static-user'] + $user_targets.map |$arch| { "qemu_user_targets_${arch}" },
     }
     ->
     file { '/etc/binfmt.d/qemu.conf':

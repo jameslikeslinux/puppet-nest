@@ -46,6 +46,13 @@ lookup_options:
 
 nest::build::registry: 'registry.gitlab.james.tl'
 
+nest::build::qemu_user_targets: &qemu_user_targets
+  - 'aarch64'
+  - 'arm'
+  - 'riscv64'
+  - 'x86_64'
+nest::tool::qemu::user_targets: *qemu_user_targets
+
 nest::cnames:
   # Prod kubernetes services
   bitwarden.eyrie: 'ingress.eyrie'

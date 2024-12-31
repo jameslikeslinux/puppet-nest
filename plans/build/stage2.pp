@@ -12,7 +12,7 @@
 # @param id Build ID
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
-# @param qemu_archs CPU architectures to emulate
+# @param qemu_user_targets CPU architectures to emulate
 # @param refresh Build from previous Stage 1 image
 # @param registry Container registry to push to
 # @param registry_username Username for registry
@@ -29,7 +29,7 @@ plan nest::build::stage2 (
   Optional[Numeric] $id                    = undef,
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
-  Array[String]     $qemu_archs            = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  Array[String]     $qemu_user_targets     = lookup('nest::build::qemu_user_targets', default_value => []),
   Boolean           $refresh               = false,
   String            $registry              = lookup('nest::build::registry', default_value => 'localhost'),
   Optional[String]  $registry_username     = lookup('nest::build::registry_username', default_value => undef),
@@ -76,7 +76,7 @@ plan nest::build::stage2 (
       --pull=always \
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
-      ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
+      ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       ${from_image} \
       sleep infinity
       | CREATE

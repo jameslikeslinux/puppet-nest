@@ -14,7 +14,7 @@
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
 # @param profile Switch to this profile
-# @param qemu_archs CPU architectures to emulate
+# @param qemu_user_targets CPU architectures to emulate
 # @param rsync_private_key_var Environment variable for rsync private key
 plan nest::build::stage3 (
   String            $container,
@@ -30,7 +30,7 @@ plan nest::build::stage3 (
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
   Optional[String]  $profile               = undef,
-  Array[String]     $qemu_archs            = ['aarch64', 'arm', 'riscv64', 'x86_64'],
+  Array[String]     $qemu_user_targets     = lookup('nest::build::qemu_user_targets', default_value => []),
   String            $rsync_private_key_var = 'NEST_RSYNC_PRIVATE_KEY',
 ) {
   $ssh_auth_sock = system::env('SSH_AUTH_SOCK')
@@ -55,7 +55,7 @@ plan nest::build::stage3 (
       --volume=/falcon:/falcon \
       --volume=/nest:/nest \
       ${ssh_auth_sock_volume} \
-      ${qemu_archs.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
+      ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       "nest/stage2/${role}:${platform}" \
       sleep infinity
       | CREATE
