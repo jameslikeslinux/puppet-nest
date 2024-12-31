@@ -3,8 +3,13 @@ class nest::firmware::arm {
     fail("'arm_firmware_tag' is not set")
   }
 
+  nest::lib::toolchain { 'aarch64-none-elf':
+    gcc_only => true,
+    before   => Nest::Lib::Build['arm-trusted-firmware'],
+  }
+
   if $nest::soc == 'rk3399' {
-    nest::lib::toolchain { 'arm-none-eabi':
+    nest::lib::toolchain { 'arm-none-eabi': # for the M0 coprocessor
       gcc_only => true,
       before   => Nest::Lib::Build['arm-trusted-firmware'],
     }
