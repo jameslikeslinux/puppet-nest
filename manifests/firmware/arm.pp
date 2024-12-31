@@ -21,7 +21,7 @@ class nest::firmware::arm {
   }
   ~>
   nest::lib::build { 'arm-trusted-firmware':
-    args => "E=0 PLAT=${nest::soc} LDFLAGS=-no-warn-rwx-segment", # LDFLAGS for GCC 12 workaround
+    args => "E=0 PLAT=${nest::soc}",
     dir  => '/usr/src/arm-trusted-firmware',
   }
 }
