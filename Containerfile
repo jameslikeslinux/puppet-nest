@@ -1,10 +1,10 @@
 ARG BOLT_TAG
 FROM nest/tools/bolt:${BOLT_TAG}
 
+ARG BRANCH
+ARG REPOSITORY
 ARG SSH_PRIVATE_KEY
 
-RUN echo "$SSH_PRIVATE_KEY" > /root/.ssh/id_rsa && chmod 600 /root/.ssh/id_rsa
-RUN git clone https://gitlab.james.tl/nest/puppet.git /modules/nest
+RUN git clone -b "$BRANCH" "$REPOSITORY" /modules/nest
 WORKDIR /modules/nest
-RUN bolt module install
-RUN rm /root/.ssh/id_rsa
+RUN zsh -c 'eval $(ssh-agent -s) && ssh-add =(echo $SSH_PRIVATE_KEY) && bolt module install'

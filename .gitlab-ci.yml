@@ -24,13 +24,16 @@ stages:
   script:
     - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
     - 'export SSH_PRIVATE_KEY="$NEST_CI_DEPLOY_KEY"'
+    - '[[ $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH ]] || image_ext="/${CI_COMMIT_BRANCH}"'
     - 'mkdir empty'
     - 'podman build
         --build-arg=BOLT_TAG="$CPU"
+        --build-arg=BRANCH="$CI_COMMIT_BRANCH"
+        --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
         --build-arg=SSH_PRIVATE_KEY
         --file=Containerfile
         --squash
-        --tag="${CI_REGISTRY_IMAGE}:${CPU}"
+        --tag="${CI_REGISTRY_IMAGE}${image_ext}:${CPU}"
         empty'
     - 'podman push "${CI_REGISTRY_IMAGE}:${CPU}"'
   rules:
