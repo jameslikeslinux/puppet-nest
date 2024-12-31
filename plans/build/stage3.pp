@@ -177,7 +177,7 @@ plan nest::build::stage3 (
           --info=stats2 \
           --one-file-system \
           / root@falcon:${hostroot.shellquote}
-      } =(print \$SSH_PRIVATE_KEY)
+      } =(<<< \$SSH_PRIVATE_KEY)
       | RSYNC
 
     run_command("zsh -c ${rsync_script.shellquote}", $target, 'Rsync the image', '_env_vars' => {
