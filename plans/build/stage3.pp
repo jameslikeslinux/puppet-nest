@@ -2,7 +2,6 @@
 #
 # Use bin/build script to run this plan!
 #
-# @param branch Branch to use for configuration
 # @param container Build container name
 # @param hostname Hostname of the image
 # @param platform Build for this platform
@@ -14,11 +13,11 @@
 # @param id Build ID
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
+# @param puppet_environment Puppet environment to use for final configuration
 # @param profile Switch to this profile
 # @param qemu_user_targets CPU architectures to emulate
 # @param rsync_private_key_var Environment variable for rsync private key
 plan nest::build::stage3 (
-  String            $branch,
   String            $container,
   String            $hostname,
   String            $platform,
@@ -31,6 +30,7 @@ plan nest::build::stage3 (
   Optional[Numeric] $id                    = undef,
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
+  Optional[String]  $puppet_environment    = undef,
   Optional[String]  $profile               = undef,
   Array[String]     $qemu_user_targets     = lookup('nest::build::qemu_user_targets', default_value => []),
   String            $rsync_private_key_var = 'NEST_RSYNC_PRIVATE_KEY',
@@ -149,9 +149,14 @@ plan nest::build::stage3 (
     run_command('emerge --depclean', $target, 'Remove unused packages')
 
     # Apply the main configuration
-    $puppet_environment = $branch.gsub('[/-]', '_')
-    $puppet_cmd = "puppet agent --environment ${puppet_environment.shellquote} --test || [ \$? -eq 2 ]"
-    run_command("sh -c ${puppet_cmd.shellquote}", $target, 'Configure the host image', '_env_vars' => {
+    if !empty($puppet_environment) {
+      $puppet_environment_args = ['--environment', $puppet_environment]
+    } else {
+      $puppet_environment_args = []
+    }
+    $puppet_cmd = ['puppet', 'agent', $puppet_environment_args, '--test'].flatten.shellquote
+    $puppet_script = "${puppet_cmd} || [ \$? -eq 2 ]"
+    run_command("sh -c ${puppet_script.shellquote}", $target, 'Configure the host image', '_env_vars' => {
       'FACTER_build' => 'stage3',
     })
 
