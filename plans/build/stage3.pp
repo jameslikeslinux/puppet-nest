@@ -2,6 +2,7 @@
 #
 # Use bin/build script to run this plan!
 #
+# @param branch Branch to use for configuration
 # @param container Build container name
 # @param hostname Hostname of the image
 # @param platform Build for this platform
@@ -17,6 +18,7 @@
 # @param qemu_user_targets CPU architectures to emulate
 # @param rsync_private_key_var Environment variable for rsync private key
 plan nest::build::stage3 (
+  String            $branch,
   String            $container,
   String            $hostname,
   String            $platform,
@@ -147,7 +149,9 @@ plan nest::build::stage3 (
     run_command('emerge --depclean', $target, 'Remove unused packages')
 
     # Apply the main configuration
-    run_command('sh -c "puppet agent --test || [ $? -eq 2 ]"', $target, 'Configure the host image', '_env_vars' => {
+    $puppet_environment = $branch.gsub('[/-]', '_')
+    $puppet_cmd = "puppet agent --environment ${puppet_environment.shellquote} --test || [ \$? -eq 2 ]"
+    run_command("sh -c ${puppet_cmd.shellquote}", $target, 'Configure the host image', '_env_vars' => {
       'FACTER_build' => 'stage3',
     })
 

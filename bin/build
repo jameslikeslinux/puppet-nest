@@ -12,6 +12,8 @@ if (( $# < 2 )); then
     exit 1
 fi
 
+cd "$(dirname $0)/.."
+
 build=$1; shift
 name=$1; shift
 container="nest-${build}-${name}"
@@ -31,7 +33,8 @@ case $build in
         extra_args=("platform=${platform}" "role=${role}")
         ;;
     stage3)
-        extra_args=("hostname=${name}")
+        branch=$(git rev-parse --abbrev-ref HEAD)
+        extra_args=("branch=${branch}" "hostname=${name}")
         ;;
     chromium)
         extra_args=("cpu=${name}")
@@ -41,8 +44,6 @@ case $build in
         exit 1
         ;;
 esac
-
-cd "$(dirname $0)/.."
 
 [[ $UID -eq 0 ]] && runcmd='env' || runcmd='sudo'
 
