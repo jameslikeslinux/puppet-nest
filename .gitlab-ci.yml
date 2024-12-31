@@ -34,7 +34,7 @@ stages:
         --squash
         --tag="${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"
         empty'
-    - 'podman push "${CI_REGISTRY_IMAGE}:${CPU}"'
+    - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"'
   rules:
     - if: '$BUILD == $CPU'
     - if: '$BUILD'
