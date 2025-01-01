@@ -136,9 +136,6 @@ class nest::base::ssh {
     }
   }
 
-  # Collect SSH keys exported by other hosts below
-  Sshkey <<||>>
-
   $nest::ssh_host_keys.each |$host, $line| {
     $names  = $host.split(/,/)
     $values = $line.split(/\s+/)

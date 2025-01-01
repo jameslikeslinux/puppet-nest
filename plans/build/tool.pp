@@ -1,32 +1,32 @@
-# @summary Build platform-specific images with kernels
+# @summary Build a standard tool image
 #
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
-# @param platform Build for this platform
-# @param role Build this role
-# @param build Build the image
 # @param cpu Build for this CPU architecture
+# @param tool Build this tool
+# @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
 # @param id Build ID
+# @param image_changes Additional image instruction (e.g. ENV=NAME=val,WORKDIR=/path)
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
 # @param qemu_user_targets CPU architectures to emulate
-# @param refresh Build from previous Stage 2 image
+# @param refresh Build from previous tool image
 # @param registry Container registry to push to
 # @param registry_username Username for registry
 # @param registry_password Password for registry
 # @param registry_password_var Environment variable for registry password
-plan nest::build::stage2 (
+plan nest::build::tool (
   String            $container,
-  String            $platform,
-  String            $role,
+  String            $cpu,
+  String            $tool,
   Boolean           $build                 = true,
-  String            $cpu                   = $platform,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
   Optional[Numeric] $id                    = undef,
+  Array[String]     $image_changes         = [],
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
   Array[String]     $qemu_user_targets     = lookup('nest::build::qemu_user_targets', default_value => []),
@@ -36,13 +36,8 @@ plan nest::build::stage2 (
   Optional[String]  $registry_password     = lookup('nest::build::registry_password', default_value => undef),
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
 ) {
+  $repos_volume = "${container}-repos" # cached between builds
   $target = Target.new(name => $container, uri => "podman://${container}")
-
-  if $cpu == $platform {
-    $profile = "${cpu}/${role}"
-  } else {
-    $profile = "${cpu}/${platform}/${role}"
-  }
 
   if $deploy {
     if $registry_username {
@@ -63,9 +58,9 @@ plan nest::build::stage2 (
 
   if $init {
     if $refresh {
-      $from_image = "nest/stage2/${role}:${platform}"
+      $from_image = "nest/tool/${tool}:${cpu}"
     } else {
-      $from_image = "nest/stage1/${role}/debug:${cpu}"
+      $from_image = "nest/stage1/server:${cpu}"
     }
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
@@ -77,6 +72,7 @@ plan nest::build::stage2 (
       --stop-signal=SIGKILL \
       --volume=/nest:/nest \
       ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
+      --volume=${repos_volume}:/var/db/repos \
       ${from_image} \
       sleep infinity
       | CREATE
@@ -87,37 +83,26 @@ plan nest::build::stage2 (
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
-    # Profile controls Portage and Puppet configurations
     run_command('eix-sync -aq', $target, 'Sync Portage repos')
-    run_command("eselect profile set nest:${profile}", $target, 'Set profile')
 
     # Set up the build environment
     $target.apply_prep
     $target.add_facts({
-      'build'               => 'stage2',
+      'build'               => $tool,
       'emerge_default_opts' => $emerge_default_opts,
       'makeopts'            => $makeopts,
     })
 
-    # Run Puppet to configure Portage and set up @world
-    run_command('sh -c "echo profile > /.apply_tags"', $target, 'Set Puppet tags for profile run')
-    apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
-    run_command('rm /.apply_tags', $target, 'Clear Puppet tags')
-
-    # Make the system consistent with the profile
-    run_command('emerge --info', $target, 'Show Portage configuration')
-    run_command('emerge --deep --exclude=sys-fs/zfs-kmod --newuse --update --verbose --with-bdeps=y @world', $target, 'Install packages')
-    run_command('emerge --depclean', $target, 'Remove unused packages')
-
-    # Apply the main configuration
-    apply($target, '_description' => 'Configure the stage') { include nest }.nest::print_report
+    # Apply the configuration
+    apply($target, '_description' => 'Configure the tool') { include nest }.nest::print_report
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
 
   if $deploy {
-    $image = "${registry}/nest/stage2/${role}:${platform}"
-    run_command("podman commit --change CMD=/bin/zsh ${container} ${image}", 'localhost', 'Commit build container')
+    $commit_changes = (['CMD=/bin/zsh'] + $image_changes).join(',')
+    $image = "${registry}/nest/tool/${tool}:${cpu}"
+    run_command("podman commit --change ${commit_changes.shellquote} ${container} ${image}", 'localhost', 'Commit build container')
 
     unless $registry == 'localhost' {
       run_command("podman push ${image}", 'localhost', "Push ${image}")

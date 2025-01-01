@@ -4,13 +4,18 @@ class nest::tool::pdk {
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
     $pdk_gem_dir        = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/pdk-${pdk_version}"
 
-    Package {
+    package { 'pdk':
+      ensure          => $pdk_version,
       install_options => ['--bindir', '/usr/local/bin'],
       provider        => gem,
     }
-
-    package { 'pdk':
-      ensure => $pdk_version,
+    ->
+    file {
+      '/usr/local/bin':
+        purge   => true,
+        recurse => true;
+      '/usr/local/bin/pdk':
+        ensure => file;
     }
     ->
     file_line {

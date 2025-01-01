@@ -8,12 +8,6 @@ class nest::tool::bolt (
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
     $bolt_gem_dir       = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/bolt-${bolt_version}"
 
-    # Gem conflicts with system gems who cares
-    file { "/usr/lib64/ruby/gems/${ruby_minor_version}.0":
-      ensure => absent,
-      force  => true,
-    }
-    ->
     package {
       default:
         install_options => ['--bindir', '/usr/local/bin'],
@@ -25,6 +19,14 @@ class nest::tool::bolt (
       'bolt':
         ensure => $bolt_version,
       ;
+    }
+    ->
+    file {
+      '/usr/local/bin':
+        purge   => true,
+        recurse => true;
+      '/usr/local/bin/bolt':
+        ensure => file;
     }
 
     # For vaultwarden token hashing
