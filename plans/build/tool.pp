@@ -101,7 +101,7 @@ plan nest::build::tool (
 
   if $deploy {
     $commit_changes = (['CMD=/bin/zsh'] + $image_changes).join(',')
-    $image = "${registry}/nest/tool/${tool}:${cpu}"
+    $image = "${registry}/nest/tools/${tool}:${cpu}"
     run_command("podman commit --change ${commit_changes.shellquote} ${container} ${image}", 'localhost', 'Commit build container')
 
     unless $registry == 'localhost' {
