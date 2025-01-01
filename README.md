@@ -6,7 +6,7 @@ Automation for my personal Linux distribution based on Gentoo
 
 ## Overview
 
-This is a standard [Puppet module](https://www.puppet.com/docs/puppet/latest/modules_fundamentals.html) that provides all the configuration, data, and orchestration needed to build and maintain the [Nest distribution](https://james.tl/projects/nest/). It is also a [Bolt project](https://www.puppet.com/docs/bolt/latest/projects.html) for operational support and a [control repo](https://www.puppet.com/docs/pe/latest/control_repo.html) for desired state management.
+This is a standard [Puppet module](https://www.puppet.com/docs/puppet/latest/modules_fundamentals.html) that provides all the configuration, data, and orchestration needed to build and maintain the [Nest distribution](https://james.tl/projects/nest/). It's also a [Bolt project](https://www.puppet.com/docs/bolt/latest/projects.html) for operational support and a [control repo](https://www.puppet.com/docs/pe/latest/control_repo.html) for desired state management.
 
 ## Usage
 
