@@ -156,6 +156,10 @@ class nest (
         Sysctl <||> {
           apply => false,
         }
+
+        Systemd::Daemon_reload <||> {
+          enable => false,
+        }
       }
     }
 

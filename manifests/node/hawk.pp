@@ -29,10 +29,6 @@ class nest::node::hawk {
     ;
   }
 
-  nest::lib::package { 'app-editors/vscode':
-    ensure => installed,
-  }
-
   # For port forwarding into VMs
   Firewalld_zone <| title == 'libvirt' |> {
     masquerade => true,
