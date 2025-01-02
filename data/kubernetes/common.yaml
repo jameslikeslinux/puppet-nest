@@ -31,7 +31,7 @@ resources:
             spec:
               containers:
                 - name: nest
-                  image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
+                  image: 'registry.gitlab.james.tl/nest/config'
                   imagePullPolicy: Always
                   command:
                     - bolt
@@ -161,7 +161,7 @@ patches:
           path: '/spec/template/spec/initContainers/-'
           value:
             name: nest-init
-            image: "registry.gitlab.james.tl/nest/puppet:%{lookup('node_platform')}"
+            image: 'registry.gitlab.james.tl/nest/config'
             imagePullPolicy: Always
             command:
               - bolt
