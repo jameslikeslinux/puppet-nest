@@ -20,18 +20,20 @@ stages:
     - 'pdk test unit --parallel --verbose'
 
 .template: &template
-  image: '${CI_REGISTRY}/nest/tools/bolt'
   stage: 'Build'
   script:
-    - 'chmod o-w .' # Bolt security requirement
-    - 'bin/build config "$CPU"
-        branch="$CI_COMMIT_BRANCH"
-        deploy=true
-        git_private_key_var=NEST_CI_DEPLOY_KEY
-        git_repository="$CI_REPOSITORY_URL"
-        registry="$CI_REGISTRY"
-        registry_username="$CI_REGISTRY_USER"
-        registry_password_var=CI_REGISTRY_PASSWORD'
+    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
+    - 'export SSH_PRIVATE_KEY="$NEST_CI_DEPLOY_KEY"'
+    - 'mkdir empty'
+    - 'podman build
+        --build-arg=BRANCH="$CI_COMMIT_BRANCH"
+        --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
+        --build-arg=SSH_PRIVATE_KEY
+        --file=Containerfile
+        --squash
+        --tag="${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"
+        empty'
+    - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"'
   rules:
     - if: '$BUILD == $CPU'
     - if: '$BUILD'
@@ -64,15 +66,13 @@ stages:
 
 'Deploy image':
   stage: 'Deploy'
-  image: '${CI_REGISTRY}/nest/tools/bolt'
   variables:
-    CPUS: '["haswell", "cortex-a53", "rv64gc"]' # json array
+    IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}"
   script:
-    - 'chmod o-w .' # Bolt security requirement
-    - 'bolt plan run nest::build::manifest
-        image="${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}"
-        image_tags="$CPUS"
-        deploy=true
-        registry="$CI_REGISTRY"
-        registry_username="$CI_REGISTRY_USER"
-        registry_password_var=CI_REGISTRY_PASSWORD'
+    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
+    - 'podman manifest exists "$IMAGE" && podman manifest rm "$IMAGE"'
+    - 'podman manifest create "$IMAGE"'
+    - 'podman manifest add "$IMAGE" "${IMAGE}:haswell"'
+    - 'podman manifest add "$IMAGE" "${IMAGE}:cortex-a53"'
+    - 'podman manifest add "$IMAGE" "${IMAGE}:rv64gc"'
+    - 'podman manifest push --all "$IMAGE"'
