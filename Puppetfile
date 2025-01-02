@@ -24,7 +24,7 @@ mod 'private', :git => 'git@gitlab.james.tl:nest/private.git', :branch => 'main'
 # Required by nest
 mod 'puppet-dnsquery', '5.0.1'
 mod 'puppet-augeasproviders_sysctl', '3.1.0'
-mod 'puppetlabs-apache', '11.1.0'
+mod 'puppetlabs-apache', '12.2.0'
 mod 'puppetlabs-inifile', '6.1.0'
 mod 'puppetlabs-mysql', '15.0.0'
 mod 'puppetlabs-powershell', '6.0.0'
