@@ -2,6 +2,7 @@ class nest::base::packages {
   case $facts['os']['family'] {
     'Gentoo': {
       nest::lib::package { [
+        'app-admin/eclean-kernel',
         'app-admin/helm',
         'app-admin/sysstat',
         'app-editors/vim',
