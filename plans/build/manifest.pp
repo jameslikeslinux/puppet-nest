@@ -18,11 +18,7 @@ plan nest::build::manifest (
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
   String            $tag                   = 'latest',
 ) {
-  if $image.stdlib::start_with("${registry}/") {
-    $image_real = $image
-  } else {
-    $image_real = "${registry}/${image}"
-  }
+  $image_real = $image.regsubst("^${registry.regexpescape}/", '')
 
   if $deploy {
     if $registry_username {
@@ -41,19 +37,19 @@ plan nest::build::manifest (
     }
   }
 
-  if run_command("podman manifest exists ${image_real}:${tag}", 'localhost', "Check if ${image}:${tag} manifest exists", '_catch_errors' => true).ok {
-    run_command("podman manifest rm ${image_real}:${tag}", 'localhost', "Remove existing ${image}:${tag} manifest")
+  if run_command("podman manifest exists ${image_real}:${tag}", 'localhost', "Check if ${image_real}:${tag} manifest exists", '_catch_errors' => true).ok {
+    run_command("podman manifest rm ${image_real}:${tag}", 'localhost', "Remove existing ${image_real}:${tag} manifest")
   }
 
-  run_command("podman manifest create ${image_real}:${tag}", 'localhost', "Create ${image}:${tag} manifest")
+  run_command("podman manifest create ${image_real}:${tag}", 'localhost', "Create ${image_real}:${tag} manifest")
 
   $image_tags.each |$image_tag| {
-    run_command("podman manifest add ${image_real}:${tag} docker://${image_real}:${image_tag}", 'localhost', "Add ${image_tag} to ${image}:${tag} manifest")
+    run_command("podman manifest add ${image_real}:${tag} ${registry}/${image_real}:${image_tag}", 'localhost', "Add ${image_tag} to ${image_real}:${tag} manifest")
   }
 
   if $deploy {
     unless $registry == 'localhost' {
-      run_command("podman manifest push --all ${image_real}:${tag}", 'localhost', "Push ${image}:${tag} manifest")
+      run_command("podman manifest push --all ${image_real}:${tag} ${registry}/${image_real}:${tag}", 'localhost', "Push ${image_real}:${tag} manifest")
     }
   }
 }

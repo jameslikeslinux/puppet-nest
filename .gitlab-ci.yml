@@ -67,12 +67,12 @@ stages:
 'Deploy image':
   stage: 'Deploy'
   variables:
-    IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}"
+    IMAGE: "${CI_PROJECT_PATH}/${CI_COMMIT_BRANCH}"
   script:
     - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
     - 'podman manifest exists "$IMAGE" && podman manifest rm "$IMAGE"'
     - 'podman manifest create "$IMAGE"'
-    - 'podman manifest add "$IMAGE" "${IMAGE}:haswell"'
-    - 'podman manifest add "$IMAGE" "${IMAGE}:cortex-a53"'
-    - 'podman manifest add "$IMAGE" "${IMAGE}:rv64gc"'
-    - 'podman manifest push --all "$IMAGE"'
+    - 'podman manifest add "$IMAGE" "${CI_REGISTRY}/${IMAGE}:haswell"'
+    - 'podman manifest add "$IMAGE" "${CI_REGISTRY}/${IMAGE}:cortex-a53"'
+    - 'podman manifest add "$IMAGE" "${CI_REGISTRY}/${IMAGE}:rv64gc"'
+    - 'podman manifest push --all "$IMAGE" "${CI_REGISTRY}/${IMAGE}"'
