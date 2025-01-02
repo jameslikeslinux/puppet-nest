@@ -38,7 +38,7 @@ class nest::tool::pdk {
       mode   => '0755',
       owner  => 'root',
       group  => 'root',
-      source => 'puppet:///modules/nest/tool/pdk.sh',
+      source => 'puppet:///modules/nest/scripts/pdk.sh',
     }
   }
 }
