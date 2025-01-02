@@ -30,17 +30,6 @@ class nest::gui::pipewire {
     ;
   }
 
-  nest::lib::package { 'media-sound/pulseaudio':
-    ensure => installed,
-    world  => false,
-  }
-  ->
-  file_line { 'pulse-client.conf-disable-autospawn':
-    path  => '/etc/pulse/client.conf',
-    match => '^(; )?autospawn = ',
-    line  => 'autospawn = no',
-  }
-
   # For increasing pipewire scheduling priority
   nest::lib::package { 'sys-auth/rtkit':
     ensure => installed,
