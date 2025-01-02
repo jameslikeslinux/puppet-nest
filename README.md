@@ -19,22 +19,17 @@ This module defines three main stages to progressively build server and workstat
 | AMD64  | Haswell    | Generic                   |
 |        |            | Live ISO/USB              |
 |        |            | VMware                    |
-| ARM    | Cortex-A8  | Generic                   |
-|        |            | [BeagleBone Black](https://beagleboard.org/black)    |
-| ARM64  | Cortex-A53 | Generic                   |
-|        |            | [Pine64](https://www.pine64.org/)                    |
+| ARM    | Cortex-A8  | [BeagleBone Black](https://beagleboard.org/black)    |
+| ARM64  | Cortex-A53 | [Pine64](https://www.pine64.org/)                    |
 |        |            | [Radxa Zero](https://wiki.radxa.com/Zero)            |
 |        |            | [Raspberry Pi 3](https://www.raspberrypi.com/products/raspberry-pi-3-model-b/) |
 |        |            | [SOPine](https://www.pine64.org/sopine/)             |
-|        | Cortex-A72 | Generic                   |
-|        |            | [Pinebook Pro](https://www.pine64.org/pinebook-pro/) |
+|        | Cortex-A72 | [Pinebook Pro](https://www.pine64.org/pinebook-pro/) |
 |        |            | [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) |
 |        |            | [Rock 4](https://wiki.radxa.com/Rock4)               |
 |        |            | [Rock 5](https://wiki.radxa.com/Rock5)               |
 |        |            | [RockPro64](https://www.pine64.org/rockpro64/)       |
-| RISC-V | RV64GC     | Generic                   |
-|        | [RV64GC_XTheadVector](https://github.com/XUANTIE-RV/thead-extension-spec/blob/master/xtheadvector.adoc) | Generic   |
-|        |            | [Milk-V Pioneer](https://milkv.io/pioneer)           |
+| RISC-V | [RV64GC_XTheadVector](https://github.com/XUANTIE-RV/thead-extension-spec/blob/master/xtheadvector.adoc) | [Milk-V Pioneer](https://milkv.io/pioneer) |
 
 Additionally, the module has comprehensive Kubernetes support.
 
