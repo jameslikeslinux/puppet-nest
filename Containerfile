@@ -1,5 +1,4 @@
-ARG BOLT_TAG
-FROM nest/tools/bolt:${BOLT_TAG}
+FROM nest/tools/bolt
 
 ARG BRANCH
 ARG REPOSITORY

@@ -3,64 +3,44 @@ default:
   interruptible: true
 
 stages:
-  - 'Deploy'
   - 'Test'
-  - 'Build'
+  - 'Deploy'
 
 'Validate':
-  image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
+  image: '${CI_REGISTRY}/nest/tools/pdk'
   stage: 'Test'
   script:
     - 'pdk validate'
 
 'Unit Test':
-  image: '${CI_REGISTRY}/nest/tools/pdk:${CI_HOST_CPU}'
+  image: '${CI_REGISTRY}/nest/tools/pdk'
   stage: 'Test'
   script:
     - 'pdk test unit --parallel --verbose'
 
-.template: &template
-  stage: 'Build'
-  script:
-    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
-    - 'export SSH_PRIVATE_KEY="$NEST_CI_DEPLOY_KEY"'
-    - 'mkdir empty'
-    - 'podman build
-        --build-arg=BOLT_TAG="$CPU"
-        --build-arg=BRANCH="$CI_COMMIT_BRANCH"
-        --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
-        --build-arg=SSH_PRIVATE_KEY
-        --file=Containerfile
-        --squash
-        --tag="${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"
-        empty'
-    - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}:${CPU}"'
-  rules:
-    - if: '$BUILD == $CPU'
-    - if: '$BUILD'
-      when: never
-    - when: always
-
-'Build haswell':
-  <<: *template
-  tags: ['amd64']
-  variables:
-    CPU: 'haswell'
-
-'Build cortex-a53':
-  <<: *template
-  tags: ['arm64']
-  variables:
-    CPU: 'cortex-a53'
-
-'Build rv64gc':
-  <<: *template
-  tags: ['riscv64']
-  variables:
-    CPU: 'rv64gc'
-
-'Deploy':
+'Deploy environment':
   stage: 'Deploy'
   tags: ['r10k']
   script:
     - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
+
+'Deploy image':
+  stage: 'Deploy'
+  variables:
+    SSH_PRIVATE_KEY: '$NEST_CI_DEPLOY_KEY'
+  script:
+    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
+    - 'mkdir empty'
+    - 'podman build
+        --build-arg=BRANCH="$CI_COMMIT_BRANCH"
+        --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
+        --build-arg=SSH_PRIVATE_KEY
+        --file=Containerfile
+        --jobs=$(nproc)
+        --manifest="${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}"
+        --platform=linux/amd64,linux/arm64,linux/riscv64
+        --volume=/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro
+        --volume=/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro
+        --squash
+        empty'
+    - 'podman manifest push --all "${CI_REGISTRY_IMAGE}/${CI_COMMIT_BRANCH}"'
