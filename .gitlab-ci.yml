@@ -19,12 +19,13 @@ stages:
   script:
     - 'pdk test unit --parallel --verbose'
 
-.template: &template
+.template:
   stage: 'Build'
+  variables:
+    SSH_PRIVATE_KEY: "$NEST_CI_DEPLOY_KEY"
   script:
-    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
-    - 'export SSH_PRIVATE_KEY="$NEST_CI_DEPLOY_KEY"'
     - 'mkdir empty'
+    - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
     - 'podman build
         --build-arg=BRANCH="$CI_COMMIT_BRANCH"
         --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
@@ -41,19 +42,19 @@ stages:
     - when: always
 
 'Build haswell':
-  <<: *template
+  extends: .template
   tags: ['amd64']
   variables:
     CPU: 'haswell'
 
 'Build cortex-a53':
-  <<: *template
+  extends: .template
   tags: ['arm64']
   variables:
     CPU: 'cortex-a53'
 
 'Build rv64gc':
-  <<: *template
+  extends: .template
   tags: ['riscv64']
   variables:
     CPU: 'rv64gc'
@@ -69,7 +70,7 @@ stages:
   variables:
     IMAGE: "${CI_PROJECT_PATH}/${CI_COMMIT_BRANCH}"
   script:
-    - 'echo "$CI_REGISTRY_PASSWORD" | podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"'
+    - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
     - 'podman manifest exists "$IMAGE" && podman manifest rm "$IMAGE"'
     - 'podman manifest create "$IMAGE"'
     - 'podman manifest add "$IMAGE" "${CI_REGISTRY}/${IMAGE}:haswell"'

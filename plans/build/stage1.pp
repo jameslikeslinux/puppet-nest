@@ -49,7 +49,7 @@ plan nest::build::stage1 (
         $registry_password_real = prompt('Registry password', 'sensitive' => true).unwrap
       }
 
-      run_command("echo \$registry_password | podman login --username=${registry_username} --password-stdin ${registry}", 'localhost', 'Login to registry', _env_vars => {
+      run_command("podman login --username=${registry_username} --password-stdin ${registry} <<< \$registry_password", 'localhost', 'Login to registry', _env_vars => {
         'registry_password' => $registry_password_real,
       })
     }
