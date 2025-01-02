@@ -44,6 +44,7 @@ lookup_options:
     merge: 'hash'
     convert_to: 'Sensitive'
 
+nest::build::git_repository: 'https://gitlab.james.tl/nest/puppet.git'
 nest::build::registry: 'registry.gitlab.james.tl'
 
 nest::build::qemu_user_targets: &qemu_user_targets
