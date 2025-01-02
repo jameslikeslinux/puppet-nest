@@ -198,14 +198,6 @@ describe 'nest' do
           it_should_and_should_not_contain_classes(stage1 + ['nest::tool::bolt'], stage2 + stage3 + windows + workstation)
         end
 
-        context 'building buildah' do # rubocop:disable RSpec/EmptyExampleGroup
-          let(:facts) do
-            facts.merge({ build: 'buildah' })
-          end
-
-          it_should_and_should_not_contain_classes(stage1 + ['nest::tool::buildah'], stage2 + stage3 + windows + workstation)
-        end
-
         context 'building chromium' do # rubocop:disable RSpec/EmptyExampleGroup
           let(:facts) do
             facts.merge({ build: 'chromium', profile: { role: 'workstation' } })

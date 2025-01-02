@@ -69,27 +69,24 @@ nest::service::gitlab::default_theme: 2
 nest::service::gitlab_runner::host: 'gitlab.james.tl'
 nest::service::gitlab_runner::instances:
   runner:
-    buildah: true
+    bolt: true
     podman: true
     qemu: true
 
   builder:
     limit: 2
     bolt: true
-    buildah: true
-    nest: true
-    portage: true
     podman: true
     qemu: true
 
   chromium:
     bolt: true
     podman: true
+    qemu: true
 
   ghc:
-    buildah: true
-    nest: true
-    portage: true
+    bolt: true
+    podman: true
     qemu: true
 
   r10k:

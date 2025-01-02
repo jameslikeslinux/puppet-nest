@@ -10,13 +10,8 @@ define nest::lib::gitlab_runner (
   Array[String]     $security_options = [],
   Array[String]     $volumes          = [],
   Boolean           $bolt             = false,
-  Boolean           $buildah          = false,
-  Boolean           $nest             = false,
   Boolean           $podman           = false,
-  Boolean           $portage          = false,
-  Boolean           $privileged       = false,
   Boolean           $qemu             = false,
-  Boolean           $zfs              = false,
 ) {
   # Required for /srv/gitlab-runner and container
   include 'nest::service::gitlab_runner'
@@ -63,24 +58,6 @@ define nest::lib::gitlab_runner (
     $bolt_args = []
   }
 
-  if $buildah {
-    $buildah_args = [
-      '--docker-cap-add', 'SYS_CHROOT',
-      '--env', 'STORAGE_DRIVER=vfs',
-    ]
-  } else {
-    $buildah_args = []
-  }
-
-  if $nest {
-    $nest_args = [
-      '--docker-volumes', '/nest:/nest',
-      '--docker-volumes', '/falcon:/falcon',
-    ]
-  } else {
-    $nest_args = []
-  }
-
   if $podman {
     $podman_args = [
       '--docker-volumes', '/run/podman/podman.sock:/run/podman/podman.sock:ro',
@@ -90,39 +67,13 @@ define nest::lib::gitlab_runner (
     $podman_args = []
   }
 
-  if $portage {
-    $portage_args = [
-      '--docker-cap-add', 'SYS_PTRACE',
-      '--docker-security-opt', 'seccomp=unconfined',
-    ]
-  } else {
-    $portage_args = []
-  }
-
-  if $privileged {
-    $privileged_args = ['--docker-privileged']
-  } else {
-    $privileged_args = []
-  }
-
   if $qemu {
-    $qemu_args = [
-      '--docker-volumes', '/usr/bin/qemu-aarch64:/usr/bin/qemu-aarch64:ro',
-      '--docker-volumes', '/usr/bin/qemu-arm:/usr/bin/qemu-arm:ro',
-      '--docker-volumes', '/usr/bin/qemu-riscv64:/usr/bin/qemu-riscv64:ro',
-      '--docker-volumes', '/usr/bin/qemu-x86_64:/usr/bin/qemu-x86_64:ro',
-    ]
+    include nest::tool::qemu
+    $qemu_args = $nest::tool::qemu::user_targets.map |$arch| {
+      ['--docker-volumes', "/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro"]
+    }
   } else {
     $qemu_args = []
-  }
-
-  if $zfs {
-    $zfs_args = [
-      '--docker-devices', '/dev/zfs',
-      '--docker-privileged',
-    ]
-  } else {
-    $zfs_args = []
   }
 
   # See: https://docs.gitlab.com/runner/register/index.html#one-line-registration-command
@@ -144,13 +95,8 @@ define nest::lib::gitlab_runner (
     $security_opt_args,
     $volume_args,
     $bolt_args,
-    $buildah_args,
-    $nest_args,
     $podman_args,
-    $portage_args,
-    $privileged_args,
     $qemu_args,
-    $zfs_args,
     '--url', "https://${host}/",
     '--token', $registration_token,
   ].flatten.shellquote

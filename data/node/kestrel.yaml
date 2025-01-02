@@ -18,18 +18,15 @@ nest::service::gitlab_runner::instances:
   builder:
     limit: 4
     bolt: true
-    buildah: true
-    nest: true
     podman: true
-    portage: true
     qemu: true
 
   chromium:
     bolt: true
     podman: true
+    qemu: true
 
   ghc:
-    buildah: true
-    nest: true
-    portage: true
+    bolt: true
+    podman: true
     qemu: true

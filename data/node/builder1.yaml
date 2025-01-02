@@ -1,7 +1,6 @@
 ---
 nest::service::gitlab_runner::instances:
   ghc:
-    buildah: true
-    nest: true
-    portage: true
+    bolt: true
+    podman: true
     qemu: true

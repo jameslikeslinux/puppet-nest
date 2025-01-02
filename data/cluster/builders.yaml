@@ -12,8 +12,5 @@ nest::service::gitlab_runner::instances:
   builder:
     limit: 2
     bolt: true
-    buildah: true
-    nest: true
     podman: true
-    portage: true
     qemu: true
