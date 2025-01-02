@@ -63,7 +63,7 @@ stages:
   stage: 'Deploy'
   tags: ['r10k']
   script:
-    - 'r10k deploy environment "$CI_COMMIT_BRANCH" -pv'
+    - 'r10k deploy environment "$CI_COMMIT_BRANCH" --modules --verbose'
 
 'Deploy image':
   stage: 'Deploy'

@@ -1,7 +1,7 @@
 define nest::lib::gitlab_runner (
   String            $host,
   String            $registration_token,
-  String            $default_image    = "registry.gitlab.james.tl/nest/stage1:${nest::canonical_cpu}-server",
+  String            $default_image    = 'registry.gitlab.james.tl/nest/stage1/server',
   Optional[String]  $dns              = undef,
   Array[String]     $devices          = [],
   Nest::Ensure      $ensure           = present,
@@ -44,15 +44,9 @@ define nest::lib::gitlab_runner (
   }
 
   if $bolt {
-    $compatible_cpu = $facts['profile']['architecture'] ? {
-      'arm64' => 'cortex-a53',
-      default => $nest::canonical_cpu,
-    }
-
     $bolt_args = [
       '--docker-volumes', '/etc/eyaml:/etc/eyaml:ro',
       '--docker-volumes', '/etc/puppetlabs/bolt:/etc/puppetlabs/bolt:ro',
-      '--env', "CI_HOST_COMPATIBLE_CPU=${compatible_cpu}",
     ]
   } else {
     $bolt_args = []
@@ -88,7 +82,6 @@ define nest::lib::gitlab_runner (
     '--docker-image', $default_image,
     '--env', "CI_HOST_EMERGE_DEFAULT_OPTS=${nest::base::portage::emerge_default_opts}",
     '--env', "CI_HOST_MAKEOPTS=${nest::base::portage::makeopts}",
-    '--env', "CI_HOST_CPU=${nest::canonical_cpu}",
     $dns_args,
     $device_args,
     $cap_add_args,

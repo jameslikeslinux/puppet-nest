@@ -32,7 +32,7 @@ exec podman run --rm -it -e TERM \
     -e KUBECONFIG \
     -e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}:ro" \
     $podman_sock \
-    nest/tools/bolt:<%= $nest::canonical_cpu %> \
+    nest/tools/bolt \
     bolt "$@"
 
 # vim: filetype=bash

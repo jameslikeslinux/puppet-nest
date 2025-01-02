@@ -12,7 +12,7 @@
 exec podman run --rm -it -e TERM \
     -v "${PWD}:/module" \
     -v /etc/eyaml:/etc/eyaml:ro \
-    nest/tools/pdk:<%= $nest::canonical_cpu %> \
+    nest/tools/pdk \
     pdk "$@"
 
 # vim: filetype=bash

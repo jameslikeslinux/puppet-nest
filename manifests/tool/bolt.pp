@@ -85,8 +85,8 @@ class nest::tool::bolt (
       ;
 
       '/usr/local/bin/bolt':
-        mode    => '0755',
-        content => epp('nest/scripts/bolt.sh.epp'),
+        mode   => '0755',
+        source => 'puppet:///modules/nest/scripts/bolt.sh',
       ;
     }
   }

@@ -180,9 +180,9 @@ class nest::service::puppet (
   }
   ->
   file { '/srv/puppet/bin/r10k':
-    mode    => '0755',
-    owner   => 'root',
-    group   => 'root',
-    content => template('nest/puppet/r10k.erb'),
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+    source => 'puppet:///modules/nest/puppet/r10k.sh',
   }
 }

@@ -35,10 +35,10 @@ class nest::tool::pdk {
     }
   } elsif $facts['os']['family'] == 'Gentoo' {
     file { '/usr/local/bin/pdk':
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
-      content => epp('nest/scripts/pdk.sh.epp'),
+      mode   => '0755',
+      owner  => 'root',
+      group  => 'root',
+      source => 'puppet:///modules/nest/tool/pdk.sh',
     }
   }
 }

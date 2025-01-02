@@ -12,7 +12,7 @@ exec podman run --rm --dns 172.22.4.2 \
     -v /srv/puppet/code:/etc/puppetlabs/code \
     -v /srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro \
     -v /srv/puppet/r10k/cache:/var/cache/r10k \
-    nest/tools/r10k:<%= scope['nest::canonical_cpu'] %> \
+    nest/tools/r10k \
     r10k "$@"
 
 # vim: filetype=bash

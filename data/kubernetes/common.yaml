@@ -2,8 +2,6 @@
 include:
   - 'nest::kubernetes'
 
-node_platform: cortex-a53
-
 resources:
   registry_auths:
     apiVersion: v1
@@ -85,7 +83,7 @@ patches:
           path: '/spec/template/spec/containers/-'
           value:
             name: nest
-            image: "registry.gitlab.james.tl/nest/stage1:%{lookup('node_platform')}-server"
+            image: 'registry.gitlab.james.tl/nest/stage1/server'
             command: ['/usr/bin/sshd', '-D', '-e']
             securityContext:
               capabilities:
