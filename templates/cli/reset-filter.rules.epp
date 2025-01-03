@@ -33,7 +33,7 @@ P /var/log/**
 P /var/tmp/**
 
 # Kernel (updates managed in another step)
-- /lib/modules/
+- /usr/lib/modules/
 - /usr/src/linux/
 
 # Kubernetes
