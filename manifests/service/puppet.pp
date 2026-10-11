@@ -136,6 +136,14 @@ class nest::service::puppet (
     ensure => directory,
   }
   ->
+  file { '/srv/puppet/puppetdb/wait-for-hosts.sh':
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    source  => 'puppet:///modules/nest/puppet/wait-for-hosts.sh',
+    require => Nest::Lib::Srv['puppet/puppetdb'],
+  }
+  ->
   nest::lib::container { 'puppetdb':
     pod     => 'puppet',
     image   => 'registry.gitlab.joyfullee.me/nest/forks/container-puppetdb:8.8.1',
@@ -144,7 +152,10 @@ class nest::service::puppet (
       'PUPPETDB_POSTGRES_HOSTNAME=localhost',
       'PUPPETDB_NODE_TTL=0d',
     ],
-    volumes => ['/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb'],
+    volumes => [
+      '/srv/puppet/puppetdb/data:/opt/puppetlabs/server/data/puppetdb',
+      '/srv/puppet/puppetdb/wait-for-hosts.sh:/docker-entrypoint.d/10-wait-for-hosts.sh:ro',
+    ],
   }
 
 
