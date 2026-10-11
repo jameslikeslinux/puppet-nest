@@ -5,6 +5,8 @@ Name=br0
 [Network]
 Address=172.22.4.4/24
 DNS=172.22.4.3
+# Keep the uplink resolver available to kubelet's non-stub resolv.conf
+DNSDefaultRoute=yes
 DNSSEC=no
 Domains=nest ~eyrie ~home ~joyfullee.me
 Gateway=172.22.4.1
