@@ -1,9 +1,10 @@
-# @summary Build Puppet Bolt orchestration tool
+# @summary Build OpenBolt orchestration tool (Bolt-compatible image path)
 #
 # Use bin/build script to run this plan!
 #
 # @param container Build container name
 # @param cpu Build for this CPU architecture
+# @param tag Image tag to publish; defaults to cpu
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -19,6 +20,7 @@
 plan nest::build::bolt (
   String            $container,
   String            $cpu,
+  Optional[String]  $tag                   = undef,
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -39,6 +41,7 @@ plan nest::build::bolt (
     cpu                   => $cpu,
     tool                  => 'bolt',
     build                 => $build,
+    tag                   => $tag,
     deploy                => false,
     emerge_default_opts   => $emerge_default_opts,
     id                    => $id,
@@ -51,6 +54,7 @@ plan nest::build::bolt (
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
     run_command('bolt', $target, 'Test bolt and show first run help')
+    run_command('bolt --version', $target, 'Show pinned OpenBolt version')
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
 
@@ -60,6 +64,7 @@ plan nest::build::bolt (
       cpu                   => $cpu,
       tool                  => 'bolt',
       build                 => false,
+      tag                   => $tag,
       deploy                => true,
       image_changes         => ['ENV=BOLT_DISABLE_ANALYTICS=true', 'ENV=BOLT_GEM=true'],
       init                  => false,
