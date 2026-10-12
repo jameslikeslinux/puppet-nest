@@ -273,6 +273,26 @@ class BindingIdentityTest(unittest.TestCase):
             {"url": "https://browser.eyrie/"},
         ]))
 
+    def test_own_share_landing_is_isolated_but_never_a_studio_binding(self) -> None:
+        landing = f"http://127.0.0.1:{BRIDGE.PORT}/"
+        self.assertTrue(BRIDGE._contexts_are_isolated([
+            {"url": landing},
+            {"url": "https://patternkit.eyrie/?session=atelier"},
+        ]))
+        valid, origin_matches = BRIDGE._binding_matches(self.state, "123:456", self.context(landing))
+        self.assertFalse(valid)
+        self.assertFalse(origin_matches)
+        for url in (
+            landing + "share",
+            landing + "?pk-share=expected-binding",
+            landing.replace("127.0.0.1", "localhost"),
+            landing.replace(str(BRIDGE.PORT), str(BRIDGE.PORT + 1)),
+            landing.replace("http:", "https:"),
+            "https://browser.eyrie/",
+        ):
+            with self.subTest(url=url):
+                self.assertFalse(BRIDGE._contexts_are_isolated([{"url": url}]))
+
     def test_app_diagnostics_are_whitelisted_even_if_the_upstream_regresses(self) -> None:
         sanitized = BRIDGE._sanitize_app_diagnostic({
             "schema": "patternkit.studio.diagnostic-capture/v1",
