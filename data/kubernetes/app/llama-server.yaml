@@ -146,7 +146,7 @@ resources:
                     exit 66
                   fi
                   echo "llama.cpp backend=${backend} server=${server} image=%{lookup('image')} service=%{nest::kubernetes::service}"
-                  exec "$server" --host 0.0.0.0 "$@"
+                  exec "$server" --host 0.0.0.0 --port 8080 "$@"
                 - llama-server
               args:
                 - --model

@@ -14,7 +14,10 @@ model_path: /cache/models/bge-m3-q8_0.gguf
 model_url: https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF/resolve/main/bge-m3-q8_0.gguf
 embedding_dimensions: 1024
 max_input_tokens: 8192
-physical_batch_size: 2048
+# Retain the live four-slot, 8192-token-per-slot server contract explicitly.
+ctx_size: 32768
+batch_size: 8192
+physical_batch_size: 8192
 parallel_requests: 4
 
 resources:
@@ -87,7 +90,7 @@ resources:
             - name: llama-embedding-server
               image: "%{lookup('image')}"
               imagePullPolicy: IfNotPresent
-              command: ['llama-server', '--host', '0.0.0.0']
+              command: ['llama-server', '--host', '0.0.0.0', '--port', '8080']
               args:
                 - --model
                 - "%{lookup('model_path')}"
@@ -95,7 +98,9 @@ resources:
                 - --pooling
                 - cls
                 - --ctx-size
-                - "%{lookup('max_input_tokens')}"
+                - "%{lookup('ctx_size')}"
+                - --batch-size
+                - "%{lookup('batch_size')}"
                 - --ubatch-size
                 - "%{lookup('physical_batch_size')}"
                 - --parallel
