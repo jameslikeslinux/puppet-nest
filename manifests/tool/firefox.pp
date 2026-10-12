@@ -16,7 +16,8 @@ class nest::tool::firefox (
   contain nest::base::certs
   include nodejs
 
-  # The Firefox tool image is built from nest/stage1/workstation:zen5, which
+  # The zen5 tool uses nest/stage1/workstation:haswell (no zen5 workstation
+  # output exists), which
   # already carries Portage Firefox, xmonad, and the Nest font collection. Keep
   # this class focused on browser.eyrie-specific KasmVNC glue, CA trust refresh,
   # Bitwarden extension policy material, and the minimal fullscreen xmonad
@@ -108,6 +109,13 @@ class nest::tool::firefox (
     mode    => '0644',
     source  => 'puppet:///modules/nest/firefox-browser/xmonad.hs',
     require => File['/opt/nest/firefox'],
+  }
+
+  file { '/opt/nest/firefox/bin/smoke-webdriver.py':
+    ensure  => file,
+    mode    => '0755',
+    source  => 'puppet:///modules/nest/firefox-browser/smoke-webdriver.py',
+    require => File['/opt/nest/firefox/bin'],
   }
 
   exec { 'install_firefox_bitwarden_extension':
