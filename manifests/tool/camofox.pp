@@ -5,7 +5,7 @@
 # binaries at startup.
 class nest::tool::camofox (
   String $package_name             = 'camofox-browser',
-  String $package_version          = '2.4.6',
+  String $package_version          = '2.4.8',
   String $bitwarden_extension_url  = 'https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi',
   String $bitwarden_extension_path = '/opt/nest/camofox/extensions/bitwarden.xpi',
 ) {
@@ -103,12 +103,28 @@ class nest::tool::camofox (
     timeout     => 0,
   }
 
+  # Keep the proven 135/beta.24 engine contract with camoufox-js 0.8.5.
+  # The newer 156 releases introduce a paired-library/package-layout migration;
+  # do not let npm's best-effort postinstall silently select a different engine.
+  file { '/opt/nest/camofox/bin/install-runtime.py':
+    source  => 'puppet:///modules/nest/camofox-browser/install-runtime.py',
+    mode    => '0755',
+    require => File['/opt/nest/camofox/bin'],
+  }
+  exec { 'install_pinned_camoufox_runtime':
+    command => '/usr/bin/python3 /opt/nest/camofox/bin/install-runtime.py',
+    unless  => '/usr/bin/python3 /opt/nest/camofox/bin/install-runtime.py --check',
+    require => [Exec['install_camofox_browser'], File['/opt/nest/camofox/bin/install-runtime.py']],
+    timeout => 0,
+  }
+
   file { '/usr/local/bin/nest-camofox-browser':
     ensure  => link,
     target  => '/opt/nest/camofox/bin/nest-camofox-browser.sh',
     require => [
       Exec['install_camofox_browser'],
       Exec['install_camofox_bitwarden_extension'],
+      Exec['install_pinned_camoufox_runtime'],
       File['/opt/nest/camofox/bin/nest-camofox-browser.sh'],
     ],
   }

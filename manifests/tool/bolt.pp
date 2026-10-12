@@ -4,9 +4,9 @@ class nest::tool::bolt (
   Optional[String]  $ca = undef,
 ) {
   if $facts['build'] == 'bolt' {
-    $bolt_version       = '4.0.0'
+    $bolt_version       = '5.6.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
-    $bolt_gem_dir       = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/bolt-${bolt_version}"
+    $bolt_gem_dir       = "/usr/local/lib64/ruby/gems/${ruby_minor_version}.0/gems/openbolt-${bolt_version}"
 
     package {
       default:
@@ -16,7 +16,7 @@ class nest::tool::bolt (
       ['ed25519', 'bcrypt_pbkdf', 'toml-rb']:
         ensure => installed,
       ;
-      'bolt':
+      'openbolt':
         ensure => $bolt_version,
       ;
     }
@@ -34,13 +34,13 @@ class nest::tool::bolt (
       ensure => installed,
     }
 
-    # Fix podman json parsing
-    # Bolt expects pretty json that podman no longer provides
-    # Revert to inherited docker parsing function
+    # Podman's --format '{{json .}}' emits one JSON object per line.
+    # OpenBolt 5.6.0 handles a single minified object but not multiple objects;
+    # inherit Docker's line-oriented parser, as required by real transport smoke.
     exec { 'bolt-fix-podman-transport':
       command => "/bin/sed -i '/^\\s*private def extract_json/,/^\\s*end/d' ${bolt_gem_dir}/lib/bolt/transport/podman/connection.rb",
       onlyif  => "/bin/grep -q '^\\s*private def extract_json' ${bolt_gem_dir}/lib/bolt/transport/podman/connection.rb",
-      require => Package['bolt'],
+      require => Package['openbolt'],
     }
   } else {
     require nest::base::puppet

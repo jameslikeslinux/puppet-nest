@@ -33,8 +33,10 @@ stages:
     - 'mkdir empty'
     - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
     - 'podman build
+        --build-arg=BOLT_IMAGE="${BOLT_IMAGE:-nest/tools/bolt}"
         --build-arg=BRANCH="$CI_COMMIT_BRANCH"
         --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
+        --build-arg=SOURCE_URL="${CI_PROJECT_URL}.git"
         --dns=172.22.4.3
         --file=Containerfile
         --secret=id=ssh_private_key,src="$NEST_CI_PRIVATE_KEY_FILE"
@@ -44,6 +46,10 @@ stages:
     - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"'
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD == $CPU'
+    - if: '$EXECUTOR_ONLY == "true" && $BUILD == $CPU'
+    - if: '$EXECUTOR_ONLY == "true" && $BUILD'
+      when: never
+    - if: '$EXECUTOR_ONLY == "true"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD'
       when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -72,6 +78,8 @@ stages:
   script:
     - 'r10k deploy environment "$CI_COMMIT_BRANCH" --modules --verbose'
   rules:
+    - if: '$EXECUTOR_ONLY == "true"'
+      when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 'Deploy image':
@@ -91,4 +99,7 @@ stages:
     - 'podman manifest push --all "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:latest"'
     - 'podman manifest push --all "$LOCAL_IMAGE" "registry.eyrie/${IMAGE}:latest"'
   rules:
+    - if: '$EXECUTOR_ONLY == "true" && $BUILD'
+      when: never
+    - if: '$EXECUTOR_ONLY == "true"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

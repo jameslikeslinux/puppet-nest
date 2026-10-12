@@ -4,6 +4,7 @@
 #
 # @param container Build container name
 # @param cpu Build for this CPU architecture
+# @param tag Image tag to publish; defaults to cpu
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -19,6 +20,7 @@
 plan nest::build::pdk (
   String            $container,
   String            $cpu,
+  Optional[String]  $tag                   = undef,
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -47,6 +49,7 @@ plan nest::build::pdk (
     cpu                   => $cpu,
     tool                  => 'pdk',
     build                 => $build,
+    tag                   => $tag,
     deploy                => false,
     emerge_default_opts   => $emerge_default_opts,
     extra_volumes         => ['/etc/gemrc:/etc/gemrc:ro'],
@@ -61,7 +64,7 @@ plan nest::build::pdk (
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
     run_command('pdk new module --skip-interview build /module', $target, 'Create test module', _env_vars => $puppetcore_env_vars)
-    run_command('sh -c "cd /module && bundle install && pdk validate"', $target, 'Install gems and validate module', _env_vars => $puppetcore_env_vars)
+    run_command('sh -c "cd /module && pdk new class smoke && pdk new task smoke && bundle install && pdk validate && pdk test unit --tests=spec/classes/smoke_spec.rb"', $target, 'Resolve dependencies, validate class and task, and test generated class', _env_vars => $puppetcore_env_vars)
     run_command('rm -rf /module && mkdir /module', $target, 'Clean up test module')
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
@@ -73,6 +76,7 @@ plan nest::build::pdk (
       cpu                   => $cpu,
       tool                  => 'pdk',
       build                 => false,
+      tag                   => $tag,
       deploy                => true,
       image_changes         => ['ENV=PDK_DISABLE_ANALYTICS=true', 'WORKDIR=/module'],
       init                  => false,

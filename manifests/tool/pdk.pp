@@ -38,6 +38,40 @@ class nest::tool::pdk {
       bundler_rb => $build_bundler_rb,
       command_rb => $build_command_rb,
     }
+
+    # JSON 3 is a valid PDK dependency but changes parse options to keywords.
+    # Preserve OpenVox interoperability before dotfile refresh starts Puppet.
+    file { '/opt/pdk-json-keywords.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_json_keywords.rb',
+      mode   => '0644',
+    }
+    exec { 'pdk-openvox-json-keywords':
+      command => '/usr/bin/ruby /opt/pdk-json-keywords.rb',
+      onlyif  => '/usr/bin/ruby /opt/pdk-json-keywords.rb --check',
+      require => [Package['pdk'], File['/opt/pdk-json-keywords.rb']],
+    }
+    Exec['pdk-openvox-json-keywords'] -> Exec['refresh-/root', "refresh-/home/${nest::user}"]
+
+    # PuppetCore is not a complete mirror for its public dependency closure.
+    # Keep source-only hints in the image, not patched/generated module files.
+    file { '/opt/pdk-public-dependencies.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_public_dependencies.rb',
+      mode   => '0644',
+    }
+    ['/root', "/home/${nest::user}"].each |$home| {
+      file { "${home}/.gemfile":
+        ensure  => file,
+        mode    => '0644',
+        require => Vcsrepo[$home],
+      }
+      file_line { "pdk-public-dependency-sources-${home}":
+        path    => "${home}/.gemfile",
+        line    => "eval(File.read('/opt/pdk-public-dependencies.rb'), binding) # rubocop:disable Security/Eval",
+        match   => 'pdk-public-dependencies\.rb',
+        require => [File["${home}/.gemfile"], File['/opt/pdk-public-dependencies.rb']],
+        before  => Exec["refresh-${home}"],
+      }
+    }
   } else {
     require nest::base::puppet
 

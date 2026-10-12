@@ -2,8 +2,9 @@
 set -eu
 
 export DISPLAY="${DISPLAY:-:97}"
-export HOME="${HOME:-/tmp/nest-firefox-smoke-home}"
-export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/nest-firefox-smoke-runtime}"
+smoke_port="${KASMVNC_SMOKE_PORT:-6901}"
+export HOME="$(mktemp -d "${TMPDIR:-/tmp}/nest-firefox-smoke.XXXXXX")"
+export XDG_RUNTIME_DIR="$HOME/runtime"
 mkdir -p "$HOME/.vnc" "$XDG_RUNTIME_DIR"
 chmod 700 "$HOME/.vnc" "$XDG_RUNTIME_DIR" || true
 
@@ -20,9 +21,10 @@ if [ ! -f "$HOME/.vnc/self.pem" ]; then
 fi
 
 kasmvnc_pid=
-firefox_pid=
 cleanup() {
-  kill "$firefox_pid" "$kasmvnc_pid" 2>/dev/null || true
+  kill "$kasmvnc_pid" 2>/dev/null || true
+  wait "$kasmvnc_pid" 2>/dev/null || true
+  rm -rf "$HOME"
 }
 trap cleanup INT TERM EXIT
 
@@ -38,7 +40,7 @@ test -d /opt/kasmweb/share/kasmvnc/www
   -httpd /opt/kasmweb/share/kasmvnc/www \
   -sslOnly 1 \
   -SecurityTypes None \
-  -websocketPort 6901 \
+  -websocketPort "$smoke_port" \
   -FreeKeyMappings \
   -cert "$HOME/.vnc/self.pem" \
   -key "$HOME/.vnc/self.pem" \
@@ -51,18 +53,8 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do
   sleep 1
 done
 
-curl -ksSf https://127.0.0.1:6901/ >/tmp/nest-kasmvnc-smoke.html
+curl -ksSf "https://127.0.0.1:$smoke_port/" >"$HOME/kasmvnc-smoke.html"
 
-timeout 20 firefox --no-remote --new-instance --profile "$HOME/.mozilla/firefox/nest-smoke" about:blank &
-firefox_pid=$!
-for _ in 1 2 3 4 5 6 7 8 9 10; do
-  pgrep -P "$firefox_pid" >/dev/null 2>&1 || true
-  sleep 1
-  if pgrep -f 'firefox.*nest-smoke' >/dev/null 2>&1; then
-    break
-  fi
-done
-kill "$firefox_pid" 2>/dev/null || true
-firefox_pid=
+python3 "$(dirname "$0")/smoke-webdriver.py"
 
 firefox --headless --version

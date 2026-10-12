@@ -13,6 +13,22 @@ mkdir -p "$build_root" /opt/kasmweb/bin /opt/kasmweb/share/kasmvnc
 cd "$src_dir"
 git submodule update --init kasmweb
 
+# The upstream Docker builder unconditionally prefixes CC/CXX with sccache.
+# Nest deliberately disables that cache and does not depend on its executable;
+# SCCACHE_DISABLE alone is insufficient because CMake still looks up sccache.
+python3 - "$src_dir/builder/build.sh" <<'PY'
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+text = path.read_text()
+old = '\nsetup_sccache\n'
+new = '\nif [ "${SCCACHE_DISABLE:-0}" != 1 ]; then setup_sccache; fi\n'
+if old in text:
+    path.write_text(text.replace(old, new))
+elif new not in text:
+    raise SystemExit('KasmVNC sccache setup contract changed')
+PY
+
 # KasmVNC v1.4.0 vendor helper scripts fetch a few current upstream CMake
 # projects whose old cmake_minimum_required() values are rejected by modern
 # CMake. Keep the source-build path deterministic by injecting the compatibility

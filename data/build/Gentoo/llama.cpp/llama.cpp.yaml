@@ -2,10 +2,10 @@
 nest::classes:
   - 'nest::tool::llamacpp'
 
-# Qwen3.5 dense GGUFs use architecture qwen35, which is unsupported by the
-# previous b7595 Kestrel tool image.  b9592 is the current upstream release at
-# rollout time and contains both qwen35 and qwen35moe model support.
-nest::tool::llamacpp::revision: 'b9592'
+# b11572 retains qwen35/qwen35moe and incorporates Vulkan flash-attention
+# bounds/stale-buffer fixes and AMD iGPU checkpoint improvements. Stop before
+# b11573's new f16 FMA path; validate our existing models/backends on hardware.
+nest::tool::llamacpp::revision: 'efe3626b119ff81033e309c3ba07a770bef2c546'
 # Zen5 is Joy's Strix Halo/llama-qwen comparison target. Keep Vulkan as the
 # default `llama-server` while also building stock ROCm for deliberate
 # benchmark/backend comparison.
