@@ -9,7 +9,7 @@ cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
 ingress_class: contour-compute
 node_role: compute
-image: registry.gitlab.joyfullee.me/nest/tools/camofox:latest
+image: registry.gitlab.joyfullee.me/nest/tools/camofox@sha256:2470a3188893360f9d67dd6d5b9b9b58f3f7cf6f8698e955044f7ad88a6cd89f
 camofox_port: 9377
 camofox_data_dir: /home/node/.camofox
 camofox_log_level: info
