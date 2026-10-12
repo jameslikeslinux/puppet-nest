@@ -64,7 +64,7 @@ plan nest::build::pdk (
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
     run_command('pdk new module --skip-interview build /module', $target, 'Create test module', _env_vars => $puppetcore_env_vars)
-    run_command('sh -c "cd /module && pdk new class smoke && bundle install && pdk validate && pdk test unit --tests=spec/classes/smoke_spec.rb"', $target, 'Resolve dependencies, validate and test generated class', _env_vars => $puppetcore_env_vars)
+    run_command('sh -c "cd /module && pdk new class smoke && pdk new task smoke && bundle install && pdk validate && pdk test unit --tests=spec/classes/smoke_spec.rb"', $target, 'Resolve dependencies, validate class and task, and test generated class', _env_vars => $puppetcore_env_vars)
     run_command('rm -rf /module && mkdir /module', $target, 'Clean up test module')
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
