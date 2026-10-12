@@ -52,20 +52,23 @@ class nest::tool::pdk {
     }
     Exec['pdk-openvox-json-keywords'] -> Exec['refresh-/root', "refresh-/home/${nest::user}"]
 
-    # Authenticated PuppetCore does not publish Facter's public HOCON gem.
-    # PDK module Gemfiles load ~/.gemfile; declare the dependency's source
-    # there so Bundler cannot inherit PuppetCore for this transitive gem.
+    # PuppetCore is not a complete mirror for its public dependency closure.
+    # Keep source-only hints in the image, not patched/generated module files.
+    file { '/opt/pdk-public-dependencies.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_public_dependencies.rb',
+      mode   => '0644',
+    }
     ['/root', "/home/${nest::user}"].each |$home| {
       file { "${home}/.gemfile":
         ensure  => file,
         mode    => '0644',
         require => Vcsrepo[$home],
       }
-      file_line { "pdk-hocon-source-${home}":
+      file_line { "pdk-public-dependency-sources-${home}":
         path    => "${home}/.gemfile",
-        line    => "gem 'hocon', '~> 1.3', source: 'https://rubygems.org', require: false",
-        match   => "^gem 'hocon'",
-        require => File["${home}/.gemfile"],
+        line    => "eval(File.read('/opt/pdk-public-dependencies.rb'), binding) # rubocop:disable Security/Eval",
+        match   => 'pdk-public-dependencies\.rb',
+        require => [File["${home}/.gemfile"], File['/opt/pdk-public-dependencies.rb']],
         before  => Exec["refresh-${home}"],
       }
     }
