@@ -13,7 +13,7 @@ ingress_class: contour-compute
 # rollback and benchmark artifacts while staging the MTP model.
 cache_size: 320Gi
 storage_class: owl-crypt
-image: registry.gitlab.joyfullee.me/nest/tools/llama.cpp:zen5
+image: registry.gitlab.joyfullee.me/nest/tools/llama.cpp@sha256:6f23177befcdc12430c2ffec95cf0f3a1a732f8f994a929618b00695b572de7d
 llama_cpp_backend: vulkan
 llama_cpp_hsa_override_gfx_version: ''
 model_repo: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
