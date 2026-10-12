@@ -4,6 +4,8 @@
 #
 # @param container Build container name
 # @param cpu Build for this CPU architecture
+# @param tag Image tag to publish; defaults to latest
+# @param base_cpu Stage1 workstation CPU tag (no zen5-workstation output exists)
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -19,6 +21,8 @@
 plan nest::build::firefox (
   String            $container,
   String            $cpu                   = 'haswell',
+  String            $tag                   = 'latest',
+  String            $base_cpu              = 'haswell',
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -36,10 +40,11 @@ plan nest::build::firefox (
     container           => $container,
     cpu                 => $cpu,
     tool                => 'firefox',
-    tag                 => 'latest',
+    tag                 => $tag,
     base_variant        => 'workstation',
+    base_cpu            => $base_cpu,
     build               => $build,
-    deploy              => $deploy,
+    deploy              => false,
     emerge_default_opts => $emerge_default_opts,
     id                  => $id,
     init                => $init,
@@ -61,5 +66,25 @@ plan nest::build::firefox (
     run_command("podman start ${container}", 'localhost', 'Start build container for smoke test')
     run_command('/opt/nest/firefox/bin/smoke-firefox.sh', $target, 'Smoke test Portage Firefox in headless mode')
     run_command("podman stop ${container}", 'localhost', 'Stop build container after smoke test')
+  }
+
+  if $deploy {
+    run_plan('nest::build::tool', {
+      container             => $container,
+      cpu                   => $cpu,
+      tool                  => 'firefox',
+      tag                   => $tag,
+      build                 => false,
+      deploy                => true,
+      init                  => false,
+      registry              => $registry,
+      registry_username     => $registry_username,
+      registry_password     => $registry_password,
+      registry_password_var => $registry_password_var,
+      image_changes         => [
+        'CMD=/usr/local/bin/nest-firefox-browser',
+        'WORKDIR=/home/kasm-user',
+      ],
+    })
   }
 }

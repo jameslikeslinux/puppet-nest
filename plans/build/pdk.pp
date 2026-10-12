@@ -4,6 +4,7 @@
 #
 # @param container Build container name
 # @param cpu Build for this CPU architecture
+# @param tag Image tag to publish; defaults to cpu
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -19,6 +20,7 @@
 plan nest::build::pdk (
   String            $container,
   String            $cpu,
+  Optional[String]  $tag                   = undef,
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -47,6 +49,7 @@ plan nest::build::pdk (
     cpu                   => $cpu,
     tool                  => 'pdk',
     build                 => $build,
+    tag                   => $tag,
     deploy                => false,
     emerge_default_opts   => $emerge_default_opts,
     extra_volumes         => ['/etc/gemrc:/etc/gemrc:ro'],
@@ -73,6 +76,7 @@ plan nest::build::pdk (
       cpu                   => $cpu,
       tool                  => 'pdk',
       build                 => false,
+      tag                   => $tag,
       deploy                => true,
       image_changes         => ['ENV=PDK_DISABLE_ANALYTICS=true', 'WORKDIR=/module'],
       init                  => false,

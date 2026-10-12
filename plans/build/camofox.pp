@@ -4,6 +4,7 @@
 #
 # @param container Build container name
 # @param cpu Build for this CPU architecture
+# @param tag Image tag to publish; defaults to latest
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -19,6 +20,7 @@
 plan nest::build::camofox (
   String            $container,
   String            $cpu                   = 'zen5',
+  String            $tag                   = 'latest',
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -38,7 +40,7 @@ plan nest::build::camofox (
     container           => $container,
     cpu                 => $cpu,
     tool                => 'camofox',
-    tag                 => 'latest',
+    tag                 => $tag,
     build               => $build,
     deploy              => false,
     emerge_default_opts => $emerge_default_opts,
@@ -64,7 +66,7 @@ plan nest::build::camofox (
       container             => $container,
       cpu                   => $cpu,
       tool                  => 'camofox',
-      tag                   => 'latest',
+      tag                   => $tag,
       build                 => false,
       deploy                => true,
       init                  => false,

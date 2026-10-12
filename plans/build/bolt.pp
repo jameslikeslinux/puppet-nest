@@ -55,6 +55,15 @@ plan nest::build::bolt (
     run_command("podman start ${container}", 'localhost', 'Start build container')
     run_command('bolt', $target, 'Test bolt and show first run help')
     run_command('bolt --version', $target, 'Show pinned OpenBolt version')
+    $podman_json_smoke = @("SMOKE"/L)
+      ruby -rbolt -rbolt/transport/podman -rjson -e '
+      connection = Bolt::Transport::Podman::Connection.allocate
+      expected = [{"Id" => "first"}, {"Id" => "second"}]
+      input = expected.map { |item| JSON.generate(item) }.join(10.chr)
+      raise "Podman JSON parsing failed" unless connection.send(:extract_json, input) == expected
+      '
+      | SMOKE
+    run_command($podman_json_smoke, $target, 'Verify multi-container Podman JSON parsing')
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
 
