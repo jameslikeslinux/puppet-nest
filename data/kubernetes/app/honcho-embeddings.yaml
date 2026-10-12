@@ -7,7 +7,7 @@
 # used for Honcho vectorization.
 cache_size: 8Gi
 storage_class: owl-crypt
-image: registry.gitlab.joyfullee.me/nest/tools/llama.cpp:zen5
+image: registry.gitlab.joyfullee.me/nest/tools/llama.cpp@sha256:6f23177befcdc12430c2ffec95cf0f3a1a732f8f994a929618b00695b572de7d
 model_repo: ggml-org/bge-m3-Q8_0-GGUF
 model_file: bge-m3-q8_0.gguf
 model_path: /cache/models/bge-m3-q8_0.gguf
