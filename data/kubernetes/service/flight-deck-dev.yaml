@@ -4,4 +4,4 @@ service_name: flight-deck-dev
 flight_deck_board: agent-requests-dev
 flight_deck_environment: Dev
 flight_deck_ref_name: main
-flight_deck_source_revision: b5982f172b2b02a75d38af73c67088e7ae70366d
+flight_deck_source_revision: 593acddb4ba5fb75e608b4c267cbd163ad4dcf81
