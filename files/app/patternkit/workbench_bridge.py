@@ -259,7 +259,12 @@ def _is_target_url(raw_url: str) -> bool:
 
 def _contexts_are_isolated(contexts: list[dict[str, str]]) -> bool:
     for context in contexts:
-        parsed = urlsplit(str(context.get("url") or ""))
+        raw_url = str(context.get("url") or "")
+        # The visible share landing page is this workbench's own loopback UI,
+        # not an external origin. It still cannot satisfy a Studio binding.
+        if raw_url == f"http://127.0.0.1:{PORT}/":
+            continue
+        parsed = urlsplit(raw_url)
         if parsed.scheme in {"http", "https"} and not _is_target_url(parsed.geturl()):
             return False
     return True
