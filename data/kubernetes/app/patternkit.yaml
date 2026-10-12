@@ -438,7 +438,9 @@ resources:
                 - name: KASM_RESTRICTED_FILE_CHOOSER
                   value: '1'
                 - name: APP_ARGS
-                  value: --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222
+                  value: ''
+                - name: FIREFOX_CONTROL_PROTOCOL
+                  value: firefox-bidi-ui-v2
                 - name: PATTERNKIT_ORIGIN
                   value: "https://%{lookup('fqdn')}"
                 - name: PATTERNKIT_STUDIO_PROXY
