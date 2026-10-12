@@ -38,6 +38,19 @@ class nest::tool::pdk {
       bundler_rb => $build_bundler_rb,
       command_rb => $build_command_rb,
     }
+
+    # JSON 3 is a valid PDK dependency but changes parse options to keywords.
+    # Preserve OpenVox interoperability before dotfile refresh starts Puppet.
+    file { '/opt/pdk-json-keywords.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_json_keywords.rb',
+      mode   => '0644',
+    }
+    exec { 'pdk-openvox-json-keywords':
+      command => '/usr/bin/ruby /opt/pdk-json-keywords.rb',
+      onlyif  => '/usr/bin/ruby /opt/pdk-json-keywords.rb --check',
+      require => [Package['pdk'], File['/opt/pdk-json-keywords.rb']],
+    }
+    Exec['pdk-openvox-json-keywords'] -> Exec['refresh-/root', "refresh-/home/${nest::user}"]
   } else {
     require nest::base::puppet
 

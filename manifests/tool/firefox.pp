@@ -10,13 +10,13 @@ class nest::tool::firefox (
   String $bitwarden_extension_id   = '{446900e4-71c2-419f-a6a7-df9c091e268b}',
   String $bitwarden_extension_url  = 'https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi',
   String $bitwarden_extension_path = '/opt/nest/firefox/extensions/bitwarden.xpi',
-  String $kasmvnc_revision         = 'v1.4.0',
+  String $kasmvnc_revision         = 'v1.5.0',
   String $kasmvnc_xorg_version     = '1.20.14',
 ) {
   contain nest::base::certs
   include nodejs
 
-  # The Firefox tool image is built from nest/stage1/workstation:haswell, which
+  # The Firefox tool image is built from nest/stage1/workstation:zen5, which
   # already carries Portage Firefox, xmonad, and the Nest font collection. Keep
   # this class focused on browser.eyrie-specific KasmVNC glue, CA trust refresh,
   # Bitwarden extension policy material, and the minimal fullscreen xmonad
@@ -25,7 +25,8 @@ class nest::tool::firefox (
   # and most KasmVNC build toolchain dependencies are inherited from the base.
   # KasmVNC's helper scripts build their bundled libjpeg/webp/cpuid pieces; TBB
   # remains a real system header/library dependency for the Xvnc build.
-  nest::lib::package { 'dev-cpp/tbb':
+  # KasmVNC 1.5 requires FFmpeg and VA headers even for software encoding.
+  nest::lib::package { ['dev-cpp/tbb', 'media-video/ffmpeg', 'media-libs/libva']:
     ensure => installed,
     before => Nest::Lib::Build['kasmvnc'],
   }

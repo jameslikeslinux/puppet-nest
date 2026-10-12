@@ -9,7 +9,7 @@ nest::classes:
 nest::eyaml_public_key: 'tool-image-build-placeholder'
 
 # Firefox secure-browser tool image for browser.eyrie. The build plan starts
-# from nest/stage1/workstation:haswell so the image inherits Nest's Portage
+# from nest/stage1/workstation:zen5 so the image inherits Nest's Portage
 # Firefox, xmonad, fonts, and GTK theme stack before this class adds the
 # browser.eyrie-specific KasmVNC/runtime glue.
 #
@@ -17,5 +17,5 @@ nest::eyaml_public_key: 'tool-image-build-placeholder'
 # Bitwarden vault data, checkout/payment details, SSH keys, kubeconfigs, or
 # tokens are baked into the image. Kubernetes mounts the persistent browser
 # profile separately at runtime.
-nest::tool::firefox::kasmvnc_revision: 'v1.4.0'
+nest::tool::firefox::kasmvnc_revision: 'v1.5.0'
 nest::tool::firefox::kasmvnc_xorg_version: '1.20.14'
