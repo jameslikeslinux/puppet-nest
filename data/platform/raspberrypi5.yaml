@@ -9,7 +9,8 @@ nest::dvorak: true
 nest::fscache: false
 nest::journal: volatile
 nest::kernel_defconfig: 'bcm2712_defconfig'
-nest::kernel_tag: 'raspberrypi/v6.12.61'
+nest::kernel_tag: 'raspberrypi/v6.18.56'
+nest::kernel_revision: '66c867b95368b75ded99708d53b0242a602d28fa'
 nest::swap_alt_win: true
 nest::uroot_delay: 1
 nest::wifi: true
@@ -41,6 +42,3 @@ nest::kernel_config:
 
   # For optimal v3d performance
   CONFIG_TRANSPARENT_HUGEPAGE: y
-
-  # Unsupported on 6.12
-  CONFIG_OVPN: null

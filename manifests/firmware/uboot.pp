@@ -72,10 +72,6 @@ class nest::firmware::uboot {
       }
     }
 
-    /^(pine64|sopine)$/: {
-      $build_options = 'BL31=../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin SCP=/dev/null'
-    }
-
     default: {
       $build_options = ''
     }

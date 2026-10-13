@@ -51,6 +51,7 @@ class nest (
   Array[String]                     $kernel_cmdline      = [],
   String                            $kernel_defconfig    = 'defconfig',
   Boolean                           $kernel_llvm         = false,
+  String                            $kernel_revision     = $kernel_tag,
   Boolean                           $kexec               = false,
   Optional[String]                  $opensbi_tag         = undef,
   Array[String]                     $raspberrypi_config  = [],

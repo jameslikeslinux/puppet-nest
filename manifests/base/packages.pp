@@ -60,7 +60,7 @@ class nest::base::packages {
         }
       }
 
-      if $facts['profile']['platform'] in ['milkv-pioneer', 'pine64', 'rock4', 'rock5', 'sopine'] {
+      if $facts['profile']['platform'] in ['milkv-pioneer', 'rock4', 'rock5'] {
         nest::lib::package { 'sys-fs/mtd-utils':
           ensure => installed,
         }
