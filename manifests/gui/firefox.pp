@@ -12,10 +12,7 @@ class nest::gui::firefox {
         }
       }
 
-      $webrender = $facts['profile']['platform'] ? {
-        'raspberrypi4' => 0,
-        default        => 1,
-      }
+      $webrender = 1
 
       $autoconfig_content = @(AUTOCONFIG)
         pref("general.config.filename", "firefox.cfg");

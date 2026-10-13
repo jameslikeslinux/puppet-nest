@@ -29,7 +29,7 @@ class nest::base::kernel {
 
   nest::lib::src_repo { '/usr/src/linux':
     url     => 'https://gitlab.joyfullee.me/nest/forks/linux.git',
-    ref     => $nest::kernel_tag,
+    ref     => $nest::kernel_revision,
     require => Class['nest::base::kernel_git'],
   }
   ~>

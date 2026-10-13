@@ -3,19 +3,6 @@
 enable_uart=1
 uart_2ndstage=1
 <% } -%>
-<% 'raspberrypi3': { -%>
-<% unless 'dtoverlay=disable-bt' in $nest::raspberrypi_config { -%>
-dtoverlay=miniuart-bt
-<% } -%>
-enable_uart=1
-<% } -%>
-<% 'raspberrypi4' : { -%>
-arm_64bit=1
-dtoverlay=vc4-kms-v3d
-dtparam=pwr_led_trigger=actpwr
-enable_uart=1
-uart_2ndstage=1
-<% } -%>
 <% 'raspberrypi5' : { -%>
 dtoverlay=vc4-kms-v3d,cma-512
 dtparam=pwr_led_trigger=actpwr
