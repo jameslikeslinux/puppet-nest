@@ -18,6 +18,10 @@ class nest::app::hermes::service {
   $star_order_refresh_interval    = $nest::app::hermes::star_order_refresh_interval
   $patternkit_session_enabled     = $nest::app::hermes::patternkit_session_enabled
   $patternkit_session_token       = $nest::app::hermes::patternkit_session_token
+  $linger_resource = $facts['is_container'] ? {
+    true    => File["/var/lib/systemd/linger/${nest::user}"],
+    default => Loginctl_user[$nest::user],
+  }
 
   file { $systemd_user_dir:
     ensure => directory,
@@ -321,7 +325,7 @@ class nest::app::hermes::service {
       unit    => 'hermes-agent-request-gitlab-mr-notes.timer',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-gitlab-mr-notes.timer"],
       ],
     }
@@ -414,7 +418,7 @@ class nest::app::hermes::service {
       unit    => 'hermes-agent-request-gitlab-mr-notes-dev.timer',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-gitlab-mr-notes-dev.timer"],
       ],
     }
@@ -499,7 +503,7 @@ class nest::app::hermes::service {
       unit    => 'hermes-agent-request-moving-tickets.timer',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-moving-tickets.timer"],
       ],
     }
@@ -590,7 +594,7 @@ class nest::app::hermes::service {
       unit    => 'hermes-star-order-refresh.timer',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-star-order-refresh.timer"],
       ],
     }

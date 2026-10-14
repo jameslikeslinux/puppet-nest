@@ -1060,13 +1060,18 @@ define nest::lib::hermes (
   }
 
   if $gateway_enabled {
+    $gateway_linger_resource = $facts['is_container'] ? {
+      true    => File["/var/lib/systemd/linger/${user}"],
+      default => Loginctl_user[$user],
+    }
+
     systemd::user_service { "hermes-gateway-${profile}":
       ensure  => running,
       enable  => true,
       unit    => "hermes-gateway@${profile}.service",
       user    => $user,
       require => [
-        Loginctl_user[$user],
+        $gateway_linger_resource,
         Systemd::Manage_unit['hermes-gateway@.service'],
         File["${profile_dir}/systemd.env"],
         Exec["configure_hermes_managed_config_${profile}"],
@@ -1107,13 +1112,18 @@ define nest::lib::hermes (
   }
 
   if $dashboard_enabled {
+    $dashboard_linger_resource = $facts['is_container'] ? {
+      true    => File["/var/lib/systemd/linger/${user}"],
+      default => Loginctl_user[$user],
+    }
+
     systemd::user_service { "hermes-dashboard-${profile}":
       ensure  => running,
       enable  => true,
       unit    => "hermes-dashboard@${profile}.service",
       user    => $user,
       require => [
-        Loginctl_user[$user],
+        $dashboard_linger_resource,
         Systemd::Manage_unit['hermes-dashboard@.service'],
         File["${profile_dir}/systemd.env"],
         Exec["configure_hermes_managed_config_${profile}"],
