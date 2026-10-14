@@ -27,7 +27,11 @@ SNAPSHOT = 'data/crypt/export/hosts@stage3-t_7ab83d07-before'
 
 
 def run(args):
-    return subprocess.check_output(args, text=True, stderr=subprocess.STDOUT).strip()
+    proc = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if proc.returncode:
+        print(proc.stdout)
+        raise RuntimeError('Operation failed with exit code ' + str(proc.returncode))
+    return proc.stdout.strip()
 
 
 def main():
@@ -80,12 +84,15 @@ def main():
         if args.action == 'prepare_kite':
             print(json.dumps({'host': 'kite', 'identityroot': str(dest), 'prepared_for_import': True}))
             return
+        for kind in ['state', 'run', 'log', 'public']:
+            (ROOT / kind / args.host).mkdir(parents=True, exist_ok=True)
         cmd = ['puppet', 'ssl', {'prepare': 'generate_request', 'submit': 'submit_request',
                                'download': 'bootstrap', 'verify': 'verify'}[args.action],
                '--confdir', str(conf), '--ssldir', str(ssl),
                '--vardir', str(ROOT / 'state' / args.host),
                '--rundir', str(ROOT / 'run' / args.host),
                '--logdir', str(ROOT / 'log' / args.host),
+               '--publicdir', str(ROOT / 'public' / args.host),
                '--server', 'puppet.eyrie', '--ca_server', 'puppet.eyrie',
                '--certname', args.host, '--waitforcert', '0']
         if args.action in ['prepare', 'submit']:
