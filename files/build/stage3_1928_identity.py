@@ -32,7 +32,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'submit', 'download', 'verify'])
+    parser.add_argument('action', choices=['prepare', 'prepare_kite', 'submit', 'download', 'verify'])
     parser.add_argument('host', choices=list(HOSTS))
     args = parser.parse_args()
     assert os.geteuid() == 0, 'Requires Bolt escalation'
@@ -50,8 +50,8 @@ def main():
         assert old.is_dir() and not old.is_symlink()
         assert (old / 'etc/machine-id').is_file()
         assert not dest.is_symlink()
-        if args.action == 'prepare':
-            assert args.host != 'kite', 'Reuse verified running Kite identity; never generate duplicate'
+        if args.action in ['prepare', 'prepare_kite']:
+            assert (args.host == 'kite') == (args.action == 'prepare_kite'), 'Kite is import-only'
             (dest / 'etc').mkdir(parents=True, exist_ok=True)
             machine = dest / 'etc/machine-id'
             if machine.exists():
@@ -77,6 +77,9 @@ def main():
             else:
                 attrs.write_text(expected_attrs)
         assert (dest / 'etc/machine-id').read_bytes() == (old / 'etc/machine-id').read_bytes()
+        if args.action == 'prepare_kite':
+            print(json.dumps({'host': 'kite', 'identityroot': str(dest), 'prepared_for_import': True}))
+            return
         cmd = ['puppet', 'ssl', {'prepare': 'generate_request', 'submit': 'submit_request',
                                'download': 'bootstrap', 'verify': 'verify'}[args.action],
                '--confdir', str(conf), '--ssldir', str(ssl),
