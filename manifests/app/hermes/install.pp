@@ -76,7 +76,7 @@ class nest::app::hermes::install {
   # The module otherwise checks only for activate, not its interpreter.
   Exec <| title == "python_virtualenv_${venv_dir}" |> {
     creates => undef,
-    unless  => "${venv_python} -c 'import sys; assert sys.version_info[:2] == (3, 13)'",
+    unless  => "/bin/sh -c \"test -x ${venv_python} && ${venv_python} -c 'import sys; assert sys.version_info[:2] == (3, 13)'\"",
   }
 
   include 'nest::base::git'

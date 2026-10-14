@@ -66,6 +66,11 @@ describe 'nest::app::hermes' do
 
       it { is_expected.to compile }
       it { is_expected.to contain_python__pyvenv('/opt/hermes-agent/venv').with_python_path('/usr/bin/python3.13').that_requires('Package[dev-lang/python:3.13]') }
+      it 'checks a new virtualenv through an existing shell before its interpreter exists' do
+        guard = catalogue.resource('Exec', 'python_virtualenv_/opt/hermes-agent/venv')[:unless]
+
+        expect(guard).to eq("/bin/sh -c \"test -x /opt/hermes-agent/venv/bin/python && /opt/hermes-agent/venv/bin/python -c 'import sys; assert sys.version_info[:2] == (3, 13)'\"")
+      end
       it { is_expected.to contain_exec('build_hermes_tui').that_requires('Exec[install_hermes_npm]') }
       it { is_expected.to contain_file(production_timer_path).with_ensure('file') }
       it { is_expected.to contain_file(development_timer_path).with_ensure('file') }
