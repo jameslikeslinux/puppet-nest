@@ -742,23 +742,9 @@ class nest::app::hermes::service {
     user => $nest::user,
   }
 
-  if $facts['is_container'] {
-    # Stage images have no logind bus; retain the on-disk linger state for boot.
-    file { '/var/lib/systemd/linger':
-      ensure => directory,
-      mode   => '0755',
-      owner  => 'root',
-      group  => 'root',
-    }
-    file { "/var/lib/systemd/linger/${nest::user}":
-      ensure  => file,
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => '',
-      require => File['/var/lib/systemd/linger'],
-    }
-  } else {
+  # nest::base::systemd already manages the offline linger marker.
+  # Only the running host has logind available for the runtime provider.
+  unless $facts['is_container'] {
     loginctl_user { $nest::user:
       linger => enabled,
     }

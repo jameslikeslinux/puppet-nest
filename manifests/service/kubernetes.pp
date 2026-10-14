@@ -109,6 +109,11 @@ class nest::service::kubernetes (
         group => 'root',
       ;
 
+      '/etc/kubernetes':
+        ensure  => directory,
+        require => Nest::Lib::Package['sys-cluster/kubelet'],
+      ;
+
       '/etc/kubernetes/patches':
         ensure => directory,
       ;
