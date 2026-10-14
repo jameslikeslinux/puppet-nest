@@ -375,28 +375,28 @@ class nest::app::hermes::install {
   }
 
   exec { 'install_hermes_web_deps':
-    command     => "${venv_pip} install '${source_dir}[web]'",
+    command     => "${venv_pip} install --config-settings editable_mode=compat --editable '${source_dir}[web]'",
     unless      => "${venv_python} -c \"import fastapi, uvicorn\"",
     environment => ['PIP_DISABLE_PIP_VERSION_CHECK=1'],
     require     => Exec['install_hermes_agent'],
   }
 
   exec { 'install_hermes_firecrawl_deps':
-    command     => "${venv_pip} install '${source_dir}[firecrawl]'",
+    command     => "${venv_pip} install --config-settings editable_mode=compat --editable '${source_dir}[firecrawl]'",
     unless      => "${venv_python} -c \"import firecrawl\"",
     environment => ['PIP_DISABLE_PIP_VERSION_CHECK=1'],
     require     => Exec['install_hermes_agent'],
   }
 
   exec { 'install_hermes_pty_deps':
-    command     => "${venv_pip} install '${source_dir}[pty]'",
+    command     => "${venv_pip} install --config-settings editable_mode=compat --editable '${source_dir}[pty]'",
     unless      => "${venv_python} -c \"import ptyprocess\"",
     environment => ['PIP_DISABLE_PIP_VERSION_CHECK=1'],
     require     => Exec['install_hermes_agent'],
   }
 
   exec { 'install_hermes_google_deps':
-    command     => "${venv_pip} install '${source_dir}[google]'",
+    command     => "${venv_pip} install --config-settings editable_mode=compat --editable '${source_dir}[google]'",
     unless      => "${venv_python} -c \"import googleapiclient, google_auth_oauthlib, google_auth_httplib2\"",
     environment => ['PIP_DISABLE_PIP_VERSION_CHECK=1'],
     require     => Exec['install_hermes_agent'],
