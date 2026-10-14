@@ -16,6 +16,19 @@ class nest::app::hermes::install {
   $broker_git_revision_file = "${install_dir}/.installed-agent-request-broker-revision"
   $tui_revision_file        = "${install_dir}/.installed-tui-revision"
   $web_revision_file        = "${install_dir}/.installed-web-revision"
+  $npm_dir                 = "${install_dir}/npm"
+  $npm_command             = "/usr/bin/node ${npm_dir}/node_modules/npm/bin/npm-cli.js"
+
+  # Hermes supports Python 3.11-3.13, independently of Gentoo's default.
+  package { 'dev-lang/python:3.13':
+    ensure => installed,
+  }
+
+  file_line { 'hermes-python-world':
+    path => '/var/lib/portage/world',
+    line => 'dev-lang/python:3.13',
+    tag  => 'profile',
+  }
 
   class { 'python':
     manage_python_package => false,
@@ -48,15 +61,22 @@ class nest::app::hermes::install {
 
   python::pyvenv { $venv_dir:
     ensure      => present,
-    version     => 'system',
-    python_path => '/usr/bin/python3',
+    version     => '3.13',
+    python_path => '/usr/bin/python3.13',
     owner       => 'root',
     group       => 'root',
     require     => [
       Class['python'],
       File[$install_dir],
       Nest::Lib::Package['dev-python/virtualenv'],
+      Package['dev-lang/python:3.13'],
     ],
+  }
+
+  # The module otherwise checks only for activate, not its interpreter.
+  Exec <| title == "python_virtualenv_${venv_dir}" |> {
+    creates => undef,
+    unless  => "${venv_python} -c 'import sys; assert sys.version_info[:2] == (3, 13)'",
   }
 
   include 'nest::base::git'
@@ -72,7 +92,7 @@ class nest::app::hermes::install {
 
   exec { 'reattach_hermes_source_ref':
     command => "/bin/sh -c 'set -e; /usr/sbin/git -C ${source_dir} fetch origin; if /usr/sbin/git -C ${source_dir} rev-parse --verify --quiet origin/${git_ref}^{commit} >/dev/null; then /usr/sbin/git -C ${source_dir} checkout -B ${git_ref} origin/${git_ref}; else /usr/sbin/git -C ${source_dir} checkout ${git_ref}; fi'",
-    onlyif  => "/bin/sh -c 'test -d ${source_dir}/.git && ! /usr/sbin/git -C ${source_dir} symbolic-ref --quiet HEAD >/dev/null'",
+    onlyif  => "/bin/sh -c 'test -z \"${git_commit}\" && test -d ${source_dir}/.git && ! /usr/sbin/git -C ${source_dir} symbolic-ref --quiet HEAD >/dev/null'",
     require => [
       File[$install_dir],
       Class['nest::base::git'],
@@ -95,8 +115,8 @@ class nest::app::hermes::install {
 
   if $git_commit {
     exec { 'verify_hermes_source_ref_pin':
-      command => "/bin/sh -c 'echo Hermes source ref ${git_ref} no longer resolves to pinned commit ${git_commit} >&2; exit 1'",
-      unless  => "/bin/sh -c 'remote_resolved=$(/usr/sbin/git -C ${source_dir} rev-parse --verify --quiet origin/${git_ref}^{commit}); local_resolved=$(/usr/sbin/git -C ${source_dir} rev-parse --verify --quiet ${git_ref}^{commit}); test \"\$remote_resolved\" = ${git_commit} || test \"\$local_resolved\" = ${git_commit}'",
+      command => "/bin/sh -c 'echo Hermes source HEAD must match pinned commit ${git_commit} on ref ${git_ref} >&2; exit 1'",
+      unless  => "/bin/sh -c 'test \"$(/usr/sbin/git -C ${source_dir} rev-parse HEAD)\" = ${git_commit} && /usr/sbin/git -C ${source_dir} merge-base --is-ancestor ${git_commit} origin/${git_ref}'",
       require => Vcsrepo[$source_dir],
     }
   }
@@ -251,8 +271,27 @@ class nest::app::hermes::install {
     require => Vcsrepo[$source_dir],
   }
 
+  include 'nodejs'
+
+  file { $npm_dir:
+    ensure  => directory,
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    require => File[$install_dir],
+  }
+
+  # Keep Hermes' supported npm separate from Gentoo's packaged npm.
+  exec { 'install_hermes_npm':
+    command     => "${nodejs::npm_path} install --prefix ${npm_dir} --no-save --package-lock=false --no-fund --no-audit npm@11.17.0",
+    unless      => "test \"$(${npm_command} --version)\" = 11.17.0",
+    environment => ['HOME=/root'],
+    path        => ['/bin', '/usr/bin'],
+    require     => [Class['nodejs'], File[$npm_dir]],
+  }
+
   exec { 'build_hermes_tui':
-    command     => "npm ci --silent --no-fund --no-audit --progress=false && npm run build && git -C ${source_dir} rev-parse HEAD > ${tui_revision_file}",
+    command     => "${npm_command} ci --silent --no-fund --no-audit --progress=false && ${npm_command} run build && git -C ${source_dir} rev-parse HEAD > ${tui_revision_file}",
     cwd         => "${source_dir}/ui-tui",
     unless      => "test \"$(git -C ${source_dir} rev-parse HEAD)\" = \"$(cat ${tui_revision_file} 2>/dev/null)\" && test -f ${source_dir}/ui-tui/dist/entry.js && test -d ${source_dir}/ui-tui/node_modules && /bin/grep -q 'RICH_OPEN_RE' ${source_dir}/ui-tui/dist/entry.js && /bin/grep -q 'NO_BANNER_LOGO' ${source_dir}/ui-tui/dist/entry.js",
     environment => [
@@ -263,6 +302,7 @@ class nest::app::hermes::install {
     timeout     => 600,
     require     => [
       Vcsrepo[$source_dir],
+      Exec['install_hermes_npm'],
     ],
   }
 
@@ -368,8 +408,6 @@ class nest::app::hermes::install {
   }
 
   if $facts['profile']['architecture'] == 'amd64' {
-    include 'nodejs'
-
     nest::lib::package_use { 'media-libs/freetype':
       use => ['harfbuzz'],
     }
@@ -413,13 +451,14 @@ class nest::app::hermes::install {
     }
 
     exec { 'build_hermes_dashboard_web':
-      command => "${nodejs::npm_path} install --silent && ${nodejs::npm_path} run build && git -C ${source_dir} rev-parse HEAD > ${web_revision_file}",
+      command => "${npm_command} install --silent && ${npm_command} run build && git -C ${source_dir} rev-parse HEAD > ${web_revision_file}",
       unless  => "test \"$(git -C ${source_dir} rev-parse HEAD)\" = \"$(cat ${web_revision_file} 2>/dev/null)\" && test -f ${source_dir}/hermes_cli/web_dist/index.html && /bin/grep -q 'Awaiting human review' ${source_dir}/hermes_cli/web_dist/assets/*.js",
       cwd     => "${source_dir}/web",
       path    => ['/bin', '/usr/bin', '/usr/sbin'],
       require => [
         Class['nodejs'],
         Vcsrepo[$source_dir],
+        Exec['install_hermes_npm'],
       ],
     }
   }

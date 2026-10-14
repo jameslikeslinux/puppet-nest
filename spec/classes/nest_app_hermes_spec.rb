@@ -23,7 +23,12 @@ describe 'nest::app::hermes' do
             $python_path = '/usr/bin/python3',
             $owner       = 'root',
             $group       = 'root',
-          ) {}
+          ) {
+            exec { "python_virtualenv_${title}":
+              command => '/bin/true',
+              creates => "${title}/bin/activate",
+            }
+          }
 
           define python::pip (
             $ensure      = present,
@@ -60,6 +65,8 @@ describe 'nest::app::hermes' do
       let(:development_timer_path) { '/home/joy/.config/systemd/user/hermes-agent-request-gitlab-mr-notes-dev.timer' }
 
       it { is_expected.to compile }
+      it { is_expected.to contain_python__pyvenv('/opt/hermes-agent/venv').with_python_path('/usr/bin/python3.13').that_requires('Package[dev-lang/python:3.13]') }
+      it { is_expected.to contain_exec('build_hermes_tui').that_requires('Exec[install_hermes_npm]') }
       it { is_expected.to contain_file(production_timer_path).with_ensure('file') }
       it { is_expected.to contain_file(development_timer_path).with_ensure('file') }
       it { is_expected.to contain_systemd__user_service('hermes-agent-request-gitlab-mr-notes').with_unit('hermes-agent-request-gitlab-mr-notes.timer') }
