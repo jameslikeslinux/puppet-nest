@@ -83,7 +83,8 @@ class nest::service::kubernetes (
   }
 
   if $control_plane {
-    if $etcd_zfs_dataset {
+    # Datasets belong to the running host, not its staged build container.
+    if $etcd_zfs_dataset and !$facts['is_container'] {
       zfs { $etcd_zfs_dataset:
         ensure     => present,
         atime      => 'off',
