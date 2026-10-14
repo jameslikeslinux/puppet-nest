@@ -1065,12 +1065,13 @@ define nest::lib::hermes (
       default => Loginctl_user[$user],
     }
 
-    systemd::user_service { "hermes-gateway-${profile}":
-      ensure  => running,
-      enable  => true,
-      unit    => "hermes-gateway@${profile}.service",
-      user    => $user,
-      require => [
+    nest::lib::user_service { "hermes-gateway-${profile}":
+      ensure    => running,
+      enable    => true,
+      unit      => "hermes-gateway@${profile}.service",
+      unit_file => 'hermes-gateway@.service',
+      user      => $user,
+      require   => [
         $gateway_linger_resource,
         Systemd::Manage_unit['hermes-gateway@.service'],
         File["${profile_dir}/systemd.env"],
@@ -1081,6 +1082,7 @@ define nest::lib::hermes (
     exec { "restart_hermes_gateway_${profile}":
       command     => "/bin/sh -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) ${install_dir}/bin/hermes-systemd-user-refresh hermes-gateway@${profile}.service 300'",
       refreshonly => true,
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       user        => $user,
       subscribe   => [
         Exec['install_hermes_agent'],
@@ -1097,17 +1099,18 @@ define nest::lib::hermes (
         Exec["configure_hermes_managed_config_${profile}"],
       ],
       require     => [
-        Systemd::User_service["hermes-gateway-${profile}"],
+        Nest::Lib::User_service["hermes-gateway-${profile}"],
         File["${install_dir}/bin/hermes-systemd-user-refresh"],
       ],
     }
   } else {
-    systemd::user_service { "hermes-gateway-${profile}":
-      ensure  => stopped,
-      enable  => false,
-      unit    => "hermes-gateway@${profile}.service",
-      user    => $user,
-      require => Systemd::Manage_unit['hermes-gateway@.service'],
+    nest::lib::user_service { "hermes-gateway-${profile}":
+      ensure    => stopped,
+      enable    => false,
+      unit      => "hermes-gateway@${profile}.service",
+      unit_file => 'hermes-gateway@.service',
+      user      => $user,
+      require   => Systemd::Manage_unit['hermes-gateway@.service'],
     }
   }
 
@@ -1117,12 +1120,13 @@ define nest::lib::hermes (
       default => Loginctl_user[$user],
     }
 
-    systemd::user_service { "hermes-dashboard-${profile}":
-      ensure  => running,
-      enable  => true,
-      unit    => "hermes-dashboard@${profile}.service",
-      user    => $user,
-      require => [
+    nest::lib::user_service { "hermes-dashboard-${profile}":
+      ensure    => running,
+      enable    => true,
+      unit      => "hermes-dashboard@${profile}.service",
+      unit_file => 'hermes-dashboard@.service',
+      user      => $user,
+      require   => [
         $dashboard_linger_resource,
         Systemd::Manage_unit['hermes-dashboard@.service'],
         File["${profile_dir}/systemd.env"],
@@ -1133,6 +1137,7 @@ define nest::lib::hermes (
     exec { "restart_hermes_dashboard_${profile}":
       command     => "/bin/sh -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user try-reload-or-restart hermes-dashboard@${profile}.service'",
       refreshonly => true,
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       user        => $user,
       subscribe   => [
         Exec['install_hermes_agent'],
@@ -1144,15 +1149,16 @@ define nest::lib::hermes (
         File[$hermes_managed_config_path],
         Exec["configure_hermes_managed_config_${profile}"],
       ],
-      require     => Systemd::User_service["hermes-dashboard-${profile}"],
+      require     => Nest::Lib::User_service["hermes-dashboard-${profile}"],
     }
   } else {
-    systemd::user_service { "hermes-dashboard-${profile}":
-      ensure  => stopped,
-      enable  => false,
-      unit    => "hermes-dashboard@${profile}.service",
-      user    => $user,
-      require => Systemd::Manage_unit['hermes-dashboard@.service'],
+    nest::lib::user_service { "hermes-dashboard-${profile}":
+      ensure    => stopped,
+      enable    => false,
+      unit      => "hermes-dashboard@${profile}.service",
+      unit_file => 'hermes-dashboard@.service',
+      user      => $user,
+      require   => Systemd::Manage_unit['hermes-dashboard@.service'],
     }
   }
 }

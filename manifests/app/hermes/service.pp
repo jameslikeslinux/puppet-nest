@@ -158,6 +158,7 @@ class nest::app::hermes::service {
 
     exec { 'patternkit-session-systemd-reload':
       command     => '/bin/systemctl daemon-reload',
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       refreshonly => true,
     }
 
@@ -188,6 +189,7 @@ class nest::app::hermes::service {
 
     exec { 'patternkit-session-systemd-reload':
       command     => '/bin/systemctl daemon-reload',
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       refreshonly => true,
     }
   }
@@ -319,10 +321,11 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-gitlab-mr-notes.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
         $linger_resource,
@@ -330,10 +333,11 @@ class nest::app::hermes::service {
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-gitlab-mr-notes.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -412,10 +416,11 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-gitlab-mr-notes-dev.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
         $linger_resource,
@@ -423,10 +428,11 @@ class nest::app::hermes::service {
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-gitlab-mr-notes-dev.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -497,10 +503,11 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-moving-tickets':
+    nest::lib::user_service { 'hermes-agent-request-moving-tickets':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-moving-tickets.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
         $linger_resource,
@@ -508,10 +515,11 @@ class nest::app::hermes::service {
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-moving-tickets':
+    nest::lib::user_service { 'hermes-agent-request-moving-tickets':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-moving-tickets.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -588,10 +596,11 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-star-order-refresh':
+    nest::lib::user_service { 'hermes-star-order-refresh':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-star-order-refresh.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
         $linger_resource,
@@ -599,10 +608,11 @@ class nest::app::hermes::service {
       ],
     }
   } else {
-    systemd::user_service { 'hermes-star-order-refresh':
+    nest::lib::user_service { 'hermes-star-order-refresh':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-star-order-refresh.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -621,10 +631,11 @@ class nest::app::hermes::service {
     }
   }
 
-  systemd::user_service { 'hermes-agent-request-bridge-loop':
+  nest::lib::user_service { 'hermes-agent-request-bridge-loop':
     ensure => stopped,
     enable => false,
     unit   => 'hermes-agent-request-bridge-loop.timer',
+    target => 'timers.target',
     user   => $nest::user,
   }
 
