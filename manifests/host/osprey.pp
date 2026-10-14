@@ -116,10 +116,12 @@ class nest::host::osprey {
     command     => '/usr/sbin/systemd-hwdb update',
     refreshonly => true,
   }
-  ~>
-  exec { 'udevadm-trigger-osprey-touchpad':
-    command     => '/usr/sbin/udevadm trigger --subsystem-match=input --action=change',
-    refreshonly => true,
+  unless $facts['is_container'] {
+    exec { 'udevadm-trigger-osprey-touchpad':
+      command     => '/usr/sbin/udevadm trigger --subsystem-match=input --action=change',
+      refreshonly => true,
+      subscribe   => Exec['systemd-hwdb-update-osprey-touchpad'],
+    }
   }
 
   # This is host-specific suspend/resume tuning for osprey's NVIDIA dGPU.
