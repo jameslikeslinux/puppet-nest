@@ -5,10 +5,13 @@ Name=br0
 [Network]
 Address=172.22.4.4/24
 DNS=172.22.4.3
+DNS=172.22.4.1
 # Keep the uplink resolver available to kubelet's non-stub resolv.conf
 DNSDefaultRoute=yes
 DNSSEC=no
-Domains=nest ~eyrie ~home ~joyfullee.me
+# Private suffixes are routed exclusively by resolved.conf.d/60-nest-private.conf.
+# A failed public primary may leave resolved on UniFi; never send private names there.
+Domains=~.
 Gateway=172.22.4.1
 
 [Route]
