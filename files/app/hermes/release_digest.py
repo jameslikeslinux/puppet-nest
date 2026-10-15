@@ -345,24 +345,6 @@ def watch_vaultwarden() -> WatchResult:
     return WatchResult("Vaultwarden", [i for i in items if i], [])
 
 
-def watch_wordpress() -> WatchResult:
-    plan = read(REPO / "plans/eyrie/wordpress/deploy.yaml")
-    values = read(REPO / "data/kubernetes/app/wordpress.yaml")
-    current_chart = first_match(r"chart:\s*'oci://registry-1\.docker\.io/bitnamicharts/wordpress'.*?\n\s*version:\s*'([^']+)'", plan, "WordPress chart")
-    local_image = first_match(r"(?ms)^values:.*?^\s{2}image:\s*\n\s{4}tag:\s*['\"]?([^'\"\s]+)['\"]?\s*$", values, "WordPress image tag")
-    chart = run(["helm", "show", "chart", "oci://registry-1.docker.io/bitnamicharts/wordpress"], timeout=180)
-    latest_chart = first_match(r"(?m)^version:\s*([^\s]+)\s*$", chart, "latest WordPress chart", flags=0)
-    app_version = first_match(r"(?m)^appVersion:\s*['\"]?([^'\"\s]+)['\"]?\s*$", chart, "latest WordPress appVersion", flags=0)
-    wp_data = fetch_json("https://api.wordpress.org/core/version-check/1.7/")
-    offers = wp_data.get("offers") or []
-    core = str((next((o for o in offers if o.get("response") == "upgrade"), offers[0]) if offers else {}).get("current") or "")
-    items = [
-        comp("WordPress", "wordpress-chart", "Bitnami WordPress chart", current_chart, latest_chart, "watch only", "medium", f"Chart/scaffolding drift. Current source image tag is {local_image}; latest chart appVersion is {app_version}. Render and inspect images before rollout.", "https://github.com/bitnami/charts/tree/main/bitnami/wordpress"),
-        comp("WordPress", "wordpress-core", "WordPress core upstream", app_version, core, "watch only", "medium", "Upstream core is newer than latest Bitnami image metadata; live sites may self-update, but container scaffolding may lag.", "https://wordpress.org/download/releases/"),
-    ]
-    return WatchResult("WordPress", [i for i in items if i], [])
-
-
 def installed_python_package_version(pkgname: str) -> str:
     venv_python = Path("/opt/hermes-agent/venv/bin/python")
     code = f"""
@@ -482,7 +464,6 @@ WATCHERS: list[Callable[[], WatchResult]] = [
     watch_hermes,
     watch_gitlab,
     watch_vaultwarden,
-    watch_wordpress,
     watch_honcho,
     watch_kubernetes_platform,
 ]
@@ -548,7 +529,7 @@ def render_digest(items: list[Component], errors: list[str], *, force: bool, che
             lines.append(f"- {err}")
         lines.append("")
     lines.append(f"Checked: {checked_at.isoformat()}")
-    lines.append("Scope: Hermes Agent, GitLab, Vaultwarden, WordPress, Honcho, Kubernetes platform (Rook/Ceph, Calico, MetalLB, Contour, cert-manager, kube-prometheus-stack, NFS CSI, ZFS LocalPV).")
+    lines.append("Scope: Hermes Agent, GitLab, Vaultwarden, Honcho, Kubernetes platform (Rook/Ceph, Calico, MetalLB, Contour, cert-manager, kube-prometheus-stack, NFS CSI, ZFS LocalPV).")
     return "\n".join(lines).rstrip() + "\n"
 
 

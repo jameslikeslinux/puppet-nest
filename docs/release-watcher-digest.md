@@ -21,12 +21,12 @@ model while emitting one classified daily digest.
 
 ## Consolidated coverage
 
-`release_digest.py` covers the same watched stacks:
+`release_digest.py` covers the retained watched stacks (WordPress was retired
+to private archives in October 2026):
 
 - Hermes Agent GitHub release vs installed Hermes package/managed venv
 - GitLab release feeds vs live self-managed GitLab API version, plus chart context
 - Vaultwarden server image, `guerzon/vaultwarden` chart, and Bitnami MariaDB chart
-- WordPress Bitnami chart and upstream WordPress core vs chart image metadata
 - Honcho server image, `honcho-ai`, CNPG PostgreSQL image, and Redis image
 - Kubernetes platform pins: Rook/Ceph, Ceph image, Calico/Tigera, MetalLB,
   Contour, cert-manager, kube-prometheus-stack, NFS CSI, and ZFS LocalPV
@@ -102,5 +102,5 @@ WATCH ONLY
   Source: https://github.com/guerzon/vaultwarden/releases
 
 Checked: 2026-06-08T20:00:00+00:00
-Scope: Hermes Agent, GitLab, Vaultwarden, WordPress, Honcho, Kubernetes platform (Rook/Ceph, Calico, MetalLB, Contour, cert-manager, kube-prometheus-stack, NFS CSI, ZFS LocalPV).
+Scope: Hermes Agent, GitLab, Vaultwarden, Honcho, Kubernetes platform (Rook/Ceph, Calico, MetalLB, Contour, cert-manager, kube-prometheus-stack, NFS CSI, ZFS LocalPV).
 ```

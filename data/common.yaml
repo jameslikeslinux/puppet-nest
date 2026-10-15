@@ -86,8 +86,6 @@ lookup_options:
     merge: 'hash'
   nest::service::streamux::password:
     convert_to: 'Sensitive'
-  nest::service::wordpress::sites:
-    merge: 'hash'
   nest::tool::bolt::key:
     convert_to: 'Sensitive'
   nest::wlans:
@@ -110,12 +108,10 @@ nest::cnames:
   ceph.eyrie: 'ingress.eyrie'
   gitlab.eyrie: 'ingress-workstations.eyrie'
   grafana.eyrie: 'ingress.eyrie'
-  portfolio.eyrie: 'ingress.eyrie'
   puppet.eyrie: 'ingress-workstations.eyrie'
   puppetdb.eyrie: 'ingress-workstations.eyrie'
   registry.eyrie: 'ingress-workstations.eyrie'
   registry.gitlab.eyrie: 'ingress-workstations.eyrie'
-  thestaticvoid.eyrie: 'ingress.eyrie'
 
   # Test kubernetes services
   auth.registry-test.eyrie: 'ingress-test.eyrie'
@@ -123,12 +119,10 @@ nest::cnames:
   ceph-test.eyrie: 'ingress-test.eyrie'
   gitlab-test.eyrie: 'ingress-test.eyrie'
   grafana-test.eyrie: 'ingress-test.eyrie'
-  portfolio-test.eyrie: 'ingress-test.eyrie'
   puppet-test.eyrie: 'ingress-test.eyrie'
   puppetdb-test.eyrie: 'ingress-test.eyrie'
   registry-test.eyrie: 'ingress-test.eyrie'
   registry.gitlab-test.eyrie: 'ingress-test.eyrie'
-  thestaticvoid-test.eyrie: 'ingress-test.eyrie'
 
   # AI services
   honcho.eyrie: 'ingress-compute.eyrie'
@@ -139,7 +133,6 @@ nest::cnames:
   firecrawl.eyrie: 'ingress-compute.eyrie'
   flight-deck.eyrie: 'ingress-compute.eyrie'
   flight-deck-dev.eyrie: 'ingress-compute.eyrie'
-  vesture.eyrie: 'ingress-compute.eyrie'
   llama-qwen.eyrie: 'ingress-compute.eyrie'
   searxng.eyrie: 'ingress-compute.eyrie'
   camofox.eyrie: 'ingress-compute.eyrie'
