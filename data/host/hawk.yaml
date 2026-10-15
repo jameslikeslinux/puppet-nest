@@ -11,6 +11,7 @@ nest::dvorak: true
 nest::gui_scaling_factor: 2.0
 nest::vpn: true
 nest::openvpn_ssl_directory: '/etc/openvpn/ssl'
+puppet::agent_server_hostname: 'puppet.eyrie'
 
 # Protect containers and virtual machines
 nest::reset_filter_rules:
