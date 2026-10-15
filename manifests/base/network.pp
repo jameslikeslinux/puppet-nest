@@ -20,6 +20,7 @@ class nest::base::network {
   } else {
     file { '/etc/systemd/network':
       ensure       => directory,
+      tag          => 'dns_failover',
       mode         => '0644',
       owner        => root,
       group        => root,
@@ -45,6 +46,7 @@ class nest::base::network {
 
     unless $facts['is_container'] {
       exec { 'systemd-networkd-reload':
+        tag         => 'dns_failover',
         command     => '/bin/networkctl reload',
         onlyif      => '/bin/systemctl is-active systemd-networkd',
         refreshonly => true,

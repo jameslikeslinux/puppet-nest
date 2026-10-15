@@ -80,8 +80,26 @@ class nest::base::systemd {
     ;
   }
 
+  # Owl's public server list can fail over without moving private names to UniFi.
+  # Keep this paired with the catch-all route in 10-owl.network.
+  if $facts['networking']['hostname'] == 'owl' {
+    file { '/etc/systemd/resolved.conf.d':
+      ensure => directory,
+      mode   => '0755',
+      tag    => 'dns_failover',
+    }
+    ->
+    file { '/etc/systemd/resolved.conf.d/60-nest-private.conf':
+      mode   => '0644',
+      source => 'puppet:///modules/nest/systemd/60-nest-private.conf',
+      notify => Service['systemd-resolved'],
+      tag    => 'dns_failover',
+    }
+  }
+
   service { 'systemd-resolved':
     enable => true,
+    tag    => 'dns_failover',
   }
 
   # Reset DNSSEC after network comes online to work around race condition with systemd-networkd
