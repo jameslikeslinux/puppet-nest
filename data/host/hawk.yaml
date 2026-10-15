@@ -10,9 +10,11 @@ nest::classes:
 nest::dvorak: true
 nest::gui_scaling_factor: 2.0
 nest::vpn: true
+nest::openvpn_ssl_directory: '/etc/openvpn/ssl'
 
 # Protect containers and virtual machines
 nest::reset_filter_rules:
+  - '- /etc/openvpn/ssl/'
   - 'P /etc/cni/**'
   - 'P /etc/libvirt/**'
   - 'P /var/lib/cni/**'

@@ -2,7 +2,13 @@
   Optional[Enum['udp', 'tcp']] $server = undef,
 | -%>
 <%
-if $facts['os']['family'] == 'windows' {
+if $nest::openvpn_ssl_directory {
+  # VPN credentials have an independent lifecycle from the Puppet agent.
+  $ca = "${nest::openvpn_ssl_directory}/certs/ca.pem"
+  $cert = "${nest::openvpn_ssl_directory}/certs/${trusted['certname']}.pem"
+  $key = "${nest::openvpn_ssl_directory}/private_keys/${trusted['certname']}.pem"
+  $crl = "${nest::openvpn_ssl_directory}/crl.pem"
+} elsif $facts['os']['family'] == 'windows' {
   $ca = 'C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/ca.pem'
   $cert = "C:/ProgramData/PuppetLabs/puppet/etc/ssl/certs/${trusted['certname']}.pem"
   $key = "C:/ProgramData/PuppetLabs/puppet/etc/ssl/private_keys/${trusted['certname']}.pem"

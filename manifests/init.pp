@@ -25,6 +25,7 @@ class nest (
   Hash[String, Stdlib::IP::Address]       $host_records            = {},
   Hash[Stdlib::Fqdn, Hash]                $hosts                   = {},
   Array[Stdlib::Host]                     $openvpn_refresh_servers = [],
+  Optional[Stdlib::Absolutepath]          $openvpn_ssl_directory   = undef,
 
   # Service toggles
   Boolean $distcc_server = false,
