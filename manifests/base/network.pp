@@ -19,8 +19,8 @@ class nest::base::network {
     }
   } else {
     file { '/etc/systemd/network':
-      tag          => 'dns_failover',
       ensure       => directory,
+      tag          => 'dns_failover',
       mode         => '0644',
       owner        => root,
       group        => root,
