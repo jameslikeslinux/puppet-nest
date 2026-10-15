@@ -64,6 +64,28 @@ plan nest::puppet::deploy ( # lint:ignore:deploy_plan_boundary -- code rollout p
     run_command($wait_cmd, 'localhost', "Wait for ${description} r10k sidecar")
     run_command($deploy_cmd, 'localhost', "Deploy Puppet code to ${description}")
 
+    # r10k updates the files, not the JRuby compiler's loaded environment.
+    # Explicitly expire it before a catalog can mix old classes/new templates.
+    $cache_url_suffix = $all_environments ? {
+      true    => '',
+      default => "?environment=${environment}",
+    }
+    $expire_script = @(SCRIPT)
+      set -eu
+      certname=$(puppet config print certname --section server)
+      curl --fail --silent --show-error --request DELETE \
+        --cert "/etc/puppetlabs/puppet/ssl/certs/$certname.pem" \
+        --key "/etc/puppetlabs/puppet/ssl/private_keys/$certname.pem" \
+        --cacert /etc/puppetlabs/puppet/ssl/certs/ca.pem \
+        "https://$certname:8140/puppet-admin-api/v1/environment-cache$1"
+      | SCRIPT
+    $expire_cmd = [
+      'kubectl', 'exec', '-n', $namespace, $deployment,
+      '-c', 'puppet-puppetserver', '--', '/bin/sh', '-ec', $expire_script, '--', $cache_url_suffix,
+    ].shellquote
+
+    run_command($expire_cmd, 'localhost', "Expire ${description} compiler environment cache")
+
     if $environment =~ String[1] {
       $verify_cmd = [
         'kubectl', 'exec', '-n', $namespace, $deployment,
