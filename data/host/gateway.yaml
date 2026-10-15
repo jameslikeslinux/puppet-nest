@@ -8,8 +8,10 @@ nest::packages:
 
 nest::dvorak: true
 nest::vpn: true
+nest::openvpn_ssl_directory: '/etc/openvpn/ssl'
 
 nest::reset_filter_rules:
+  - '- /etc/openvpn/ssl/'
   - 'P /etc/letsencrypt/**'
 
 nest::service::apache::manage_firewall: true
