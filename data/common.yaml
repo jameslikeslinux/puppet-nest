@@ -317,6 +317,7 @@ nest::kernel_config:
   CONFIG_NETFILTER_ADVANCED: y
   CONFIG_BRIDGE_NETFILTER: n
   CONFIG_NF_CONNTRACK: m
+  CONFIG_NF_CONNTRACK_MARK: y # Netavark nftables port-forward and isolation rules
   CONFIG_NF_TABLES: m
   CONFIG_NF_TABLES_INET: y
   CONFIG_NFT_CT: m
