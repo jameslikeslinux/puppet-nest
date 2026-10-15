@@ -106,6 +106,7 @@ nest::app::hermes::instances:
     profile: 'talon'
     enabled_plugins:
       - 'agent-request-blocked-writer'
+      - 'talon-operational-prompt'
     display_name: 'Talon'
     profile_icon: '🦉'
     model_provider: 'openai-codex'
