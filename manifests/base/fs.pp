@@ -15,6 +15,10 @@ class nest::base::fs {
 
     nest::lib::package { 'net-fs/samba':
       ensure => installed,
+      # Waf requires dependency files that distcc can omit despite a successful compile.
+      env    => {
+        'FEATURES' => '-distcc',
+      },
     }
 
     file { '/var/lib/samba/usershares':

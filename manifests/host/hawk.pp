@@ -82,6 +82,14 @@ class nest::host::hawk (
     require => File[$quill_gitlab_dir],
   }
 
+  file { ["/home/${nest::user}/.local", "/home/${nest::user}/.local/bin"]:
+    ensure  => directory,
+    mode    => '0755',
+    owner   => $nest::user,
+    group   => $nest::user,
+    require => Vcsrepo["/home/${nest::user}"],
+  }
+
   file { "/home/${nest::user}/.local/bin/quill-gitlab-api":
     ensure  => link,
     target  => "${quill_gitlab_dir}/api",
