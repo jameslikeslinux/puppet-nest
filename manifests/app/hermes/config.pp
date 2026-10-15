@@ -422,6 +422,44 @@ class nest::app::hermes::config {
     }
   }
 
+  # Operational guidance is profile-local and independent of project context.
+  # Do not notify services: existing sessions keep their frozen prompts, and
+  # new processes discover these assets on normal startup.
+  if 'talon' in $instances {
+    $talon_plugins_dir = "${profiles_dir}/talon/plugins"
+    $talon_prompt_plugin_dir = "${talon_plugins_dir}/talon-operational-prompt"
+
+    file { $talon_plugins_dir:
+      ensure  => directory,
+      mode    => '0700',
+      owner   => $nest::user,
+      group   => $nest::user,
+      tag     => 'talon_operational_prompt',
+      require => File["${profiles_dir}/talon"],
+    }
+
+    file { $talon_prompt_plugin_dir:
+      ensure  => directory,
+      mode    => '0700',
+      owner   => $nest::user,
+      group   => $nest::user,
+      tag     => 'talon_operational_prompt',
+      require => File[$talon_plugins_dir],
+    }
+
+    ['plugin.yaml', '__init__.py', 'readable-prose.md'].each |String[1] $plugin_file| {
+      file { "${talon_prompt_plugin_dir}/${plugin_file}":
+        ensure  => file,
+        mode    => '0600',
+        owner   => $nest::user,
+        group   => $nest::user,
+        source  => "puppet:///modules/nest/app/hermes/talon_operational_prompt_plugin/${plugin_file}",
+        tag     => 'talon_operational_prompt',
+        require => File[$talon_prompt_plugin_dir],
+      }
+    }
+  }
+
   $patternkit_profile_plugins_dir = "${profiles_dir}/star/plugins"
   $star_command_policy_plugin_dir = "${patternkit_profile_plugins_dir}/star-command-policy"
   $patternkit_plugin_dir = "${patternkit_profile_plugins_dir}/patternkit-session"
