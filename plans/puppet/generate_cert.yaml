@@ -1,13 +1,29 @@
 ---
-description: 'Generate and sign a new Puppet certificate'
+description: 'Sign one locally generated CSR on the verified production puppet.eyrie CA'
 
 parameters:
   name:
-    description: 'Certname to generate'
-    type: String
+    description: 'Exact pending certname; generate the private key and submit its CSR locally first'
+    type: "Pattern[/\\A[a-z0-9][a-z0-9._-]*\\z/]"
+  ca_fingerprint:
+    description: 'Independently verified SHA256 fingerprint of the production signing CA (uppercase colon-separated)'
+    type: "Pattern[/\\A(?:[0-9A-F]{2}:){31}[0-9A-F]{2}\\z/]"
 
 steps:
-  - description: 'puppetserver ca generate'
-    command: "podman exec puppetserver puppetserver ca generate --certname ${name}"
-    run_as: root
-    targets: puppet-server
+  - description: 'Verify production signing CA before issuing a certificate'
+    env_vars:
+      CA_FINGERPRINT: $ca_fingerprint
+    command: >-
+      actual=$(kubectl exec -n default deploy/puppet-puppetserver -c puppet-puppetserver --
+      openssl x509 -in /etc/puppetlabs/puppetserver/ca/ca_crt.pem -noout -fingerprint -sha256)
+      && test "$actual" = "sha256 Fingerprint=$CA_FINGERPRINT"
+    targets: localhost
+  - description: 'Sign only the exact pending CSR; refuse existing issued identities'
+    env_vars:
+      CERTNAME: $name
+    command: >-
+      kubectl exec -n default deploy/puppet-puppetserver -c puppet-puppetserver --
+      sh -ec 'test ! -e "/etc/puppetlabs/puppetserver/ca/signed/$1.pem";
+      test -f "/etc/puppetlabs/puppetserver/ca/requests/$1.pem";
+      exec puppetserver ca sign --certname "$1"' sh "$CERTNAME"
+    targets: localhost
