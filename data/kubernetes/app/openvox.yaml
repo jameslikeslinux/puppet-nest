@@ -199,13 +199,19 @@ resources:
                       fi
                     ' sh "${CERTNAME}"
 
+                  # Init retries retain emptyDir, including the read-only files from a previous run.
+                  # Stage fresh copies and rename them rather than opening those files for writing.
+                  umask 077
+                  staging=$(mktemp -d /etc/puppetboard/puppetdb/.certs.XXXXXX)
+                  trap 'rm -rf "${staging}"' EXIT
                   kubectl exec -n "${NAMESPACE}" "${pod}" -c "${container}" -- \
-                    cat /etc/puppetlabs/puppet/ssl/certs/ca.pem > /etc/puppetboard/puppetdb/ca.pem
+                    cat /etc/puppetlabs/puppet/ssl/certs/ca.pem > "${staging}/ca.pem"
                   kubectl exec -n "${NAMESPACE}" "${pod}" -c "${container}" -- \
-                    cat "/etc/puppetlabs/puppet/ssl/certs/${CERTNAME}.pem" > /etc/puppetboard/puppetdb/cert.pem
+                    cat "/etc/puppetlabs/puppet/ssl/certs/${CERTNAME}.pem" > "${staging}/cert.pem"
                   kubectl exec -n "${NAMESPACE}" "${pod}" -c "${container}" -- \
-                    cat "/etc/puppetlabs/puppet/ssl/private_keys/${CERTNAME}.pem" > /etc/puppetboard/puppetdb/key.pem
-                  chmod 0444 /etc/puppetboard/puppetdb/ca.pem /etc/puppetboard/puppetdb/cert.pem /etc/puppetboard/puppetdb/key.pem
+                    cat "/etc/puppetlabs/puppet/ssl/private_keys/${CERTNAME}.pem" > "${staging}/key.pem"
+                  chmod 0444 "${staging}/ca.pem" "${staging}/cert.pem" "${staging}/key.pem"
+                  mv -f "${staging}/ca.pem" "${staging}/cert.pem" "${staging}/key.pem" /etc/puppetboard/puppetdb/
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
