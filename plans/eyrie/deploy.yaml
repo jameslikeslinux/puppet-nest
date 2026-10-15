@@ -32,16 +32,6 @@ parameters:
     type: Boolean
     default: true
 
-  thestaticvoid:
-    description: 'Deploy TheStaticVoid blog'
-    type: Boolean
-    default: true
-
-  portfolio:
-    description: 'Deploy portfolio'
-    type: Boolean
-    default: true
-
   private:
     description: 'Deploy private services'
     type: Boolean
@@ -85,18 +75,6 @@ steps:
     plan: nest::eyrie::deploy_bitwarden
     parameters:
       deploy: $deploy and $bitwarden
-      init: $init
-
-  - description: 'Deploy TheStaticVoid blog'
-    plan: nest::eyrie::deploy_thestaticvoid
-    parameters:
-      deploy: $deploy and $thestaticvoid
-      init: $init
-
-  - description: 'Deploy portfolio'
-    plan: nest::eyrie::deploy_portfolio
-    parameters:
-      deploy: $deploy and $portfolio
       init: $init
 
   - description: 'Deploy private services'

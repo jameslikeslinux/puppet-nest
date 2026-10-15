@@ -62,23 +62,3 @@ nest::service::reverse_proxy::hosts:
     ip: ['45.77.156.204', '2001:19f0:1000:e1dc::204']
     proxy_ssl: true
     websockets: true
-
-  # Wordpress sites
-  www.joyfullee.me:
-    destination: 'portfolio.eyrie'
-    docroot: '/nest/www/joyfullee.me'
-    ip: ['45.77.156.204', '2001:19f0:1000:e1dc::204']
-    serveraliases: ['joyfullee.me', 'james.tl', 'www.james.tl']
-    priority: '20'  # higher priority
-    proxy_ssl: true
-    serve_local: true
-    timeout: 600
-
-  thestaticvoid.com:
-    destination: 'thestaticvoid.eyrie'
-    docroot: '/nest/www/thestaticvoid.com'
-    ip: ['45.77.156.204', '2001:19f0:1000:e1dc::204']
-    serveraliases: ['www.thestaticvoid.com', 'thestaticvoid.org', 'www.thestaticvoid.org', 'tsv.co', 'www.tsv.co']
-    proxy_ssl: true
-    serve_local: true
-    timeout: 600
