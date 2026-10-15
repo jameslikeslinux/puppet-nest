@@ -18,6 +18,10 @@ class nest::app::hermes::service {
   $star_order_refresh_interval    = $nest::app::hermes::star_order_refresh_interval
   $patternkit_session_enabled     = $nest::app::hermes::patternkit_session_enabled
   $patternkit_session_token       = $nest::app::hermes::patternkit_session_token
+  $linger_resource = $facts['is_container'] ? {
+    true    => File["/var/lib/systemd/linger/${nest::user}"],
+    default => Loginctl_user[$nest::user],
+  }
 
   file { $systemd_user_dir:
     ensure => directory,
@@ -154,6 +158,7 @@ class nest::app::hermes::service {
 
     exec { 'patternkit-session-systemd-reload':
       command     => '/bin/systemctl daemon-reload',
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       refreshonly => true,
     }
 
@@ -184,6 +189,7 @@ class nest::app::hermes::service {
 
     exec { 'patternkit-session-systemd-reload':
       command     => '/bin/systemctl daemon-reload',
+      onlyif      => '/usr/bin/test -d /run/systemd/system',
       refreshonly => true,
     }
   }
@@ -315,21 +321,23 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-gitlab-mr-notes.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-gitlab-mr-notes.timer"],
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-gitlab-mr-notes.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -408,21 +416,23 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-gitlab-mr-notes-dev.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-gitlab-mr-notes-dev.timer"],
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
+    nest::lib::user_service { 'hermes-agent-request-gitlab-mr-notes-dev':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-gitlab-mr-notes-dev.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -493,21 +503,23 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-agent-request-moving-tickets':
+    nest::lib::user_service { 'hermes-agent-request-moving-tickets':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-agent-request-moving-tickets.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-agent-request-moving-tickets.timer"],
       ],
     }
   } else {
-    systemd::user_service { 'hermes-agent-request-moving-tickets':
+    nest::lib::user_service { 'hermes-agent-request-moving-tickets':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-agent-request-moving-tickets.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -584,21 +596,23 @@ class nest::app::hermes::service {
       notify  => Systemd::Daemon_reload['hermes-systemd-user-daemon-reload'],
     }
 
-    systemd::user_service { 'hermes-star-order-refresh':
+    nest::lib::user_service { 'hermes-star-order-refresh':
       ensure  => running,
       enable  => true,
       unit    => 'hermes-star-order-refresh.timer',
+      target  => 'timers.target',
       user    => $nest::user,
       require => [
-        Loginctl_user[$nest::user],
+        $linger_resource,
         File["${systemd_user_dir}/hermes-star-order-refresh.timer"],
       ],
     }
   } else {
-    systemd::user_service { 'hermes-star-order-refresh':
+    nest::lib::user_service { 'hermes-star-order-refresh':
       ensure => stopped,
       enable => false,
       unit   => 'hermes-star-order-refresh.timer',
+      target => 'timers.target',
       user   => $nest::user,
     }
 
@@ -617,10 +631,11 @@ class nest::app::hermes::service {
     }
   }
 
-  systemd::user_service { 'hermes-agent-request-bridge-loop':
+  nest::lib::user_service { 'hermes-agent-request-bridge-loop':
     ensure => stopped,
     enable => false,
     unit   => 'hermes-agent-request-bridge-loop.timer',
+    target => 'timers.target',
     user   => $nest::user,
   }
 
@@ -742,7 +757,11 @@ class nest::app::hermes::service {
     user => $nest::user,
   }
 
-  loginctl_user { $nest::user:
-    linger => enabled,
+  # nest::base::systemd already manages the offline linger marker.
+  # Only the running host has logind available for the runtime provider.
+  unless $facts['is_container'] {
+    loginctl_user { $nest::user:
+      linger => enabled,
+    }
   }
 }

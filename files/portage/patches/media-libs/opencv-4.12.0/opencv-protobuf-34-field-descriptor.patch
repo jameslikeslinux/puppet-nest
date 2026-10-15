@@ -1,0 +1,18 @@
+Backport the OpenCV 4.x Caffe importer compatibility fix for Protobuf 34.
+An optional field is neither repeated nor required; preserve that test
+without the removed FieldDescriptor::is_optional() method.
+
+Upstream: https://github.com/opencv/opencv/blob/4.x/modules/dnn/src/caffe/caffe_importer.cpp
+Removal: drop when the selected OpenCV release includes this fix.
+
+--- a/modules/dnn/src/caffe/caffe_importer.cpp
++++ b/modules/dnn/src/caffe/caffe_importer.cpp
+@@ -217,7 +217,7 @@
+ 
+             const google::protobuf::UnknownFieldSet& unknownFields = msgRefl->GetUnknownFields(msg);
+             bool hasData =  fd->is_required() ||
+-                            (fd->is_optional() && msgRefl->HasField(msg, fd)) ||
++                            (!fd->is_repeated() && !fd->is_required() && msgRefl->HasField(msg, fd)) ||
+                             (fd->is_repeated() && msgRefl->FieldSize(msg, fd) > 0) ||
+                             !unknownFields.empty();
+             if (!hasData)
