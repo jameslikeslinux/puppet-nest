@@ -434,6 +434,7 @@ class nest::app::hermes::config {
       mode    => '0700',
       owner   => $nest::user,
       group   => $nest::user,
+      tag     => 'talon_operational_prompt',
       require => File["${profiles_dir}/talon"],
     }
 
@@ -442,6 +443,7 @@ class nest::app::hermes::config {
       mode    => '0700',
       owner   => $nest::user,
       group   => $nest::user,
+      tag     => 'talon_operational_prompt',
       require => File[$talon_plugins_dir],
     }
 
@@ -452,6 +454,7 @@ class nest::app::hermes::config {
         owner   => $nest::user,
         group   => $nest::user,
         source  => "puppet:///modules/nest/app/hermes/talon_operational_prompt_plugin/${plugin_file}",
+        tag     => 'talon_operational_prompt',
         require => File[$talon_prompt_plugin_dir],
       }
     }

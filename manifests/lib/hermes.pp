@@ -990,13 +990,20 @@ define nest::lib::hermes (
     require   => File[$profile_dir],
   }
 
+  # Allow Talon's prompt assets and plugin enablement to converge without
+  # selecting unrelated profiles or gateway restart resources.
+  $managed_config_tags = $profile ? {
+    'talon' => ['hermes_managed_config', 'talon_operational_prompt'],
+    default => ['hermes_managed_config'],
+  }
+
   file { $hermes_managed_config_path:
     ensure  => file,
     mode    => '0600',
     owner   => $user,
     group   => $user,
     content => $managed_config.stdlib::to_yaml,
-    tag     => 'hermes_managed_config',
+    tag     => $managed_config_tags,
     require => File[$profile_dir],
   }
 
@@ -1055,7 +1062,7 @@ define nest::lib::hermes (
     unless      => "${venv_python} ${hermes_config_manager_path} check ${hermes_config_path} ${hermes_managed_config_path}",
     user        => $user,
     environment => ["HOME=/home/${user}"],
-    tag         => 'hermes_managed_config',
+    tag         => $managed_config_tags,
     require     => $configure_require,
   }
 
