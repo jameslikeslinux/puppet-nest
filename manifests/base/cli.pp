@@ -16,6 +16,7 @@ class nest::base::cli {
 
     '/etc/nest/reset-filter.rules':
       content => epp('nest/cli/reset-filter.rules.epp', { 'rules' => $nest::reset_filter_rules }),
+      tag     => 'dns_failover',
     ;
 
     '/etc/nest/reset-test-filter.rules':
