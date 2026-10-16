@@ -1,0 +1,16 @@
+# Atomic replacement of this table only; never flush the shared ruleset.
+add table inet nest_luna
+flush table inet nest_luna
+table inet nest_luna {
+  chain input {
+    type filter hook input priority -10; policy accept;
+    iifname "tailscale0" counter drop
+  }
+  chain forward {
+    type filter hook forward priority -10; policy accept;
+    iifname "tailscale0" ip saddr 100.127.2.74 ip daddr 172.21.2.1 tcp dport 22 counter return
+    iifname "tailscale0" counter drop
+    oifname "tailscale0" ip saddr 172.21.2.1 ip daddr 100.127.2.74 tcp sport 22 ct state established counter return
+    oifname "tailscale0" counter drop
+  }
+}

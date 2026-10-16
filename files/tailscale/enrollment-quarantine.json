@@ -1,0 +1,7 @@
+{
+  "tagOwners": {
+    "tag:luna-gitlab": ["autogroup:admin"]
+  },
+  "grants": [],
+  "ssh": []
+}

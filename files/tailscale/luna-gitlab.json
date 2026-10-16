@@ -1,0 +1,27 @@
+{
+  "tagOwners": {
+    "tag:luna-gitlab": ["autogroup:admin"],
+    "tag:kestrel-gitlab-router": ["autogroup:admin"]
+  },
+  "acls": [],
+  "grants": [
+    {
+      "src": ["tag:luna-gitlab"],
+      "dst": ["172.21.2.1/32"],
+      "ip": ["tcp:22"]
+    }
+  ],
+  "ssh": [],
+  "autoApprovers": {},
+  "tests": [
+    {
+      "src": "tag:luna-gitlab",
+      "accept": ["172.21.2.1:22"],
+      "deny": ["172.21.2.1:443", "172.21.2.1:2222", "172.22.4.3:22", "172.22.4.3:53", "172.22.0.1:22", "172.21.1.2:22", "172.21.0.1:443"]
+    },
+    {
+      "src": "tag:kestrel-gitlab-router",
+      "deny": ["172.21.2.1:22", "172.22.4.3:22"]
+    }
+  ]
+}
