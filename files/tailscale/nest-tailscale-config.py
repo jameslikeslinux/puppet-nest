@@ -20,7 +20,7 @@ EXPECTED = {
 
 def converged():
     result = subprocess.run(
-        ["/usr/bin/tailscale", "debug", "prefs"],
+        ["/usr/sbin/tailscale", "debug", "prefs"],
         check=True, capture_output=True, text=True,
     )
     prefs = json.loads(result.stdout)
@@ -33,7 +33,7 @@ def main():
     if sys.argv[1:]:
         return 2
     subprocess.run([
-        "/usr/bin/tailscale", "set",
+        "/usr/sbin/tailscale", "set",
         "--accept-dns=false", "--accept-routes=false", "--ssh=false",
         "--advertise-exit-node=false", "--exit-node=",
         "--exit-node-allow-lan-access=false", "--snat-subnet-routes=true",
