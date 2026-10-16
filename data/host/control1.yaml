@@ -1,4 +1,7 @@
 ---
+# This host's staged identity uses the new CA; legacy hosts keep their default.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 # Keep control1's journal volatile while its eMMC-backed data pool is failing
 nest::journal: volatile
 
