@@ -44,10 +44,17 @@ plan nest::puppet::run (
     $tags_args = []
   }
 
-  run_script('nest/scripts/run_puppet.sh', $targets, 'Run Puppet', {
-    _env_vars => $build_env + $skip_env + {
-      'PUPPET_EXTRA_ARGS' => shellquote($environment_args + $noop_args + $tags_args),
-    },
-    _run_as   => 'root',
-  })
+  $windows_targets = get_targets('windows')
+  get_targets($targets).each |$target| {
+    $run_as = $target in $windows_targets ? {
+      true    => undef,
+      default => 'root',
+    }
+    run_script('nest/scripts/run_puppet.sh', $target, 'Run Puppet', {
+      _env_vars => $build_env + $skip_env + {
+        'PUPPET_EXTRA_ARGS' => shellquote($environment_args + $noop_args + $tags_args),
+      },
+      _run_as   => $run_as,
+    })
+  }
 }

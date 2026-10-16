@@ -8,6 +8,7 @@
 set -u
 
 restore_launchd_puppet=false
+cygwin=false
 
 restore_launchd() {
   if [ "$restore_launchd_puppet" = true ]; then
@@ -18,6 +19,16 @@ restore_launchd() {
 trap restore_launchd EXIT
 
 case "$(uname -s)" in
+  CYGWIN*)
+    # Use the native agent's supported environment wrapper, not Cygwin Ruby.
+    # The elevated Windows SSH token does not use Unix sudo/root escalation.
+    cygwin=true
+    puppet_bin='/cygdrive/c/Program Files/Puppet Labs/Puppet/bin/puppet.bat'
+    if [ ! -f "$puppet_bin" ]; then
+      echo 'Unable to find native Windows Puppet executable' >&2
+      exit 1
+    fi
+    ;;
   Darwin)
     # Match the managed cron runner; SSH sessions otherwise use US-ASCII,
     # which makes Facter reject non-ASCII Homebrew/application metadata.
@@ -62,6 +73,11 @@ esac
 puppet_extra_args=${PUPPET_EXTRA_ARGS:-}
 
 run_puppet() {
+  if [ "$cygwin" = true ]; then
+    powershell.exe -NoProfile -NonInteractive -Command \
+      "& 'C:/Program Files/Puppet Labs/Puppet/bin/puppet.bat' agent --test ${puppet_extra_args}; exit \$LASTEXITCODE"
+    return $?
+  fi
   # shellcheck disable=SC2086
   "$puppet_bin" agent --test $puppet_extra_args
 }

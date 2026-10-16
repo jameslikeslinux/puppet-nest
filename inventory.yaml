@@ -68,6 +68,11 @@ groups:
           uri: facts.fqdn
 
   - name: 'windows'
+    config:
+      ssh:
+        # Cygwin authenticates the Windows administrator account; SYSTEM owns
+        # the SSH service but is not the remote login identity.
+        user: 'joy'
     targets:
       - _plugin: puppetdb
         query: "inventory[certname] { facts.osfamily = 'windows' }"
