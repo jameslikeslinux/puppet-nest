@@ -226,6 +226,23 @@ class nest::base::systemd {
     ;
   }
 
+  # Directory presence alone cannot enforce volatile storage after tmpfiles runs.
+  file { '/etc/systemd/journald.conf.d':
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+  ->
+  file { '/etc/systemd/journald.conf.d/60-nest-storage.conf':
+    content => "[Journal]\nStorage=${nest::journal}\n",
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    notify  => Service['systemd-journald'],
+  }
+  -> File['/var/log/journal']
+
   case $nest::journal {
     'persistent': {
       file { '/var/log/journal':
