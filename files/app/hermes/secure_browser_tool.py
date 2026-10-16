@@ -29,6 +29,7 @@ NAMESPACE = os.environ.get("SECURE_BROWSER_NAMESPACE", "ai")
 WORKLOAD = os.environ.get("SECURE_BROWSER_WORKLOAD", "deployment/firefox")
 CONTAINER = os.environ.get("SECURE_BROWSER_CONTAINER", "kasm-firefox")
 BRIDGE_PATH = os.environ.get("SECURE_BROWSER_UI_BRIDGE", "/opt/nest/firefox/bin/firefox-ui-bridge.py")
+BRIDGE_SOURCE = Path(__file__).with_name("firefox_ui_bridge.py")
 CONTROL_MODE = os.environ.get("SECURE_BROWSER_CONTROL_MODE", "firefox-ui-v1")
 PUBLIC_URL = os.environ.get("SECURE_BROWSER_PUBLIC_URL", "https://browser.eyrie/")
 BRIDGE_TIMEOUT = int(os.environ.get("SECURE_BROWSER_UI_TIMEOUT", "60"))
@@ -71,14 +72,28 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
     missing_kubeconfigs = [path for path in kubeconfig.split(os.pathsep) if path and not Path(path).is_file()]
     if missing_kubeconfigs:
         raise RuntimeError(f"Firefox UI bridge configuration invalid: KUBECONFIG file does not exist: {missing_kubeconfigs[0]}")
+    # Puppet installs the same authoritative source used by the Firefox image.
+    # Execute this overlay in the existing pod, preserving the shared browser
+    # process and its workflow identities. No new browser API or listener.
+    try:
+        source = BRIDGE_SOURCE.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise RuntimeError("Puppet-managed Firefox bridge overlay is unavailable; refusing image fallback") from exc
+    bootstrap = (
+        "import io,json,sys; envelope=json.load(sys.stdin); "
+        "sys.argv=[sys.argv[1],envelope['command']]; "
+        "sys.stdin=io.StringIO(json.dumps(envelope['payload'])); "
+        "exec(compile(envelope['source'],sys.argv[0],'exec'),"
+        "{'__name__':'__main__','__file__':sys.argv[0]})"
+    )
     argv = [
         "kubectl", "-n", NAMESPACE, "exec", "-i", WORKLOAD, "-c", CONTAINER,
-        "--", "env", "DISPLAY=:1", BRIDGE_PATH, command,
+        "--", "env", "DISPLAY=:1", "python3", "-c", bootstrap, BRIDGE_PATH,
     ]
     try:
         result = subprocess.run(
             argv,
-            input=_json(payload),
+            input=_json({"source": source, "command": command, "payload": payload}),
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

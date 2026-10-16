@@ -242,6 +242,18 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_tool.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_tool.py',
+    tag     => 'hermes_firefox_bridge',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    require => [Vcsrepo[$source_dir], File["${source_dir}/tools/firefox_ui_bridge.py"]],
+  }
+
+  # Bridge-only updates must not restart the owner-shared Firefox process.
+  file { "${source_dir}/tools/firefox_ui_bridge.py":
+    ensure  => file,
+    source  => 'puppet:///modules/nest/firefox-browser/firefox-ui-bridge.py',
+    tag     => 'hermes_firefox_bridge',
     mode    => '0644',
     owner   => 'root',
     group   => 'root',

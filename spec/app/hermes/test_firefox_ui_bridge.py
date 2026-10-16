@@ -184,8 +184,8 @@ def test_navigation_refuses_when_tab_click_did_not_select_workflow() -> None:
 
 def test_page_tab_locator_survives_title_change() -> None:
     module = load_bridge()
-    before = module._identity("page tab", "New Tab", (0, 22, 1, 4), 60)
-    after = module._identity("page tab", "MSC Industrial Supply", (0, 22, 1, 4), 60)
+    before = module._identity("page tab", "New Tab", (0, 22, 1, 4), 60, browser_tab=True)
+    after = module._identity("page tab", "MSC Industrial Supply", (0, 22, 1, 4), 60, browser_tab=True)
     control = module._identity("link", "Learn more", (0, 25, 4), 60)
     changed_control = module._identity("link", "Buy now", (0, 25, 4), 60)
     assert before == after
