@@ -47,10 +47,11 @@ class nest::tool::bolt (
 
     if $ca {
       $ca_content = $ca
-    } elsif $settings::ssldir == '/etc/puppetlabs/puppet/ssl' {
-      $ca_content = file('/etc/puppetlabs/puppet/ssl/certs/ca.pem')
     } else {
-      $ca_content = ''
+      # Inventory still uses legacy PuppetDB and its legacy Bolt client identity.
+      # Agent CA migration must not change this independent trust relationship.
+      # Retire this bundle when the inventory endpoint and client migrate together.
+      $ca_content = file('nest/puppet/legacy-ca.pem')
     }
 
     $config_group = $facts['os']['family'] ? {
