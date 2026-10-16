@@ -99,9 +99,30 @@ class nest::service::libvirt {
   }
   ->
   firewalld_zone { 'libvirt':
+    # libvirt owns bridge membership, including runtime assignments restored
+    # after firewalld reloads. Do not reconcile those interfaces to an empty list.
+    interfaces       => undef,
     purge_rich_rules => true,
     purge_services   => true,
     purge_ports      => true,
+  }
+
+  # Preserve libvirt's host-input boundary without changing its forwarding
+  # target. TFTP is not enabled in Nest's dnsmasq builds; do not introduce the
+  # packaged TFTP helper merely to serve DHCP/DNS on NAT networks.
+  ['dhcp', 'dhcpv6', 'dns', 'ssh'].each |$service| {
+    firewalld_service { "libvirt-${service}":
+      ensure  => present,
+      service => $service,
+      zone    => 'libvirt',
+      require => Firewalld_rich_rule['libvirt-reject-other-host-input'],
+    }
+  }
+
+  firewalld_rich_rule { 'libvirt-reject-other-host-input':
+    ensure   => present,
+    zone     => 'libvirt',
+    raw_rule => 'rule priority="32767" reject',
   }
 
   if $nest::fileserver {
