@@ -115,6 +115,7 @@ class nest::service::libvirt {
       ensure  => present,
       service => $service,
       zone    => 'libvirt',
+      require => Firewalld_rich_rule['libvirt-reject-other-host-input'],
     }
   }
 
