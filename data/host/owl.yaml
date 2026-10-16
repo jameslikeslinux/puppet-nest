@@ -12,10 +12,13 @@ nest::classes:
 nest::bird_role: worker
 nest::distcc_server: true
 nest::dvorak: true
-# Preserve the live controller DNS path when resetting from an older Stage 3 root.
+# Preserve controller connectivity and the native worker runtime across resets.
+# Puppet owns runtime upgrades; an older image must not replace the dispatcher
+# which resumes the rollout. The venv uses the image's supported Python 3.13.
 nest::reset_filter_rules:
   - '- /etc/systemd/network/10-owl.network'
   - '- /etc/systemd/resolved.conf.d/60-nest-private.conf'
+  - '- /opt/hermes-agent/'
 nest::text_scaling_factor: 1.5
 
 # Bound only cross-compiler provisioning, not runner/build parallelism.
