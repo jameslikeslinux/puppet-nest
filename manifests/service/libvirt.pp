@@ -41,6 +41,50 @@ class nest::service::libvirt {
     require => Nest::Lib::Package['app-emulation/libvirt'],
   }
 
+  # firewalld must own its D-Bus name before libvirt chooses bridge zones.
+  # Type=simple only waits for exec, not for the firewall API to become ready.
+  file { [
+    '/etc/systemd/system/firewalld.service.d',
+    '/etc/systemd/system/libvirtd.service.d',
+  ]:
+    ensure => directory,
+    mode   => '0755',
+    owner  => 'root',
+    group  => 'root',
+  }
+
+  $firewalld_readiness_conf = @(EOT)
+    [Service]
+    Type=dbus
+    BusName=org.fedoraproject.FirewallD1
+    | EOT
+
+  file { '/etc/systemd/system/firewalld.service.d/10-libvirt-readiness.conf':
+    ensure  => file,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $firewalld_readiness_conf,
+    require => File['/etc/systemd/system/firewalld.service.d'],
+    notify  => Nest::Lib::Systemd_reload['libvirt'],
+  }
+
+  $libvirtd_firewalld_conf = @(EOT)
+    [Unit]
+    Wants=firewalld.service
+    After=firewalld.service
+    | EOT
+
+  file { '/etc/systemd/system/libvirtd.service.d/10-firewalld.conf':
+    ensure  => file,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => $libvirtd_firewalld_conf,
+    require => File['/etc/systemd/system/libvirtd.service.d'],
+    notify  => Nest::Lib::Systemd_reload['libvirt'],
+  }
+
   if $nest::fileserver or $nest::router {
     file { '/etc/systemd/system/libvirt-guests.service.d':
       ensure => directory,
