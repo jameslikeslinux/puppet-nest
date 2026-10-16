@@ -96,9 +96,10 @@ class nest::host::kestrel::tailscale {
 
   # Set only reviewed preferences; never log in, enroll, accept DNS/routes,
   # enable SSH/exit-node service, or persist credentials through Puppet.
+  # Tags are requested during owner enrollment, not through `tailscale set`.
   exec { 'luna-gitlab-tailscale-preferences':
-    command => '/usr/local/sbin/nest-tailscale-config',
-    unless  => '/usr/local/sbin/nest-tailscale-config --check',
+    command => '/usr/bin/python3 /usr/local/sbin/nest-tailscale-config',
+    unless  => '/usr/bin/test -x /usr/local/sbin/nest-tailscale-config && /usr/local/sbin/nest-tailscale-config --check',
     require => [Service['tailscaled'], File['/usr/local/sbin/nest-tailscale-config']],
   }
 }
