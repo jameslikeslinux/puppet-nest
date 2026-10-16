@@ -224,6 +224,14 @@ class nest::base::openvpn {
       $openvpn_config           = epp('nest/openvpn/config.epp')
       $openvpn_service_name     = 'openvpn'
       $openvpn_service_provider = 'homebrew'
+
+      file { '/opt/homebrew/var/log':
+        ensure => directory,
+        mode   => '0755',
+        owner  => $nest::user,
+        group  => 'admin',
+        notify => Service[$openvpn_service_name],
+      }
     }
 
     'windows': {
