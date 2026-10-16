@@ -1,3 +1,6 @@
 ---
+# This host's staged identity uses the new CA; legacy hosts keep their default.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 nest::dtb_file: 'rockchip/rk3588s-rock-5a.dtb'
 nest::uboot_defconfig: 'rock5a-rk3588s_defconfig'
