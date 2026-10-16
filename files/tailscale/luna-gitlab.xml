@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policy target="DROP" priority="-100">
+  <short>Luna GitLab SSH only</short>
+  <ingress-zone name="luna"/>
+  <egress-zone name="external"/>
+  <rule family="ipv4">
+    <source address="100.127.2.74/32"/>
+    <destination address="172.21.2.1/32"/>
+    <port port="22" protocol="tcp"/>
+    <accept/>
+  </rule>
+</policy>

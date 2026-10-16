@@ -1,4 +1,6 @@
 class nest::host::kestrel {
+  contain nest::host::kestrel::tailscale
+
   $cloudns_dynamic_url = Sensitive(lookup('nest::host::kestrel::cloudns_dynamic_url', String[1]))
   # Host images
   nest::lib::virtual_host { 'nest':
