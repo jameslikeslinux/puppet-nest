@@ -39,9 +39,13 @@ The table is replaced atomically without flushing other tables. The guard
 is required before tailscaled starts and remains installed when it stops.
 
 Firewalld places `tailscale0` in a dedicated DROP zone. The `luna-gitlab`
-policy allows only the same source/destination/port towards the external
-zone. Existing external-zone masquerade supplies subnet SNAT; Tailscale's
-own netfilter management is disabled to avoid a competing firewall writer.
+policy allows only the same source/destination/port towards the internal
+zone: firewalld classifies the destination into its source-defined
+`172.16.0.0/12` zone before considering the external `br0` interface.
+A source/destination-confined policy masquerade rule supplies subnet SNAT;
+external-zone masquerade does not run on this zone pair. The independent
+guard still limits that traffic to TCP 22. Tailscale's own netfilter
+management is disabled to avoid a competing firewall writer.
 The early guard runs before SNAT and prevents trusted private-source zones
 or the router's existing trust from broadening access. This is transport
 permission only: SNAT never substitutes for GitLab SSH authentication.
