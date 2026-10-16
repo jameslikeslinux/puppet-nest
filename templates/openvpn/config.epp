@@ -107,6 +107,10 @@ ifconfig-pool-persist <%= $ipp_file %>
 <%- unless $server { -%>
 client
 nobind
+  <%- if $facts['os']['family'] == 'Darwin' { -%>
+remote-cert-tls server
+verify-x509-name kestrel name
+  <%- } -%>
 connect-retry 2 30
 connect-timeout 2
 data-ciphers CHACHA20-POLY1305
