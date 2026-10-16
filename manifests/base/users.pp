@@ -121,13 +121,18 @@ class nest::base::users {
   $homes.each |$user, $dir| {
     case $facts['os']['family'] {
       'windows': {
+        # Use the same Cygwin identity switch as the native vcsrepo Git shim.
+        # Calling /usr/bin/git directly bypasses it under the SYSTEM service.
         $exec_user          = undef
         $home_dir           = "C:/tools/cygwin${dir}"
-        $refresh_cmd        = "C:/tools/cygwin/bin/bash.exe -c 'source /etc/profile && ${home_dir}/.refresh'"
-        $test_cmd           = "C:/tools/cygwin/bin/test.exe -x ${home_dir}/.refresh"
-        $remote_set_command = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "source /etc/profile && /usr/bin/git -C ${home_dir} remote set-url origin ${dotfiles_git_source}")
-        $remote_onlyif      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "/usr/bin/test -d ${home_dir}/.git")
-        $remote_unless      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "/usr/bin/git -C ${home_dir} remote get-url origin | /usr/bin/grep -Fx ${dotfiles_git_source}")
+        # .refresh itself switches to Joy before running refresh-dotfiles.
+        $refresh_cmd        = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "source /etc/profile && HOME='${dir}' '${dir}/.refresh'")
+        $test_cmd           = shellquote('C:/tools/cygwin/bin/test.exe', '-x', "${home_dir}/.refresh")
+        $remote_set_command = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', shellquote('/usr/local/bin/git', '-C', $dir, 'remote', 'set-url', 'origin', $dotfiles_git_source))
+        $remote_onlyif      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', shellquote('/usr/bin/test', '-d', "${dir}/.git"))
+        $remote_unless      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "${shellquote('/usr/local/bin/git', '-C', $dir, 'remote', 'get-url', 'origin')} | /usr/bin/grep -Fx '${dotfiles_git_source}'")
+
+        Class['nest::base::git'] -> Exec["set-dotfiles-remote-${home_dir}"]
       }
 
       default: {
