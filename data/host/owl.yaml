@@ -21,6 +21,9 @@ nest::reset_filter_rules:
   - '- /opt/hermes-agent/'
 nest::text_scaling_factor: 1.5
 
+# This host's staged identity uses the new CA; legacy hosts keep their default.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 # Bound only cross-compiler provisioning, not runner/build parallelism.
 nest::lib::toolchains::env:
   MAKEOPTS: '-j4 -l4'
