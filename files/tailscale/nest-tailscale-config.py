@@ -8,10 +8,11 @@ EXPECTED = {
     "RouteAll": False,
     "CorpDNS": False,
     "RunSSH": False,
+    "RunWebClient": False,
     "NoSNAT": False,
     "NetfilterMode": 0,
     "AdvertiseRoutes": ["172.21.2.1/32"],
-    "AdvertiseTags": ["tag:kestrel-gitlab-router"],
+
     "ExitNodeID": "",
     "ExitNodeIP": "",
     "ExitNodeAllowLANAccess": False,
@@ -35,10 +36,11 @@ def main():
     subprocess.run([
         "/usr/sbin/tailscale", "set",
         "--accept-dns=false", "--accept-routes=false", "--ssh=false",
+        "--webclient=false",
         "--advertise-exit-node=false", "--exit-node=",
         "--exit-node-allow-lan-access=false", "--snat-subnet-routes=true",
         "--netfilter-mode=off", "--advertise-routes=172.21.2.1/32",
-        "--advertise-tags=tag:kestrel-gitlab-router",
+
     ], check=True, capture_output=True, text=True)
     return 0 if converged() else 1
 
