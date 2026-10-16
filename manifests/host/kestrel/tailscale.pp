@@ -2,9 +2,14 @@
 class nest::host::kestrel::tailscale {
   tag('luna_gitlab')
 
-  nest::lib::package { 'net-vpn/tailscale':
-    ensure   => '1.102.2',
-    unstable => '~riscv',
+  # Keep global --noop effective: the build helper explicitly overrides it.
+  package_accept_keywords { 'net-vpn/tailscale':
+    accept_keywords => '~riscv',
+    before          => Package['net-vpn/tailscale'],
+  }
+
+  package { 'net-vpn/tailscale':
+    ensure => '1.102.2',
   }
 
   # An independent early guard prevents trusted source zones or a later
