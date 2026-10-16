@@ -78,6 +78,12 @@ class TabAncestryTests(unittest.TestCase):
     def test_multiple_real_windows_refuse_input(self):
         self.check_ambiguous(2, 1)
 
+    def test_unidentified_real_tab_cannot_disappear_from_ambiguity_check(self):
+        module, _, browser_tabs, _ = desktop(selected_tabs=2)
+        browser_tabs[0].path = ""
+        with self.assertRaisesRegex(RuntimeError, "chrome tab identity"):
+            module._snapshot()
+
     def test_workflow_uses_chrome_identity_not_same_named_page_tab(self):
         module, _, browser_tabs, page_tabs = desktop()
         page_tabs[0].name = browser_tabs[0].name

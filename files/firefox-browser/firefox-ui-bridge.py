@@ -340,11 +340,14 @@ def _snapshot() -> dict[str, Any]:
     address = ""
     root = _firefox_root()
     roles: dict[tuple[int, ...], str] = {}
+    chrome_tab_count = 0
     for node, path in _walk(root):
         with contextlib.suppress(Exception):
             role = node.get_role_name() or "unknown"
             roles[path] = role
             browser_tab = _is_browser_tab(path, roles)
+            if browser_tab:
+                chrome_tab_count += 1
             raw_name = node.get_name() or ""
             states = _state_names(node)
             extent = _extent(node)
@@ -376,6 +379,8 @@ def _snapshot() -> dict[str, Any]:
             include = include or bool(prose_name and "visible" in states)
             if include and len(nodes) < MAX_NODES:
                 nodes.append(_node_record(node, path, generation, observed_name, browser_tab=browser_tab))
+    if len(tabs) != chrome_tab_count:
+        raise RuntimeError("Firefox chrome tab identity is unavailable; refusing ambiguous snapshot")
     window_id = _firefox_window_id()
     title = _run(["xdotool", "getwindowname", window_id]).stdout.decode(errors="replace").strip()[:300]
     return {
