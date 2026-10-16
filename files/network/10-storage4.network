@@ -1,0 +1,16 @@
+[Match]
+Host=storage4
+Name=bond0
+
+[Network]
+DHCP=yes
+DNSSEC=no
+
+[DHCP]
+RouteMetric=10
+
+[DHCPv4]
+UseDomains=yes
+# Keep the reserved client identity independent of the active bond slave
+ClientIdentifier=duid
+IAID=4279938937

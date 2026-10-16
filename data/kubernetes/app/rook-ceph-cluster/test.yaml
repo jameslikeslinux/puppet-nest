@@ -31,6 +31,7 @@ resources:
 
 values:
   cephClusterSpec:
+    dataDirHostPath: /var/lib/rook-test
     dashboard:
       prometheusEndpoint: "http://ceph-monitoring-%{nest::kubernetes::namespace}-prometheus:9090"
     mon:
