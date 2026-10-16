@@ -127,7 +127,7 @@ class nest::base::users {
         $test_cmd           = "C:/tools/cygwin/bin/test.exe -x ${home_dir}/.refresh"
         $remote_set_command = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "source /etc/profile && /usr/bin/git -C ${home_dir} remote set-url origin ${dotfiles_git_source}")
         $remote_onlyif      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "/usr/bin/test -d ${home_dir}/.git")
-        $remote_unless      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "/usr/bin/test \"$(/usr/bin/git -C ${home_dir} remote get-url origin)\" = '${dotfiles_git_source}'")
+        $remote_unless      = shellquote('C:/tools/cygwin/bin/bash.exe', '-c', "/usr/bin/git -C ${home_dir} remote get-url origin | /usr/bin/grep -Fx ${dotfiles_git_source}")
       }
 
       default: {
