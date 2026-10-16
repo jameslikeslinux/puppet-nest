@@ -17,6 +17,7 @@ class nest::base::git {
       $git_wrapper_content = @("END_GIT_WRAPPER")
         #!/bin/ruby
         Process::Sys.setuid('${nest::user}')
+        ENV['HOME'] = '/home/${nest::user}'
         exec '/bin/git', *ARGV
         | END_GIT_WRAPPER
 
