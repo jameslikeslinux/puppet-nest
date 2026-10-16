@@ -201,17 +201,21 @@ class nest::base::ssh {
     purge => true,
   }
 
-  # Keep the host key set restricted to the managed keys above.
-  file { [
-    "${sshdir}/ssh_host_dsa_key",
-    "${sshdir}/ssh_host_dsa_key.pub",
-    "${sshdir}/ssh_host_ecdsa_key",
-    "${sshdir}/ssh_host_ecdsa_key.pub",
-    "${sshdir}/ssh_host_ed25519_key.pub",
-    "${sshdir}/ssh_host_rsa_key",
-    "${sshdir}/ssh_host_rsa_key.pub",
-  ]:
-    ensure => absent,
-    notify => Service[$service_name],
+  # Darwin's sshd-keygen-wrapper recreates the system key set at launch.
+  # The explicit HostKey above selects the managed identity without fighting
+  # that OS lifecycle or restarting Remote Login on every Puppet run.
+  if $facts['os']['family'] != 'Darwin' {
+    file { [
+      "${sshdir}/ssh_host_dsa_key",
+      "${sshdir}/ssh_host_dsa_key.pub",
+      "${sshdir}/ssh_host_ecdsa_key",
+      "${sshdir}/ssh_host_ecdsa_key.pub",
+      "${sshdir}/ssh_host_ed25519_key.pub",
+      "${sshdir}/ssh_host_rsa_key",
+      "${sshdir}/ssh_host_rsa_key.pub",
+    ]:
+      ensure => absent,
+      notify => Service[$service_name],
+    }
   }
 }
