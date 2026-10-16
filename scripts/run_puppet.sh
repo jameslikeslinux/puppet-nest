@@ -19,6 +19,10 @@ trap restore_launchd EXIT
 
 case "$(uname -s)" in
   Darwin)
+    # Match the managed cron runner; SSH sessions otherwise use US-ASCII,
+    # which makes Facter reject non-ASCII Homebrew/application metadata.
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
     puppet_bin=/opt/puppetlabs/bin/puppet
 
     if [ ! -x "$puppet_bin" ]; then
