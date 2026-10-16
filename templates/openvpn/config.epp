@@ -107,9 +107,11 @@ ifconfig-pool-persist <%= $ipp_file %>
 <%- unless $server { -%>
 client
 nobind
-  <%- if $facts['os']['family'] == 'Darwin' { -%>
+  <%- if $facts['os']['family'] in ['Darwin', 'windows'] { -%>
 remote-cert-tls server
 verify-x509-name kestrel name
+  <%- } -%>
+  <%- if $facts['os']['family'] == 'Darwin' { -%>
 log-append /opt/homebrew/var/log/openvpn.log
   <%- } -%>
 connect-retry 2 30

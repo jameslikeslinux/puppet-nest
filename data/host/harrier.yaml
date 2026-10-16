@@ -1,3 +1,6 @@
 ---
 nest::gui_scaling_factor: 1.75 # matches Windows scaling
 nest::text_scaling_factor: 1.6 # ideal
+# Retain VPN compatibility with Kestrel independently of Puppet enrollment.
+nest::openvpn_ssl_directory: 'C:/ProgramData/OpenVPN/ssl'
+puppet::agent_server_hostname: 'puppet.eyrie'
