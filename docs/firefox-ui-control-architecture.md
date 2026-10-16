@@ -8,16 +8,16 @@ accessibility readback, and visible-window screenshots. The browser process has
 no WebDriver, Marionette, BiDi, CDP/Remote Debugging flags, automation extension,
 injected navigator changes, or hidden parallel context.
 
-This describes the deployed v1 mode. The opt-in, source-only
+This describes the original v1 mode. The explicitly configured
 `firefox-bidi-ui-v2` mode keeps the same desktop/profile and adds private BiDi
 for bounded page reads plus loopback Marionette/geckodriver for native CSS
-element interactions. It is not enabled by the default deployment data.
+element interactions. Current deployment data explicitly selects v2.
 Geckodriver connects to the existing Firefox and is torn down after an action;
 it cannot launch or replace the persistent profile. The bridge requires a
 unique selected tab, resolves a native element handle, reserves the action key
 durably before sending input, and refuses uncertain retries. WebDriver Element
 Click rejects intercepted elements instead of clicking a previously calculated
-X11 point. This is a source capability, not a deployment or purchasing gate.
+X11 point. This is a control capability, not a purchasing gate.
 
 Joy's direction to Star for a workflow is the authorization boundary. The
 platform does not add per-click, cart, checkout, or purchase approval prompts.
@@ -64,6 +64,14 @@ itself isolate causality.
 - `files/app/hermes/secure_browser_tool.py` is the Hermes adapter. It invokes the
   bridge with `kubectl exec`, bounds results, emits `firefox-ui-v1`, and makes
   unsupported DOM behavior explicit.
+- Puppet also installs the authoritative bridge source alongside the adapter as
+  `tools/firefox_ui_bridge.py`. The adapter sends that source and its bounded
+  command/payload through stdin to a short-lived Python process in the existing
+  Firefox pod. There is no remote script write, new listener or browser API.
+  Missing overlay source fails closed, with no fallback to an older image bridge.
+  Bridge-only fixes can therefore be applied with the `hermes_firefox_bridge`
+  Puppet tag without replacing the pod, browser process, workflow identities or
+  authenticated session. The image still receives the same source at build time.
 - `files/app/hermes/secure_browser_legacy_support.py` temporarily retains only
   the separately exposed `retail_order_*` and `consumable_*` state tools. Its
   registry filter prevents the retired CDP browser handlers from registering.
@@ -98,6 +106,15 @@ closing a Joy-owned tab. Expired confidently agent-created tabs close once.
 Claimed Joy-owned blank tabs are released without closing. Keep-open leases are
 bounded, and the hard cap refuses new tabs rather than deleting unknown tabs.
 Firefox Sync remote-tab history is not read and is not counted as local tabs.
+
+Browser tabs are recognized by AT-SPI ancestry: application, top-level frame,
+chrome toolbar, tab list, tab. Document/internal-frame descendants cannot be
+browser tabs even when they contain ARIA toolbars and tablists. Those page tabs
+remain ordinary actionable controls, with name-sensitive stale locators. Only
+chrome-tab locators survive navigation title changes; workflow ownership still
+requires the process-scoped accessibility object identity. Multiple selected
+chrome tabs fail closed. X11 focus likewise requires exactly one visible Firefox
+Navigator window, never the first or largest window.
 
 An `action_key` gives at-most-once delivery across acknowledged retries. It is
 persisted even if post-click readback fails, preventing a blind second click.

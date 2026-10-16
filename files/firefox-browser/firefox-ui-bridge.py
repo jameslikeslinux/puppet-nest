@@ -106,15 +106,9 @@ def _firefox_window_id() -> str:
     ids = result.stdout.decode().split()
     if not ids:
         raise RuntimeError("no visible Firefox Navigator window")
-    best = ""
-    best_area = -1
-    for window_id in ids:
-        geometry = _run(["xdotool", "getwindowgeometry", "--shell", window_id]).stdout.decode()
-        values = dict(line.split("=", 1) for line in geometry.splitlines() if "=" in line)
-        area = int(values.get("WIDTH", "0")) * int(values.get("HEIGHT", "0"))
-        if area > best_area:
-            best, best_area = window_id, area
-    return best
+    if len(ids) != 1:
+        raise RuntimeError("visible Firefox window identity is ambiguous; refusing input")
+    return ids[0]
 
 
 def _browser_pid() -> int:
@@ -146,12 +140,11 @@ def _redact_url(value: str) -> str:
     return urlunsplit((parsed.scheme, host + port, (parsed.path or "/")[:300], "", ""))
 
 
-def _identity(role: str, name: str, path: tuple[int, ...], generation: int) -> str:
-    # A page-tab accessible's name is the page title, so it changes after
-    # every successful navigation. Its position is the durable identity while
-    # the tab exists; other controls retain name hashing to reject stale
-    # locators when content at an accessibility path changes.
-    identity_name = "" if role == "page tab" else name
+def _identity(role: str, name: str, path: tuple[int, ...], generation: int, *, browser_tab: bool = False) -> str:
+    # Only structurally verified chrome tabs survive title changes. ARIA page
+    # tabs retain name hashing like other controls, rejecting stale locators.
+    # Ownership separately requires the process-scoped AT-SPI object identity.
+    identity_name = "" if browser_tab else name
     digest = hashlib.sha256(f"{role}\0{identity_name}".encode()).hexdigest()[:12]
     encoded_path = ".".join(str(index) for index in path)
     return f"ax:{generation}:{encoded_path}:{digest}"
@@ -287,7 +280,7 @@ def _walk(root: Any) -> Iterable[tuple[Any, tuple[int, ...]]]:
                     stack.append((child, path + (index,)))
 
 
-def _node_record(node: Any, path: tuple[int, ...], generation: int, observed_name: str | None = None) -> dict[str, Any]:
+def _node_record(node: Any, path: tuple[int, ...], generation: int, observed_name: str | None = None, *, browser_tab: bool = False) -> dict[str, Any]:
     role = node.get_role_name() or "unknown"
     raw_name = node.get_name() or ""
     display_name = raw_name if observed_name is None else observed_name
@@ -304,7 +297,7 @@ def _node_record(node: Any, path: tuple[int, ...], generation: int, observed_nam
         "unlabelled": not bool(safe_name),
         "states": states,
         "control_id": _control_id(role, path, generation),
-        "locator": _identity(role, raw_name, path, generation),
+        "locator": _identity(role, raw_name, path, generation, browser_tab=browser_tab),
     }
     safe_description = "" if role in PROSE_ROLES else _safe_name(role, description)
     if safe_description:
@@ -327,24 +320,40 @@ def _tab_identity(node: Any, generation: int) -> str:
     return hashlib.sha256(f"{generation}\0{bus_name}\0{path}".encode()).hexdigest()
 
 
+def _is_browser_tab(path: tuple[int, ...], roles: dict[tuple[int, ...], str]) -> bool:
+    """Recognize chrome ancestry, never page-supplied titles or ARIA labels."""
+    ancestors = [roles.get(path[:depth], "unknown") for depth in range(len(path))]
+    return (
+        roles.get(path) == "page tab"
+        and len(ancestors) >= 4
+        and ancestors[:2] == ["application", "frame"]
+        and ancestors[-1] == "page tab list"
+        and "tool bar" in ancestors[2:-1]
+        and not any(role in {"document web", "document frame", "internal frame", "unknown"} for role in ancestors)
+    )
+
+
 def _snapshot() -> dict[str, Any]:
     generation = _browser_pid()
     nodes: list[dict[str, Any]] = []
     tabs: list[dict[str, Any]] = []
     address = ""
     root = _firefox_root()
+    roles: dict[tuple[int, ...], str] = {}
     for node, path in _walk(root):
         with contextlib.suppress(Exception):
             role = node.get_role_name() or "unknown"
+            roles[path] = role
+            browser_tab = _is_browser_tab(path, roles)
             raw_name = node.get_name() or ""
             states = _state_names(node)
             extent = _extent(node)
-            if role == "page tab":
+            if browser_tab:
                 tabs.append({
                     "tab_identity": _tab_identity(node, generation),
                     "name": _safe_name(role, raw_name),
                     "selected": "selected" in states,
-                    "locator": _identity(role, raw_name, path, generation),
+                    "locator": _identity(role, raw_name, path, generation, browser_tab=True),
                 })
             if role in {"entry", "text"} and any(term in raw_name.lower() for term in ("address", "search with", "enter address")):
                 candidate = _text_content(node)
@@ -366,7 +375,7 @@ def _snapshot() -> dict[str, Any]:
             )
             include = include or bool(prose_name and "visible" in states)
             if include and len(nodes) < MAX_NODES:
-                nodes.append(_node_record(node, path, generation, observed_name))
+                nodes.append(_node_record(node, path, generation, observed_name, browser_tab=browser_tab))
     window_id = _firefox_window_id()
     title = _run(["xdotool", "getwindowname", window_id]).stdout.decode(errors="replace").strip()[:300]
     return {
@@ -617,13 +626,17 @@ def _resolve_locator(locator: str) -> tuple[Any, dict[str, int] | None]:
         raise ValueError("stale accessibility locator: Firefox generation changed")
     path = tuple(int(item) for item in match.group(2).split(".") if item != "")
     node = _firefox_root()
+    roles: dict[tuple[int, ...], str] = {(): node.get_role_name() or "unknown"}
+    current_path: tuple[int, ...] = ()
     for index in path:
         node = node.get_child_at_index(index)
         if node is None:
             raise ValueError("stale accessibility locator: node no longer exists")
+        current_path += (index,)
+        roles[current_path] = node.get_role_name() or "unknown"
     role = node.get_role_name() or "unknown"
     name = node.get_name() or ""
-    expected = _identity(role, name, path, generation).rsplit(":", 1)[1]
+    expected = _identity(role, name, path, generation, browser_tab=_is_browser_tab(path, roles)).rsplit(":", 1)[1]
     if expected != match.group(3):
         raise ValueError("stale accessibility locator: control identity changed")
     return node, _extent(node)
