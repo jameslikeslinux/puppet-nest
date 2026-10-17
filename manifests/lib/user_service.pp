@@ -39,5 +39,29 @@ define nest::lib::user_service (
       unit   => $unit,
       user   => $user,
     }
+
+    # Upstream wraps queries in systemd-run. Expected nonzero probe results
+    # then leave failed transient units in the user's manager on every run.
+    # Query the same user bus directly; retain upstream service actions.
+    $query = ['systemctl', '--user', '--machine', "${user}@.host"]
+    if $ensure == 'running' {
+      Exec <| title == "Start user service ${unit} for user ${user}" |> {
+        unless => [$query + ['is-active', $unit]],
+      }
+    } else {
+      Exec <| title == "Stop user service ${unit} for user ${user}" |> {
+        onlyif => [$query + ['is-active', $unit]],
+      }
+    }
+
+    if $enable {
+      Exec <| title == "Enable user service ${unit} for user ${user}" |> {
+        unless => [$query + ['is-enabled', $unit]],
+      }
+    } else {
+      Exec <| title == "Disable user service ${unit} for user ${user}" |> {
+        onlyif => [$query + ['is-enabled', $unit]],
+      }
+    }
   }
 }
