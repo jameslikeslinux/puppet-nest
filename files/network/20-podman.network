@@ -2,5 +2,9 @@
 Name=podman*
 Kind=bridge
 
+[Link]
+# Application-owned bridges must not gate the host's network-online target.
+RequiredForOnline=no
+
 [Network]
 KeepConfiguration=static
