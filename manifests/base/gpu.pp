@@ -1,5 +1,14 @@
 class nest::base::gpu {
-  $video_cards = ($facts['portage_video_cards'].split(' ') + $nest::use.filter |$use_flag| {
+  $portage_video_cards = $facts['portage_video_cards'] ? {
+    undef   => [],
+    default => $facts['portage_video_cards'].split(' '),
+  }
+  $portage_use = $facts['portage_use'] ? {
+    undef   => [],
+    default => $facts['portage_use'].split(' '),
+  }
+
+  $video_cards = ($portage_video_cards + $nest::use.filter |$use_flag| {
     $use_flag =~ /^video_cards_/
   }.map |$use_flag| {
     regsubst($use_flag, '^video_cards_', '')
@@ -27,7 +36,7 @@ class nest::base::gpu {
     }
   }
 
-  if 'vulkan' in [$facts['portage_use'].split(' '), $nest::use].flatten {
+  if 'vulkan' in [$portage_use, $nest::use].flatten {
     nest::lib::package { [
       'dev-util/vulkan-tools',
       'media-libs/mesa',

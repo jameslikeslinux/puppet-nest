@@ -9,7 +9,16 @@ class nest::gui::media {
     }
   }
 
-  $vaapi_enabled = 'vaapi' in $facts['portage_use'].split(' ')
+  $portage_use = $facts['portage_use'] ? {
+    undef   => [],
+    default => $facts['portage_use'].split(' '),
+  }
+  $portage_video_cards = $facts['portage_video_cards'] ? {
+    undef   => [],
+    default => $facts['portage_video_cards'].split(' '),
+  }
+
+  $vaapi_enabled = 'vaapi' in $portage_use
   $libva_utils_ensure = $vaapi_enabled ? {
     true    => installed,
     default => absent,
@@ -19,7 +28,7 @@ class nest::gui::media {
     ensure => $libva_utils_ensure,
   }
 
-  $intel_enabled = 'intel' in $facts['portage_video_cards'].split(' ')
+  $intel_enabled = 'intel' in $portage_video_cards
   $libva_intel_driver_ensure = ($vaapi_enabled and $intel_enabled) ? {
     true    => installed,
     default => absent,
