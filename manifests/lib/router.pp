@@ -5,7 +5,8 @@ class nest::lib::router {
     addn-hosts=/etc/hosts.nest
     expand-hosts
     domain=nest
-    dhcp-range=172.22.4.100,172.22.4.254,24h
+    dhcp-range=set:nest,172.22.4.100,172.22.4.254,24h
+    dhcp-option=tag:nest,option:dns-server,172.22.4.3,172.22.4.1
     dhcp-option=option:router,172.22.4.1
     dhcp-option=option:classless-static-route,0.0.0.0/0,172.22.4.1,172.22.0.0/24,172.22.4.3
     local=/nest/
@@ -25,6 +26,7 @@ class nest::lib::router {
   }
 
   file { '/etc/dnsmasq.d/nest.conf':
+    tag     => 'dns_failover',
     mode    => '0644',
     content => $dnsmasq_config,
     notify  => Service['dnsmasq'],

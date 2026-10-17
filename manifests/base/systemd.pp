@@ -80,9 +80,9 @@ class nest::base::systemd {
     ;
   }
 
-  # Owl's public server list can fail over without moving private names to UniFi.
-  # Keep this paired with the catch-all route in 10-owl.network.
-  if $facts['networking']['hostname'] == 'owl' {
+  # Only the statically configured Nest clients have a matching public ~. link.
+  # Keep private suffixes on Kestrel even after public DNS fails over to UniFi.
+  if $facts['networking']['hostname'] in ['owl', 'falcon', 'falcon-console', 'kestrel-console'] {
     file { '/etc/systemd/resolved.conf.d':
       ensure => directory,
       mode   => '0755',

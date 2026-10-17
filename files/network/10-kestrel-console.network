@@ -5,8 +5,11 @@ Name=en*
 [Network]
 Address=172.22.4.6/24
 DNS=172.22.4.3
+DNS=172.22.4.1
+DNSDefaultRoute=yes
 DNSSEC=no
-Domains=nest ~eyrie ~home ~joyfullee.me
+# Private suffixes use the separate Kestrel-only resolver scope.
+Domains=~.
 Gateway=172.22.4.1
 
 [Route]
