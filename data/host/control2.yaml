@@ -1,3 +1,6 @@
 ---
+# This host's staged identity uses the new CA; legacy hosts keep their default.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 # Keep etcd's small random I/O aligned to ZFS records on the eMMC data pool
 nest::service::kubernetes::etcd_zfs_dataset: data/crypt/etcd
