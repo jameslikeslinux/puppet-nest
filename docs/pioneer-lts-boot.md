@@ -10,6 +10,22 @@ The original legacy filenames (`riscv64_Image`, `initrd.img` and
 maintained first stage must not replace these files. OpenSBI and FIP are
 shared platform firmware, not per-kernel trial artifacts.
 
+Coherent-DMA ordering qualification
+----------------------------------
+
+Pioneer builds explicitly enable `CONFIG_RISCV_SG2042_DMA_STRONG_ORDER` in both
+Linux stages through the existing uppercase-`Y` configuration policy. This
+restores the vendor kernel's ordered attributes for ordinary coherent DMA
+allocations while retaining explicit write-combine requests. The change affects
+all noncoherent consumers in that configured kernel, including NVMe rings and
+TTM allocations; it is not a runtime NVMe-only filter. Storage workloads and GPU
+byte integrity must both pass before calling the candidate operationally
+qualified. Matching source semantics and successful compilation are not proof
+that the underlying hardware failure is repaired.
+
+Console selection
+-----------------
+
 At the ZSBL prompt, press `j` to enter its console:
 
 - `boot_bundle` boots the maintained LinuxBoot profile.
