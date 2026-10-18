@@ -14,18 +14,25 @@ selects UniFi. Kestrel itself already uses UniFi upstream; adding its own LAN
 address as its upstream would create a resolver loop and is intentionally
 avoided. Unrelated uplinks, containers, mobile networks and VPNs are unchanged.
 
-This is public DNS redundancy, not private-zone high availability. UniFi does
-not serve nest or eyrie: direct queries returned NXDOMAIN. Private names on
-split-DNS static clients therefore remain unavailable while Kestrel is down;
-that is preferable to caching a public alternate's false negative. The exported
-`/run/systemd/resolve/resolv.conf` retains upstream nameservers for kubelet,
-but that flat file cannot encode split DNS. Pods and non-split-DNS DHCP clients
-must not be described as having private-zone redundancy: option 6 is a server
-list, not strict primary/backup routing. Such clients can retain UniFi after
-failover and receive private NXDOMAIN even after Kestrel returns. Avoid treating
-a successful public lookup as proof of private DNS on those consumers. Correct
-private routing for arbitrary DHCP clients would require conditional forwarding
-on UniFi or a separate network-aware client policy, neither supplied by option 6.
+This is public DNS redundancy, not private-zone high availability. UniFi's
+Home Cloud Network configuration owns two persistent DNS policies of type
+`Forward Domain`: `nest` and `eyrie`, both using DNS server `172.22.4.3`.
+Manage these through Settings > Policy Table > DNS Records, not an unmanaged
+gateway shell configuration. They are prerequisites for advertising the pair:
+option 6 and kubelet's exported `/run/systemd/resolve/resolv.conf` are flat
+server lists and cannot encode split DNS or strict primary/backup preference.
+Without forwarding, clients selecting UniFi receive false private NXDOMAIN
+even while Kestrel is healthy. Direct UniFi queries must resolve known private
+names before deployment, and unknown private names must terminate locally.
+
+Do not forward `home` or all of `joyfullee.me` to Kestrel. Kestrel already
+forwards `home` to UniFi, and its general upstream is UniFi. Forwarding those
+namespaces back could loop. Preserve existing UniFi host/CNAME records and
+public upstream settings. The gateway policies affect only the two private
+suffixes; they do not change DHCP or resolver settings on other networks.
+Private Nest/Eyrie names still depend on Kestrel being available, whether
+queried directly or through UniFi. Its outage must not prevent public queries
+through UniFi, and its recovery must restore private resolution.
 
 Verification should cover:
 
