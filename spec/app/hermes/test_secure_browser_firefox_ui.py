@@ -163,11 +163,18 @@ def test_missing_kubeconfig_file_reports_exact_dependency_without_kubectl_noise(
 def test_unusable_kubeconfig_reports_configuration_error_without_localhost_fallback_noise() -> None:
     module, _ = load_tool()
     original_kubeconfig = module.os.environ.get("KUBECONFIG")
+    original_run = module.subprocess.run
     try:
+        # Classify an unusable configuration without requiring kubectl or
+        # attempting a real cluster connection in the source-fixture job.
+        module.subprocess.run = lambda *_args, **_kwargs: subprocess.CompletedProcess(
+            [], 1, '', 'connection to localhost:8080 was refused',
+        )
         with tempfile.NamedTemporaryFile() as kubeconfig:
             module.os.environ["KUBECONFIG"] = kubeconfig.name
             result = parsed(module.secure_browser_status_tool({}))
     finally:
+        module.subprocess.run = original_run
         if original_kubeconfig is None:
             module.os.environ.pop("KUBECONFIG", None)
         else:

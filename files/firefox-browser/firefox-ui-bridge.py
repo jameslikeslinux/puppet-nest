@@ -338,6 +338,7 @@ def _snapshot() -> dict[str, Any]:
     nodes: list[dict[str, Any]] = []
     tabs: list[dict[str, Any]] = []
     address = ""
+    chrome_addresses: set[str] = set()
     root = _firefox_root()
     roles: dict[tuple[int, ...], str] = {}
     chrome_tab_count = 0
@@ -358,10 +359,19 @@ def _snapshot() -> dict[str, Any]:
                     "selected": "selected" in states,
                     "locator": _identity(role, raw_name, path, generation, browser_tab=True),
                 })
-            if role in {"entry", "text"} and any(term in raw_name.lower() for term in ("address", "search with", "enter address")):
+            # Firefox's URL bar is an editable combo box. A page-supplied
+            # Address field is not browser chrome and cannot identify a tab.
+            ancestors = [roles.get(path[:depth], "unknown") for depth in range(len(path))]
+            chrome_address = (
+                ancestors[:2] == ["application", "frame"]
+                and "tool bar" in ancestors[2:]
+                and not any(item in {"document web", "document frame", "internal frame", "unknown"} for item in ancestors)
+            )
+            if chrome_address and role in {"entry", "text", "combo box"} and any(term in raw_name.lower() for term in ("address", "search with", "enter address")):
                 candidate = _text_content(node)
                 if candidate:
-                    address = _redact_url(candidate)
+                    safe_address = _redact_url(candidate)
+                    chrome_addresses.add(safe_address)
             text_content = _text_content(node) if "showing" in states or "visible" in states else ""
             observed_name = _safe_observed_name(role, raw_name, text_content)
             # Container text interfaces often repeat their entire descendant
@@ -379,6 +389,9 @@ def _snapshot() -> dict[str, Any]:
             include = include or bool(prose_name and "visible" in states)
             if include and len(nodes) < MAX_NODES:
                 nodes.append(_node_record(node, path, generation, observed_name, browser_tab=browser_tab))
+    if len(chrome_addresses) > 1:
+        raise RuntimeError("Firefox chrome address is ambiguous")
+    address = next(iter(chrome_addresses), "")
     if len(tabs) != chrome_tab_count:
         raise RuntimeError("Firefox chrome tab identity is unavailable; refusing ambiguous snapshot")
     window_id = _firefox_window_id()
