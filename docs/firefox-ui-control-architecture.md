@@ -113,9 +113,11 @@ controls. Existing numeric-code and private-value redaction runs on the whole
 bounded element before chunking, preventing split-boundary leakage. A redacted
 read is explicitly marked and is not an exact source export.
 
-The cursor binds the expression, selected context, chrome-tab identities,
+The cursor binds the expression, chrome-tab identities,
 browser generation, document epoch/URL, and sanitized content digest. Any
 binding change rejects continuation; restart rather than splicing revisions.
+BiDi context IDs are session-scoped and may change between reads; each read
+independently requires unique visible-tab mapping rather than persisting that ID.
 The adapter checks visible tab identity again after reading and discards results
 if selection, generation, or mapping changed. Missing URLs still fail closed:
 the chrome address extractor recognizes Firefox's editable combo box, never a

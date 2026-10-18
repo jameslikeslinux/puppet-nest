@@ -273,7 +273,11 @@ def query(ui_snapshot: dict[str, Any], expression: str, *, cursor: dict[str, Any
             # intentionally clips strings and must not handle source chunks.
             text = PRIVATE_VALUE.sub("<redacted>", raw["text"])
             text = POTENTIAL_CODE.sub("<redacted>", VERIFICATION_VALUE.sub(r"\1<redacted>", text))
-            binding = [context, ui_snapshot.get("browser_generation"), ui_snapshot.get("tabs"),
+            # BiDi context IDs are scoped to the short-lived protocol session.
+            # Each read still uniquely maps and revalidates that context, but
+            # continuation binds the stable chrome identity and document epoch,
+            # not an ephemeral ID that changes on the next connection.
+            binding = [ui_snapshot.get("browser_generation"), ui_snapshot.get("tabs"),
                        expression, raw.get("epoch"), raw.get("url"), text]
             revision = hashlib.sha256(json.dumps(binding, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             offset = 0
