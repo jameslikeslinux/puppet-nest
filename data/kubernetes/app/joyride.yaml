@@ -5,7 +5,7 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1493bd7c9070ddc94fb7ab2ea1fa9626c119095ab31b325518ede65062e649a9
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
 affinity: {}
 tolerations: []
 resources:
