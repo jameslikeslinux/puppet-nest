@@ -58,51 +58,71 @@ rollback storage; never emit their contents or key-bearing diffs in logs,
 reviews, or evidence artifacts. Do not copy legacy server private keys or
 remove/revoke old CA certificates as part of this procedure.
 
-## Running VPN compatibility and staged cutover
+## Running VPN state after the authorized cutover
 
-Read-only inventory-backed Bolt inspection, repeated on 2026-10-15, found Kestrel running
-both `openvpn-server@nest` and `openvpn-server@nest-tcp`. Both configurations
-reference `/etc/puppetlabs/puppet/ssl/certs/ca.pem`,
-`/etc/puppetlabs/puppet/ssl/certs/kestrel.pem`, and the Puppet CRL.
-The configured CA is still the old intermediate:
+The 2026-10-15 inspection recorded the old Puppet-coupled server files; that is
+historical staging evidence, not the current configuration. Hawk, Gateway and
+Kestrel now use independently held VPN credentials under `/etc/openvpn/ssl`,
+protected from Puppet-agent identity resets. See [the Stage 3 transition](openvpn-stage3-transition.md).
 
-- SHA256: `E1:83:F3:C8:97:F9:34:9D:E5:FB:58:37:1D:16:F8:2D:88:4D:95:6A:DA:E8:8B:7A:9E:3D:30:6E:D7:CF:D1:15`
-- Live configured leaf: CN=kestrel, issuer Puppet CA generated on puppet at
-  2025-04-25 02:19:03 +0000
-- Leaf expiry: 2030-12-10 06:26:35 UTC
+At `2026-10-18T21:37:25Z`, with Joy's authorization and through inventory-backed
+Bolt, Kestrel's VPN leaf/key were replaced with its validated new Eyrie-issued
+identity. TCP (`openvpn-server@nest-tcp`) then UDP (`openvpn-server@nest`) were
+restarted. Service configurations and dual-trust CA/CRL bundles were unchanged.
 
-This establishes the running service's configured oldCA files, not a packet-level
-VPN handshake or proof that already-loaded process certificates match disk.
-NewCA-only clients are not accepted as connection-ready against this server.
-No temporary VPN connection was attempted and no device was imported.
+- Active leaf CN: `kestrel`
+- Issuer: Puppet CA generated on puppet at 2026-06-09 06:44:58 +0000
+- Leaf SHA256: `CA:39:78:70:CF:A5:83:A6:56:FB:43:0E:D6:50:DA:01:A5:54:F4:26:D9:36:39:AD:48:EC:00:50:7F:6B:9F:F3`
+- Root-only pre-cutover rollback archive on Kestrel:
+  `/root/openvpn-ca-cutover-20261018T213725Z/before.tar`
 
-Cutover order (requires separate authorization for running-host changes):
+Hawk and Gateway initially failed to reconnect. A temporary UDP old-leaf
+rollback did not recover them; the new credentials were restored consistently.
+Joy restarted their client services through independent access. By
+`2026-10-18T21:55:46Z`, both clients had reconnected; later journals confirmed
+new-root `VERIFY OK` and `Initialization Sequence Completed`. Eyrie DNS and
+public Gateway GitLab HTTP 200 were verified. Caracara/Harrier UDP and
+Pixel10a/iPad TCP sessions were also observed. Joy reported both phones working
+over the Internet. These checks do not establish exhaustive device DNS, route,
+fallback or roaming acceptance.
 
-1. Securely retain old profiles, old router CA/leaf/key/CRL, configuration, and
-   an independently usable management/recovery path. Do not revoke oldCA certs.
-2. Complete and verify the Stage3 staged router root under request ^1928,
-   including exact router CN/SANs, matching key, newCA chain and CRL, and both
-   TCP/UDP OpenVPN configurations. Staging alone does not change the running VPN.
-3. At an approved server maintenance window, migrate the router's running
-   identity/trust consistently and reload/restart both OpenVPN services through
-   the normal managed deployment path. Other oldCA VPN clients may also lose
-   connectivity: account for them before approving the window. A mixed-trust
-   transition would require its own explicit design/authorization; it is not
-   silently added by this client-profile request.
-4. Confirm the actual served newCA leaf and server trust, service health and
-   CRL consistency. Only then import the new profiles on iPad, Pixel10a and
-   Pixel8Pro, retaining the old imports for rollback.
-5. Verify an actual connection on each device, remotes/fallbacks, intended
-   routes and DNS. Where a controller-side probe is appropriate, bound its
-   runtime and disable route/default-route/DNS/script changes. Cryptographic
-   checks and OpenVPN parsing do not substitute for a real device connection.
-6. If cutover fails, restore the coherent old server identity/trust/config and
-   old device profiles. Keep new credentials private for a later retry; do not
-   rewrite private repository history.
+The automatic-reconnect root cause remains unresolved. `dco_del_peer ENOENT`
+during client teardown is an observation, not proof of cause. No periodic
+restart, DCO change, timer/firewall adjustment or speculative Puppet repair is
+part of this follow-up. Preserve independent VPN identity lifecycle, dual trust,
+rollback and existing device imports; do not revoke legacy CAs.
 
-## Verified staged publication
+## Controlled device onboarding and troubleshooting
 
-Private GitLab project 45 (`joy/openvpn-profiles`, `main`) contains the renewed
+New-CA imports no longer need to wait for the server CA cutover. Coordinate the
+next reimport/test with Joy rather than replacing working phone imports remotely.
+
+1. Obtain the intended device's profile from private project 45 only. Use
+   `pixel10a.ovpn`, `pixel8pro.ovpn` and `ipad.ovpn` on their respective devices;
+   do not reuse one device's certificate on another device or VPN instance.
+   Simultaneous Wi-Fi and cellular connections using `pixel10a` repeatedly
+   evicted one another during the investigation. Stop the unintended instance
+   and import the correct unique profile; do not enable `duplicate-cn`.
+2. Keep the working import available for rollback. Check that the intended
+   hardened revision includes `remote-cert-tls server` and
+   `verify-x509-name kestrel name` before selecting it for the controlled test.
+   Existing profiles already validate the CA chain; these directives add
+   explicit server-purpose and exact-name verification. Publication alone does
+   not update an existing app import.
+3. Check the OpenVPN app's **Allow local network** setting when Wi-Fi produces
+   a pre-TLS TCP timeout. Joy confirmed this setting caused the Pixel8 Pro
+   Wi-Fi-only failure. It is distinct from Android's **Block connections without
+   VPN** setting; neither app setting is currently encoded by the `.ovpn` source.
+4. With Joy controlling the device, test a fresh connection and server
+   verification, intended DNS and routes, then Wi-Fi/cellular reconnect and
+   remote fallback behavior separately. Record which checks actually ran.
+   Parsing and cryptographic checks are not device acceptance. If the new import
+   fails, return to the retained working import and preserve sanitized evidence;
+   do not restart the server or weaken verification as an onboarding shortcut.
+
+## Historical staged publication (2026-10-14)
+
+Private GitLab project 45 (`joy/openvpn-profiles`, `main`) received the renewed
 profiles, full CA chain, updated template CA and controlled signing README at
 commit `18e0f5b2894c5e2fca0f9ad950c56b59973d25b0`. Private visibility and exact
 remote file bytes were read back. Credential-bearing files stay exclusively
@@ -130,7 +150,7 @@ missing-request guard checks passed, and `pdk validate` passed locally.
 Rollback retains old private commit
 `aba0155d6f0bdcc1157bd51b73c3d3a9a4589766` and restricted original profile
 copies in the private worker's retained rollback directory. No old certificates
-were revoked/deleted and no history was rewritten. Both Kestrel VPN services
-remain active with oldCA public files. No server identity/trust rotation,
-restart, device import or successful connection is claimed. Follow the
-separately authorized cutover sequence above before importing these profiles.
+were revoked/deleted and no history was rewritten. At that staging checkpoint,
+Kestrel still used the old server identity, and no server restart, device import
+or successful connection was claimed. The October 18 cutover and observed
+connections above supersede that checkpoint, not the preserved issuance evidence.
