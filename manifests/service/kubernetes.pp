@@ -82,6 +82,10 @@ class nest::service::kubernetes (
     sources +> '192.168.0.0/16',
   }
 
+  file { '/etc/kubernetes/patches':
+    ensure => directory,
+  }
+
   if $control_plane {
     # Datasets belong to the running host, not its staged build container.
     if $etcd_zfs_dataset and !$facts['is_container'] {
@@ -112,10 +116,6 @@ class nest::service::kubernetes (
       '/etc/kubernetes':
         ensure  => directory,
         require => Nest::Lib::Package['sys-cluster/kubelet'],
-      ;
-
-      '/etc/kubernetes/patches':
-        ensure => directory,
       ;
 
       '/etc/kubernetes/patches/kube-apiserver0+strategic.yaml':
