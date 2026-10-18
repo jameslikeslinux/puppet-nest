@@ -87,6 +87,46 @@ itself isolate causality.
 
 ## Control and continuity model
 
+### Bounded direct text in v2
+
+Accessibility snapshots are bounded summaries, not lossless source exports.
+Use `secure_browser_query` with `document.domSnapshot(0)` and follow its
+`value.nextOffset` using `document.domSnapshot(offset)` to discover content
+after the initial node budget. Stop only when `nextOffset` is null.
+
+For exact text, use `document.readText("pre",0)` (JSON-quoted CSS selector,
+zero-based match index). The selector is site-independent; narrower message or
+code elements work as well. This is a parsed read command, not JavaScript.
+The result includes `value.text`, `value.total` matching elements,
+`value.totalChars`, `value.offset`, `revision`, `redacted`, `complete`,
+`truncated`, and `nextCursor`. Repeat the identical expression with the returned
+`cursor` object until `complete` is true and `nextCursor` is null. Concatenate
+only `value.text`, without inserting separators. Newlines, indentation,
+punctuation, and Unicode survive unchanged when no redaction is required.
+
+Each response exports at most 4000 Unicode characters. Inspection of one
+element is capped at 262144 UTF-16 code units and 100000 text nodes; exceeding
+the bound is an explicit error, never silent completion. Select a narrower
+element in that case. Only rendered text nodes are read, never HTML, field
+values, script/style/template contents, hidden text, or editable/credential
+controls. Existing numeric-code and private-value redaction runs on the whole
+bounded element before chunking, preventing split-boundary leakage. A redacted
+read is explicitly marked and is not an exact source export.
+
+The cursor binds the expression, selected context, chrome-tab identities,
+browser generation, document epoch/URL, and sanitized content digest. Any
+binding change rejects continuation; restart rather than splicing revisions.
+The adapter checks visible tab identity again after reading and discards results
+if selection, generation, or mapping changed. Missing URLs still fail closed:
+the chrome address extractor recognizes Firefox's editable combo box, never a
+page-supplied Address control or a guessed BiDi context. Duplicate sanitized
+URLs remain ambiguous. No title-only or first-context fallback is permitted.
+
+All three adapter/bridge files carry the `hermes_firefox_bridge` Puppet tag for
+an overlay-only apply. This does not require a browser/pod restart. Long-running
+Hermes processes may retain the old Python module/schema until their next
+authorized refresh; verify installed hashes and real tool readback separately.
+
 A workflow first explicitly acquires one canonical handoff tab. Navigation,
 snapshot, click, and type never create tabs implicitly. A selected blank tab may
 be claimed without ownership; otherwise acquire creates exactly one agent-owned

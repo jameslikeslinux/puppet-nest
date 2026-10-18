@@ -27,6 +27,20 @@ stages:
   script:
     - 'pdk test unit --parallel'
 
+'Secure browser fixtures':
+  extends: .all-branch-ci
+  image: 'node:24-bookworm'
+  stage: 'Test'
+  variables:
+    PYTHONDONTWRITEBYTECODE: '1'
+    SECURE_BROWSER_CONTROL_MODE: 'firefox-ui-v1'
+  script:
+    - 'python3 spec/app/hermes/test_secure_browser_text_reads.py'
+    - 'python3 spec/app/hermes/test_secure_browser_bidi_ui.py'
+    - 'python3 spec/app/hermes/test_firefox_ui_bridge.py'
+    - 'python3 spec/app/hermes/test_secure_browser_firefox_ui.py'
+    - 'python3 spec/app/hermes/test_secure_browser_general_hardening.py'
+
 .template:
   stage: 'Build'
   script:

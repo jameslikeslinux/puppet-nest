@@ -7,6 +7,7 @@ The OS/UI adapter remains the authority for tab ownership and input delivery.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from typing import Any
@@ -33,6 +34,37 @@ POTENTIAL_CODE = re.compile(r"(?<![\w.$€£])\d{4,8}(?![\w.,])")
 READ_EXPRESSION = re.compile(
     r'^document\.querySelector(All)?\(("(?:[^"\\]|\\.)*")\)\.(innerText|textContent|value|checked|length|href)$'
 )
+TEXT_EXPRESSION = re.compile(r'^document\.readText\(("(?:[^"\\]|\\.)*"),(0|[1-9][0-9]{0,5})\)$')
+MAX_TEXT_CHARS = 262144
+TEXT_PAGE_CHARS = 4000
+
+# Caller data is JSON quoted, never executed. Filtering precedes pagination;
+# a secret crossing a chunk boundary cannot bypass the existing redactor.
+TEXT_READ = """(() => {
+  const nodes=document.querySelectorAll(__SELECTOR__), e=nodes[__INDEX__];
+  if(!e)throw new Error('text element is absent');
+  const sensitive=/password|passcode|verification|one.time|security.code|cvv|cvc|card.number|account.number|routing.number|secret|token|recovery.code/i;
+  const blocked=n=>{
+    for(let a=n;a;a=a.parentElement){
+      const hint=[a.name,a.id,a.getAttribute('aria-label'),a.getAttribute('autocomplete'),
+        a.getAttribute('placeholder'),...(a.labels?[...a.labels].map(l=>l.innerText):[])].join(' ');
+      if(a.isContentEditable||a.matches('input,textarea,select,script,style,template,[hidden],[aria-hidden=true],[data-sensitive=true]')||sensitive.test(hint))return true;
+      const s=getComputedStyle(a);
+      if(s.display==='none'||s.visibility==='hidden')return true;
+    }
+    return false;
+  };
+  let text='',redacted=false,count=0;
+  if(blocked(e))throw new Error('protected or hidden text element');
+  const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);
+  for(let n;(n=walker.nextNode());){
+    if(++count>100000)throw new Error('text scan budget exceeded; select a narrower element');
+    if(blocked(n.parentElement)){redacted=true;continue;}
+    text+=n.nodeValue;
+    if(text.length>262144)throw new Error('text budget exceeded; select a narrower element');
+  }
+  return {text,total:nodes.length,epoch:performance.timeOrigin,url:location.href,redacted};
+})()"""
 
 # Fixed, site-independent observation; accepting arbitrary JavaScript as a
 # "read" would let the caller mutate the page before any response filtering.
@@ -75,6 +107,12 @@ DOM_SNAPSHOT = """(() => {
 
 
 def _read_script(expression: str) -> str:
+    text_match = TEXT_EXPRESSION.fullmatch(expression)
+    if text_match:
+        selector = json.loads(text_match[1])
+        if not selector or len(selector) > 512 or FORBIDDEN_SOURCE.search(selector):
+            raise ValueError("text selector must be bounded and cannot target secret fields")
+        return TEXT_READ.replace("__INDEX__", text_match[2]).replace("__SELECTOR__", json.dumps(selector))
     if expression == "document.domSnapshot":
         return DOM_SNAPSHOT.replace("__OFFSET__", "0")
     # A long page may put its actual content after navigation/header nodes.
@@ -155,7 +193,7 @@ def _safe_result(value: Any) -> Any:
 
 def _selected_context(browser: Any, ui_snapshot: dict[str, Any]) -> str:
     """Fail closed if a redacted URL cannot uniquely map to the visible tab."""
-    if not any(tab.get("selected") for tab in ui_snapshot.get("tabs", [])) or not ui_snapshot.get("url"):
+    if len([tab for tab in ui_snapshot.get("tabs", []) if tab.get("selected")]) != 1 or not ui_snapshot.get("url"):
         raise RuntimeError("BiDi requires a selected, visible Firefox tab")
     selected = _url_identity(str(ui_snapshot["url"]))
     if not selected:
@@ -209,15 +247,50 @@ def probe() -> bool:
         return False
 
 
-def query(ui_snapshot: dict[str, Any], expression: str) -> dict[str, Any]:
+def query(ui_snapshot: dict[str, Any], expression: str, *, cursor: dict[str, Any] | None = None, snapshot_reader: Any = None) -> dict[str, Any]:
     if not expression or len(expression) > MAX_EXPRESSION_CHARS:
         raise ValueError("query must be bounded")
     script = _read_script(expression)
+    text_read = bool(TEXT_EXPRESSION.fullmatch(expression))
+    if cursor is not None and not text_read:
+        raise ValueError("cursor is supported only for document.readText(selector,index)")
     def run(browser: Any) -> dict[str, Any]:
         if browser.protocol != "bidi":
             raise RuntimeError("Firefox did not expose the private BiDi session")
         context = _selected_context(browser, ui_snapshot)
         raw = _evaluate(browser, context, script)
+        if snapshot_reader is not None:
+            fresh = snapshot_reader()
+            if (fresh.get("browser_generation") != ui_snapshot.get("browser_generation")
+                    or fresh.get("tabs") != ui_snapshot.get("tabs")
+                    or fresh.get("url") != ui_snapshot.get("url")
+                    or _selected_context(browser, fresh) != context):
+                raise RuntimeError("selected Firefox tab changed during observation; discard this read")
+        if text_read:
+            if not isinstance(raw, dict) or not isinstance(raw.get("text"), str) or len(raw["text"]) > MAX_TEXT_CHARS:
+                raise ValueError("text observation exceeded its budget or was malformed")
+            # Redact the entire bounded element before slicing. _safe_result
+            # intentionally clips strings and must not handle source chunks.
+            text = PRIVATE_VALUE.sub("<redacted>", raw["text"])
+            text = POTENTIAL_CODE.sub("<redacted>", VERIFICATION_VALUE.sub(r"\1<redacted>", text))
+            binding = [context, ui_snapshot.get("browser_generation"), ui_snapshot.get("tabs"),
+                       expression, raw.get("epoch"), raw.get("url"), text]
+            revision = hashlib.sha256(json.dumps(binding, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            offset = 0
+            if cursor is not None:
+                if (not isinstance(cursor, dict) or set(cursor) != {"revision", "offset"}
+                        or cursor.get("revision") != revision or type(cursor.get("offset")) is not int
+                        or not 0 < cursor["offset"] < len(text)):
+                    raise ValueError("stale or invalid text cursor; restart the element read")
+                offset = cursor["offset"]
+            end = min(len(text), offset + TEXT_PAGE_CHARS)
+            complete = end == len(text)
+            return {"operation": "query", "status": "ok", "protocol": "firefox-bidi-ui-v2",
+                    "value": {"text": text[offset:end], "total": raw.get("total"), "offset": offset, "totalChars": len(text)},
+                    "source": "filtered direct DOM text in uniquely matched visible Firefox tab",
+                    "revision": revision, "redacted": bool(raw.get("redacted")) or text != raw["text"],
+                    "truncated": not complete, "complete": complete,
+                    "nextCursor": None if complete else {"revision": revision, "offset": end}}
         truncated = (isinstance(raw, dict) and (
             raw.get("nextOffset") is not None if "nextOffset" in raw else
             isinstance(raw.get("total"), int) and raw["total"] > len(raw.get("values", []))))

@@ -263,6 +263,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_bidi.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_bidi.py',
+    tag     => 'hermes_firefox_bridge',
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
