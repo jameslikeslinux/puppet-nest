@@ -2,5 +2,9 @@
 Host=falcon
 Name=enp*s0f* en*u*
 
+[Link]
+# The addressed bridge gates host readiness, not each optional bridge port.
+RequiredForOnline=no
+
 [Network]
 Bridge=br0
