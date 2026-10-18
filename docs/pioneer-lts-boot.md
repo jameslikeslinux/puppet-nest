@@ -36,3 +36,8 @@ preserving legacy DCO support when booting the retained vendor kernel.
 The SG2042 NVMe single-controller-page I/O limit is provisional containment
 for observed indirect-PRP rejection, not proof of its underlying cause.
 Keep it until a replacement is source-supported and workload-qualified.
+Kestrel also disables autonomous NVMe power-state transitions in both maintained
+stages while qualifying queue-timeout recovery. This policy is independent of
+PCI runtime power control; keeping the PCI device active does not disable NVMe
+APST. Neither containment is a claim that the underlying controller/DMA issue
+has been identified.

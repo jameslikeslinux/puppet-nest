@@ -17,6 +17,8 @@ nest::router: true
 nest::kernel_cmdline:
   - 'initcall_debug'
   - 'loglevel=8'
+  # Avoid deep controller power transitions while qualifying NVMe recovery
+  - 'nvme_core.default_ps_max_latency_us=0'
 nest::openvpn_ssl_directory: '/etc/openvpn/ssl'
 puppet::agent_server_hostname: 'puppet.eyrie'
 nest::reset_filter_rules:
