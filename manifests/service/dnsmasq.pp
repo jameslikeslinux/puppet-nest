@@ -25,6 +25,7 @@ class nest::service::dnsmasq (
   ->
   service { 'dnsmasq':
     enable => true,
+    tag    => 'dns_failover',
   }
 
   # Ensure dnsmasq can bind to its requested interfaces

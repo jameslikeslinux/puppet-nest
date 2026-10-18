@@ -5,10 +5,12 @@ Name=br0
 [Network]
 Address=172.22.4.2/24
 DNS=172.22.4.3
+DNS=172.22.4.1
 # Keep the uplink resolver available to kubelet's non-stub resolv.conf
 DNSDefaultRoute=yes
 DNSSEC=no
-Domains=nest ~eyrie ~home ~joyfullee.me
+# Private suffixes use the separate Kestrel-only resolver scope.
+Domains=~.
 
 [Route]
 Destination=172.22.0.0/24
