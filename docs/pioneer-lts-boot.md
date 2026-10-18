@@ -40,4 +40,7 @@ Kestrel also disables autonomous NVMe power-state transitions in both maintained
 stages while qualifying queue-timeout recovery. This policy is independent of
 PCI runtime power control; keeping the PCI device active does not disable NVMe
 APST. Neither containment is a claim that the underlying controller/DMA issue
-has been identified.
+has been identified. Kestrel keeps AMDGPU runtime PM disabled separately while
+qualifying warm restart and console transitions; this increases idle power use
+but avoids an observed suspended-GPU/resume path. It is independent of the NVMe
+APST policy and does not disable GPU rendering.
