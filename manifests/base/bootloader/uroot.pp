@@ -29,6 +29,11 @@ class nest::base::bootloader::uroot {
 
   # Build separate kernel image for u-root with basic config and no modules
   # to provide stable fallback to older kernels
+  $defconfig = $nest::soc ? {
+    'sg2042' => "${nest::kernel_defconfig} sg2042_linuxboot.config",
+    default  => $nest::kernel_defconfig,
+  }
+
   $nest::kernel_config.each |$setting, $value| {
     if $value and $value =~ /^Y$/ { # == is case insensitive
       nest::lib::kconfig { "u-root-${setting}":
@@ -47,7 +52,7 @@ class nest::base::bootloader::uroot {
   ~>
   nest::lib::build { 'u-root-linux':
     args      => 'LOCALVERSION= olddefconfig Image',
-    defconfig => $nest::kernel_defconfig,
+    defconfig => $defconfig,
     dir       => '/usr/src/u-root-linux',
     makeargs  => "ARCH=${nest::base::kernel::arch}",
   }

@@ -14,7 +14,7 @@ class nest::base::openvpn {
         require => Class['nest::base::kernel'],
       }
 
-      if $nest::kernel_config['CONFIG_OVPN'] {
+      if $nest::kernel_config['CONFIG_OVPN'] in ['y', 'Y', 'm'] {
         $ovpn_module = 'ovpn'
 
         file_line { 'package.provided-ovpn-dco':
