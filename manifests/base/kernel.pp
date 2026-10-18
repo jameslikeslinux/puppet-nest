@@ -27,6 +27,12 @@ class nest::base::kernel {
     before => Nest::Lib::Build['kernel'],
   }
 
+  # Retain legacy modules for vendor rollback; use native DCO on newer kernels
+  $module_rebuild_exclude = $nest::kernel_config['CONFIG_OVPN'] in ['y', 'Y', 'm'] ? {
+    true    => ' --exclude net-vpn/ovpn-dco',
+    default => '',
+  }
+
   nest::lib::src_repo { '/usr/src/linux':
     url     => 'https://gitlab.joyfullee.me/nest/forks/linux.git',
     ref     => $nest::kernel_revision,
@@ -43,7 +49,7 @@ class nest::base::kernel {
   }
   ->
   exec { 'module-rebuild':
-    command     => '/usr/bin/emerge --buildpkg n --usepkg n @module-rebuild',
+    command     => "/usr/bin/emerge --buildpkg n --usepkg n${module_rebuild_exclude} @module-rebuild",
     noop        => !$facts['build'] or str2bool($facts['skip_module_rebuild']),
     refreshonly => true,
     timeout     => 0,

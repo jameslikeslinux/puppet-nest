@@ -34,6 +34,14 @@ class nest::base::bootloader::uroot {
     default  => $nest::kernel_defconfig,
   }
 
+  if $nest::soc == 'sg2042' {
+    nest::lib::kconfig { 'u-root-CONFIG_PCIEPORTBUS':
+      config  => '/usr/src/u-root-linux/.config',
+      setting => 'CONFIG_PCIEPORTBUS',
+      value   => n,
+    }
+  }
+
   $nest::kernel_config.each |$setting, $value| {
     if $value and $value =~ /^Y$/ { # == is case insensitive
       nest::lib::kconfig { "u-root-${setting}":

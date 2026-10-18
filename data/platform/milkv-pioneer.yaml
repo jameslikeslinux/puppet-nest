@@ -8,12 +8,15 @@ nest::bootloader: u-root
 nest::dtb_file: 'sophgo/sg2042-milkv-pioneer-nest.dtb'
 nest::kernel_defconfig: 'sg2042_pioneer_defconfig'
 nest::kernel_tag: 'stable/v6.18.57'
+nest::kernel_revision: 'stable/v6.18.57'
 nest::opensbi_tag: 'sophgo/v1.7'
 nest::soc: 'sg2042'
 
 nest::kernel_cmdline:
   - 'console=tty0'
   - 'console=ttyS0,115200n8'
+  - 'pcie_ports=compat'
+  - 'drm_kms_helper.fbdev_emulation=0'
   - 'zfs.zvol_use_blk_mq=1'
 
 nest::kernel_config:

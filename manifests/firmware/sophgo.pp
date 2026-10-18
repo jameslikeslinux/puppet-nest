@@ -6,6 +6,17 @@ class nest::firmware::sophgo {
     group => undef,
   }
 
+  # Keep SG2042's legacy bundle independent of the maintained LinuxBoot path
+  $maintained_linuxboot = $nest::bootloader == 'u-root' and $nest::soc == 'sg2042'
+  $uroot_image_path = $maintained_linuxboot ? {
+    true    => '/boot/riscv64/linuxboot/Image',
+    default => '/boot/riscv64/riscv64_Image',
+  }
+  $uroot_initrd_path = $maintained_linuxboot ? {
+    true    => '/boot/riscv64/linuxboot/initrd',
+    default => '/boot/riscv64/initrd.img',
+  }
+
   nest::lib::src_repo { '/usr/src/fip':
     url => 'https://gitlab.joyfullee.me/nest/forks/fip.git',
     ref => 'sophgo',
@@ -39,7 +50,7 @@ class nest::firmware::sophgo {
       $uroot_source    = '/usr/src/u-root/initramfs.cpio'
 
       Class['nest::base::bootloader::uroot']
-      -> File['/boot/riscv64/initrd.img', '/boot/riscv64/riscv64_Image']
+      -> File[$uroot_initrd_path, $uroot_image_path]
     }
 
     default: {
@@ -47,12 +58,21 @@ class nest::firmware::sophgo {
     }
   }
 
+  $conf_ini_dtb = $maintained_linuxboot ? {
+    true    => 'sg2042-milkv-pioneer.dtb',
+    default => $nest::dtb_file.basename,
+  }
+  $conf_ini_boot = $maintained_linuxboot ? {
+    true    => "[boot]\ndefault=bundle\n\n",
+    default => '',
+  }
+
   # See: https://github.com/sophgo/sophgo-doc/blob/main/SG2042/HowTo/Configuration%20Info%20in%20INI%20file.rst
   $conf_ini_content = @("INI")
     [sophgo-config]
 
-    [devicetree]
-    name=${nest::dtb_file.basename}
+    ${conf_ini_boot}[devicetree]
+    name=${conf_ini_dtb}
 
     ${conf_ini_kernel}[eof]
     | INI
@@ -68,12 +88,12 @@ class nest::firmware::sophgo {
       require => Class['nest::firmware::opensbi'],
     ;
 
-    '/boot/riscv64/initrd.img':
+    $uroot_initrd_path:
       ensure => $uroot_ensure,
       source => $uroot_source,
     ;
 
-    '/boot/riscv64/riscv64_Image':
+    $uroot_image_path:
       ensure => $uroot_ensure,
       source => $uroot_image,
     ;
@@ -86,5 +106,38 @@ class nest::firmware::sophgo {
     '/boot/riscv64/conf.ini':
       content => $conf_ini_content,
     ;
+  }
+
+  if $maintained_linuxboot {
+    $console_args = $nest::kernel_cmdline.filter |$arg| { $arg =~ /^console=/ }.join(' ')
+    $linuxboot_bundle = @("BUNDLE")
+      kernel=/riscv64/linuxboot/Image
+      dtb=/riscv64/${nest::dtb_file.basename}
+      ramfs=/riscv64/linuxboot/initrd
+      bootargs=${console_args} earlycon=sbi root=/dev/ram0 ro
+      | BUNDLE
+    $runtime_bundle = @("BUNDLE")
+      kernel=/${facts['machine_id']}/${nest::kernel_version}/linux
+      dtb=/riscv64/${nest::dtb_file.basename}
+      ramfs=/${facts['machine_id']}/${nest::kernel_version}/initrd
+      bootargs=${nest::base::bootloader::kernel_cmdline}
+      | BUNDLE
+
+    file { '/boot/riscv64/linuxboot':
+      ensure => directory,
+      before => File[$uroot_image_path, $uroot_initrd_path],
+    }
+    file { '/boot/riscv64/boot-bundle.conf':
+      content => $linuxboot_bundle,
+      require => [File[$uroot_image_path, $uroot_initrd_path], Class['nest::base::firmware']],
+    }
+    # Retain the serial-selectable direct runtime bypass for development
+    file { '/boot/riscv64/test-bundle.conf':
+      content => $runtime_bundle,
+      require => [Class['nest::base::firmware'], Exec['kernel-install']],
+    }
+    File['/boot/riscv64/conf.ini'] {
+      require => File['/boot/zsbl.bin', '/boot/riscv64/boot-bundle.conf'],
+    }
   }
 }
