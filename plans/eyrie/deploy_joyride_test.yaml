@@ -1,0 +1,15 @@
+---
+description: 'Deploy isolated private Joyride TEST; never production'
+parameters:
+  render_to:
+    type: String
+    default: ''
+steps:
+  - plan: nest::kubernetes::deploy
+    parameters:
+      service: joyride-test
+      app: joyride
+      namespace: test
+      init: false
+      wait: true
+      render_to: $render_to
