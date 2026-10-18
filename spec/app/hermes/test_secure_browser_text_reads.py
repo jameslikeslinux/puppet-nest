@@ -138,6 +138,18 @@ def test_text_redaction_precedes_chunking():
     assert first['redacted'] and second['redacted']
 
 
+def test_cursor_survives_new_bidi_session_context_ids_for_same_visible_tab():
+    module, legacy = load()
+    browser = Browser([{'context': 'session-one', 'url': 'https://fixture.example/shop'}])
+    legacy._with_browser = lambda fn: fn(browser)
+    module._evaluate = lambda *args: {'text': 'safe source\n' * 700, 'total': 1, 'epoch': 42, 'url': 'https://fixture.example/shop'}
+    first = module.query(snapshot(), 'document.readText("pre",0)')
+    browser.contexts[0]['context'] = 'session-two'
+    second = module.query(snapshot(), 'document.readText("pre",0)', cursor=first['nextCursor'])
+    assert second['revision'] == first['revision']
+    assert second['value']['offset'] == 4000
+
+
 def test_direct_text_excludes_protected_descendants_and_rejects_executable_input():
     module, _ = load()
     script = module._read_script('document.readText("pre",0)')
