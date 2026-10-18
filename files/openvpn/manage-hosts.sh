@@ -11,8 +11,8 @@ add_host() {
     # Add the new entry
     echo -e "${ifconfig_pool_remote_ip}\t${common_name}" >> "$HOSTS"
 
-    # Load it into DNS
-    /bin/systemctl reload dnsmasq
+    # Queue the DNS update without waiting for other service lifecycle jobs.
+    /bin/systemctl --no-block reload dnsmasq
 }
 
 delete_host() {
@@ -21,7 +21,9 @@ delete_host() {
     sed -i '/^'"$ip_regex"'[[:space:]]/d' "$HOSTS"
     sed -i '/[[:space:]]'"$common_name"'\([[:space:]]\|$\)/d' "$HOSTS"
 
-    /bin/systemctl reload dnsmasq
+    # Shutdown can already have a dnsmasq stop job queued. Waiting for a reload
+    # from OpenVPN's synchronous disconnect hook can block VPN teardown.
+    /bin/systemctl --no-block reload dnsmasq
 }
 
 case "$0" in
