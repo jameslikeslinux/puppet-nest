@@ -186,6 +186,7 @@ nest::fixed_ips:
   control2: '172.22.4.8'
   control3: '172.22.4.9'
   eagle: '172.22.4.10'
+  kite: '172.22.4.11'
   storage1: '172.22.4.17'
   storage2: '172.22.4.18'
   storage3: '172.22.4.19'
