@@ -29,6 +29,7 @@ nest::kexec: true
 nest::mta: postfix
 nest::public_ssh: true
 nest::srv_zpool: data/crypt
+puppet::agent_server_hostname: 'puppet.eyrie'
 
 nest::kernel_cmdline:
   - 'console=ttyS1,115200n8'
