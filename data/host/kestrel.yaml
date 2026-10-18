@@ -19,6 +19,8 @@ nest::kernel_cmdline:
   - 'loglevel=8'
   # Avoid deep controller power transitions while qualifying NVMe recovery
   - 'nvme_core.default_ps_max_latency_us=0'
+  # Bound the single I/O queue while qualifying completion-ring behavior
+  - 'nvme.io_queue_depth=64'
   # Keep the GPU active while qualifying warm restart and console transitions
   - 'amdgpu.runpm=0'
 nest::openvpn_ssl_directory: '/etc/openvpn/ssl'

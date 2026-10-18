@@ -110,7 +110,7 @@ class nest::firmware::sophgo {
 
   if $maintained_linuxboot {
     $linuxboot_args = $nest::kernel_cmdline.filter |$arg| {
-      $arg =~ /^(console=|loglevel=|initcall_debug($|=)|nvme_core\.default_ps_max_latency_us=)/
+      $arg =~ /^(console=|loglevel=|initcall_debug($|=)|nvme_core\.default_ps_max_latency_us=|nvme\.io_queue_depth=)/
     }.join(' ')
     $linuxboot_bundle = @("BUNDLE")
       kernel=/riscv64/linuxboot/Image

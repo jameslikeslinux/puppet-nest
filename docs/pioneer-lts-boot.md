@@ -43,4 +43,8 @@ APST. Neither containment is a claim that the underlying controller/DMA issue
 has been identified. Kestrel keeps AMDGPU runtime PM disabled separately while
 qualifying warm restart and console transitions; this increases idle power use
 but avoids an observed suspended-GPU/resume path. It is independent of the NVMe
-APST policy and does not disable GPU rendering.
+APST policy and does not disable GPU rendering. The single NVMe I/O queue is
+bounded with `nvme.io_queue_depth=64` in both maintained stages while qualifying
+burst completion behavior. This also reduces concurrency and ring footprint;
+it does not imply a proved controller specification violation. SGLs are not
+forced: the installed controller reports no SGL support.
