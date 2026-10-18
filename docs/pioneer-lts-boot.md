@@ -26,9 +26,12 @@ provide automatic post-handoff failover.
 
 Both Linux stages need the platform MSI policy. The first-stage config
 disables PCIe port services; the main kernel uses `pcie_ports=compat`.
-The qualified main path also disables DRM fbdev emulation. Native OpenVPN
-module loading follows the running kernel, preserving legacy DCO support
-when booting the retained vendor kernel.
+The qualified main path also disables DRM fbdev emulation. Kestrel retains
+`initcall_debug` and `loglevel=8` in both maintained stages so the external
+serial capture names device and core shutdown callbacks on future attempts.
+This also increases boot-time logging; it is diagnostic policy, not a reboot
+hang repair. Native OpenVPN module loading follows the running kernel,
+preserving legacy DCO support when booting the retained vendor kernel.
 
 The SG2042 NVMe single-controller-page I/O limit is provisional containment
 for observed indirect-PRP rejection, not proof of its underlying cause.

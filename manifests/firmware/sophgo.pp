@@ -109,12 +109,14 @@ class nest::firmware::sophgo {
   }
 
   if $maintained_linuxboot {
-    $console_args = $nest::kernel_cmdline.filter |$arg| { $arg =~ /^console=/ }.join(' ')
+    $linuxboot_args = $nest::kernel_cmdline.filter |$arg| {
+      $arg =~ /^(console=|loglevel=|initcall_debug($|=))/
+    }.join(' ')
     $linuxboot_bundle = @("BUNDLE")
       kernel=/riscv64/linuxboot/Image
       dtb=/riscv64/${nest::dtb_file.basename}
       ramfs=/riscv64/linuxboot/initrd
-      bootargs=${console_args} earlycon=sbi root=/dev/ram0 ro
+      bootargs=${linuxboot_args} earlycon=sbi root=/dev/ram0 ro
       | BUNDLE
     $runtime_bundle = @("BUNDLE")
       kernel=/${facts['machine_id']}/${nest::kernel_version}/linux
