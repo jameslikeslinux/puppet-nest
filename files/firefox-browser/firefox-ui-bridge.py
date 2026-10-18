@@ -806,6 +806,8 @@ def _ensure_workflow(state: dict[str, Any], workflow_id: str, lease_seconds: int
         existing["uncertain"] = True
         raise RuntimeError("canonical tab identity is missing or ambiguous; preserving tabs and refusing to replace the workflow binding")
     selected = _selected_tab(snapshot)
+    if not selected:
+        raise RuntimeError("selected Firefox tab is absent or ambiguous; preserving tabs and refusing creation")
     if selected and selected["name"] in {"New Tab", "New Private Tab", "about:blank", "Firefox"}:
         created = False
     elif allow_create:
@@ -813,6 +815,18 @@ def _ensure_workflow(state: dict[str, Any], workflow_id: str, lease_seconds: int
             raise RuntimeError(f"local tab hard cap reached ({DEFAULT_HARD_TAB_CAP}); refusing to create a tab or close unowned tabs")
         previous_count = snapshot["tab_count"]
         _focus_browser()
+        # Input can reach Firefox even when accessibility readback is stale.
+        # Persist uncertainty before delivery so retrying this workflow cannot
+        # create another tab or claim a different blank handoff tab.
+        state["workflows"][workflow_id] = {
+            "workflow_id": workflow_id,
+            "browser_generation": snapshot["browser_generation"],
+            "created_by_agent": True,
+            "created_at": time.time(),
+            "lease_expires_at": time.time() + lease_seconds,
+            "uncertain": True,
+        }
+        _save_state(state)
         _xdotool("key", "--clearmodifiers", "ctrl+t")
         snapshot = _snapshot()
         selected = _selected_tab(snapshot)

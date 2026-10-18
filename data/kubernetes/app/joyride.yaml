@@ -1,0 +1,393 @@
+---
+include:
+- nest::service::joyride
+service_name: '%{nest::kubernetes::service}'
+fqdn: '%{nest::kubernetes::service}.eyrie'
+runtime_environment: test
+ingress_class: contour-test
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1493bd7c9070ddc94fb7ab2ea1fa9626c119095ab31b325518ede65062e649a9
+affinity: {}
+tolerations: []
+resources:
+  backup: {}
+  restore: {}
+  nest_registry_auths: {}
+  scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: '%{nest::kubernetes::service}-scripts'
+      namespace: '%{nest::kubernetes::namespace}'
+    binaryData:
+      bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
+  runtime:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-runtime'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: Opaque
+    data:
+      DJANGO_SECRET_KEY: '%{nest::service::joyride::django_secret_key_base64}'
+      OPS_TOKEN: '%{nest::service::joyride::ops_token_base64}'
+      DELIVERY_TOKEN: '%{nest::service::joyride::delivery_token_base64}'
+      WMATA_API_KEY: '%{nest::service::joyride::wmata_api_key_base64}'
+      EMAIL_HOST_USER: '%{nest::service::joyride::email_host_user_base64}'
+      EMAIL_HOST_PASSWORD: '%{nest::service::joyride::email_host_password_base64}'
+  pull:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-pull'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: kubernetes.io/dockerconfigjson
+    data:
+      .dockerconfigjson: '%{nest::service::joyride::registry_dockerconfig_base64}'
+  storage:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: '%{nest::kubernetes::service}-data'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      accessModes:
+      - ReadWriteMany
+      storageClassName: ceph-filesystem
+      resources:
+        requests:
+          storage: 8Gi
+  database:
+    apiVersion: postgresql.cnpg.io/v1
+    kind: Cluster
+    metadata:
+      name: '%{nest::kubernetes::service}-cnpg'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      instances: 1
+      imageName: ghcr.io/cloudnative-pg/postgresql:17.11
+      storage:
+        storageClass: ceph-block
+        size: 8Gi
+      bootstrap:
+        initdb:
+          database: joyride
+          owner: joyride
+      monitoring:
+        enablePodMonitor: true
+  app:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      replicas: 1
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: '%{nest::kubernetes::service}'
+      template:
+        metadata:
+          labels:
+            app: '%{nest::kubernetes::service}'
+        spec:
+          automountServiceAccountToken: false
+          securityContext:
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          imagePullSecrets:
+          - name: '%{nest::kubernetes::service}-pull'
+          initContainers:
+          - name: migrate
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: &id001
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 10001
+              runAsGroup: 10001
+              capabilities:
+                drop:
+                - ALL
+            env: &id002
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: '%{nest::kubernetes::service}-cnpg-app'
+                  key: uri
+            - name: TMPDIR
+              value: /data/tmp
+            - name: PRIVATE_ROOT
+              value: /data/private
+            - name: PUBLIC_ROOT
+              value: /data/public
+            - name: MAP_ROOT
+              value: /data/maps
+            - name: RUNTIME_ENV
+              value: '%{lookup(''runtime_environment'')}'
+            - name: ALLOWED_HOSTS
+              value: '%{lookup(''fqdn'')}'
+            - name: PUBLIC_ORIGIN
+              value: https://%{lookup('fqdn')}
+            - name: MAIL_ENABLED
+              value: '0'
+            - name: STRIPE_MODE
+              value: disabled
+            - name: TEST_MAIL_ALLOWLIST
+              value: ''
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - python
+            - manage.py
+            - migrate
+            - --noinput
+          - name: basemap
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            command: [python, /platform/bootstrap.py]
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            - name: scripts
+              mountPath: /platform
+              readOnly: true
+            - name: pull
+              mountPath: /pull
+              readOnly: true
+          containers:
+          - name: web
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            ports:
+            - name: web
+              containerPort: 8000
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: ops
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - gunicorn
+            - joyride.ops_wsgi:application
+            - --bind
+            - 0.0.0.0:8001
+            - --workers
+            - '2'
+            ports:
+            - name: ops
+              containerPort: 8001
+            readinessProbe:
+              tcpSocket:
+                port: 8001
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              tcpSocket:
+                port: 8001
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: worker
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - python
+            - manage.py
+            - worker
+          volumes:
+          - name: scripts
+            configMap:
+              name: '%{nest::kubernetes::service}-scripts'
+          - name: pull
+            secret:
+              secretName: '%{nest::kubernetes::service}-pull'
+          - name: data
+            persistentVolumeClaim:
+              claimName: '%{nest::kubernetes::service}-data'
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+  web:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-web'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8000
+        targetPort: 8000
+  ops:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-ops'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8001
+        targetPort: 8001
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: '%{nest::kubernetes::service}-tls'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      secretName: '%{nest::kubernetes::service}-tls'
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames:
+      - '%{lookup(''fqdn'')}'
+  ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      ingressClassName: '%{lookup(''ingress_class'')}'
+      tls:
+      - hosts:
+        - '%{lookup(''fqdn'')}'
+        secretName: '%{nest::kubernetes::service}-tls'
+      rules:
+      - host: '%{lookup(''fqdn'')}'
+        http:
+          paths:
+          - path: /ops/
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-ops'
+                port:
+                  number: 8001
+          - path: /delivery/
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-ops'
+                port:
+                  number: 8001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-web'
+                port:
+                  number: 8000
+  policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      podSelector:
+        matchLabels:
+          app: '%{nest::kubernetes::service}'
+      policyTypes:
+      - Ingress
+      ingress:
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: test
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8001

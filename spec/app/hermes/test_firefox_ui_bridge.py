@@ -127,7 +127,59 @@ def test_acquire_refuses_to_bind_when_new_tab_is_not_visible() -> None:
         else:
             raise AssertionError("acquire claimed a tab that never opened")
         with module._locked_state() as state:
-            assert "new-workflow" not in state["workflows"]
+            assert state["workflows"]["new-workflow"]["uncertain"] is True
+        # A stale snapshot is not evidence that the shortcut did nothing.
+        # Retrying must not send another Ctrl+T or claim a different tab.
+        fixture.commands.clear()
+        try:
+            module.command_tabs({"action": "acquire", "workflow_id": "new-workflow"})
+        except RuntimeError as exc:
+            assert "ownership is uncertain" in str(exc)
+        else:
+            raise AssertionError("acquire retried uncertain tab creation")
+        assert fixture.commands == []
+    finally:
+        tmp.cleanup()
+
+
+def test_acquire_refuses_creation_without_unique_selected_tab() -> None:
+    for tabs in (
+        [{"name": "Joy tab", "selected": False}],
+        [{"name": "Joy tab", "selected": True}, {"name": "Other tab", "selected": True}],
+    ):
+        module, fixture, tmp = configured_bridge()
+        try:
+            fixture.tabs = tabs
+            try:
+                module.command_tabs({"action": "acquire", "workflow_id": "w"})
+            except RuntimeError as exc:
+                assert "absent or ambiguous" in str(exc)
+            else:
+                raise AssertionError("acquire sent input without a unique selected tab")
+            assert fixture.commands == []
+            with module._locked_state() as state:
+                assert "w" not in state["workflows"]
+        finally:
+            tmp.cleanup()
+
+
+def test_creation_intent_survives_input_failure_before_readback() -> None:
+    module, fixture, tmp = configured_bridge()
+    try:
+        def interrupted(*args: str) -> None:
+            saved = json.loads(module.STATE_PATH.read_text())
+            assert saved["workflows"]["w"]["uncertain"] is True
+            raise RuntimeError("input delivery interrupted")
+        module._xdotool = interrupted
+        try:
+            module.command_tabs({"action": "acquire", "workflow_id": "w"})
+        except RuntimeError as exc:
+            assert "input delivery interrupted" in str(exc)
+        else:
+            raise AssertionError("expected interrupted input")
+        with module._locked_state() as state:
+            assert state["workflows"]["w"]["uncertain"] is True
+            assert state["action_keys"] == {}
     finally:
         tmp.cleanup()
 
