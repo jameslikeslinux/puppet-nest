@@ -1106,6 +1106,9 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
     action_key = str(payload.get("action_key") or "")
     operation = str(payload.get("operation") or "")
     selector = str(payload.get("selector") or "")
+    mode = str(payload.get("mode", "insert"))
+    if mode not in {"insert", "replace"} or (operation != "type" and mode != "insert"):
+        raise ValueError("input mode must be insert, or replace for selector typing")
     if not action_key or len(action_key) > 200 or operation not in {"click", "type"}:
         raise ValueError("native selector input needs an action_key (1..200) and click or type")
     text = str(payload.get("text") or "")
@@ -1136,7 +1139,7 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
             if operation == "click":
                 command("POST", f"/element/{element}/click", {})
             else:
-                _native_type(command, element, text)
+                _native_type(command, element, text, mode=mode)
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)
         readback = _readback()
@@ -1147,7 +1150,12 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
                 "typed_chars": len(text) if operation == "type" else None, "readback": readback}
 
 
-def _native_type(command: Any, element: str, text: str) -> None:
+def _native_type(command: Any, element: str, text: str, *, mode: str = "insert") -> None:
+    # Replacement is opt-in, on the already guarded public editable element.
+    # Use native Select All, not DOM assignment or an implicit textarea clear.
+    # The caller has persisted delivery_started before even this selection.
+    if mode == "replace":
+        command("POST", f"/element/{element}/value", {"text": "\ue009a\ue000"})
     # One bulk Send Keys command can outrun controlled-input state commits.
     # Yield between characters, retaining the original guarded element handle.
     # A stale element or uncertain delivery must fail, never reselect or retry.
@@ -1246,6 +1254,18 @@ def command_click(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _type_public_text(text: str) -> None:
+    # xdotool type silently drops LF on this Firefox/X11 stack. Deliver each
+    # paragraph separator explicitly; Shift+Return avoids submitting composers.
+    # Keep blank/trailing lines and never clear the existing field implicitly.
+    for index, part in enumerate(text.split("\n")):
+        if index:
+            _xdotool("key", "--clearmodifiers", "shift+Return")
+        if part:
+            _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
+                     "--", part, timeout=45 + len(part) * TYPE_DELAY_SECONDS * 2)
+
+
 def command_type(payload: dict[str, Any]) -> dict[str, Any]:
     text = str(payload.get("text") or "")
     if not text or len(text) > 4096:
@@ -1293,8 +1313,7 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
             _save_state(state)
         if x is not None and y is not None:
             _xdotool("mousemove", "--sync", str(x), str(y), "click", "1")
-        _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
-                 "--", text, timeout=45 + len(text) * TYPE_DELAY_SECONDS * 2)
+        _type_public_text(text)
         if action_key:
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)

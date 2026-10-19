@@ -33,6 +33,9 @@ TEXT = "Nonsecret endpoint source text alpha beta gamma.\n" * 180
 class Fixture(BaseHTTPRequestHandler):
     def do_GET(self):
         body = ('<!doctype html><title>Endpoint fixture ' + self.path.strip('/') + '</title>'
+                + '<textarea id="paragraphs" aria-label="Paragraphs"></textarea>'
+                + '<textarea id="coordinate" aria-label="Coordinate paragraphs"></textarea>'
+                + '<div id="editor" contenteditable="true" aria-label="Public editor"></div>'
                 + '<p>Generic chat message</p>' * 300 + '<pre>' + TEXT + '</pre>'
                 + '<input id="note" aria-label="Note"><input type="password" id="protected">'
                 + '<button id="apply" onclick="document.getElementById(\'result\').textContent=\'Applied\'">Apply</button>'
@@ -154,6 +157,25 @@ def main():
                         if cursor is None:
                             break
                     assert text == TEXT
+                    if index == 0:
+                        paragraphs = "First paragraph.\n\nSecond paragraph.\n"
+                        for selector in ("#paragraphs", "#editor"):
+                            suffix = selector.removeprefix("#")
+                            call("secure_browser_type_tool", {"selector": selector, "text": "Existing text",
+                                 "workflow_id": workflow, "action_key": "seed-" + suffix})
+                            replacement = {"selector": selector, "text": paragraphs, "mode": "replace",
+                                           "workflow_id": workflow, "action_key": "replace-" + suffix}
+                            call("secure_browser_type_tool", replacement)
+                            expression = f'document.querySelector("{selector}").' + ("value" if selector == "#paragraphs" else "innerText")
+                            assert call("secure_browser_query_tool", {"expression": expression})["value"] == paragraphs
+                            assert call("secure_browser_type_tool", replacement)["status"] == "already_delivered"
+                        call("secure_browser_click_tool", {"selector": "#coordinate", "workflow_id": workflow, "action_key": "focus-coordinate"})
+                        snap = call("secure_browser_page_snapshot_tool", {})
+                        node = next(n for n in snap["nodes"] if n.get("role") == "entry" and "focused" in n.get("states", []) and n.get("rect"))
+                        rect = node["rect"]
+                        call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
+                             "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        assert call("secure_browser_query_tool", {"expression": 'document.querySelector("#coordinate").value'})["value"] == paragraphs
                     call("secure_browser_tab_lifecycle_tool", {"action": "release", "workflow_id": workflow})
                     snapshot = call("secure_browser_page_snapshot_tool", {})
                     assert snapshot["browser_generation"] == generation

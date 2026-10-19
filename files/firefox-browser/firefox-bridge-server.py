@@ -34,7 +34,7 @@ FIELDS = {
     "scroll": {"workflow_id", "direction", "amount"},
     "click": {"workflow_id", "locator", "coordinate", "action_key", "max_wait_seconds"},
     "type": {"workflow_id", "locator", "coordinate", "action_key", "text"},
-    "selector_action": {"workflow_id", "operation", "selector", "expected_url", "expected_generation", "expected_tab", "action_key", "text", "max_wait_seconds"},
+    "selector_action": {"workflow_id", "operation", "selector", "expected_url", "expected_generation", "expected_tab", "action_key", "text", "max_wait_seconds", "mode"},
 }
 
 

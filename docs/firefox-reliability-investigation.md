@@ -204,6 +204,54 @@ prevented or treated as authorization to operate a different tab.
 
 ## Falsified or unresolved hypotheses
 
+### Installed endpoint activation and follow-up input regression
+
+MR 311 merged at approved head `764aa3c8a0fd0f3e54d47cbdc957ee24202330ac`
+as `dad475874b6cf38c1c2f293da2c0523682316f00` on 2026-10-19. The normal
+Bolt code deployment, `hermes_firefox_bridge` tagged owl apply and
+`nest::eyrie::ai::deploy_firefox` activation succeeded. Deployment generation
+39 uses approved image digest
+`sha256:f23cd9ea717dec6ae992eb539184d57cccf4d4357f22ff2c2302dc6e17239612`.
+Workload and installed client hashes match the approved source. The same PVC
+UID remains bound. Both tabs observed immediately before activation restored;
+object identities changed with the authorized Firefox generation transition,
+and old bindings remain uncertain rather than being silently reassigned.
+Star's fresh runtime record was idle before refresh. Only the named Star and
+Talon units received their supported SIGUSR1 drain/relaunch through Bolt;
+both reached new PIDs and running state without a forced systemd stop.
+
+The first installed endpoint-only canary passed one cycle and exact selector
+multiline readback, then failed a query transport call during its second
+cycle. Its HTTP status was not retained; the generic error does not establish
+a browser crash, session exhaustion or a busy-lock refusal. Thirty subsequent
+read-only queries passed. A separate installed rerun completed eight cycles
+over 290.209 seconds, 111 operations, mean 2.613 seconds and maximum 9.505
+seconds. Both owner-tab identities and Firefox generation stayed unchanged
+across this run and a client-module reconnect. Client subprocess execution
+was forbidden, kubeconfig nonexistent and TLS verified at `browser.eyrie`.
+This is bounded endpoint acceptance, not resolution of the earlier failure
+or of the original sustained-CPU incident.
+
+That rerun also independently reproduced the newly reported coordinate-input
+defect: typing two LF separators into an existing textarea did not add either
+separator. The selector path preserved exact multiline text. This is a
+separate proven input defect, not evidence that the preceding transport error
+or earlier CPU incident has the same cause. The rerun's `passed` flag covers
+its asserted endpoint scenarios; its explicit coordinate measurements are a
+failing input result, not a green multiline acceptance claim.
+
+The follow-up source repair delivers each X11 LF as explicit Shift+Return,
+preserving blank/trailing lines without clearing fields or submitting a chat
+composer. Default typing remains insertion. Explicit `mode=replace` is
+restricted to a guarded v2 selector field and native Select All/Send Keys,
+with the existing action reservation before selection or input. Locator and
+coordinate replacement are rejected, protected fields retain their guard,
+and an uncertain replacement cannot be replayed with a new delivery attempt.
+The public adapter also retains only the numeric HTTP refusal status for
+privacy-safe future diagnosis; it does not expose response bodies or retry.
+This follow-up source is not part of the already activated exact build and
+must not be described as installed until separately verified and authorized.
+
 - Repeated native WebDriver detach/reattach did not terminate the isolated
   browser or lose its tabs. This does not exclude every mixed-protocol race.
 - A generic 3000-message page did not reproduce missing chrome tabs. Its
