@@ -20,6 +20,12 @@ class nest::app::spotify (
           fail('Native Spotify on Gentoo requires amd64; select the web backend on ARM64')
         }
 
+        # Spotify's Ayatana indicator requires the GTK 3 libdbusmenu ABI.
+        nest::lib::package_use { 'spotify-libdbusmenu':
+          package => 'dev-libs/libdbusmenu',
+          use     => ['gtk3'],
+        }
+        ->
         nest::lib::package { 'media-sound/spotify':
           ensure => installed,
         }
