@@ -44,13 +44,13 @@ then verify changed behavior against the exact resulting TEST artifact.
 | Real scout video | OUT OF SCOPE FOR V1 | Closed by Joy's scope reduction, not tested/passed; no footage request. |
 | Synthetic motion-test MP4 | Prototype evidence only | Run 11773 exercised playback then removed fixtures; clip must not ship as v1. Do not rerun video acceptance. |
 | Photos-only frontend | OPEN, Luna-owned | Consume Luna's next hero/member revision through existing application Git/CI integration. Verify deployed public assets and member behavior contain no enabled video UI, references or bundled clip. Talon must not edit Luna's design. |
-| Backend photo-only exposure | OPEN, Talon-owned | Restrict listing, direct member/public media and processing entry paths to photos for v1; dormant schema/originals may remain. Require regression tests with explicitly synthetic video records proving omission/denial and unchanged protected photo access. |
+| Backend photo-only exposure | Verified on TEST, frontend still OPEN | Application MR 5, exact source `ff6385dc43e6e99aab30880f2975842952f52bad`; run 11783 verifies installed source parity, ready-video omission/direct denial, pre-transcode processing rejection, blocked historical static clip and unchanged protected photos/ranges. Dormant schema/originals remain. |
 | TEST website, sessions and protected route/photo/GPX | Prior milestone verified | Run 11770 ingress/session checks and run 11773 populated desktop/phone checks; repeat affected photo/security behavior on resulting photo-only artifact, with exact fixture cleanup. |
 | Regional self-hosted basemap | Prior milestone verified | Existing checksum/region/range evidence and run 11773 painted tiles/HTTP 206; preserve self-hosted attribution/dependencies and private-route separation. |
 | Luna Git/CI/backchannel | Prior milestone verified | Run 11733 actual independent Tailscale status/diagnostics/deploy success; preserve narrow trust and credentials. No new access request for closed canaries. |
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
-| WMATA member display | OPEN | Concrete escaped server-rendered application contract, Luna-owned integration and editorial/terms review. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
+| WMATA member display | OPEN, backend seam delivered | Application `docs/photo-only-member-contract.md` defines the tested opt-in `<!-- joyride:wmata -->` marker, release-hashed `templates/member-wmata.html` and active-member-only escaped `wmata` context. No supplied fragment is installed. Luna owns markup, integration and editorial/terms review. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
 | Stripe sandbox | UNVERIFIED | Real sandbox credentials and actual checkout/portal/webhook/reconciliation acceptance remain outstanding; mock tests do not close this. No live payments. |
 | Backup/isolated restore and monitoring | Prior TEST milestone verified | Runs 11767/11768 populated restore, scheduled publication, final-generation restore, failure preservation and healthy app alerts. Keep photo authorization and restore in changed-artifact acceptance. |
 | Production source preparation | PARTIAL, dormant | MR 323 merged after exact-head pipeline 10569 passed; separate zero-replica DB/PVC/listener candidate only. Compile guard remains TEST-only. See environment boundaries for missing contracts. |
@@ -62,21 +62,21 @@ then verify changed behavior against the exact resulting TEST artifact.
    revision through the existing dedicated Joyride collaboration path. Consume
    that revision faithfully through the existing integration/release path before
    declaring a v1 artifact photo-only. Do not substitute a Talon frontend rewrite.
-2. The current application media model allows video; `core/views.py` route media
-   serialization, member file/poster serving and public media serving select
-   ready records without excluding video. `core/media.py` has a reachable video
-   processing branch. These are actual exposure paths to close through the normal
-   scoped application MR, not permission to erase source/originals or rebuild a
-   video pipeline. Review latest application main before editing.
+2. Application MR 5 closes backend listing, direct member/public file/poster,
+   processing and known static-video exposure. Run 11783 deployed its verified
+   immutable artifact through the normal importer/controller and verified source
+   parity. Keep those gates closed; do not erase originals or rebuild a video
+   pipeline. The retained clip and enabled frontend references still require
+   Luna's revision, not merely a blocked URL.
 3. Preserve photo processing, authorization, sanitized metadata and HTTP range
    behavior. Deny video by type before reading/transcoding files, omit it from
    lists, deny direct URLs/posters, and ensure the shipped static artifact has no
    accessible MP4 or enabled video UI. An empty live media table alone does not
    prove fail-closed behavior. Keep historical prototype fixtures clearly marked;
    new v1 acceptance must be photo-only with negative video cases only.
-4. Complete a stable escaped server-rendered WMATA application seam for Luna
-   without inventing display copy/design or introducing a Transit Data endpoint.
-   Rendering and terms/editorial approval remain explicit acceptance gates.
+4. Consume Luna's actual markup using the delivered escaped server-rendered WMATA
+   seam, without inventing display copy/design or introducing a Transit Data
+   endpoint. Rendering and terms/editorial approval remain explicit gates.
 5. Import only exact CI-verified immutable artifacts through the existing TEST
    importer/controller and verify live behavior, selected digest and cleanup.
    Keep all production, payment, mail and publication gates intact.
@@ -89,6 +89,19 @@ request chain. Preserve exact CI/merge/deployment receipts after steering.
 MR 323's source head is `f081d72b4d255e0732d2d332241fd23915ba4eb0`, merge
 `8b881a34c1dd7d2327e41ddf4a58f03598bc3a3f`. Its candidate is not a production
 rollout, and its CI success does not validate a photo-only application artifact.
+
+Run 11783 selected digest
+`sha256:f63077c1dad36a0445855805966ba23ba713ceb415128a285f08ad5d2d9a02f2`,
+registered by exact-source successful pipeline 10575 (equivalent MR pipeline
+10576 also passed). TEST deployment generation 9 completed with all application
+and initializer images matching. Real desktop/phone photo, GPX, painted map,
+negative-video and session checks passed. A separate populated database/files
+restore retained photo authorization, EXIF scrubbing and byte ranges; exact
+temporary databases, files and live fixtures were removed. This is changed-backend
+acceptance, not acceptance of the still-pending photo-only frontend. Managed
+baseline pins preserve this release across Helm upgrades; dormant production
+remains guarded and undeployed. No payment, mail, waiver assent or publication
+approval is conferred.
 
 Shared Firefox is paused for the separately owned MR 321 maintenance window.
 Do not resume UI calls until its owner explicitly announces completion; retain
