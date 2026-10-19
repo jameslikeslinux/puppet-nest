@@ -64,10 +64,22 @@ disabled, and the exact TEST-exercised immutable application image is pinned.
 boundaries in the existing Joyride CI lane. Source fixtures do not prove runtime
 network enforcement, application startup, private access, TLS or restore behavior.
 
-The candidate deliberately has no migration/bootstrap init container: before
-activation it still needs reviewed migration and immutable basemap installation,
-production protection, approved exact-artifact promotion/rollback, private TLS
-ops access for Joy and gateway preparation. Those pieces must be implemented and
+The candidate declares serial `migrate` and `basemap` init containers on the web
+Deployment, using the same immutable application image, non-root security context
+and production-local database/signing references. Migration mounts only scratch
+space. The basemap initializer reuses the existing checksum-pinned OSM installer;
+only it mounts the read-only package credential and bootstrap script. Runtime
+containers do not mount that credential or script, and ops/worker pods do not
+carry those volumes. The installer registers the open basemap, not routes,
+members, waivers or content, and does not reset an existing active map selection.
+No initialization executes while replicas remain zero and the compile guard
+remains closed. The shared installer has TEST evidence, not production runtime
+acceptance.
+
+Before activation the candidate still needs production protection, approved
+exact-artifact promotion/rollback, private TLS ops access for Joy and gateway
+preparation, plus managed credentials and live initialization acceptance.
+Those pieces must be implemented and
 verified before the common compile guard can be widened. Do not apply this file
 directly, create its namespace, scale its Deployments or copy TEST controllers.
 
