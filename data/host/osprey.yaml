@@ -14,6 +14,8 @@ nest::packages:
   - 'virtual/opencl'
 
 nest::ambient_enabled: false
+# Integration retained for deliberate re-enablement after vendor installation.
+nest::app::resolve::ensure: absent
 nest::dvorak: true
 nest::idle_brightness: 15
 nest::subpixel_rendering: none
