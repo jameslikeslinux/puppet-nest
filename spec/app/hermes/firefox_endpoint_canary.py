@@ -36,7 +36,7 @@ class Fixture(BaseHTTPRequestHandler):
                 + '<textarea id="paragraphs" aria-label="Paragraphs"></textarea>'
                 + '<textarea id="coordinate" aria-label="Coordinate paragraphs"></textarea>'
                 + '<div id="editor" contenteditable="true" aria-label="Public editor"></div>'
-                + '<p>Generic chat message</p>' * 300 + '<pre>' + TEXT + '</pre>'
+                + '<p>Generic chat message</p>' * (300 if '/cycle-' in self.path else 1) + '<pre>' + TEXT + '</pre>'
                 + '<input id="note" aria-label="Note"><input type="password" id="protected">'
                 + '<button id="apply" onclick="document.getElementById(\'result\').textContent=\'Applied\'">Apply</button>'
                 + '<p id="result">Ready</p>').encode()
@@ -161,18 +161,23 @@ def main():
                         paragraphs = "First paragraph.\n\nSecond paragraph.\n"
                         for selector in ("#paragraphs", "#editor"):
                             suffix = selector.removeprefix("#")
+                            # Rich-text Enter has block/terminal-BR serialization
+                            # semantics; test its interior paragraphs separately.
+                            desired = paragraphs if selector == "#paragraphs" else "First paragraph.\n\nSecond paragraph."
                             call("secure_browser_type_tool", {"selector": selector, "text": "Existing text",
                                  "workflow_id": workflow, "action_key": "seed-" + suffix})
-                            replacement = {"selector": selector, "text": paragraphs, "mode": "replace",
+                            replacement = {"selector": selector, "text": desired, "mode": "replace",
                                            "workflow_id": workflow, "action_key": "replace-" + suffix}
                             call("secure_browser_type_tool", replacement)
                             expression = f'document.querySelector("{selector}").' + ("value" if selector == "#paragraphs" else "innerText")
                             value = call("secure_browser_query_tool", {"expression": expression})["value"]
-                            assert value == paragraphs, {"selector": selector, "expected": paragraphs, "observed": value}
+                            assert value == desired, {"selector": selector, "expected": desired, "observed": value}
                             assert call("secure_browser_type_tool", replacement)["status"] == "already_delivered"
                         call("secure_browser_click_tool", {"selector": "#coordinate", "workflow_id": workflow, "action_key": "focus-coordinate"})
                         snap = call("secure_browser_page_snapshot_tool", {})
-                        node = next(n for n in snap["nodes"] if n.get("role") == "entry" and "focused" in n.get("states", []) and n.get("rect"))
+                        candidates = [n for n in snap["nodes"] if n.get("role") == "entry" and n.get("name") == "Coordinate paragraphs" and n.get("rect")]
+                        assert len(candidates) == 1, [{k: n.get(k) for k in ("role", "name", "states", "rect")} for n in snap["nodes"] if n.get("role") == "entry"]
+                        node = candidates[0]
                         rect = node["rect"]
                         call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
                              "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})

@@ -252,6 +252,34 @@ privacy-safe future diagnosis; it does not expose response bodies or retry.
 This follow-up source is not part of the already activated exact build and
 must not be described as installed until separately verified and authorized.
 
+The follow-up isolated image also reproduced the intermittent selector refusal.
+A failure-message-only fixture overlay captured matching generation and tab
+name but a mismatching chrome URL: the expected fixture was `/cycle-0`, while
+AT-SPI still reported `/survivor-0` after the native WebDriver handle scan had
+returned to the correct tab. The pre-input guard correctly refused input.
+A delayed-observation regression failed before the repair. Native mapping now
+waits at most three seconds for the original generation, selected accessibility
+object, title and URL to agree before element resolution; it observes only,
+does not reselect/retry, and retains the final pre-input guard. Changed
+generation or object regressions still fail closed. This establishes a causal
+seam for this reproduced refusal, not the cause of every prior incident.
+
+The final isolated real-image canary passed three cycles in 186.425 seconds,
+63 operations, mean 2.875 seconds and maximum 8.847 seconds, with five surviving
+tab identities and generation unchanged across bridge replacement and endpoint
+outage. It verifies exact textarea replacement (including terminal LF), exact
+coordinate multiline input, native rich-text interior paragraphs, replay
+refusal and protected-field redaction. Rich-text terminal Enter serialized as
+an additional final line in `innerText`; the fixture records interior paragraph
+behavior separately and does not claim byte-exact rich-text terminal whitespace.
+
+An expanded harness initially could not discover its coordinate field because
+several hidden survivor documents exhausted the accessibility snapshot budget.
+Survivor pages were then kept short while the active cycle retains its generic
+long-chat content. That passing input canary is not proof of comprehensive
+accessibility discovery across several long documents; this limitation remains
+open. Failed harness receipts are retained, not counted as passing runs.
+
 - Repeated native WebDriver detach/reattach did not terminate the isolated
   browser or lose its tabs. This does not exclude every mixed-protocol race.
 - A generic 3000-message page did not reproduce missing chrome tabs. Its
