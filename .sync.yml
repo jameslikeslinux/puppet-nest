@@ -17,6 +17,8 @@
     - '/.resource_types'
     - '/spec/fixtures/self_modules/'
     - '/.task_cache.json'
+    - '/rollout-evidence/'
+    - '/.validation-run*/'
 
 .rubocop.yml:
   default_configs:

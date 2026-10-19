@@ -34,8 +34,9 @@ plan nest::kubernetes::upgrade_node (
       })
     } else {
       run_plan('nest::kubernetes::reconcile_control_plane', {
-        targets      => $target,
-        etcd_servers => $etcd_servers,
+        targets            => $target,
+        etcd_servers       => $etcd_servers,
+        upgrade_components => true,
       })
       run_command('kubeadm upgrade node --ignore-preflight-errors=SystemVerification --patches=/etc/kubernetes/patches --skip-phases=control-plane', $target, {
         _run_as => 'root',

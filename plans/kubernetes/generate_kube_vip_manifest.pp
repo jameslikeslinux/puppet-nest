@@ -3,15 +3,43 @@
 # @param targets Nodes to generate config on
 # @param vip Virtual IP address to advertise
 # @param advertise Whether the targets should advertise the control-plane VIP
+# @param survivor Healthy advertiser that must survive withdrawal or replacement
 #
 # @see https://kube-vip.io/docs/installation/static/
 plan nest::kubernetes::generate_kube_vip_manifest (
   TargetSpec              $targets,
   Stdlib::IP::Address::V4 $vip,
-  String                  $version   = 'v1.0.2',
+  String                  $version   = 'v1.2.4',
   Boolean                 $advertise = true,
+  Optional[String]        $survivor  = undef,
 ) {
-  parallelize(get_targets($targets)) |$t| {
+  $nodes = get_targets($targets)
+  $existing = run_command('if test -s /etc/kubernetes/manifests/kube-vip.yaml; then printf present; else printf absent; fi', $nodes, 'Classify existing VIP manifests before mutation', {
+    _run_as => 'root',
+  }).filter |$result| { $result.value['stdout'].chomp == 'present' }
+  if !$advertise or !$existing.empty {
+    if $nodes.length != 1 or !($survivor in ['control1', 'control2', 'control3']) or $survivor == $nodes[0].name {
+      fail('VIP withdrawal or replacement requires exactly one target and a different explicit control-plane survivor')
+    }
+    $survivor_ready_command = [
+      'curl', '--fail', '--silent', '--show-error', '--max-time', '5',
+      '--cacert', '/etc/kubernetes/pki/ca.crt', "https://${survivor}:6443/readyz",
+    ].shellquote
+    run_command("test -s /etc/kubernetes/manifests/kube-vip.yaml && ${survivor_ready_command}", $survivor, 'Require healthy surviving API advertiser before withdrawal', {
+      _run_as => 'root',
+    })
+    $survivor_ip = $survivor ? {
+      'control1' => '172.22.4.7',
+      'control2' => '172.22.4.8',
+      'control3' => '172.22.4.9',
+    }
+    $survivor_route = ['birdc', 'show', 'route', 'for', "${vip}/32", 'protocol', $survivor, 'all'].shellquote
+    run_command("${survivor_route} | grep -F -- ${("BGP.next_hop: ${survivor_ip}").shellquote}", $nodes[0], 'Require surviving advertiser route with its own next hop', {
+      _run_as => 'root',
+    })
+  }
+
+  parallelize($nodes) |$t| {
     # XXX Generalize this
     $bgp_peers = $t.name ? {
       'control1' => ['172.22.4.8', '172.22.4.9'],
@@ -26,22 +54,40 @@ plan nest::kubernetes::generate_kube_vip_manifest (
       '--interface', 'lo',
       '--address', $vip,
       '--controlplane',
+      # Native BGP gating: never advertise before the first strict local
+      # readiness success; withdraw on consecutive failures, recover on health.
+      '--controlPlaneHealthCheckAddress', "https://${t.name}:6443/readyz",
+      '--controlPlaneHealthCheckCAPath', '/etc/kubernetes/pki/ca.crt',
+      '--controlPlaneHealthCheckPeriodSeconds', '10',
+      '--controlPlaneHealthCheckTimeoutSeconds', '3',
+      '--controlPlaneHealthCheckFailureThreshold', '2',
       '--bgp',
       '--localAS', '65000',
       '--bgppeers', $bgp_peers.map |$p| { "${p}:65000::false" }.join(','),
     ].flatten.shellquote
 
+    # Upstream manifest generation emits the CA setting but not its mount.
+    $qualify_command = ['ruby', '-e', file('nest/kubernetes/kube-vip-health-ca.rb')].shellquote
     $render_command = @(COMMAND/L)
       set -eu
       manifest=/etc/kubernetes/manifests/kube-vip.yaml
       temporary="$(mktemp /etc/kubernetes/manifests/.kube-vip.XXXXXX.yaml)"
-      trap 'rm -f "$temporary"' EXIT
+      qualified="$(mktemp /etc/kubernetes/manifests/.kube-vip-qualified.XXXXXX.yaml)"
+      trap 'rm -f "$temporary" "$qualified"' EXIT
       __KUBE_VIP__ --bgpRouterID "$(facter networking.ip)" > "$temporary"
+      __QUALIFY__ < "$temporary" > "$qualified"
+      mv -f "$qualified" "$temporary"
       test -s "$temporary"
+      if [ -f "$manifest" ]; then
+        backup_dir=/root/kubernetes-manifest-backups
+        install -d -m 0700 "$backup_dir"
+        install -m 0600 "$manifest" "$backup_dir/kube-vip-$(date -u +%Y%m%dT%H%M%S.%N).yaml"
+      fi
       chmod 0600 "$temporary"
       mv -f "$temporary" "$manifest"
       | COMMAND
     $kube_vip_cmd = $render_command.regsubst('__KUBE_VIP__', $kube_vip_cmd_quoted, 'G')
+      .regsubst('__QUALIFY__', $qualify_command, 'G')
 
     if $advertise {
       run_command($kube_vip_cmd, $t, 'Generate kube-vip pod manifest', {

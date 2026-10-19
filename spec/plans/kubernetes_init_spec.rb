@@ -10,6 +10,7 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
   let(:etcd_patch) { YAML.safe_load_file(File.join(repo_root, 'files/kubernetes/etcd-cpu-request.yaml')) }
   let(:vip_plan) { File.read(File.join(repo_root, 'plans/kubernetes/generate_kube_vip_manifest.pp')) }
   let(:upgrade_plan) { File.read(File.join(repo_root, 'plans/kubernetes/upgrade_node.pp')) }
+  let(:reconcile_plan) { File.read(File.join(repo_root, 'plans/kubernetes/reconcile_control_plane.pp')) }
 
   it 'validates a redundant advertiser subset before host mutation' do
     subset_validation = init_plan.index('vip_advertisers must contain unique members')
@@ -18,6 +19,23 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
 
     expect(subset_validation).to be < first_mutation
     expect(redundancy_validation).to be < first_mutation
+  end
+
+  it 'uses independent healthy API advertisers and keeps the etcd read policy separate' do
+    init_step = eyrie_build.fetch('steps').find { |step| step['plan'] == 'nest::kubernetes::init' }
+    expect(init_step.dig('parameters', 'vip_advertisers')).to eq(['control1', 'control2'])
+    expect(vip_plan).to include("'v1.2.4'")
+    expect(vip_plan).to include('https://${t.name}:6443/readyz')
+    expect(vip_plan).to include('--controlPlaneHealthCheckCAPath')
+  end
+
+  it 'refuses bulk or unqualified maintenance withdrawal before mutation' do
+    validation = vip_plan.index('VIP withdrawal or replacement requires exactly one target')
+    peer = vip_plan.index('Require healthy surviving API advertiser before withdrawal')
+    route = vip_plan.index('Require surviving advertiser route with its own next hop')
+    withdrawal = vip_plan.index('Stop advertising kube-vip from excluded member')
+    expect([validation, peer, route].max).to be < withdrawal
+    expect(init_plan).to include('survivor  => $vip_nodes[0].name')
   end
 
   it 'proves replacement Pods, BGP routes, and VIP readiness before withdrawal' do
@@ -55,6 +73,15 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
     init_step = eyrie_build.fetch('steps').find { |step| step['plan'] == 'nest::kubernetes::init' }
 
     expect(init_step.dig('parameters', 'etcd_servers')).to eq(['https://172.22.4.9:2379', 'https://172.22.4.8:2379'])
+  end
+
+  it 'reconciles only the API manifest without upgrading etcd or renewing certificates' do
+    expect(reconcile_plan).to include('kubeadm init phase control-plane apiserver --config=${config_path_quoted}')
+    expect(reconcile_plan).to include('nest/kubernetes/append-kubeadm-init-config.rb')
+    expect(reconcile_plan).to include('$dry_run_command   = "${api_command} --dry-run"')
+    expect(reconcile_plan).to include('$upgrade_components = false')
+    expect(reconcile_plan).to include('default => $api_command')
+    expect(upgrade_plan).to include('upgrade_components => true')
   end
 
   it 'disables the optional object-count metric poller during bootstrap' do
