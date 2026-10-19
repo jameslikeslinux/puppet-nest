@@ -1,0 +1,176 @@
+---
+# TEST-only operational protection; no production backup or restore is enabled.
+resources:
+  backup_registry_auths:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: joyride-test-backup-pull
+      namespace: test
+    type: kubernetes.io/dockerconfigjson
+    data:
+      .dockerconfigjson: '%{nest::kubernetes::registry_auths_base64}'
+  backup:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-test-backup
+      namespace: test
+    spec:
+      suspend: false
+      schedule: '17 */3 * * *'
+      timeZone: UTC
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 2
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 600
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 3600
+          template:
+            metadata:
+              labels:
+                app: joyride-test-backup
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              imagePullSecrets:
+              - name: joyride-test-backup-pull
+              containers:
+              - name: backup
+                # Trusted Nest operational image, not a frontend release.
+                image: '%{lookup(''config_image'')}'
+                imagePullPolicy: Always
+                command: [python3, -B, /platform/backup.py, --stage-root, /scratch]
+                env:
+                - name: KUBECONFIG
+                  value: /kubeconfig/eyrie.conf
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                    ephemeral-storage: 2Gi
+                  limits:
+                    memory: 512Mi
+                    ephemeral-storage: 24Gi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: scratch
+                  mountPath: /scratch
+                - name: backup
+                  mountPath: /nest/backup/joyride-test
+                - name: kubeconfig
+                  mountPath: /kubeconfig/eyrie.conf
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-test-scripts
+                  items:
+                  - key: backup.py
+                    path: backup.py
+              - name: scratch
+                emptyDir:
+                  sizeLimit: 24Gi
+              - name: backup
+                hostPath:
+                  path: /nest/backup/joyride-test
+                  type: DirectoryOrCreate
+              - name: kubeconfig
+                hostPath:
+                  path: /nest/home/kubeconfigs/eyrie.conf
+                  type: File
+  monitor:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-test-monitor
+      namespace: test
+    spec:
+      suspend: false
+      schedule: '*/2 * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 60
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 90
+          template:
+            metadata:
+              labels:
+                app: joyride-test-monitor
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                  type: RuntimeDefault
+              imagePullSecrets:
+              - name: joyride-test-pull
+              containers:
+              - name: monitor
+                image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
+                command: [python, -B, /platform/monitor.py]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 64Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-test-scripts
+                  items:
+                  - key: monitor.py
+                    path: monitor.py
+  alert_rules:
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: joyride-test
+      namespace: test
+      labels:
+        release: kube-prometheus-stack
+    spec:
+      groups:
+      - name: joyride-test
+        rules:
+        - alert: JoyrideTestApplicationProbeStale
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="test",cronjob="joyride-test-monitor"} > 360 or absent(kube_cronjob_status_last_successful_time{namespace="test",cronjob="joyride-test-monitor"})
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: Joyride TEST application probes have no recent success
+            description: Check the private TEST monitor Job. Readiness, session, basemap and homepage must all pass; never print member data or credentials.
+        - alert: JoyrideTestBackupStale
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="test",cronjob="joyride-test-backup"} > 14400 or absent(kube_cronjob_status_last_successful_time{namespace="test",cronjob="joyride-test-backup"})
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Joyride TEST has no verified recent backup generation
+            description: Inspect the backup Job and completion receipt before attempting a restore. Never use an archive without matching completion metadata.

@@ -20,6 +20,13 @@ RSpec.describe 'Joyride trusted TEST delivery adapter' do
     expect(status.success?).to be(true), "#{stdout}\n#{stderr}"
   end
 
+  it 'fails closed on backup publication errors and unhealthy application probes' do
+    test_path = File.join(repo_root, 'spec/app/joyride/test_protection.py')
+    stdout, stderr, status = Open3.capture3({ 'PYTHONDONTWRITEBYTECODE' => '1' }, 'python3', test_path)
+
+    expect(status.success?).to be(true), "#{stdout}\n#{stderr}"
+  end
+
   it 'limits Kubernetes authority to the TEST workload and its nonsecret journal' do
     rules = resources.fetch('delivery_role').fetch('rules')
     expect(rules.length).to eq(2)

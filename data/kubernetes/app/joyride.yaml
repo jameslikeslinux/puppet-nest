@@ -23,6 +23,8 @@ resources:
       bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
       import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
       test_delivery_controller.py: '%{nest::service::joyride::test_delivery_base64}'
+      backup.py: '%{nest::service::joyride::backup_script_base64}'
+      monitor.py: '%{nest::service::joyride::monitor_script_base64}'
   delivery_journal:
     apiVersion: v1
     kind: ConfigMap
@@ -640,6 +642,13 @@ resources:
       policyTypes:
       - Ingress
       ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-monitor
+        ports:
+        - protocol: TCP
+          port: 8000
       - from:
         - podSelector:
             matchLabels:
