@@ -3,9 +3,9 @@
 The API VIP is a routing contract, separate from etcd membership. A healthy etcd
 quorum does not prevent an unready API advertiser from black-holing ECMP traffic.
 
-## Steady state
+## Desired steady state
 
-Eyrie advertises `172.21.255.255/32` from Control1 and Control2. Control3 remains an
+Eyrie's intended policy advertises `172.21.255.255/32` from Control1 and Control2. Control3 remains an
 etcd voter and an API server, but is not an intended VIP advertiser. API etcd
 client reads still use Control3 and Control2: advertiser selection does not
 silently change the measured slow-voter endpoint policy.
@@ -19,7 +19,11 @@ The check period is ten seconds, timeout three seconds and withdrawal threshold
 two consecutive failures. Startup suppresses advertisement until the first
 successful check; recovery re-announces automatically. Detection is not instant,
 and transient client failures during detection remain possible. This is not a
-promise of zero-loss failover or a replacement for planned withdrawal.
+promise of zero-loss failover or a replacement for planned withdrawal. A shared
+backend readiness failure can withdraw every gated advertiser: do not roll the
+last stable management advertiser onto this policy until backend health and
+the resulting route behavior are independently certified. Preserve a tested
+rollback configuration throughout that transition.
 
 Upstream manifest generation emits the CA environment setting but omits its
 volume. The small manifest integration helper supplies that public-file mount
@@ -71,6 +75,13 @@ interruption. This document does not supply or certify a replacement transfer
 implementation: that pressure-safety gate remains separate from VIP repair.
 
 ## Acceptance
+
+Etcd client routing canaries use `nest::kubernetes::reconcile_control_plane`, one
+member at a time. That plan renders only the API static manifest through
+`kubeadm init phase control-plane apiserver`, using the same config and patches
+for dry-run and publication. Do not substitute `kubeadm upgrade node phase
+control-plane`: that broader phase can restart etcd and renew Kubernetes
+certificates even when only API read endpoints were intended to change.
 
 Require a sustained log-correlated interval with intended advertisers healthy,
 correct external next hops, successful strict API and etcd proposal checks,

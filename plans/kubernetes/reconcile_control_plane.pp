@@ -8,10 +8,12 @@
 # @param targets Exactly one control-plane node to reconcile
 # @param etcd_servers Ordered etcd client endpoints for kube-apiserver
 # @param etcd_member_names Exact voting etcd member names required by the gate
+# @param upgrade_components Explicit version-upgrade path, including etcd and certificates
 plan nest::kubernetes::reconcile_control_plane (
   TargetSpec    $targets,
   Array[String] $etcd_servers,
-  Array[String] $etcd_member_names = ['control1', 'control2', 'control3'],
+  Array[String] $etcd_member_names  = ['control1', 'control2', 'control3'],
+  Boolean       $upgrade_components = false,
 ) {
   $members = get_targets($targets)
   if $members.length != 1 {
@@ -128,6 +130,10 @@ plan nest::kubernetes::reconcile_control_plane (
   $config_path_quoted     = $config_path.shellquote
   $config_backup_quoted   = $config_backup.shellquote
   $manifest_backup_quoted = $manifest_backup.shellquote
+  $append_init_command = [
+    'ruby', '-e', file('nest/kubernetes/append-kubeadm-init-config.rb'),
+    $config_path, $manifest_backup, $patches,
+  ].shellquote
   $compare_command = [
     '/usr/local/sbin/reconcile-kubeadm-cluster-config', '--compare', $config_backup,
   ].shellquote
@@ -136,7 +142,8 @@ plan nest::kubernetes::reconcile_control_plane (
     install -d -m 0700 __BACKUP_DIR__ && \
     __READ_CONFIG__ > __CONFIG_BACKUP__ && \
     install -m 0600 __MANIFEST__ __MANIFEST_BACKUP__ && \
-    __REWRITE__ < __CONFIG_BACKUP__ > __CONFIG_PATH__
+    __REWRITE__ < __CONFIG_BACKUP__ > __CONFIG_PATH__ && \
+    __APPEND_INIT__
     | COMMAND
   $prepare_config_command = $prepare_config_template
     .regsubst('__BACKUP_DIR__', $backup_dir_quoted, 'G')
@@ -146,12 +153,19 @@ plan nest::kubernetes::reconcile_control_plane (
     .regsubst('__MANIFEST_BACKUP__', $manifest_backup_quoted, 'G')
     .regsubst('__REWRITE__', $rewrite_command_string, 'G')
     .regsubst('__CONFIG_PATH__', $config_path_quoted, 'G')
+    .regsubst('__APPEND_INIT__', $append_init_command, 'G')
   run_command($prepare_config_command, $member, 'Render desired kubeadm ClusterConfiguration', {
     _run_as => 'root',
   })
 
-  $dry_run_command   = "kubeadm init phase control-plane apiserver --config=${config_path_quoted} --dry-run"
-  $reconcile_command = "kubeadm upgrade node phase control-plane --patches=${patches_quoted}"
+  # Reconcile API routing only. The upgrade phase also renews certificates and
+  # restarts etcd, even when the requested change is only --etcd-servers.
+  $api_command       = "kubeadm init phase control-plane apiserver --config=${config_path_quoted}"
+  $dry_run_command   = "${api_command} --dry-run"
+  $reconcile_command = $upgrade_components ? {
+    true    => "kubeadm upgrade node phase control-plane --patches=${patches_quoted}",
+    default => $api_command,
+  }
   run_command("kubeadm config validate --config=${config_path_quoted} && ${dry_run_command}", $member, 'Validate and dry-run desired control-plane manifest', {
     _run_as => 'root',
   })

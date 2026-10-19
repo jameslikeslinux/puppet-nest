@@ -10,6 +10,7 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
   let(:etcd_patch) { YAML.safe_load_file(File.join(repo_root, 'files/kubernetes/etcd-cpu-request.yaml')) }
   let(:vip_plan) { File.read(File.join(repo_root, 'plans/kubernetes/generate_kube_vip_manifest.pp')) }
   let(:upgrade_plan) { File.read(File.join(repo_root, 'plans/kubernetes/upgrade_node.pp')) }
+  let(:reconcile_plan) { File.read(File.join(repo_root, 'plans/kubernetes/reconcile_control_plane.pp')) }
 
   it 'validates a redundant advertiser subset before host mutation' do
     subset_validation = init_plan.index('vip_advertisers must contain unique members')
@@ -72,6 +73,15 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
     init_step = eyrie_build.fetch('steps').find { |step| step['plan'] == 'nest::kubernetes::init' }
 
     expect(init_step.dig('parameters', 'etcd_servers')).to eq(['https://172.22.4.9:2379', 'https://172.22.4.8:2379'])
+  end
+
+  it 'reconciles only the API manifest without upgrading etcd or renewing certificates' do
+    expect(reconcile_plan).to include('kubeadm init phase control-plane apiserver --config=${config_path_quoted}')
+    expect(reconcile_plan).to include('nest/kubernetes/append-kubeadm-init-config.rb')
+    expect(reconcile_plan).to include('$dry_run_command   = "${api_command} --dry-run"')
+    expect(reconcile_plan).to include('$upgrade_components = false')
+    expect(reconcile_plan).to include('default => $api_command')
+    expect(upgrade_plan).to include('upgrade_components => true')
   end
 
   it 'disables the optional object-count metric poller during bootstrap' do
