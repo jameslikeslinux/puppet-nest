@@ -299,8 +299,16 @@ overlay: two cycles, 131.209 seconds, 50 operations, mean 2.519 seconds and
 maximum 7.773 seconds, five surviving tab identities and unchanged generation,
 including exact coordinate paragraphs and bridge replacement/outage. This is
 overlay verification, not pristine-image or installed acceptance. The source
-change requires a rebuilt immutable image and exact-head CI before any further
-activation proposal. Failed harness receipts are retained, not counted as passes.
+change was then built, smoke-tested and published through the normal rootful
+Bolt build wrapper. The actual remote digest was read from the registry API,
+pulled independently and checked for source parity across all five modules:
+`sha256:13f1fee96d1ec597fff37f509ab4d2c96a9eae31f730b577c5a979984700a40f`.
+The pristine rebuilt image passed the same long-survivor scenario in two cycles,
+129.559 seconds and 50 operations, mean 2.489 seconds and maximum 7.725 seconds,
+with four surviving identities and generation unchanged. Graceful fixture
+disposal was verified after both runs. Exact-head CI and longer pristine-image
+acceptance remain required before any further activation proposal. Failed
+harness receipts are retained, not counted as passes.
 
 - Repeated native WebDriver detach/reattach did not terminate the isolated
   browser or lose its tabs. This does not exclude every mixed-protocol race.
