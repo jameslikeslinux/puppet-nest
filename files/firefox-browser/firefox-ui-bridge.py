@@ -985,7 +985,14 @@ def _assert_selector_precondition(payload: dict[str, Any]) -> None:
             or current["url"] != payload["expected_url"]
             or current["browser_generation"] != payload.get("expected_generation")
             or selected.get("name") != payload["expected_tab"]):
-        raise RuntimeError("selector observation is stale or belongs to another workflow tab; no input sent")
+        checks = {
+            "url_present": bool(payload.get("expected_url")),
+            "tab_present": bool(payload.get("expected_tab")),
+            "url_matches": current["url"] == payload.get("expected_url"),
+            "generation_matches": current["browser_generation"] == payload.get("expected_generation"),
+            "tab_matches": selected.get("name") == payload.get("expected_tab"),
+        }
+        raise RuntimeError("selector observation is stale or belongs to another workflow tab; no input sent; checks=" + _json(checks))
 
 
 def _assert_screen_coordinate(coordinate: Any) -> tuple[int, int]:
