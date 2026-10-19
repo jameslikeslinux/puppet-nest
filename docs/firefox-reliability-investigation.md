@@ -104,6 +104,29 @@ credentials. The old image's soak is not counted as proof of the new transport.
 The earlier exact-image approval must not be silently broadened to a different
 image or additional shared-session restart.
 
+Endpoint image verification subsequently exercised the actual image through a
+TLS-verified localhost fixture and the shipped public adapter, with a
+nonexistent kubeconfig and client subprocess execution forbidden. An initial
+two-cycle run passed in 122.726 seconds with 29 operations and four surviving
+tab identities. The expanded run completed 12 UI/read/release cycles through
+926.909 seconds, but its final bridge-refresh setup failed, so it is not an
+overall passing soak. The test had first mis-escaped the NUL process delimiter
+and then assumed argv[0] was literally `python3`; the actual Gentoo executable
+was `/usr/lib/python-exec/python3.14/python3`. This is a harness identification
+failure, not evidence that Firefox restarted or the endpoint repair failed.
+
+The repaired short rerun passed one complete cycle, native type/click,
+protected-field redaction, action replay refusal, paginated source reads,
+explicit bridge process replacement and a simulated endpoint outage in 89.321
+seconds. It measured 25 public operations, mean 3.179 seconds and maximum 9.406
+seconds. Firefox generation and all four surviving tab identities remained
+unchanged across bridge replacement and outage. No production profile or PVC
+was mounted, and the disposable browser exited through Ctrl+Q. This verifies
+the isolated transport seam, not the real `browser.eyrie` deployment or
+hours-long owner workflow reliability. Safe receipts are retained under
+`build/firefox-reliability/endpoint-*.json`; raw rendered Secret manifests are
+restricted and must not be attached as evidence.
+
 ### Asynchronous acquisition, not proof of a dead browser
 
 The same-image empty-profile test reproduced the exact error:

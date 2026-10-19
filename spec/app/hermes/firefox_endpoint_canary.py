@@ -167,11 +167,13 @@ def main():
                     "import os,pathlib,signal,subprocess; "
                     "script='/opt/nest/firefox/bin/firefox-bridge-server.py'; "
                     "pids=[int(p.name) for p in pathlib.Path('/proc').iterdir() if p.name.isdigit() "
-                    "and (p/'cmdline').exists() and (p/'cmdline').read_bytes().split(b'\\0')[:3]==[b'python3',script.encode(),b'']]; "
+                    "and (p/'cmdline').exists() and (p/'cmdline').read_bytes().split(bytes([0]))[1:]==[script.encode(),b'']]; "
                     "assert len(pids)==1,pids; os.kill(pids[0],signal.SIGTERM); "
                     "subprocess.Popen(['python3',script],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)"
                 )
-                infrastructure_run(["sudo", "-n", "podman", "exec", container, "python3", "-c", refresh], check=True, capture_output=True)
+                refreshed = infrastructure_run(["sudo", "-n", "podman", "exec", container, "python3", "-c", refresh], capture_output=True, text=True)
+                if refreshed.returncode:
+                    raise RuntimeError("isolated bridge refresh setup failed: " + refreshed.stderr[-1000:])
                 # Bounded readiness observation only; never resend a mutation.
                 for attempt in range(20):
                     observed = json.loads(tool.secure_browser_page_snapshot_tool({}))
