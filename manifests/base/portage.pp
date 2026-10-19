@@ -67,6 +67,7 @@ class nest::base::portage {
 
     '/etc/portage/patches':
       source => 'puppet:///modules/nest/portage/patches',
+      tag    => 'nest_cli_safety',
     ;
   }
 
