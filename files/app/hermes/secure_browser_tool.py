@@ -8,6 +8,9 @@ Opt-in v2 adds a private BiDi page connector without exposing raw profile data.
 from __future__ import annotations
 
 import base64
+import contextlib
+import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -34,6 +37,7 @@ CONTROL_MODE = os.environ.get("SECURE_BROWSER_CONTROL_MODE", "firefox-ui-v1")
 PUBLIC_URL = os.environ.get("SECURE_BROWSER_PUBLIC_URL", "https://browser.eyrie/")
 BRIDGE_TIMEOUT = int(os.environ.get("SECURE_BROWSER_UI_TIMEOUT", "60"))
 MAX_RESULT_BYTES = 8_000_000
+CONTROLLER_STATE_DIR = Path(os.environ.get("SECURE_BROWSER_CONTROLLER_STATE_DIR", Path.home() / ".local/state/nest-firefox-controller"))
 WORKFLOW_RE = re.compile(r"[^A-Za-z0-9_.:@/-]+")
 
 
@@ -132,6 +136,10 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
         raise RuntimeError("Firefox UI bridge response was not an object")
     if parsed.get("status") == "error":
         raise RuntimeError(str(parsed.get("message") or parsed.get("error") or "Firefox UI bridge error"))
+    parsed["bridge_diagnostics"] = {
+        "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "command": command,
+    }
     return parsed
 
 
@@ -139,9 +147,38 @@ def _check_secure_browser() -> bool:
     return CONTROL_MODE in {"firefox-ui-v1", "firefox-bidi-ui-v2"} and bool(WORKLOAD) and bool(BRIDGE_PATH)
 
 
+@contextlib.contextmanager
+def _controller_lock():
+    """Serialize complete supported operations, including UI/BiDi read pairs.
+
+    This path is user-wide, not profile-wide: Star and Talon operate the same
+    visible desktop. The pod's state lock still protects workflow mutations.
+    """
+    CONTROLLER_STATE_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with (CONTROLLER_STATE_DIR / "controller.lock").open("a+") as handle:
+        os.fchmod(handle.fileno(), 0o600)
+        deadline = time.monotonic() + 5
+        while True:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise RuntimeError("shared Firefox controller is busy; no operation started")
+                time.sleep(0.05)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
 def _safe_call(operation: str, callback: Any) -> str:
     try:
-        return _json(callback())
+        with _controller_lock():
+            started = time.monotonic()
+            result = callback()
+            result["controller_diagnostics"] = {"elapsed_ms": int((time.monotonic() - started) * 1000)}
+            return _json(result)
     except (RuntimeError, ValueError) as exc:
         return _json({
             "operation": operation,

@@ -3,7 +3,7 @@ set -eu
 
 export DISPLAY="${DISPLAY:-:1}"
 export HOME="${FIREFOX_HOME:-/home/kasm-user}"
-export LAUNCH_URL="${LAUNCH_URL:-about:blank}"
+export LAUNCH_URL="${LAUNCH_URL:-}"
 export APP_ARGS="${APP_ARGS:-}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/runtime-firefox}"
 export NO_AT_BRIDGE=0
@@ -64,9 +64,20 @@ if [ ! -f "$HOME/.vnc/self.pem" ]; then
 fi
 
 cleanup() {
-  kill "$firefox_pid" "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid" 2>/dev/null || true
+  trap - INT TERM EXIT
+  # Keep Firefox's display and accessibility bus alive until it has exited.
+  # Never escalate to SIGKILL or automatically relaunch it here.
+  if [ -n "$firefox_pid" ] && kill -0 "$firefox_pid" 2>/dev/null; then
+    kill "$firefox_pid" 2>/dev/null || true
+    wait "$firefox_pid" 2>/dev/null || true
+  fi
+  for pid in "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid"; do
+    [ -z "$pid" ] || kill "$pid" 2>/dev/null || true
+  done
 }
-trap cleanup INT TERM EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap cleanup EXIT
 
 /opt/kasmweb/bin/Xvnc \
   -interface 0.0.0.0 \
@@ -115,6 +126,10 @@ if command -v xmonad >/dev/null 2>&1; then
 fi
 
 # shellcheck disable=SC2086
+# Do not append about:blank on every restart: an explicit launch URL creates
+# an extra tab even when session restoration is enabled.
+set --
+[ -z "$LAUNCH_URL" ] || set -- "$LAUNCH_URL"
 firefox \
   --no-remote \
   --new-instance \
@@ -123,7 +138,7 @@ firefox \
   --height "$FIREFOX_HEIGHT" \
   $bidi_args \
   $APP_ARGS \
-  "$LAUNCH_URL" &
+  "$@" &
 firefox_pid=$!
 
 resize_firefox_windows_once() {

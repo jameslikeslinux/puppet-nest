@@ -47,7 +47,7 @@ def desktop(windows=1, selected_tabs=1):
     ]) for _ in range(windows)]
     root = Node("application", children=frames)
     module._firefox_root = lambda: root
-    module._browser_pid = lambda: 100
+    module._browser_generation = lambda: 100
     module._state_names = lambda node: ["showing", "visible"] + (["selected"] if node.selected else [])
     module._extent = lambda node: {"x": 0, "y": 0, "width": 10, "height": 10}
     module._text_content = lambda node: ""
@@ -105,7 +105,7 @@ class TabAncestryTests(unittest.TestCase):
             module._resolve_locator(locator)
         browser_tabs[0].name = "New page title"
         self.assertIs(module._resolve_locator(chrome_locator)[0], browser_tabs[0])
-        module._browser_pid = lambda: 101
+        module._browser_generation = lambda: 101
         with self.assertRaisesRegex(ValueError, "generation changed"):
             module._resolve_locator(chrome_locator)
 
@@ -132,6 +132,9 @@ class TabAncestryTests(unittest.TestCase):
 
             with patch.dict(os.environ, {"KUBECONFIG": str(source)}), patch.object(module.subprocess, "run", side_effect=run):
                 result = module._bridge("snapshot", {"workflow_id": "fixture"})
+            diagnostics = result.pop("bridge_diagnostics")
+            self.assertEqual(diagnostics["command"], "snapshot")
+            self.assertEqual(len(diagnostics["source_sha256"]), 64)
             self.assertEqual(result, {"status": "ok", "command": "snapshot", "payload": {"workflow_id": "fixture"}})
 
     def test_missing_managed_overlay_never_falls_back_to_old_image(self):

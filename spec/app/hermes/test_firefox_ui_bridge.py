@@ -342,7 +342,8 @@ def test_restart_reconciliation_and_ambiguous_tabs_are_fail_closed() -> None:
         status = module.command_status({})
         state = module._load_state()
         assert status["status"] == "ok"
-        assert state["workflows"]["w"]["browser_generation"] == 200
+        assert state["workflows"]["w"]["browser_generation"] == 100
+        assert state["workflows"]["w"]["uncertain"] is True
         fixture.tabs.append({"name": "example.test", "selected": False})
         fixture.generation = 300
         module.command_status({})
@@ -442,7 +443,8 @@ def test_atspi_text_api_and_safe_commerce_canonicalization() -> None:
     original_import = module.importlib.import_module
     module.importlib.import_module = lambda name: type("AtspiModule", (), {"Text": TextAPI}) if name == "gi.repository.Atspi" else original_import(name)
     try:
-        assert module._text_content(object()) == "Subtotal $50.00"
+        node = type("TextNode", (), {"get_interfaces": lambda self: ["Text"]})()
+        assert module._text_content(node) == "Subtotal $50.00"
     finally:
         module.importlib.import_module = original_import
 
@@ -537,7 +539,7 @@ def test_snapshot_keeps_long_rendered_text_in_unusual_accessibility_roles() -> N
                  Node("entry", "Card number", "4111111111111111")]
         module._firefox_root = lambda: object()
         module._walk = lambda _root: ((node, (index,)) for index, node in enumerate(nodes))
-        module._browser_pid = lambda: 100
+        module._browser_generation = lambda: 100
         module._state_names = lambda _node: ["showing", "visible"]
         module._extent = lambda _node: None
         module._text_content = lambda node: node.text

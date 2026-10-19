@@ -113,10 +113,25 @@ def _firefox_window_id() -> str:
 
 
 def _browser_pid() -> int:
-    result = _run(["pgrep", "-o", "-f", "firefox.*nest-secure-browser"])
+    # Command-line regexes also match launcher/probe shells. Use the process
+    # owning the single verified visible Navigator window, never the oldest
+    # process whose arguments happen to mention the profile.
+    result = _run(["xdotool", "getwindowpid", _firefox_window_id()])
     with contextlib.suppress(ValueError):
         return int(result.stdout.decode().strip())
     return 0
+
+
+def _browser_generation() -> str:
+    """A PID alone is reused after container and browser restarts."""
+    pid = _browser_pid()
+    if not pid:
+        raise RuntimeError("Firefox process identity is unavailable")
+    fields = Path(f"/proc/{pid}/stat").read_text().rsplit(") ", 1)[1].split()
+    started = fields[19]
+    boot = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    namespace = os.stat(f"/proc/{pid}/ns/pid").st_ino
+    return hashlib.sha256(f"{boot}:{namespace}:{pid}:{started}".encode()).hexdigest()
 
 
 def _redact_url(value: str) -> str:
@@ -141,7 +156,7 @@ def _redact_url(value: str) -> str:
     return urlunsplit((parsed.scheme, host + port, (parsed.path or "/")[:300], "", ""))
 
 
-def _identity(role: str, name: str, path: tuple[int, ...], generation: int, *, browser_tab: bool = False) -> str:
+def _identity(role: str, name: str, path: tuple[int, ...], generation: int | str, *, browser_tab: bool = False) -> str:
     # Only structurally verified chrome tabs survive title changes. ARIA page
     # tabs retain name hashing like other controls, rejecting stale locators.
     # Ownership separately requires the process-scoped AT-SPI object identity.
@@ -151,7 +166,7 @@ def _identity(role: str, name: str, path: tuple[int, ...], generation: int, *, b
     return f"ax:{generation}:{encoded_path}:{digest}"
 
 
-def _control_id(role: str, path: tuple[int, ...], generation: int) -> str:
+def _control_id(role: str, path: tuple[int, ...], generation: int | str) -> str:
     """Opaque path identity that does not depend on an accessible name."""
     digest = hashlib.sha256(role.encode()).hexdigest()[:12]
     encoded_path = ".".join(str(index) for index in path)
@@ -168,6 +183,8 @@ def _safe_name(role: str, name: str) -> str:
 def _text_content(node: Any) -> str:
     """Read AT-SPI text through the interface's static GI methods."""
     with contextlib.suppress(Exception):
+        if "Text" not in node.get_interfaces():
+            return ""
         Atspi = importlib.import_module("gi.repository.Atspi")
         count = int(Atspi.Text.get_character_count(node))
         if count > 0:
@@ -281,7 +298,7 @@ def _walk(root: Any) -> Iterable[tuple[Any, tuple[int, ...]]]:
                     stack.append((child, path + (index,)))
 
 
-def _node_record(node: Any, path: tuple[int, ...], generation: int, observed_name: str | None = None, *, browser_tab: bool = False) -> dict[str, Any]:
+def _node_record(node: Any, path: tuple[int, ...], generation: int | str, observed_name: str | None = None, *, browser_tab: bool = False) -> dict[str, Any]:
     role = node.get_role_name() or "unknown"
     raw_name = node.get_name() or ""
     display_name = raw_name if observed_name is None else observed_name
@@ -312,7 +329,7 @@ def _node_record(node: Any, path: tuple[int, ...], generation: int, observed_nam
     return record
 
 
-def _tab_identity(node: Any, generation: int) -> str:
+def _tab_identity(node: Any, generation: int | str) -> str:
     """Process-scoped AT-SPI object identity, not a title or strip index."""
     path = str(node.path or "")
     bus_name = str(node.app.bus_name or "")
@@ -335,7 +352,7 @@ def _is_browser_tab(path: tuple[int, ...], roles: dict[tuple[int, ...], str]) ->
 
 
 def _snapshot() -> dict[str, Any]:
-    generation = _browser_pid()
+    generation = _browser_generation()
     nodes: list[dict[str, Any]] = []
     tabs: list[dict[str, Any]] = []
     address = ""
@@ -637,11 +654,11 @@ def _commerce_readback(snapshot: dict[str, Any], payload: dict[str, Any]) -> dic
 
 
 def _resolve_locator(locator: str) -> tuple[Any, dict[str, int] | None]:
-    match = re.fullmatch(r"ax:(\d+):([0-9.]*):([0-9a-f]{12})", locator)
+    match = re.fullmatch(r"ax:([0-9a-f]{64}|\d+):([0-9.]*):([0-9a-f]{12})", locator)
     if not match:
         raise ValueError("invalid or unsupported accessibility locator")
-    generation = int(match.group(1))
-    if generation != _browser_pid():
+    generation = match.group(1)
+    if generation != str(_browser_generation()):
         raise ValueError("stale accessibility locator: Firefox generation changed")
     path = tuple(int(item) for item in match.group(2).split(".") if item != "")
     node = _firefox_root()
@@ -743,9 +760,11 @@ def _selected_tab(snapshot: dict[str, Any]) -> dict[str, Any] | None:
 
 def _matching_tabs(snapshot: dict[str, Any], record: dict[str, Any]) -> list[dict[str, Any]]:
     """Do not treat a reused tab-strip index as durable tab identity."""
+    if record.get("browser_generation") != snapshot["browser_generation"]:
+        return []
     identity = record.get("tab_identity")
     if identity or any(tab.get("tab_identity") for tab in snapshot["tabs"]):
-        if not identity or record.get("browser_generation") != snapshot["browser_generation"]:
+        if not identity:
             return []
         matches = [tab for tab in snapshot["tabs"] if tab.get("tab_identity") == identity]
         return matches if len(matches) == 1 else []
@@ -775,14 +794,9 @@ def _reconcile_state(state: dict[str, Any], snapshot: dict[str, Any]) -> dict[st
                 continue
             del state["workflows"][workflow_id]
             continue
-        matches = _matching_tabs(snapshot, record)
         if record.get("browser_generation") != current_generation:
-            if len(matches) == 1:
-                record["browser_generation"] = current_generation
-                record["locator"] = matches[0]["locator"]
-            else:
-                record["uncertain"] = True
-                report["preserved_uncertain"].append(workflow_id)
+            record["uncertain"] = True
+            report["preserved_uncertain"].append(workflow_id)
     cutoff = now - 7 * 86400
     state["action_keys"] = {
         key: value for key, value in state["action_keys"].items()
@@ -809,7 +823,11 @@ def _ensure_workflow(state: dict[str, Any], workflow_id: str, lease_seconds: int
     selected = _selected_tab(snapshot)
     if not selected:
         raise RuntimeError("selected Firefox tab is absent or ambiguous; preserving tabs and refusing creation")
-    if selected and selected["name"] in {"New Tab", "New Private Tab", "about:blank", "Firefox"}:
+    claimed = any(
+        any(tab.get("locator") == selected.get("locator") for tab in _matching_tabs(snapshot, record))
+        for record in state["workflows"].values()
+    )
+    if not claimed and selected["name"] in {"New Tab", "New Private Tab", "about:blank", "Firefox"}:
         created = False
     elif allow_create:
         if snapshot["tab_count"] >= DEFAULT_HARD_TAB_CAP:
@@ -829,9 +847,31 @@ def _ensure_workflow(state: dict[str, Any], workflow_id: str, lease_seconds: int
         }
         _save_state(state)
         _xdotool("key", "--clearmodifiers", "ctrl+t")
-        snapshot = _snapshot()
-        selected = _selected_tab(snapshot)
-        if snapshot["tab_count"] != previous_count + 1 or not selected or selected["name"] not in {"New Tab", "New Private Tab", "about:blank", "Firefox"}:
+        # XTest completion is not Firefox event-loop completion. Observe the
+        # one delivered shortcut, never resend it on slow/stale readback.
+        previous_generation = snapshot["browser_generation"]
+        previous_ids = {tab.get("tab_identity") for tab in snapshot["tabs"]}
+        fresh_ids = previous_ids
+        deadline = time.monotonic() + 3
+        for _ in range(10):
+            snapshot = _snapshot()
+            selected = _selected_tab(snapshot)
+            fresh_ids = {tab.get("tab_identity") for tab in snapshot["tabs"]}
+            if snapshot["browser_generation"] != previous_generation:
+                break
+            if (snapshot["tab_count"] == previous_count + 1 and selected
+                    and selected["name"] in {"New Tab", "New Private Tab", "about:blank", "Firefox"}
+                    and (None in previous_ids or (previous_ids < fresh_ids and selected.get("tab_identity") not in previous_ids))):
+                break
+            if snapshot["tab_count"] > previous_count + 1 or time.monotonic() >= deadline:
+                break
+            time.sleep(0.1)
+        else:
+            selected = None
+        if (snapshot["browser_generation"] != previous_generation
+                or snapshot["tab_count"] != previous_count + 1 or not selected
+                or selected["name"] not in {"New Tab", "New Private Tab", "about:blank", "Firefox"}
+                or (None not in previous_ids and (not previous_ids < fresh_ids or selected.get("tab_identity") in previous_ids))):
             raise RuntimeError("new Firefox tab was not visibly selected after Ctrl+T; refusing to claim or navigate another tab")
         created = True
     else:
@@ -1376,7 +1416,21 @@ def command_tabs(payload: dict[str, Any]) -> dict[str, Any]:
         return {"operation": "tab_lifecycle", "status": "ok", "action": action, "tab_count": snapshot["tab_count"], "workflows": list(state["workflows"]), "reconciliation": reconciliation, "hard_cap": DEFAULT_HARD_TAB_CAP}
 
 
+def command_diagnostics(_: dict[str, Any]) -> dict[str, Any]:
+    """Bounded process-only evidence; never walk page text or profile files."""
+    pid = _browser_pid()
+    fields = Path(f"/proc/{pid}/stat").read_text().rsplit(") ", 1)[1].split()
+    return {"operation": "diagnostics", "status": "ok", "browser_pid": pid,
+            "browser_generation": _browser_generation(), "process_state": fields[0],
+            "user_ticks": int(fields[11]), "system_ticks": int(fields[12]),
+            "threads": int(fields[17]), "rss_pages": int(fields[21]),
+            "clock_ticks_per_second": os.sysconf("SC_CLK_TCK"),
+            "image_revision": os.environ.get("NEST_FIREFOX_IMAGE_REVISION", ""),
+            "page_or_profile_content_read": False}
+
+
 COMMANDS = {
+    "diagnostics": command_diagnostics,
     "status": command_status,
     "snapshot": command_snapshot,
     "navigate": command_navigate,
@@ -1395,6 +1449,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=sorted(COMMANDS))
     args = parser.parse_args()
+    started = time.monotonic()
+    result: dict[str, Any]
     try:
         payload = json.load(sys.stdin)
         if not isinstance(payload, dict):
@@ -1402,6 +1458,7 @@ def main() -> int:
         result = COMMANDS[args.command](payload)
     except Exception as exc:
         result = {"status": "error", "error": type(exc).__name__, "message": str(exc)[:1000], "protocol": "firefox-ui-v1"}
+    result["elapsed_ms"] = int((time.monotonic() - started) * 1000)
     print(_json(result))
     return 0 if result.get("status") != "error" else 1
 

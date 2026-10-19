@@ -25,7 +25,7 @@ def test_chrome_combo_address_is_not_page_supplied():
              (Node('entry', 'Address', 'https://wrong.example/'), (0, 1, 0))]
     bridge._firefox_root = lambda: object()
     bridge._walk = lambda root: iter(items)
-    bridge._browser_pid = lambda: 100
+    bridge._browser_generation = lambda: 100
     bridge._state_names = lambda node: ['showing', 'visible']
     bridge._extent = lambda node: None
     bridge._text_content = lambda node: node.text
