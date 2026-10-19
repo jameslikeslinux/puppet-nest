@@ -3,14 +3,14 @@
 Run with python3 spec/app/joyride/test_private_access.py. Requires Podman/OpenSSL.
 Upstreams are explicit local fixtures, not substitutes for live app acceptance.
 """
-import http.server
+import base64
 import json
 from pathlib import Path
-import socket
+
 import ssl
 import subprocess
 import tempfile
-import threading
+
 import time
 import unittest
 import uuid
@@ -18,27 +18,40 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[3]
 IMAGE = "docker.io/nginxinc/nginx-unprivileged@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03"
+PYTHON = "docker.io/library/python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641"
+UPSTREAM = '''
+import http.server, json
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(401 if self.path.startswith('/ops/') and not self.headers.get('Authorization') else 200)
+        self.end_headers()
+        self.wfile.write(json.dumps({'path':self.path,'headers':dict(self.headers)}).encode())
+    def log_message(self, format, *args):
+        pass
+http.server.ThreadingHTTPServer(('0.0.0.0', 8000), Handler).serve_forever()
+'''
+CLIENT = '''
+import base64, json, socket, ssl, sys
+target, path, host, sni, extra = sys.argv[1:]
+try:
+    context = ssl.create_default_context(cafile='/tls/tls.crt')
+    with socket.create_connection((target,8443),timeout=5) as raw:
+        with context.wrap_socket(raw,server_hostname=sni) as sock:
+            sock.sendall(('GET '+path+' HTTP/1.1\\r\\nHost: '+host+'\\r\\nConnection: close\\r\\n'+extra+'\\r\\n').encode())
+            data=b''
+            while chunk := sock.recv(65536):
+                data += chunk
+    print(json.dumps({'status':int(data.split(b' ')[1]), 'data':base64.b64encode(data).decode()}))
+except ssl.SSLError:
+    print(json.dumps({'ssl_error':True}))
+'''
 
 
 def run(*args):
-    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=60)
-
-
-def unused_port():
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
-
-
-class Upstream(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        status = 401 if self.path.startswith("/ops/") and not self.headers.get("Authorization") else 200
-        self.send_response(status)
-        self.end_headers()
-        self.wfile.write(json.dumps({"path": self.path, "headers": dict(self.headers)}).encode())
-
-    def log_message(self, format, *args):
-        pass
+    result = subprocess.run(args, capture_output=True, text=True, timeout=120)
+    if result.returncode:
+        raise RuntimeError(result.stdout + result.stderr)
+    return result
 
 
 class PrivateAccess(unittest.TestCase):
@@ -47,53 +60,65 @@ class PrivateAccess(unittest.TestCase):
         cls.directory = tempfile.TemporaryDirectory(prefix="joyride-private-access-")
         cls.path = Path(cls.directory.name)
         cls.path.chmod(0o755)
-        cls.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Upstream)
-        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
-        cls.thread.start()
-        cls.port = unused_port()
-        cls.probe_port = unused_port()
         cls.container = "joyride-access-test-" + uuid.uuid4().hex[:12]
+        cls.upstream = cls.container + "-upstream"
+        cls.network = cls.container + "-network"
         config = (ROOT / "files/app/joyride/test-access-nginx.conf").read_text()
         for name, port in (("web", 8000), ("ops", 8001)):
-            config = config.replace(f"joyride-test-{name}.test.svc.cluster.local:{port}", f"127.0.0.1:{cls.server.server_port}")
-        config = config.replace("listen 8443", f"listen 127.0.0.1:{cls.port}")
-        config = config.replace("listen 8080;", f"listen 127.0.0.1:{cls.probe_port};")
+            config = config.replace(f"joyride-test-{name}.test.svc.cluster.local:{port}", f"{cls.upstream}:8000")
         (cls.path / "nginx.conf").write_text(config)
         run("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=joyride-test.eyrie", "-addext", "subjectAltName=DNS:joyride-test.eyrie", "-keyout", str(cls.path / "tls.key"), "-out", str(cls.path / "tls.crt"))
         (cls.path / "tls.key").chmod(0o644)  # Disposable fixture, never a managed key.
-        cls.context = ssl.create_default_context(cafile=str(cls.path / "tls.crt"))
         try:
-            run("podman", "run", "-d", "--name", cls.container, "--network", "host", "--read-only", "--cap-drop=ALL", "--security-opt", "no-new-privileges", "--user", "101:101", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m,mode=1777", "-v", f"{cls.path}/nginx.conf:/etc/nginx/nginx.conf:ro", "-v", f"{cls.path}:/tls:ro", "--entrypoint", "nginx", IMAGE, "-g", "daemon off;")
-            for _ in range(50):
+            # No host networking, published ports or bind mounts: works with remote CI Podman.
+            architecture = run("podman", "info", "--format", "{{.Host.Arch}}").stdout.strip()
+            for image in (PYTHON, IMAGE):
+                run("podman", "pull", "--platform", "linux/" + architecture, image)
+            run("podman", "network", "create", "--internal", cls.network)
+            run("podman", "create", "--name", cls.upstream, "--network", cls.network, "--cap-drop=ALL", "--security-opt", "no-new-privileges", PYTHON, "python", "-u", "-c", UPSTREAM)
+            run("podman", "cp", str(cls.path), cls.upstream + ":/tls")
+            run("podman", "start", cls.upstream)
+            upstream_info = json.loads(run("podman", "inspect", cls.upstream).stdout)[0]
+            upstream_ip = upstream_info["NetworkSettings"]["Networks"][cls.network]["IPAddress"]
+            (cls.path / "nginx.conf").write_text(config.replace(cls.upstream + ":8000", upstream_ip + ":8000"))
+            run("podman", "create", "--name", cls.container, "--network", cls.network, "--read-only", "--cap-drop=ALL", "--security-opt", "no-new-privileges", "--user", "101:101", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m,mode=1777", "--entrypoint", "nginx", IMAGE, "-g", "daemon off;")
+            run("podman", "cp", str(cls.path), cls.container + ":/tls")
+            run("podman", "cp", str(cls.path / "nginx.conf"), cls.container + ":/etc/nginx/nginx.conf")
+            run("podman", "start", cls.container)
+            nginx_info = json.loads(run("podman", "inspect", cls.container).stdout)[0]
+            cls.address = nginx_info["NetworkSettings"]["Networks"][cls.network]["IPAddress"]
+            for _ in range(30):
                 try:
-                    with socket.create_connection(("127.0.0.1", cls.probe_port), timeout=0.2):
+                    probe = run("podman", "exec", cls.upstream, "python", "-c", CLIENT, cls.address, "/", "joyride-test.eyrie", "joyride-test.eyrie", "")
+                    if json.loads(probe.stdout).get("status") == 200:
                         break
-                except OSError:
-                    time.sleep(0.1)
+                except RuntimeError:
+                    pass
+                time.sleep(0.2)
             else:
                 logs = run("podman", "logs", cls.container)
                 raise RuntimeError(logs.stdout + logs.stderr)
         except Exception:
-            subprocess.run(["podman", "rm", "-f", cls.container], capture_output=True)
-            cls.server.shutdown()
+            cls.cleanup()
             cls.directory.cleanup()
             raise
 
     @classmethod
+    def cleanup(cls):
+        for name in (cls.container, cls.upstream):
+            subprocess.run(["podman", "rm", "-f", name], capture_output=True, timeout=30)
+        subprocess.run(["podman", "network", "rm", cls.network], capture_output=True, timeout=30)
+
+    @classmethod
     def tearDownClass(cls):
-        run("podman", "rm", "-f", cls.container)
-        cls.server.shutdown()
-        cls.server.server_close()
+        cls.cleanup()
         cls.directory.cleanup()
 
     def request(self, path="/", host="joyride-test.eyrie", sni="joyride-test.eyrie", extra=""):
-        with socket.create_connection(("127.0.0.1", self.port), timeout=5) as raw:
-            with self.context.wrap_socket(raw, server_hostname=sni) as sock:
-                sock.sendall(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n{extra}\r\n".encode())
-                data = b""
-                while chunk := sock.recv(65536):
-                    data += chunk
-        return int(data.split(b" ")[1]), data
+        result = json.loads(run("podman", "exec", self.upstream, "python", "-c", CLIENT, self.address, path, host, sni, extra).stdout)
+        if result.get("ssl_error"):
+            raise ssl.SSLError("Fixture TLS handshake rejected")
+        return result["status"], base64.b64decode(result["data"])
 
     def test_home(self):
         self.assertEqual(self.request()[0], 200)
