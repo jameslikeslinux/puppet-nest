@@ -1,5 +1,35 @@
 # Managed Spotify rollout
 
+## Hawk scaling follow-up
+
+Joy subsequently reported completing Chrome consent, Spotify login and a
+successful track, but the UI appeared doubled beyond the intended 2x scale.
+The initial preparation notes below are historical, not current rollout status.
+Nest MR 307 and overlay MR 2 have since merged and Hawk's package/launcher were
+applied; dotfiles MR 55 remains Draft and unmerged.
+
+Read-only checks found Xft DPI 192 and session GDK scale 2, with no saved Chrome
+default or per-origin zoom override. The web launcher previously left Chrome's
+device scale to automatic discovery. It now explicitly selects the existing
+Nest GUI scale, following the managed VS Code launch convention, instead of
+relying on browser/toolkit DPI discovery. This is a deterministic policy fix;
+the exact browser-internal cause of the reported doubling is not established.
+Native Spotify and general Chrome/Firefox settings are unchanged.
+
+The updated isolated launcher fixture failed before the correction and passed
+afterward. This proves the rendered launch argument, not the visible result.
+Existing Chrome processes cannot acquire the new flag through window reuse;
+owner-controlled app closure/relaunch is required before visual acceptance.
+Do not terminate the active app to manufacture that check.
+
+A subsequent canary launch confirmed actual app WM_CLASS instance
+`open.spotify.com`, class `nest-spotify`. It remained on desktop 0 with the old
+XMonad configuration, so music-workspace placement is still pending activation.
+Read-only MPRIS discovery listed only Firefox, not a Spotify Chrome player;
+this does not invalidate Joy's earlier playback report but does not establish
+paused-state identity or Super+Space acceptance. No playback command, audio
+restart, XMonad restart or Firefox/YTM closure was issued in this follow-up.
+
 ## Ownership and scope
 
 Request ^1990 / task t_fa85dfa3 owns integration and delivery. This is pending

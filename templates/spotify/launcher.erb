@@ -37,6 +37,7 @@ fi
 exec /usr/bin/google-chrome-stable \
   --user-data-dir="${XDG_CONFIG_HOME:-$HOME/.config}/nest-spotify" \
   --ozone-platform=x11 \
+  --force-device-scale-factor=<%= scope['nest::gui_scaling_factor'] %> \
   --class=nest-spotify \
   --app=https://open.spotify.com/
 <% else -%>
