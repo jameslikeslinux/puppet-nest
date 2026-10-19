@@ -34,7 +34,8 @@ class SpotifyLauncherTest(unittest.TestCase):
     def render(self, backend):
         rendered = subprocess.check_output(
             ["ruby", "-rerb", "-e",
-             "@backend=ARGV[1]; print ERB.new(File.read(ARGV[0]), trim_mode: '-').result(binding)",
+             "@backend=ARGV[1]; scope={'nest::gui_scaling_factor'=>2.0}; "
+             "print ERB.new(File.read(ARGV[0]), trim_mode: '-').result(binding)",
              str(ROOT / "templates/spotify/launcher.erb"), backend], text=True)
         subprocess.run(["bash", "-n"], input=rendered, text=True, check=True)
         for command in ("spotify", "google-chrome-stable", "xdotool"):
@@ -59,7 +60,8 @@ class SpotifyLauncherTest(unittest.TestCase):
         browser = [call for call in self.calls() if call[0] == "google-chrome-stable"]
         self.assertEqual(browser, [["google-chrome-stable",
                                    "--user-data-dir=" + self.env["XDG_CONFIG_HOME"] + "/nest-spotify",
-                                   "--ozone-platform=x11", "--class=nest-spotify",
+                                   "--ozone-platform=x11", "--force-device-scale-factor=2.0",
+                                   "--class=nest-spotify",
                                    "--app=https://open.spotify.com/"]])
 
     def test_existing_window_is_reused(self):
