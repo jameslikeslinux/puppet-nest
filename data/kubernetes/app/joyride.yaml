@@ -516,6 +516,10 @@ resources:
           annotations:
             nest/config-sha256: '%{nest::service::joyride::test_access_config_sha256}'
         spec:
+          # The TEST LoadBalancer pool is advertised by workstation nodes only.
+          # Local traffic policy requires the TLS endpoint on an advertising node.
+          nodeSelector:
+            node-role.kubernetes.io/workstation: ''
           automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true

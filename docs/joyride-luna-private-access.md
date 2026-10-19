@@ -18,6 +18,9 @@ two destinations rather than a private-network route.
 - Keep all existing node/tag identities, expiry and OpenVPN services unchanged.
 
 `joyride-test-access` terminates TLS using the existing managed TEST certificate.
+Only this stateless listener runs on a workstation-role node, matching the TEST
+pool's existing MetalLB advertisement and source-preserving Local traffic policy.
+The application and database retain their ordinary worker scheduling.
 The pinned multi-architecture unprivileged nginx 1.30.6 image forwards only to
 `joyride-test-web:8000` or the three permitted ops endpoints at
 `joyride-test-ops:8001`. It cannot choose an upstream from Host, SNI, a URL or a
