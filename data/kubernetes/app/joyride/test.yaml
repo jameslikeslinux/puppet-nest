@@ -6,7 +6,7 @@ fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
 # Preserve the already verified TEST release during managed platform upgrades.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:646c624c7ab26dd02e7dcfc5e512fc83a781b4df96bab66abaca932531723922
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:f63077c1dad36a0445855805966ba23ba713ceb415128a285f08ad5d2d9a02f2
 affinity: {}
 tolerations: []
 resources:
