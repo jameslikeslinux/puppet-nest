@@ -520,6 +520,10 @@ resources:
           # Local traffic policy requires the TLS endpoint on an advertising node.
           nodeSelector:
             node-role.kubernetes.io/workstation: ''
+          tolerations:
+          - key: node-role.kubernetes.io/workstation
+            operator: Exists
+            effect: NoSchedule
           automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true
