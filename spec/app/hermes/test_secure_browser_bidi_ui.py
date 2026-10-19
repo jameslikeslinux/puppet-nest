@@ -311,6 +311,8 @@ def test_selector_typing_reserves_before_input_and_replay_never_retypes():
         first = bridge.command_type(payload)
         assert first["status"] == "delivered" and first["typed_chars"] == len(payload["text"])
         assert sum(command[0] == "type" for command in desktop.commands) == 1
+        typed = next(command for command in desktop.commands if command[0] == "type")
+        assert typed[typed.index("--delay") + 1] == "100"
         second = bridge.command_type(payload)
         assert second["status"] == "already_delivered" and second["delivery"]["input_sent"] is False
         assert sum(command[0] == "type" for command in desktop.commands) == 1
