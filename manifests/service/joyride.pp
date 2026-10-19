@@ -2,14 +2,20 @@
 # pods receive only their environment's runtime Secret; database credentials are
 # generated separately by CloudNativePG. Never place tokens in public app data.
 class nest::service::joyride (
-  Sensitive[Hash[String, String]] $runtime_secrets,
-  Sensitive[String]              $registry_dockerconfig,
-  Sensitive[String]              $artifact_verifier_token,
+  Optional[Sensitive[Hash[String, String]]] $runtime_secrets         = undef,
+  Optional[Sensitive[String]]               $registry_dockerconfig   = undef,
+  Optional[Sensitive[String]]               $artifact_verifier_token = undef,
 ) {
   # Only the verified TEST recipe exists. A distinct production contract and
   # owner-approved rollout must be implemented before this boundary is widened.
   if $nest::kubernetes::namespace != 'test' or $nest::kubernetes::service != 'joyride-test' or lookup('runtime_environment', { 'default_value' => undef }) != 'test' {
     fail('Joyride currently supports only service joyride-test in namespace test with runtime_environment test; production is not configured')
+  }
+
+  # Reject an unsupported environment before asking for credentials. Optional
+  # parameters permit that ordering, not a credential-free TEST deployment.
+  if $runtime_secrets == undef or $registry_dockerconfig == undef or $artifact_verifier_token == undef {
+    fail('Joyride TEST requires managed runtime, registry and artifact-verifier credentials')
   }
 
   $django_secret_key_base64      = base64('encode', $runtime_secrets.unwrap['DJANGO_SECRET_KEY']).chomp
