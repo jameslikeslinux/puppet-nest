@@ -205,6 +205,47 @@ def test_accessibility_object_identity_survives_rename_and_reorder_not_replaceme
         tmp.cleanup()
 
 
+def test_native_typing_paces_characters_and_partial_delivery_is_not_replayed():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        bridge.command_tabs({"action": "acquire", "workflow_id": "w"})
+        sent, pauses = [], []
+        bridge._native_selector = lambda *args: "original"
+        def command(method, path, data):
+            assert bridge._load_state()["action_keys"][key]["delivery_state"] == "delivery_started"
+            if path == "/execute/async":
+                assert "setTimeout(done, arguments[0])" in data["script"]
+                pauses.append(data["args"][0])
+                return
+            assert (method, path) == ("POST", "/element/original/value")
+            if key == "partial" and len(sent) == 1:
+                raise RuntimeError("stale element")
+            sent.append(data["text"])
+        @contextlib.contextmanager
+        def webdriver():
+            yield command
+        bridge._webdriver = webdriver
+        payload = {"workflow_id": "w", "operation": "type", "selector": "#note", "text": "Aé🦉"}
+        key = "paced"
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivered"
+        assert sent == list(payload["text"]) and pauses == [100] * 3
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "already_delivered"
+        assert len(sent) == 3
+        key = "partial"
+        sent.clear()
+        try:
+            bridge.command_selector_action({**payload, "action_key": key})
+        except RuntimeError as exc:
+            assert str(exc) == "stale element"
+        else:
+            raise AssertionError("partial input reported delivered")
+        replay = bridge.command_selector_action({**payload, "action_key": key})
+        assert replay["status"] == "delivery_uncertain" and not replay["delivery"]["input_sent"]
+        assert sent == ["A"]
+    finally:
+        tmp.cleanup()
+
+
 if __name__ == "__main__":
     tests = [(name, fn) for name, fn in list(globals().items()) if name.startswith("test_")]
     for name, fn in tests:

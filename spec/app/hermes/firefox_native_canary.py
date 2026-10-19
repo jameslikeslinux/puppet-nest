@@ -23,6 +23,17 @@ html = """<!doctype html><title>Local native element canary</title>
 <button id='original' onclick='window.last={id:this.id,trusted:event.isTrusted}'>First</button>
 <button id='replacement' onclick='window.last={id:this.id,trusted:event.isTrusted}'>Second</button>
 <input id='public' aria-label='Note'><input id='secret' type='password'>
+<input id='controlled' aria-label='Controlled note'>
+<script>
+let committed = '';
+const controlled = document.querySelector('#controlled');
+controlled.addEventListener('beforeinput', event => {
+  if (event.inputType !== 'insertText') return;
+  event.preventDefault();
+  const next = committed + event.data;
+  setTimeout(() => { committed = next; controlled.value = next; }, 25);
+});
+</script>
 """
 class Fixture(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -81,6 +92,10 @@ with tempfile.TemporaryDirectory() as profile:
             public = bridge._native_selector(command, {"url": bridge._redact_url(url)}, "#public", True)
             command("POST", f"/element/{public}/value", {"text": "local canary"})
             assert command("POST", "/execute/sync", {"script": "return document.querySelector('#public').value", "args": []}) == "local canary"
+            controlled = bridge._native_selector(command, {"url": bridge._redact_url(url)}, "#controlled", True)
+            bridge._native_type(command, controlled, "tag:luna-gitlab")
+            actual = command("GET", f"/element/{controlled}/property/value")
+            assert actual == "tag:luna-gitlab", repr(actual)
             try:
                 bridge._native_selector(command, {"url": bridge._redact_url(url)}, "#secret", True)
             except RuntimeError:
@@ -89,9 +104,15 @@ with tempfile.TemporaryDirectory() as profile:
                 raise AssertionError("secret field passed native guard")
         assert firefox.poll() is None, "WebDriver detach terminated the persistent Firefox process"
         with bridge._webdriver() as command:
-            assert len(command("GET", "/window/handles")) == 1
-            assert command("GET", "/url") == url
-        print("local native Firefox canary passed: occlusion refused; trusted click, typing, secret guard, existing browser survived detach")
+            # Handles are session-local; a forced extension may also add a tab.
+            # Independently rediscover the actual fixture URL after reattach.
+            matches = []
+            for handle in command("GET", "/window/handles"):
+                command("POST", "/window", {"handle": handle})
+                if command("GET", "/url") == url:
+                    matches.append(handle)
+            assert len(matches) == 1, "fixture tab was not preserved across detach"
+        print("local native Firefox canary passed: occlusion refused; trusted click, ordinary and controlled typing, secret guard, existing browser survived detach")
     finally:
         firefox.terminate()
         try:

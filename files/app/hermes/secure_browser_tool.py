@@ -90,6 +90,11 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
         "kubectl", "-n", NAMESPACE, "exec", "-i", WORKLOAD, "-c", CONTAINER,
         "--", "env", "DISPLAY=:1", "python3", "-c", bootstrap, BRIDGE_PATH,
     ]
+    # Keep the existing input bound while allowing deliberate per-character
+    # pacing plus native command overhead. Other operations retain their limit.
+    input_budget = 0
+    if command == "type" or (command == "selector_action" and payload.get("operation") == "type"):
+        input_budget = (min(len(str(payload.get("text") or "")), 4096) + 4) // 5
     try:
         result = subprocess.run(
             argv,
@@ -98,7 +103,7 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False,
-            timeout=timeout or BRIDGE_TIMEOUT,
+            timeout=(timeout or BRIDGE_TIMEOUT) + input_budget,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise RuntimeError(f"Firefox UI bridge invocation failed: {exc}") from exc

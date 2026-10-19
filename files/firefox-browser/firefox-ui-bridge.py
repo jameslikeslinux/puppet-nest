@@ -38,6 +38,7 @@ MAX_NODES = int(os.environ.get("FIREFOX_UI_MAX_NODES", "350"))
 MAX_NAME = 240
 MAX_PAGE_TEXT = 2048
 DEFAULT_STABLE_WAIT_SECONDS = float(os.environ.get("FIREFOX_UI_STABLE_WAIT_SECONDS", "6"))
+TYPE_DELAY_SECONDS = 0.1
 SENSITIVE_RE = re.compile(
     r"password|passcode|one[- ]?time|security code|cvv|cvc|card number|account number|routing number|secret|token|private key|recovery code",
     re.IGNORECASE,
@@ -1089,8 +1090,10 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
             state["action_keys"][action_key] = {"created_at": time.time(), "workflow_id": workflow_id,
                                                 "operation": operation, "delivery_state": "delivery_started"}
             _save_state(state)
-            path = f"/element/{element}/click" if operation == "click" else f"/element/{element}/value"
-            command("POST", path, {} if operation == "click" else {"text": text})
+            if operation == "click":
+                command("POST", f"/element/{element}/click", {})
+            else:
+                _native_type(command, element, text)
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)
         readback = _readback()
@@ -1099,6 +1102,21 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
         return {"operation": operation, "status": "delivered", "action_key": action_key,
                 "delivery": {"state": "delivered", "input_sent": True, "via": "native_element"},
                 "typed_chars": len(text) if operation == "type" else None, "readback": readback}
+
+
+def _native_type(command: Any, element: str, text: str) -> None:
+    # One bulk Send Keys command can outrun controlled-input state commits.
+    # Yield between characters, retaining the original guarded element handle.
+    # A stale element or uncertain delivery must fail, never reselect or retry.
+    for character in text:
+        command("POST", f"/element/{element}/value", {"text": character})
+        # Yield in the page's event loop, not just the Python process. Browser
+        # timer throttling can defer controlled commits beyond a host-side sleep.
+        # This fixed synchronization script neither reads nor mutates the DOM.
+        command("POST", "/execute/async", {
+            "script": "const done=arguments[arguments.length-1]; setTimeout(done, arguments[0]);",
+            "args": [int(TYPE_DELAY_SECONDS * 1000)],
+        })
 
 
 def command_click(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1232,7 +1250,8 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
             _save_state(state)
         if x is not None and y is not None:
             _xdotool("mousemove", "--sync", str(x), str(y), "click", "1")
-        _xdotool("type", "--clearmodifiers", "--delay", "1", "--", text, timeout=45)
+        _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
+                 "--", text, timeout=45 + len(text) * TYPE_DELAY_SECONDS * 2)
         if action_key:
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)

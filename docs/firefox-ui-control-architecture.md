@@ -129,6 +129,17 @@ an overlay-only apply. This does not require a browser/pod restart. Long-running
 Hermes processes may retain the old Python module/schema until their next
 authorized refresh; verify installed hashes and real tool readback separately.
 
+Native typing sends one character at a time to the original guarded element
+handle and yields through a fixed browser-side timer between characters. This
+lets asynchronous controlled-input commits run before the next event; a Python
+sleep alone does not account for browser timer throttling. The synchronization
+script neither reads nor mutates the DOM and accepts no caller script. Legacy
+XTest typing uses a 100 ms delay instead of a one-millisecond burst. The adapter
+adds a bounded length-based input budget without increasing other operation
+timeouts. Partial delivery remains uncertain and the same action key never
+retypes it. These are delivery controls, not proof that a form accepted its
+value: use fresh page readback before submitting any form.
+
 A workflow first explicitly acquires one canonical handoff tab. Navigation,
 snapshot, click, and type never create tabs implicitly. A selected blank tab may
 be claimed without ownership; otherwise acquire creates exactly one agent-owned
