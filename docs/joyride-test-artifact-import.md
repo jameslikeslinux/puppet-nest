@@ -15,6 +15,15 @@ A failed candidate does not prevent checking the other candidates. Older
 pipelines outside this bounded discovery window require an explicit trusted
 import; they are not automatically marked eligible.
 
+Equivalent branch/MR pipelines can produce the same digest and source head.
+Before recognizing such a duplicate, the Nest importer independently checks the
+candidate's successful project/pipeline identity, canonical URL, exact source,
+required check/build/smoke jobs, immutable image evidence and both architectures.
+It then requires an already verified database row matching BOTH digest and source.
+The original pipeline receipt remains unchanged; no new row or eligibility is
+manufactured. A different source, unverified row, incomplete CI or mismatched
+image evidence cannot take this path. Final database readback remains mandatory.
+
 The dedicated encrypted `nest::service::joyride::artifact_verifier_token` becomes
 only `joyride-test-artifact-verifier`. Only the importer references that Secret.
 Web, ops, worker, frontend, ordinary CI and Luna never receive it. The importer

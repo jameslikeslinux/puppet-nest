@@ -7,6 +7,7 @@ The application management command owns exact-head/job/image verification.
 import io
 import json
 import os
+import re
 import sys
 from urllib.request import Request, urlopen
 
@@ -34,13 +35,46 @@ def recent_pipelines(token):
     return [row["id"] for row in reversed(rows)]
 
 
-def supported_pipeline(token, pipeline_id):
+def verified_evidence(token, pipeline_id):
+    pipeline = get(token, f"/pipelines/{pipeline_id}")
+    pipeline_url = f"https://gitlab.joyfullee.me/joy/joyride/-/pipelines/{pipeline_id}"
+    if (
+        pipeline.get("id") != pipeline_id
+        or pipeline.get("project_id") != 83
+        or pipeline.get("status") != "success"
+        or pipeline.get("web_url") != pipeline_url
+        or not re.fullmatch(r"[a-f0-9]{40}", pipeline.get("sha", ""))
+    ):
+        raise ValueError("invalid exact pipeline")
     jobs = get(token, f"/pipelines/{pipeline_id}/jobs?per_page=100")
+    if not isinstance(jobs, list) or len(jobs) >= 100:
+        raise ValueError("incomplete job evidence")
+    if any(
+        not any(j["name"] == name and j["status"] == "success" for j in jobs)
+        for name in ("check", "build", "smoke")
+    ):
+        raise ValueError("required exact-head jobs missing")
     build = next(j for j in jobs if j["name"] == "build" and j["status"] == "success")
     artifact = get(token, f"/jobs/{build['id']}/artifacts/image.json")
+    if (
+        artifact.get("head") != pipeline["sha"]
+        or artifact.get("pipeline_id") != pipeline_id
+        or artifact.get("repository") != "registry.gitlab.joyfullee.me/joy/joyride/app"
+        or not re.fullmatch(r"sha256:[a-f0-9]{64}", artifact.get("digest", ""))
+    ):
+        raise ValueError("immutable evidence mismatch")
     # Ordinary Eyrie workers include both architectures. Legacy amd64-only
     # artifacts are not eligible, even if their original CI succeeded.
-    return set(artifact.get("platforms", [])) == {"linux/amd64", "linux/arm64"}
+    if set(artifact.get("platforms", [])) != {"linux/amd64", "linux/arm64"}:
+        return None
+    return {"digest": artifact["digest"], "source_head": pipeline["sha"]}
+
+
+def equivalent_artifact(artifact_model, evidence):
+    # Keep the original pipeline receipt immutable. A second successful pipeline
+    # may produce identical bytes, but neither digest alone nor source alone is
+    # sufficient. Never upgrade an unverified row through this path.
+    return artifact_model.objects.filter(**evidence, test_passed=True).exists()
 
 
 def import_pipelines(pipeline_ids, registered, verify):
@@ -79,15 +113,23 @@ def main():
     from django.core.management import call_command
     from core.models import Artifact
 
+    verified = {}
+
     def registered(pipeline_id):
+        if pipeline_id in verified:
+            return equivalent_artifact(Artifact, verified[pipeline_id])
         return Artifact.objects.filter(
             pipeline_url=f"https://gitlab.joyfullee.me/joy/joyride/-/pipelines/{pipeline_id}",
             test_passed=True,
         ).exists()
 
     def verify(pipeline_id):
-        if not supported_pipeline(token, pipeline_id):
+        evidence = verified_evidence(token, pipeline_id)
+        if evidence is None:
             return False
+        verified[pipeline_id] = evidence
+        if equivalent_artifact(Artifact, evidence):
+            return
         call_command("register_artifact", pipeline_id, stdout=io.StringIO(), stderr=io.StringIO())
 
     return import_pipelines(pipeline_ids, registered, verify)

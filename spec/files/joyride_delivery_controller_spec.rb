@@ -13,6 +13,13 @@ RSpec.describe 'Joyride trusted TEST delivery adapter' do
     expect(status.success?).to be(true), "#{stdout}\n#{stderr}"
   end
 
+  it 'verifies duplicate artifact provenance without replacing the original receipt' do
+    test_path = File.join(repo_root, 'spec/app/joyride/test_import_artifacts.py')
+    stdout, stderr, status = Open3.capture3({ 'PYTHONDONTWRITEBYTECODE' => '1' }, 'python3', test_path)
+
+    expect(status.success?).to be(true), "#{stdout}\n#{stderr}"
+  end
+
   it 'limits Kubernetes authority to the TEST workload and its nonsecret journal' do
     rules = resources.fetch('delivery_role').fetch('rules')
     expect(rules.length).to eq(2)
