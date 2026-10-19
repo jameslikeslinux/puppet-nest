@@ -1,8 +1,26 @@
 # Joyride platform kickstart: engineering handoff
 
-Status: private Hiera and backend application source merged; isolated TEST
-infrastructure rendered and server-side dry-run verified. Live TEST acceptance
-remains pending. No production deployment or public launch.
+## Current v1 contract and acceptance
+
+Joy's photos-only v1 steering supersedes the original photo/video requirement.
+The current requirements and release checklist are maintained in
+[`joyride-v1-acceptance.md`](joyride-v1-acceptance.md). Real scout video is
+OUT OF SCOPE FOR V1, not passed or awaiting footage. The synthetic motion-test
+clip is historical prototype evidence only and must not ship as a v1 feature.
+Luna owns the photo-only frontend revision; Talon owns disabling backend video
+exposure and verifying the resulting immutable artifact through TEST delivery.
+Do not delete originals or revive completed implementation children.
+
+Private TEST is deployed and its populated browser, map, protected photo/GPX,
+backup/restore and monitoring milestones have engineering evidence. Overall v1
+acceptance is still open. Production configuration remains dormant and guarded;
+there is no production deployment or public launch approval.
+
+## Historical discovery and integration notes
+
+The chronological notes below preserve earlier observations, including failures
+subsequently resolved. Their pending lists and original media assumptions are
+not the current acceptance checklist; use the current v1 contract above.
 
 ## Ownership and source identity
 
@@ -77,11 +95,11 @@ The latest generators reference files that are absent from the refreshed package
 - Scout JPEG originals/thumbnails referenced by `scout-photos.json`.
 - Anton, Inter and Noto Sans Mono font files and their redistribution licenses.
 - Generated latest home v4e/event v4b renders and member/hero HTML previews.
-- Referenced Leaflet assets and the explicitly synthetic motion-test clip.
+- Referenced Leaflet assets. The synthetic motion-test clip is excluded from v1.
 
 Do not reconstruct code from screenshots or manufacture route/elevation/media
-inputs. A motion-test clip is not real scout video; no real scout video has been
-supplied. Ask Luna for curated source via a NEW dedicated Joyride secure-browser
+inputs. Video footage is not a v1 prerequisite. The original collaboration
+instruction was to ask Luna for curated source via a NEW Joyride secure-browser
 side chat, identify as Talon, and preserve frontend ownership. Do not reuse the
 main conversation or the GitLab/Tailscale diagnostics chat. No raw conversation
 export or direct Muse/agent API access.
@@ -234,8 +252,9 @@ remote assets and inline code, not acceptable deployable artifacts. She owns
 faithful conversion to `frontend/public/`, protected API access, CSP-clean assets,
 map renderer/style/glyphs/sprites, and upstream font licenses. Anton/Inter
 binaries exist but licenses are not yet bundled; Noto Sans Mono is not curated.
-The synthetic clip exists; real scout video is still not supplied. Do not
-substitute invented frontend or mark these acceptance items complete.
+The synthetic clip exists but is excluded from v1; real scout video is OUT OF
+SCOPE FOR V1. Do not substitute invented frontend or mark photo-only artifact
+acceptance complete before consuming Luna's revision and verifying it in TEST.
 
 Local re-verification executed all 29 no-argument Firefox bridge test functions
 successfully through `runpy` and `git diff --check` passed. Both system Python
