@@ -20,6 +20,96 @@ resources:
       namespace: '%{nest::kubernetes::namespace}'
     binaryData:
       bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
+      import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
+  artifact_verifier:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-artifact-verifier'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: Opaque
+    data:
+      GITLAB_READ_API_TOKEN: '%{nest::service::joyride::verifier_token_base64}'
+  artifact_import:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: '%{nest::kubernetes::service}-artifact-import'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      schedule: '*/5 * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 120
+      jobTemplate:
+        spec:
+          backoffLimit: 1
+          activeDeadlineSeconds: 240
+          template:
+            metadata:
+              labels:
+                app: '%{nest::kubernetes::service}-artifact-import'
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
+                seccompProfile:
+                  type: RuntimeDefault
+              imagePullSecrets:
+              - name: '%{nest::kubernetes::service}-pull'
+              containers:
+              - name: importer
+                image: '%{lookup(''joyride_image'')}'
+                command: [python, /platform/import_artifacts.py]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  capabilities:
+                    drop: [ALL]
+                env:
+                - name: RUNTIME_ENV
+                  value: '%{lookup(''runtime_environment'')}'
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-cnpg-app'
+                      key: uri
+                - name: DJANGO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-runtime'
+                      key: DJANGO_SECRET_KEY
+                - name: GITLAB_READ_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-artifact-verifier'
+                      key: GITLAB_READ_API_TOKEN
+                - name: TMPDIR
+                  value: /tmp
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                  limits:
+                    memory: 256Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              volumes:
+              - name: scripts
+                configMap:
+                  name: '%{nest::kubernetes::service}-scripts'
+              - name: tmp
+                emptyDir:
+                  sizeLimit: 64Mi
   runtime:
     apiVersion: v1
     kind: Secret
