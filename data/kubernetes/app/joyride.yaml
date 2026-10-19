@@ -21,6 +21,124 @@ resources:
     binaryData:
       bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
       import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
+      test_delivery_controller.py: '%{nest::service::joyride::test_delivery_base64}'
+  delivery_journal:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-test-delivery-journal
+      namespace: test
+    # The controller owns data.active; omit data from the Helm baseline.
+  delivery_account:
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    automountServiceAccountToken: false
+  delivery_role:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    rules:
+    - apiGroups: [apps]
+      resources: [deployments]
+      resourceNames: [joyride-test]
+      verbs: [get, patch]
+    - apiGroups: ['']
+      resources: [configmaps]
+      resourceNames: [joyride-test-delivery-journal]
+      verbs: [get, update]
+  delivery_binding:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    subjects:
+    - kind: ServiceAccount
+      name: joyride-test-delivery
+      namespace: test
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: joyride-test-delivery
+  delivery_controller:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    spec:
+      schedule: '* * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 60
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 660
+          template:
+            metadata:
+              labels:
+                app: joyride-test-delivery
+            spec:
+              serviceAccountName: joyride-test-delivery
+              automountServiceAccountToken: true
+              restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
+                seccompProfile:
+                  type: RuntimeDefault
+              imagePullSecrets:
+              - name: joyride-test-pull
+              containers:
+              - name: controller
+                # Trusted interpreter pin never follows candidate releases.
+                image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
+                command: [python, /platform/test_delivery_controller.py]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  capabilities:
+                    drop: [ALL]
+                env:
+                - name: RUNTIME_ENV
+                  value: test
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: '1'
+                resources:
+                  requests:
+                    cpu: 25m
+                    memory: 48Mi
+                  limits:
+                    memory: 128Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: credential
+                  mountPath: /delivery-secret
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-test-scripts
+                  items:
+                  - key: test_delivery_controller.py
+                    path: test_delivery_controller.py
+              - name: credential
+                secret:
+                  secretName: joyride-test-runtime
+                  items:
+                  - key: DELIVERY_TOKEN
+                    path: DELIVERY_TOKEN
   artifact_verifier:
     apiVersion: v1
     kind: Secret
@@ -469,6 +587,15 @@ resources:
       policyTypes:
       - Ingress
       ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-delivery
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8001
       - from:
         - podSelector:
             matchLabels:
