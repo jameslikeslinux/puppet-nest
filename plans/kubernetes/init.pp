@@ -131,6 +131,7 @@ plan nest::kubernetes::init (
           targets   => $excluded_node,
           vip       => $vip,
           advertise => false,
+          survivor  => $vip_nodes[0].name,
         })
         run_command("kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system wait --for=delete pod/kube-vip-${excluded_node.name} --timeout=180s", $init_node, "Wait for kube-vip withdrawal from ${excluded_node.name}", {
           _run_as => 'root',

@@ -20,6 +20,23 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
     expect(redundancy_validation).to be < first_mutation
   end
 
+  it 'uses independent healthy API advertisers and keeps the etcd read policy separate' do
+    init_step = eyrie_build.fetch('steps').find { |step| step['plan'] == 'nest::kubernetes::init' }
+    expect(init_step.dig('parameters', 'vip_advertisers')).to eq(['control1', 'control2'])
+    expect(vip_plan).to include("'v1.2.4'")
+    expect(vip_plan).to include('https://${t.name}:6443/readyz')
+    expect(vip_plan).to include('--controlPlaneHealthCheckCAPath')
+  end
+
+  it 'refuses bulk or unqualified maintenance withdrawal before mutation' do
+    validation = vip_plan.index('VIP withdrawal or replacement requires exactly one target')
+    peer = vip_plan.index('Require healthy surviving API advertiser before withdrawal')
+    route = vip_plan.index('Require surviving advertiser route with its own next hop')
+    withdrawal = vip_plan.index('Stop advertising kube-vip from excluded member')
+    expect([validation, peer, route].max).to be < withdrawal
+    expect(init_plan).to include('survivor  => $vip_nodes[0].name')
+  end
+
   it 'proves replacement Pods, BGP routes, and VIP readiness before withdrawal' do
     pod_gate = init_plan.index('Require intended kube-vip mirror Pods before withdrawal')
     route_gate = init_plan.index('kube-vip BGP route from peer observer')
