@@ -16,6 +16,7 @@ class nest::service::joyride (
   $bootstrap_script_base64       = base64('encode', file('nest/app/joyride/bootstrap.py'))
   $verifier_token_base64         = base64('encode', $artifact_verifier_token.unwrap).chomp
   $artifact_import_base64        = base64('encode', file('nest/app/joyride/import_artifacts.py'))
+  $test_delivery_base64          = base64('encode', file('nest/app/joyride/test_delivery_controller.py'))
   $test_access_config_base64     = base64('encode', file('nest/app/joyride/test-access-nginx.conf'))
   $test_access_config_sha256     = sha256(file('nest/app/joyride/test-access-nginx.conf'))
 }
