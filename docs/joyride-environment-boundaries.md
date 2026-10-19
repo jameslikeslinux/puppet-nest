@@ -110,13 +110,20 @@ Desktop and phone Chromium runs against the real HTTPS ingress used temporary
 member-only fixtures from the supplied curated GPX/streams/photo package. Actual
 supplied sign-in/member JavaScript exercised route-line rendering, nonempty
 elevation canvas, basemap range reads and painted tiles, GPX download, gallery,
-photo lightbox and prototype MP4 playback. No TLS bypass, external map/provider
-requests, page errors or horizontal overflow were observed. Anonymous route/GPX/
+photo lightbox and, historically, prototype MP4 playback. No TLS bypass,
+external map/provider requests, page errors or horizontal overflow were observed.
+Anonymous route/GPX/
 media reads were denied and no member media became public.
 
-The MP4 is explicitly the supplied prototype motion-test clip, not real scout
-footage. No waiver was accepted and no payment/mail request was made. The exact
+The MP4 was explicitly the supplied prototype motion-test clip, not real scout
+footage. Joy subsequently excluded video from v1. This playback result is
+prototype evidence only, not a v1 capability or permission to ship the clip.
+No waiver was accepted and no payment/mail request was made. The exact
 synthetic member, login tokens, sessions, route, media and files were removed;
 independent DB readback confirmed all corresponding table counts were zero.
 These engineering checks are not Joy/Luna visual, business or publication approval.
-Real Stripe sandbox flows and real scout video remain unverified.
+Real Stripe sandbox flows remain unverified. Real scout video is OUT OF SCOPE
+FOR V1, not an outstanding verification item. Photo authorization and protection
+remain in scope. The photo-only frontend revision, backend exposure closure and
+resulting TEST artifact still require verification; see
+[`joyride-v1-acceptance.md`](joyride-v1-acceptance.md).
