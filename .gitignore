@@ -46,3 +46,5 @@ bolt-debug.log
 /.resource_types
 /spec/fixtures/self_modules/
 /.task_cache.json
+/rollout-evidence/
+/.validation-run*/
