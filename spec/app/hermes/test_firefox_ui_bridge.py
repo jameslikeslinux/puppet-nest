@@ -112,6 +112,9 @@ def test_same_tab_continuity_and_readback_without_duplicate_tabs() -> None:
         assert len(fixture.tabs) == 1
         assert second["readback"]["selected_tab"] == "example.test"
         assert sum(command[:3] == ("key", "--clearmodifiers", "ctrl+t") for command in fixture.commands) == 0
+        typed = [command for command in fixture.commands if command[0] == "type"]
+        assert len(typed) == 2
+        assert all(command[command.index("--delay") + 1] == "100" for command in typed)
     finally:
         tmp.cleanup()
 

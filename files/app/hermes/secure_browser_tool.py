@@ -95,6 +95,8 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
     input_budget = 0
     if command == "type" or (command == "selector_action" and payload.get("operation") == "type"):
         input_budget = (min(len(str(payload.get("text") or "")), 4096) + 4) // 5
+    elif command == "navigate":
+        input_budget = (min(len(str(payload.get("url") or "")), 4096) + 4) // 5
     try:
         result = subprocess.run(
             argv,

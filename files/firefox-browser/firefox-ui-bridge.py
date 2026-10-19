@@ -923,7 +923,10 @@ def command_navigate(payload: dict[str, Any]) -> dict[str, Any]:
         record, created = _ensure_workflow(state, workflow_id, lease, allow_create=False)
         _select_workflow_tab(record)
         _xdotool("key", "--clearmodifiers", "ctrl+l")
-        _xdotool("type", "--clearmodifiers", "--delay", "1", "--", url, timeout=30)
+        # Chrome focus is asynchronous too; do not race the page's old field.
+        time.sleep(TYPE_DELAY_SECONDS)
+        _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
+                 "--", url, timeout=30 + len(url) * TYPE_DELAY_SECONDS * 2)
         _xdotool("key", "--clearmodifiers", "Return")
         readback = _readback(float(payload.get("max_wait_seconds") or DEFAULT_STABLE_WAIT_SECONDS))
         record["tab_name"] = readback["selected_tab"]
