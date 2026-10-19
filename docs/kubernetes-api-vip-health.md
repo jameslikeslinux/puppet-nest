@@ -31,6 +31,35 @@ and preserves portable YAML, including the leading colon in `:2112`. Publication
 is atomic through hidden temporary files. Replaced manifests are backed up
 outside kubelet's watched directory under `/root/kubernetes-manifest-backups`.
 
+## Client route ownership
+
+BIRD owns the client kernel routes in table 100. On networkd-managed hosts,
+`ManageForeignRoutes=no` keeps networkd from deleting routes owned by BIRD or
+the CNI. `KeepConfiguration=static` alone does not preserve `proto bird` routes.
+
+The Stage 3 incident exposed a separate client-side failure, not simultaneous
+withdrawal by both advertisers. At 2026-10-19 21:41:05 UTC, Owl's networkd log
+recorded removal of the BIRD multipath VIP route while configuring `podman1`.
+Synchronized samples showed an empty kernel route, unchanged BIRD RIB entries
+and Established BGP sessions. Networkd also removed a CNI blackhole route.
+BIRD restored the VIP route at 21:41:31 UTC. This explains that observed route
+loss, not every earlier API/backend deadline.
+
+[Systemd's route cleanup implementation](https://github.com/systemd/systemd/blob/v262/src/network/networkd-route.c)
+documents that foreign IPv4 multipath and unreachable routes cannot be assigned
+to one interface during cleanup; the supported ownership setting is
+`ManageForeignRoutes=no`. Global networkd configuration requires a daemon
+restart, not merely `networkctl reload`. The narrowly tagged
+`bird_route_ownership` Puppet resources change this setting and notify networkd.
+Apply on one host only after verifying its network configuration and recovery
+path; independently verify SSH, addresses, DNS, routes and networkd afterward.
+Do not restart control-plane networking in parallel or touch excluded consoles.
+
+After application, observe normal container bridge creation with simultaneous
+kernel-route, BIRD-RIB, API and networkd-log checks. Do not intentionally remove
+a production route to manufacture an acceptance test. A quiet interval without
+bridge creation does not exercise this regression.
+
 ## Planned maintenance
 
 Replace or withdraw one existing advertiser at a time. The Bolt plan refuses

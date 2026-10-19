@@ -42,6 +42,17 @@ class nest::base::network {
     ~>
     service { 'systemd-networkd':
       enable => true,
+      tag    => 'bird_route_ownership',
+    }
+
+    # networkd cannot associate foreign IPv4 multipath routes with one link.
+    # Configuring a Podman bridge must not delete BIRD's API VIP or CNI routes.
+    file_line { 'systemd-networkd-disable-ManageForeignRoutes':
+      path   => '/etc/systemd/networkd.conf',
+      line   => 'ManageForeignRoutes=no',
+      match  => '^#?ManageForeignRoutes=',
+      tag    => 'bird_route_ownership',
+      notify => Service['systemd-networkd'],
     }
 
     unless $facts['is_container'] {

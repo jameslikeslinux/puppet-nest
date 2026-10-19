@@ -153,6 +153,19 @@ describe 'nest' do
 
         it_should_and_should_not_contain_classes(stage1 + stage2 + stage3, windows + workstation + mobile)
 
+        context 'with networkd-managed host links' do
+          let(:facts) { facts.merge(profile: { variant: 'server' }) }
+
+          # Regression: configuring a Podman bridge deleted the live BIRD VIP route.
+          it do
+            is_expected.to contain_file_line('systemd-networkd-disable-ManageForeignRoutes').with(
+              path: '/etc/systemd/networkd.conf',
+              line: 'ManageForeignRoutes=no',
+              match: '^#?ManageForeignRoutes=',
+            ).that_notifies('Service[systemd-networkd]')
+          end
+        end
+
         context 'and variant => workstation' do # rubocop:disable RSpec/EmptyExampleGroup
           let(:facts) do
             facts.merge({ profile: { variant: 'workstation' } })
