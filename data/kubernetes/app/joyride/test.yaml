@@ -1,0 +1,826 @@
+---
+include:
+- nest::service::joyride
+service_name: '%{nest::kubernetes::service}'
+fqdn: '%{nest::kubernetes::service}.eyrie'
+runtime_environment: test
+ingress_class: contour-test
+# Preserve the already verified TEST release during managed platform upgrades.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:646c624c7ab26dd02e7dcfc5e512fc83a781b4df96bab66abaca932531723922
+affinity: {}
+tolerations: []
+resources:
+  backup: {}
+  restore: {}
+  nest_registry_auths: {}
+  scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: '%{nest::kubernetes::service}-scripts'
+      namespace: '%{nest::kubernetes::namespace}'
+    binaryData:
+      bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
+      import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
+      test_delivery_controller.py: '%{nest::service::joyride::test_delivery_base64}'
+      backup.py: '%{nest::service::joyride::backup_script_base64}'
+      monitor.py: '%{nest::service::joyride::monitor_script_base64}'
+  delivery_journal:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-test-delivery-journal
+      namespace: test
+    # The controller owns data.active; omit data from the Helm baseline.
+  delivery_account:
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    automountServiceAccountToken: false
+  delivery_role:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    rules:
+    - apiGroups: [apps]
+      resources: [deployments]
+      resourceNames: [joyride-test]
+      verbs: [get, patch]
+    - apiGroups: ['']
+      resources: [configmaps]
+      resourceNames: [joyride-test-delivery-journal]
+      verbs: [get, update]
+  delivery_binding:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    subjects:
+    - kind: ServiceAccount
+      name: joyride-test-delivery
+      namespace: test
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: joyride-test-delivery
+  delivery_controller:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-test-delivery
+      namespace: test
+    spec:
+      schedule: '* * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 60
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 660
+          template:
+            metadata:
+              labels:
+                app: joyride-test-delivery
+            spec:
+              serviceAccountName: joyride-test-delivery
+              automountServiceAccountToken: true
+              restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
+                seccompProfile:
+                  type: RuntimeDefault
+              imagePullSecrets:
+              - name: joyride-test-pull
+              containers:
+              - name: controller
+                # Trusted interpreter pin never follows candidate releases.
+                image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
+                command: [python, /platform/test_delivery_controller.py]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  capabilities:
+                    drop: [ALL]
+                env:
+                - name: RUNTIME_ENV
+                  value: test
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: '1'
+                resources:
+                  requests:
+                    cpu: 25m
+                    memory: 48Mi
+                  limits:
+                    memory: 128Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: credential
+                  mountPath: /delivery-secret
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-test-scripts
+                  items:
+                  - key: test_delivery_controller.py
+                    path: test_delivery_controller.py
+              - name: credential
+                secret:
+                  secretName: joyride-test-runtime
+                  items:
+                  - key: DELIVERY_TOKEN
+                    path: DELIVERY_TOKEN
+  artifact_verifier:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-artifact-verifier'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: Opaque
+    data:
+      GITLAB_READ_API_TOKEN: '%{nest::service::joyride::verifier_token_base64}'
+  artifact_import:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: '%{nest::kubernetes::service}-artifact-import'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      schedule: '*/5 * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 120
+      jobTemplate:
+        spec:
+          backoffLimit: 1
+          activeDeadlineSeconds: 240
+          template:
+            metadata:
+              labels:
+                app: '%{nest::kubernetes::service}-artifact-import'
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
+                seccompProfile:
+                  type: RuntimeDefault
+              imagePullSecrets:
+              - name: '%{nest::kubernetes::service}-pull'
+              containers:
+              - name: importer
+                image: '%{lookup(''joyride_image'')}'
+                command: [python, /platform/import_artifacts.py]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  capabilities:
+                    drop: [ALL]
+                env:
+                - name: RUNTIME_ENV
+                  value: '%{lookup(''runtime_environment'')}'
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-cnpg-app'
+                      key: uri
+                - name: DJANGO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-runtime'
+                      key: DJANGO_SECRET_KEY
+                - name: GITLAB_READ_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: '%{nest::kubernetes::service}-artifact-verifier'
+                      key: GITLAB_READ_API_TOKEN
+                - name: TMPDIR
+                  value: /tmp
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                  limits:
+                    memory: 256Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              volumes:
+              - name: scripts
+                configMap:
+                  name: '%{nest::kubernetes::service}-scripts'
+              - name: tmp
+                emptyDir:
+                  sizeLimit: 64Mi
+  runtime:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-runtime'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: Opaque
+    data:
+      DJANGO_SECRET_KEY: '%{nest::service::joyride::django_secret_key_base64}'
+      OPS_TOKEN: '%{nest::service::joyride::ops_token_base64}'
+      DELIVERY_TOKEN: '%{nest::service::joyride::delivery_token_base64}'
+      WMATA_API_KEY: '%{nest::service::joyride::wmata_api_key_base64}'
+      EMAIL_HOST_USER: '%{nest::service::joyride::email_host_user_base64}'
+      EMAIL_HOST_PASSWORD: '%{nest::service::joyride::email_host_password_base64}'
+  pull:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: '%{nest::kubernetes::service}-pull'
+      namespace: '%{nest::kubernetes::namespace}'
+    type: kubernetes.io/dockerconfigjson
+    data:
+      .dockerconfigjson: '%{nest::service::joyride::registry_dockerconfig_base64}'
+  storage:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: '%{nest::kubernetes::service}-data'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      accessModes:
+      - ReadWriteMany
+      storageClassName: ceph-filesystem
+      resources:
+        requests:
+          storage: 8Gi
+  database:
+    apiVersion: postgresql.cnpg.io/v1
+    kind: Cluster
+    metadata:
+      name: '%{nest::kubernetes::service}-cnpg'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      instances: 1
+      imageName: ghcr.io/cloudnative-pg/postgresql:17.11
+      storage:
+        storageClass: ceph-block
+        size: 8Gi
+      bootstrap:
+        initdb:
+          database: joyride
+          owner: joyride
+      monitoring:
+        enablePodMonitor: true
+  app:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      replicas: 1
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: '%{nest::kubernetes::service}'
+      template:
+        metadata:
+          labels:
+            app: '%{nest::kubernetes::service}'
+        spec:
+          automountServiceAccountToken: false
+          securityContext:
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          imagePullSecrets:
+          - name: '%{nest::kubernetes::service}-pull'
+          initContainers:
+          - name: migrate
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: &id001
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 10001
+              runAsGroup: 10001
+              capabilities:
+                drop:
+                - ALL
+            env: &id002
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: '%{nest::kubernetes::service}-cnpg-app'
+                  key: uri
+            - name: TMPDIR
+              value: /data/tmp
+            - name: PRIVATE_ROOT
+              value: /data/private
+            - name: PUBLIC_ROOT
+              value: /data/public
+            - name: MAP_ROOT
+              value: /data/maps
+            - name: RUNTIME_ENV
+              value: '%{lookup(''runtime_environment'')}'
+            - name: ALLOWED_HOSTS
+              value: '%{lookup(''fqdn'')}'
+            - name: PUBLIC_ORIGIN
+              value: https://%{lookup('fqdn')}
+            - name: MAIL_ENABLED
+              value: '0'
+            - name: STRIPE_MODE
+              value: disabled
+            - name: TEST_MAIL_ALLOWLIST
+              value: ''
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - python
+            - manage.py
+            - migrate
+            - --noinput
+          - name: basemap
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            command: [python, /platform/bootstrap.py]
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            - name: scripts
+              mountPath: /platform
+              readOnly: true
+            - name: pull
+              mountPath: /pull
+              readOnly: true
+          containers:
+          - name: web
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            ports:
+            - name: web
+              containerPort: 8000
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: ops
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - gunicorn
+            - joyride.ops_wsgi:application
+            - --bind
+            - 0.0.0.0:8001
+            - --workers
+            - '2'
+            ports:
+            - name: ops
+              containerPort: 8001
+            readinessProbe:
+              tcpSocket:
+                port: 8001
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              tcpSocket:
+                port: 8001
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: trusted-test
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            command:
+            - gunicorn
+            - joyride.trusted_test_wsgi:application
+            - --bind
+            - 0.0.0.0:8002
+            - --workers
+            - '2'
+            ports:
+            - name: trusted-test
+              containerPort: 8002
+            readinessProbe:
+              tcpSocket:
+                port: 8002
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              tcpSocket:
+                port: 8002
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: worker
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command:
+            - python
+            - manage.py
+            - worker
+          volumes:
+          - name: scripts
+            configMap:
+              name: '%{nest::kubernetes::service}-scripts'
+          - name: pull
+            secret:
+              secretName: '%{nest::kubernetes::service}-pull'
+          - name: data
+            persistentVolumeClaim:
+              claimName: '%{nest::kubernetes::service}-data'
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+  web:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-web'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8000
+        targetPort: 8000
+  ops:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-ops'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8001
+        targetPort: 8001
+  trusted_test:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-trusted-test'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8002
+        targetPort: 8002
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: '%{nest::kubernetes::service}-tls'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      secretName: '%{nest::kubernetes::service}-tls'
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames:
+      - '%{lookup(''fqdn'')}'
+  ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      ingressClassName: '%{lookup(''ingress_class'')}'
+      tls:
+      - hosts:
+        - '%{lookup(''fqdn'')}'
+        secretName: '%{nest::kubernetes::service}-tls'
+      rules:
+      - host: '%{lookup(''fqdn'')}'
+        http:
+          paths:
+          - path: /ops/
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-ops'
+                port:
+                  number: 8001
+          - path: /delivery/
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-ops'
+                port:
+                  number: 8001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: '%{nest::kubernetes::service}-web'
+                port:
+                  number: 8000
+  policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: '%{nest::kubernetes::service}'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      podSelector:
+        matchLabels:
+          app: '%{nest::kubernetes::service}'
+      policyTypes:
+      - Ingress
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-monitor
+        ports:
+        - protocol: TCP
+          port: 8000
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-delivery
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8001
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-access
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8002
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: test
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8001
+  test_access_config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-test-access
+      namespace: '%{nest::kubernetes::namespace}'
+    binaryData:
+      nginx.conf: '%{nest::service::joyride::test_access_config_base64}'
+  test_access:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride-test-access
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: joyride-test-access
+      template:
+        metadata:
+          labels:
+            app: joyride-test-access
+          annotations:
+            nest/config-sha256: '%{nest::service::joyride::test_access_config_sha256}'
+        spec:
+          # The TEST LoadBalancer pool is advertised by workstation nodes only.
+          # Local traffic policy requires the TLS endpoint on an advertising node.
+          nodeSelector:
+            node-role.kubernetes.io/workstation: ''
+          tolerations:
+          - key: node-role.kubernetes.io/workstation
+            operator: Exists
+            effect: NoSchedule
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            fsGroup: 101
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: nginx
+            image: docker.io/nginxinc/nginx-unprivileged@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+            command: [nginx, -g, 'daemon off;']
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            ports:
+            - name: https
+              containerPort: 8443
+            readinessProbe:
+              httpGet:
+                path: /health/live
+                port: 8080
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 8080
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+            volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: config
+            configMap:
+              name: joyride-test-access
+          - name: tls
+            secret:
+              secretName: '%{nest::kubernetes::service}-tls'
+          - name: tmp
+            emptyDir:
+              sizeLimit: 64Mi
+  test_access_service:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: joyride-test-access
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      type: LoadBalancer
+      loadBalancerIP: 172.21.1.3
+      externalTrafficPolicy: Local
+      loadBalancerSourceRanges: [172.22.4.3/32]
+      selector:
+        app: joyride-test-access
+      ports:
+      - name: https
+        port: 443
+        targetPort: 8443
+  test_access_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-test-access
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride-test-access
+      policyTypes: [Ingress, Egress]
+      ingress:
+      - from:
+        - ipBlock:
+            cidr: 172.22.4.3/32
+        ports:
+        - protocol: TCP
+          port: 8443
+      egress:
+      - to:
+        - podSelector:
+            matchLabels:
+              app: '%{nest::kubernetes::service}'
+        ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8002
+      - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+        ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

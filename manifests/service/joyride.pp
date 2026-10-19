@@ -6,6 +6,12 @@ class nest::service::joyride (
   Sensitive[String]              $registry_dockerconfig,
   Sensitive[String]              $artifact_verifier_token,
 ) {
+  # Only the verified TEST recipe exists. A distinct production contract and
+  # owner-approved rollout must be implemented before this boundary is widened.
+  if $nest::kubernetes::namespace != 'test' or $nest::kubernetes::service != 'joyride-test' or lookup('runtime_environment', { 'default_value' => undef }) != 'test' {
+    fail('Joyride currently supports only service joyride-test in namespace test with runtime_environment test; production is not configured')
+  }
+
   $django_secret_key_base64      = base64('encode', $runtime_secrets.unwrap['DJANGO_SECRET_KEY']).chomp
   $ops_token_base64              = base64('encode', $runtime_secrets.unwrap['OPS_TOKEN']).chomp
   $delivery_token_base64         = base64('encode', $runtime_secrets.unwrap['DELIVERY_TOKEN']).chomp
