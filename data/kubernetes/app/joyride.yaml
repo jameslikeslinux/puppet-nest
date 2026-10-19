@@ -5,7 +5,7 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:3fc4ee44bdadd2c002d7c9d5bff3c092763d1b8586a90b8d4c97c6097bf90750
 affinity: {}
 tolerations: []
 resources:
@@ -463,6 +463,45 @@ resources:
                 port: 8001
               initialDelaySeconds: 10
               periodSeconds: 15
+          - name: trusted-test
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            command:
+            - gunicorn
+            - joyride.trusted_test_wsgi:application
+            - --bind
+            - 0.0.0.0:8002
+            - --workers
+            - '2'
+            ports:
+            - name: trusted-test
+              containerPort: 8002
+            readinessProbe:
+              tcpSocket:
+                port: 8002
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              tcpSocket:
+                port: 8002
+              initialDelaySeconds: 10
+              periodSeconds: 15
           - name: worker
             image: '%{lookup(''joyride_image'')}'
             securityContext: *id001
@@ -524,6 +563,19 @@ resources:
       - name: http
         port: 8001
         targetPort: 8001
+  trusted_test:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-trusted-test'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8002
+        targetPort: 8002
   certificate:
     apiVersion: cert-manager.io/v1
     kind: Certificate
@@ -604,7 +656,7 @@ resources:
         - protocol: TCP
           port: 8000
         - protocol: TCP
-          port: 8001
+          port: 8002
       - from:
         - namespaceSelector:
             matchLabels:
@@ -749,7 +801,7 @@ resources:
         - protocol: TCP
           port: 8000
         - protocol: TCP
-          port: 8001
+          port: 8002
       - to:
         - namespaceSelector:
             matchLabels:

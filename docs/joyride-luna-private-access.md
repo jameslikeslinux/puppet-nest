@@ -1,104 +1,123 @@
 # Luna's isolated Joyride TEST access
 
-This is a private app-specific endpoint, not a public gateway or permission to
-reach shared Eyrie ingress. Production access and launch are outside this change.
-The legacy `luna-gitlab` names are retained to preserve existing device identities,
-service dependencies and GitLab transport; their bounded policy now describes
-two destinations rather than a private-network route.
+Joy's current decision is Tailscale authentication only. Luna needs no Muse
+connector credential, token injection, synthetic identity header, secret bridge
+or routine ops CI job. Existing CI preview credentials and ordinary application
+member/admin authentication remain unchanged. Production and public launch are
+outside this TEST change.
 
-## Exact boundary
+## Exact trust boundary
 
-- Existing Muse node: `100.127.2.74`, administrator-assigned `tag:luna-gitlab`.
+- Existing Muse device `nQjHi2NSXC11CNTRL`, address `100.127.2.74`, has the
+  administrator-owned `tag:luna-gitlab`. Do not assign it to another device.
 - Existing GitLab destination remains `172.21.2.1/32`, TCP 22 only.
-- New TEST destination: `172.21.1.3/32`, TCP 443 only. This address was unused in
-  live Services and belongs to the existing MetalLB test pool at discovery.
-  Recheck before rollout; stop on a conflicting reservation.
-- Never grant `172.21.1.0/24`, shared ingress `172.21.1.0`, default routes, DNS,
-  arbitrary ports, Kestrel host access, Tailscale SSH or route auto-approval.
-- Keep all existing node/tag identities, expiry and OpenVPN services unchanged.
+- TEST destination remains `172.21.1.3/32`, TCP 443 only, through Kestrel's
+  existing `tag:kestrel-gitlab-router` subnet router. No grant is broadened.
+- No shared ingress, whole subnet, DNS, default route, Tailscale SSH or route
+  auto-approval. Preserve OpenVPN, DNS/DHCP, BIRD and management services.
 
-`joyride-test-access` terminates TLS using the existing managed TEST certificate.
-Only this stateless listener runs on a workstation-role node, matching the TEST
-pool's existing MetalLB advertisement and source-preserving Local traffic policy.
-The application and database retain their ordinary worker scheduling.
-The pinned multi-architecture unprivileged nginx 1.30.6 image forwards only to
-`joyride-test-web:8000` or the three permitted ops endpoints at
-`joyride-test-ops:8001`. It cannot choose an upstream from Host, SNI, a URL or a
-forwarded header. It never proxies through shared ingress. Unknown SNI fails TLS;
-wrong HTTP Host returns 421. Forwarded headers are replaced, not trusted.
+Tailscale authenticates the peer before decrypted traffic enters `tailscale0`.
+The independent `inet nest_luna` forward guard accepts TEST traffic only from
+that interface AND exact Luna IPv4 source AND exact destination/port. A subsequent
+unconditional TEST-destination drop rejects all other forwarded sources before
+SNAT, even if a later shared firewall rule would accept them. The output guard
+also drops router-local connections to the TEST VIP: Kestrel's own processes do
+not inherit Luna's trust. GitLab forwarding and established replies are retained.
 
-Only `/ops/status`, `/ops/diagnostics` and `/ops/deploy` reach the ops listener.
-They still require the app's scoped single bearer token. `/delivery`, other ops
-paths, roster and admin are absent from this Luna endpoint. This grants neither
-member records nor controller authority. Public/member routes still enforce their
-normal application authentication and entitlement boundaries.
+Firewalld performs only the existing bounded subnet SNAT. The verified BIRD
+route sends TEST traffic via Falcon; the downstream source is `172.22.4.3`.
+That address is NOT independently a Tailscale identity: the pre-SNAT interface,
+peer source and local-output guards are mandatory prerequisites. Recheck their
+installed bytes and effective rules before enabling token-free app routing.
+The router, Kubernetes nodes and network control plane remain privileged trust
+roots; this does not defend against an administrator replacing their rules or
+forging traffic from a compromised network control plane.
 
-The LoadBalancer preserves source address and accepts only Kestrel's subnet-SNAT
-address `172.22.4.3/32`. An ingress NetworkPolicy repeats that constraint. Egress
-is limited to the app's two ports and cluster DNS. The pod has no service-account
-token, shell execution interface, application secrets, database or media mounts.
-It runs nonroot with a read-only root, dropped capabilities and bounded tmpfs.
-Access logging is off. TLS material remains in the managed Secret, never evidence.
+The source-preserving Local LoadBalancer accepts only `172.22.4.3/32`. Ingress
+NetworkPolicy repeats that source restriction. Only the stateless nginx listener
+runs on a workstation node matching the TEST MetalLB advertisement. App/database
+retain ordinary worker scheduling. Nginx has no service-account token, application
+secret, database or media mount. It runs nonroot, read-only, with dropped
+capabilities and bounded tmpfs. Access logs are disabled.
 
-## Deployment and owner gates
+## Isolated application listener
 
-The kickstart authorizes narrow app integration, not broad network expansion or
-impersonating an owner in an administrator/first-connection approval dialog.
-Before live router/tailnet access changes, obtain the exact scoped owner decision
-recorded on the parent request. Source merge alone is not network-access proof.
+`joyride-test-access` terminates TLS with the managed TEST certificate. Unknown
+SNI fails TLS; wrong Host returns 421. Fixed upstreams cannot be chosen from
+caller headers or URLs. Public/member requests retain ordinary authentication.
+Only these exact raw method/path pairs, with no query or normalized variants,
+reach the separate `joyride.trusted_test_wsgi:application` process on port 8002:
 
-1. Review the exact MR and require all exact-head CI jobs, including the real
-   pinned-nginx fixture check. Render through the existing declarative wrapper:
+- `GET /ops/status`: sanitized TEST-only deployment status.
+- `GET /ops/diagnostics`: sanitized queue counts/timestamp, not raw logs/payloads.
+- `POST /ops/deploy`: bounded JSON, independently verified digest, TEST only,
+  promote/rollback with existing idempotency and audit checks.
+
+All caller headers are discarded on these ops upstream requests; only the fixed
+Host, connection handling and JSON content type for deployment are supplied.
+There is no injected credential or trusted identity header. Ops requests have
+bounded bodies, deadlines, connection concurrency and request rate. Responses
+remain the bounded application schema. Roster, controller, admin, member and
+production authority are absent on the dedicated listener. An HTTP 202 is queue
+acceptance, not succeeded delivery.
+
+Only the exact private-access pod selector may connect to port 8002. Neither
+shared ingress nor the delivery controller is allowed that port; their existing
+8000/8001 access remains unchanged. The ordinary ops Service still requires its
+existing bearer credentials; the public listener exposes no ops routes. Other
+cluster pods and direct PodIP/Service calls must fail network admission. Inspect
+all additive NetworkPolicies, not merely the named policy. Kubernetes node-local
+and same-pod processes are privileged trust roots, not untrusted network clients.
+
+The immutable baseline application must include the trusted entry point. Older
+artifacts predating application MR 3 cannot be used as successful rollback
+candidates with this workload shape. Reverting the architecture requires an
+explicit reviewed Nest rollback, disabling private ops routing first, not an
+authentication bypass. The controller validates all four named app containers
+and both initializers, preserving exact workload/journal fences.
+
+## Managed deployment and acceptance
+
+1. Require exact-head CI, including real pinned-nginx and controller fixtures.
+   Render through the normal declarative wrapper:
 
        bolt plan run nest::eyrie::deploy_joyride_test render_to=/modules/nest/.local/joyride/access-rendered.yaml
 
-   Keep rendered output restricted; it contains runtime Secrets. Perform a
-   Kubernetes server-side dry run without publishing that manifest.
-2. Merge reviewed source. Deploy TEST with `nest::eyrie::deploy_joyride_test`.
-   Verify the dedicated Service's exact address, ready native worker pod, TLS
-   material and policies. No public DNS or production change is needed.
-3. Smoke inventory-backed Bolt transport to Kestrel, deploy merged Puppet source,
-   review a scoped noop and apply the existing `luna_gitlab` and `firewalld` tags.
-   Inspect shared-firewall changes before proceeding. Verify actual BIRD route,
-   SNAT interface address, guard rules and no-drift repeat; preserve DNS/DHCP,
-   OpenVPN, BIRD, management, kernel and device enrollment.
-4. Through supported secure-browser UI only, read the complete current tailnet
-   policy. Stop for unrelated drift rather than overwriting another operator's
-   changes. Apply the exact reviewed grant addition and approve only the new
-   `172.21.1.3/32` route on the existing Kestrel router; retain GitLab's route.
-   Read back the effective complete policy and route approvals. Any login,
-   security challenge or Muse first-connection approval remains Joy's action.
-5. In the existing dedicated Joyride side chat, ask Luna to connect via her
-   existing proxy port 3130 to `172.21.1.3:443`, using TLS SNI and HTTP Host
-   `joyride-test.eyrie` and normal Eyrie CA verification. Do not use `-k`, a new
-   client, a broader route, a DNS grant or another conversation. The ordinary
-   internal hostname keeps its existing shared-ingress DNS; this dedicated IP
-   is a transport override only. Supply the existing scoped token only through
-   an authorized secret intake, never a chat message or code artifact.
-6. Independently verify homepage/readiness, unauthenticated status denial,
-   authenticated status/diagnostics, wrong Host/SNI, absent delivery/admin/roster,
-   and retained GitLab SSH. Do not approve unrelated destinations for negative
-   tests. A CONNECT response alone is not HTTPS or deployment acceptance.
+   Rendered manifests contain Secrets: keep restricted, never attach or print.
+   Perform a Kubernetes server-side dry run.
+2. Merge reviewed source. Deploy Puppet code through `nest::puppet::deploy`.
+   Review Kestrel's scoped noop and apply only `luna_gitlab` and `firewalld` via
+   `nest::puppet::run`; inspect shared changes and repeat for no drift. Read back
+   exact installed guard bytes/rules, preferences, BIRD route and peer identity.
+   No direct SSH or manual host Puppet deployment fallback.
+3. Before starting the trusted listener, prove router-local and non-Tailscale
+   paths cannot reach the VIP, source-preserving Service/policy confinement and
+   the exact existing Tailscale grant/route. Do not broaden grants for tests.
+   Then deploy TEST only with `nest::eyrie::deploy_joyride_test` and inspect
+   Service endpoints, all additive policies, ready images and normal TLS.
+4. Use only the existing dedicated Joyride side chat. Luna connects via existing
+   proxy 3130 to `172.21.1.3:443`, SNI/Host `joyride-test.eyrie`, with the public
+   Eyrie CA as a request-scoped anchor and hostname checking. No `-k`, new client,
+   connector secret, main chat, direct Muse API or broad network permission.
+5. Verify token-free status/diagnostics and an authorized verified-artifact TEST
+   deployment through Luna's actual connection. Independently inspect succeeded
+   application state and exact runtime digest. Check wrong methods/paths,
+   production, roster, admin, controller, spoofed headers and direct-origin denial.
+   Retain GitLab SSH and member authentication. Ordinary LAN/shared ingress must
+   still deny equivalent token-free access. Record unavailable live negative
+   clients explicitly; policy inspection alone is not an exercised client.
 
-The real fixture command is:
+Fixture checks (local fixtures are not live network/application acceptance):
 
     python3 spec/app/joyride/test_private_access.py
-
-It exercises the exact nginx config/image, TLS, Host/SNI, forward-header handling,
-path isolation and application-auth forwarding using explicit local fixture
-upstreams. It is not proof of live router, tailnet, application or Luna success.
+    python3 spec/app/joyride/test_delivery_controller.py
+    sudo unshare --net nft --check --file files/tailscale/luna-gitlab.nft
 
 ## Rollback and remaining work
 
-Revoke the new TEST route approval and remove only its grant first. Restore the
-GitLab-only router preference/guard/policy through reviewed source and Bolt.
-Do not delete the router/device, change keys, reset Tailscale or alter OpenVPN.
-Retain fail-closed filtering throughout. Recheck GitLab, DNS/DHCP, routing and
-management afterwards. Deleting live Kubernetes resources remains a separate
-approved operation; leaving the source-constrained isolated listener in place
-without the tailnet grant does not grant Muse access.
-
-The TEST delivery controller, preview credential provisioning, actual Luna token
-intake/canary, immutable promotion/rollback and all other kickstart acceptance
-remain separate work in the existing parent. This network change does not make
-a queued deployment successful or authorize production/content publication.
+Disable private ops routing before relaxing any router or pod isolation. Revoke
+only the TEST grant/route if access must be removed; preserve GitLab. Do not
+reset the router/device, alter keys/expiry or restart Firefox without approval.
+Deleting Kubernetes resources remains separately destructive. All production,
+payment, mail, business-content and publication gates remain unchanged. This
+runbook describes source and required acceptance, not a claim of live success.

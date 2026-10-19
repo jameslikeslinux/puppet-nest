@@ -224,7 +224,7 @@ class ControllerTests(unittest.TestCase):
             self.assertEqual(item["op"], "replace")
             self.assertTrue(item["path"].endswith("/image"))
             self.assertEqual(item["value"], NEW)
-        self.assertEqual(len(payload), 8)
+        self.assertEqual(len(payload), 3 + len(controller.CONTAINERS) + len(controller.INITIALIZERS))
         self.assertEqual(payload[-1]["value"], {controller.ANNOTATION: ID})
 
     def test_terminal_conflict_reads_only_exact_result_shape(self):
