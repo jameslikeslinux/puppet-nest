@@ -1,0 +1,123 @@
+diff --git a/lib/nest/beadm.rb b/lib/nest/beadm.rb
+index 5b392ab..4428048 100644
+--- a/lib/nest/beadm.rb
++++ b/lib/nest/beadm.rb
+@@ -1,6 +1,7 @@
+ # frozen_string_literal: true
+ 
+ require 'shellwords'
++require 'open3'
+ 
+ module Nest
+   # Manage ZFS boot environments
+@@ -8,8 +9,11 @@ module Nest
+     include Nest::CLI
+ 
+     def initialize
+-      @current_fs = %x(zfs list -H -o name `findmnt -n -o SOURCE /`).chomp
+-      @current_fs =~ %r{^(([^/]+).*/ROOT)/([^/]+)$} or raise '/ is not a ZFS boot environment'
++      roots = read_command('findmnt', '-rn', '-o', 'SOURCE', '--mountpoint', '/').lines.map(&:chomp)
++      raise 'Expected exactly one mounted root; inspect stacked mounts before using beadm' unless roots.size == 1
++
++      @current_fs = read_command('zfs', 'list', '-H', '-o', 'name', roots.first).chomp
++      @current_fs =~ %r{\A(([^/\s]+)(?:/[^/\s]+)*/ROOT)/([^/\s]+)\z} or raise '/ is not a ZFS boot environment'
+       @be_root = Regexp.last_match(1)
+       @zpool = Regexp.last_match(2)
+       @current_be = Regexp.last_match(3)
+@@ -203,6 +207,12 @@ module Nest
+ 
+         logger.info "Configuring boot environment '#{name}' for next reboot"
+ 
++        trees = activation_filesystems
++        disable_inactive(trees)
++        # Perform the real accounting transfer before selecting the next boot.
++        # Payload size and pool free space do not predict promotion quota use.
++        promote_tree(trees, "#{@be_root}/#{name}")
++
+         (name == active || cmd.run!(ADMIN + "zpool set bootfs=#{@be_root}/#{name} #{@zpool}").success?) or
+           raise 'Failed to set zpool \'bootfs\' property'
+ 
+@@ -210,23 +220,71 @@ module Nest
+       else
+         logger.info "Activating current boot environment '#{@current_fs.sub(%r{.*/}, '')}'"
+ 
+-        `zfs list -H -o name,canmount,origin -r #{@be_root}`.lines.each do |line|
+-          (fs, canmount, origin) = line.chomp.split("\t", 3)
+-
+-          if fs =~ %r{^#{Regexp.escape(@current_fs)}($|/)} # rubocop:disable Style/GuardClause
+-            (canmount == 'on' || cmd.run!(ADMIN + "zfs set canmount=on #{fs}").success?) or
+-              raise 'Failed to enable active boot environment'
++        trees = activation_filesystems
++        # zfs-mount.service may continue even if this command fails. Establish
++        # mount safety for ALL trees before enabling or promoting any dataset.
++        disable_inactive(trees)
++        trees.each do |fs, canmount, _origin|
++          next unless in_tree?(fs, @current_fs) && canmount == 'noauto'
+ 
+-            (origin == '-' || cmd.run!(ADMIN + "zfs promote #{fs}").success?) or
+-              raise 'Failed to promote active boot environment clone'
+-          else
+-            (canmount == 'noauto' || cmd.run!(ADMIN + "zfs set canmount=noauto #{fs}").success?) or
+-              raise 'Failed to disable inactive boot environment'
+-          end
++          cmd.run!(ADMIN + "zfs set canmount=on #{fs.shellescape}").success? or
++            raise "Failed to enable active boot environment dataset #{fs}"
+         end
++        promote_tree(trees, @current_fs)
+ 
+         logger.success "Boot environment '#{@current_fs.sub(%r{.*/}, '')}' is active"
+       end
++      true
++    end
++
++    private
++
++    def read_command(*args)
++      output, status = Open3.capture2e(*args)
++      raise "Failed to read #{args.first}: #{output.strip}" unless status.success?
++
++      output
++    end
++
++    def in_tree?(filesystem, tree)
++      filesystem == tree || filesystem.start_with?("#{tree}/")
++    end
++
++    def activation_filesystems
++      rows = read_command('zfs', 'list', '-H', '-t', 'filesystem', '-o', 'name,canmount,origin',
++                          '-r', @be_root).lines.map { |line| line.chomp.split("\t", 3) }
++      valid = rows.all? do |fs, canmount, origin|
++        fs && in_tree?(fs, @be_root) && %w[on off noauto].include?(canmount) && origin
++      end
++      (valid && rows.any? { |fs, _canmount, _origin| fs == @current_fs }) or
++        raise 'Invalid or incomplete boot environment filesystem inventory'
++
++      rows
++    end
++
++    def disable_inactive(trees)
++      failed = trees.each_with_object([]) do |(fs, canmount, _origin), errors|
++        next if in_tree?(fs, @current_fs) || %w[off noauto].include?(canmount)
++        next if cmd.run!(ADMIN + "zfs set canmount=noauto #{fs.shellescape}").success?
++
++        errors << fs
++      rescue StandardError => e
++        errors << "#{fs} (#{e.message})"
++      end
++      return if failed.empty?
++
++      raise "Failed to disable inactive boot environment datasets: #{failed.join(', ')}; do not run zfs mount -a"
++    end
++
++    def promote_tree(trees, tree)
++      raise "Boot environment dataset #{tree} is missing" unless trees.any? { |fs, _canmount, _origin| fs == tree }
++
++      trees.each do |fs, _canmount, origin|
++        next unless in_tree?(fs, tree) && origin != '-'
++        next if cmd.run!(ADMIN + "zfs promote #{fs.shellescape}").success?
++
++        raise "Failed to promote boot environment clone #{fs}; check quota and snapshot accounting before retrying"
++      end
+     end
+   end
+ end
