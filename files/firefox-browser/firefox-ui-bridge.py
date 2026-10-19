@@ -289,6 +289,13 @@ def _walk(root: Any) -> Iterable[tuple[Any, tuple[int, ...]]]:
     while stack and visited < MAX_NODES * 8:
         node, path = stack.pop()
         visited += 1
+        # Firefox keeps background documents VISIBLE in AT-SPI even though
+        # they are not SHOWING. Their descendants can also retain VISIBLE.
+        # Do not traverse/read those trees or let their prose consume the
+        # active page's bounded observation budget. Chrome tab objects are
+        # outside these document boundaries and must still all be counted.
+        if node.get_role_name() in {"internal frame", "document web", "document frame"} and "showing" not in _state_names(node):
+            continue
         yield node, path
         with contextlib.suppress(Exception):
             count = min(node.get_child_count(), 1000)

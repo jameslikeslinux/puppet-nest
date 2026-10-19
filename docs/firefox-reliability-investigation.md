@@ -273,19 +273,42 @@ refusal and protected-field redaction. Rich-text terminal Enter serialized as
 an additional final line in `innerText`; the fixture records interior paragraph
 behavior separately and does not claim byte-exact rich-text terminal whitespace.
 
-An expanded harness initially could not discover its coordinate field because
-several hidden survivor documents exhausted the accessibility snapshot budget.
-Survivor pages were then kept short while the active cycle retains its generic
-long-chat content. That passing input canary is not proof of comprehensive
-accessibility discovery across several long documents; this limitation remains
-open. Failed harness receipts are retained, not counted as passing runs.
+The tracked follow-up image soak completed twelve cycles in 553.304 seconds,
+180 operations, mean 3.043 seconds and maximum 9.701 seconds. Four surviving
+tab identities and browser generation were unchanged across bridge replacement
+and endpoint outage. Native process exit was zero and the disposable container
+was absent afterward. Its survivor documents were short; it did not establish
+multi-long-document accessibility discovery.
+
+The expanded harness independently reproduced coordinate-field disappearance
+with three long survivor pages on that unchanged image. The snapshot contained
+350 nodes, reported truncation and exposed no entry fields. A bounded AT-SPI
+trace showed background internal frames and documents marked VISIBLE but not
+SHOWING, while the active document had both states. The traversal nevertheless
+read background descendants, and the prose inclusion rule accepted VISIBLE
+text. Background prose therefore consumed the active page's observation budget.
+This is a proven discovery defect, not a demonstrated cause of the original
+sustained-CPU incident or the installed query transport refusal.
+
+Traversal now prunes non-SHOWING internal frames and document roots before
+descending or reading text. Chrome tab objects remain outside those boundaries
+and are still enumerated; offscreen VISIBLE prose inside the SHOWING document
+remains observable. Two new regressions failed before this change and pass
+afterward. The identical long-survivor scenario passed with a read-only source
+overlay: two cycles, 131.209 seconds, 50 operations, mean 2.519 seconds and
+maximum 7.773 seconds, five surviving tab identities and unchanged generation,
+including exact coordinate paragraphs and bridge replacement/outage. This is
+overlay verification, not pristine-image or installed acceptance. The source
+change requires a rebuilt immutable image and exact-head CI before any further
+activation proposal. Failed harness receipts are retained, not counted as passes.
 
 - Repeated native WebDriver detach/reattach did not terminate the isolated
   browser or lose its tabs. This does not exclude every mixed-protocol race.
-- A generic 3000-message page did not reproduce missing chrome tabs. Its
+- An earlier generic 3000-message page did not reproduce missing chrome tabs. Its
   complete canary passed, with a maximum bridge-operation duration of 7.332
   seconds. A depth-first accessibility-budget hypothesis is therefore not
-  established as the cause, and no speculative traversal rewrite was made.
+  established as the cause of that incident. The later multi-document discovery
+  failure above is a separate, directly reproduced traversal-budget defect.
 - ATK assertions, a defunct GPU process, high main-thread CPU and transport
   timeouts are separate observations, not interchangeable root causes.
 - Kubernetes API transport intermittently timed out during both this isolated
