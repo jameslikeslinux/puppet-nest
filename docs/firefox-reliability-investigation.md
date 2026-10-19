@@ -11,7 +11,14 @@ Production installation and user-visible acceptance remain separate gates.
 No owner profile files, cookies, vault state, chat exports or private page
 screenshots were collected. Test profiles are empty ephemeral directories in
 an isolated pod without the `firefox-profile` PVC. No production browser input,
-restart, binding recovery or bridge replacement was performed by this worker.
+restart or explicit binding recovery was performed by this worker. During the
+resumed endpoint work, one insufficiently isolated red test invoked a real
+status command through the old exec/source-overlay path. Status reconciliation
+can mark PID-era bindings uncertain or prune expired state. No before-state
+receipt exists, so this run cannot assert unchanged workflow bindings. It did
+not send UI input or process termination, and no uncertainty was reversed or
+owner tab rebound. Replacement rejection tests explicitly forbid transport and
+subprocess dispatch, rather than trusting the guard under test to prevent it.
 
 ## Evidence and cross-incident timeline
 

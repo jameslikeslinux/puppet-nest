@@ -62,7 +62,8 @@ def test_endpoint_outage_has_no_fallback_and_no_retry():
 def test_endpoint_refuses_non_https_and_redirects():
     module, _ = load_tool()
     module.PUBLIC_URL = "http://browser.eyrie/"
-    result = parsed(module.secure_browser_status_tool({}))
+    with patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("network forbidden in rejection test")), patch.object(module.subprocess, "run", side_effect=AssertionError("subprocess forbidden in rejection test")):
+        result = parsed(module.secure_browser_status_tool({}))
     assert result["status"] == "error"
     assert "HTTPS" in result["message"]
     try:
