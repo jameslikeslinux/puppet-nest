@@ -1,0 +1,45 @@
+#!/bin/bash
+# Managed application entry point; no login, playback or audio-route changes.
+set -eu
+
+if (( $# )); then
+  printf '%s\n' 'nest-spotify takes no arguments' >&2
+  exit 2
+fi
+<% if @backend == 'web' -%>
+
+: "${HOME:?HOME is required}"
+: "${DISPLAY:?The managed Spotify web launcher requires an X11 session}"
+: "${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR is required}"
+
+activate_existing() {
+  local window
+  window=$(/usr/bin/xdotool search --onlyvisible --class '^nest-spotify$' 2>/dev/null | /usr/bin/sort -n | /usr/bin/head -n 1)
+  [[ -n "$window" ]] || return 1
+  /usr/bin/xdotool windowactivate "$window" || exit $?
+}
+
+# Reuse the dedicated app window, never an ordinary Chrome or Firefox window.
+if activate_existing; then
+  exit 0
+fi
+
+# Hold a per-user launch lock through cold startup and the browser lifetime.
+# Chrome's own profile singleton is an additional guard, not the launch debounce.
+exec 9>"$XDG_RUNTIME_DIR/nest-spotify.lock"
+if ! /usr/bin/flock -n 9; then
+  exit 0
+fi
+if activate_existing; then
+  exit 0
+fi
+
+exec /usr/bin/google-chrome-stable \
+  --user-data-dir="${XDG_CONFIG_HOME:-$HOME/.config}/nest-spotify" \
+  --ozone-platform=x11 \
+  --class=nest-spotify \
+  --app=https://open.spotify.com/
+<% else -%>
+
+exec /usr/bin/spotify
+<% end -%>

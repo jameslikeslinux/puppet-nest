@@ -1,4 +1,7 @@
 ---
+nest::classes:
+  - 'nest::app::spotify'
+
 # Keep VPN trust independent of Puppet enrollment and compatible with Kestrel's
 # retained legacy server identity during the fleet's CA transition.
 nest::openvpn_ssl_directory: '/opt/homebrew/etc/openvpn/ssl'

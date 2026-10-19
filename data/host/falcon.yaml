@@ -1,6 +1,7 @@
 ---
 nest::classes:
   - 'nest::app::codex'
+  - 'nest::app::spotify'
   - 'nest::host::falcon'
   - 'nest::service::gitlab_runner'
   - 'nest::service::kubernetes'

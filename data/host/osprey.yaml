@@ -1,6 +1,7 @@
 ---
 nest::classes:
   - 'nest::app::codex'
+  - 'nest::app::spotify'
   - 'nest::app::vscode'
   - 'nest::host::osprey'
   - 'nest::service::tablet_mode'
