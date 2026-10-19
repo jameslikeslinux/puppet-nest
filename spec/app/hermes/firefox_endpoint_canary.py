@@ -167,7 +167,8 @@ def main():
                                            "workflow_id": workflow, "action_key": "replace-" + suffix}
                             call("secure_browser_type_tool", replacement)
                             expression = f'document.querySelector("{selector}").' + ("value" if selector == "#paragraphs" else "innerText")
-                            assert call("secure_browser_query_tool", {"expression": expression})["value"] == paragraphs
+                            value = call("secure_browser_query_tool", {"expression": expression})["value"]
+                            assert value == paragraphs, {"selector": selector, "expected": paragraphs, "observed": value}
                             assert call("secure_browser_type_tool", replacement)["status"] == "already_delivered"
                         call("secure_browser_click_tool", {"selector": "#coordinate", "workflow_id": workflow, "action_key": "focus-coordinate"})
                         snap = call("secure_browser_page_snapshot_tool", {})

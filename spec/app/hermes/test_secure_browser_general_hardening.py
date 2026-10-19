@@ -2,6 +2,7 @@
 import contextlib
 import json
 import subprocess
+from unittest.mock import patch
 
 from test_firefox_ui_bridge import configured_bridge
 from test_secure_browser_firefox_ui import load_tool
@@ -301,6 +302,59 @@ def test_native_replacement_is_explicit_journaled_and_not_retried():
         before = list(sent)
         assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
         assert sent == before
+    finally:
+        tmp.cleanup()
+
+
+def test_native_scan_waits_for_matching_chrome_url_without_reselecting():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        expected = desktop.snapshot()
+        observed = [{**expected, "url": "https://other.test/"}, expected]
+        reads, selections = [], []
+        def snapshot():
+            reads.append(True)
+            return observed.pop(0) if observed else expected
+        bridge._snapshot = snapshot
+        def command(method, path, data=None):
+            if path == "/window/handles":
+                return ["fixture"]
+            if path == "/window":
+                if method == "POST":
+                    assert data is not None
+                    selections.append(data["handle"])
+                return "fixture"
+            if path == "/url":
+                return expected["url"]
+            if path == "/elements":
+                assert len(reads) >= 2
+                return [{"element-6066-11e4-a52e-4f735466cecf": "public"}]
+            if path == "/execute/sync":
+                return True
+            raise AssertionError(path)
+        assert bridge._native_selector(command, expected, "#public", True) == "public"
+        assert selections == ["fixture", "fixture"]
+    finally:
+        tmp.cleanup()
+
+
+def test_native_scan_settling_rejects_changed_generation_or_object():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        expected = desktop.snapshot()
+        for current in (
+            {**expected, "browser_generation": 101},
+            {**expected, "tabs": [{"name": expected["tabs"][0]["name"], "selected": True, "locator": "different-object"}]},
+        ):
+            bridge._snapshot = lambda: current
+            with patch.object(bridge.time, "monotonic", side_effect=[0, 4]):
+                try:
+                    bridge._wait_for_native_tab(expected)
+                except RuntimeError:
+                    pass
+                else:
+                    raise AssertionError("changed browser/tab accepted while settling")
+        assert desktop.commands == []
     finally:
         tmp.cleanup()
 

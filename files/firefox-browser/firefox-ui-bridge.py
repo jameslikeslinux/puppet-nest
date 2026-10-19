@@ -1062,6 +1062,28 @@ def _webdriver() -> Iterator[Any]:
             process.wait()
 
 
+def _wait_for_native_tab(snapshot: dict[str, Any]) -> None:
+    # WebDriver window selection returns before AT-SPI's URL bar catches up.
+    # Observe only; never repeat selection or relax the final input guard.
+    expected = _selected_tab(snapshot) or {}
+    identity_key = "tab_identity" if expected.get("tab_identity") else "locator"
+    if not expected.get(identity_key) or not snapshot.get("url"):
+        raise RuntimeError("native tab has no observable identity; no input sent")
+    deadline = time.monotonic() + 3
+    while True:
+        current = _snapshot()
+        if current["browser_generation"] != snapshot["browser_generation"]:
+            raise RuntimeError("browser generation changed during native selection; no input sent")
+        selected = _selected_tab(current) or {}
+        if (selected.get(identity_key) == expected[identity_key]
+                and selected.get("name") == expected.get("name")
+                and current["url"] == snapshot["url"]):
+            return
+        if time.monotonic() >= deadline:
+            raise RuntimeError("native selection did not reach matching chrome identity and URL; no input sent")
+        time.sleep(0.05)
+
+
 def _native_selector(command: Any, snapshot: dict[str, Any], selector: str, field_only: bool) -> str:
     """Select the uniquely visible tab and a native WebDriver element handle."""
     if not selector or len(selector) > 512:
@@ -1085,6 +1107,7 @@ def _native_selector(command: Any, snapshot: dict[str, Any], selector: str, fiel
     command("POST", "/window", {"handle": matches[0]})
     if _redact_url(command("GET", "/url")) != snapshot["url"]:
         raise RuntimeError("native selected tab changed; no input sent")
+    _wait_for_native_tab(snapshot)
     found = command("POST", "/elements", {"using": "css selector", "value": selector})
     if len(found) != 1:
         raise RuntimeError("selector must match exactly one element")
