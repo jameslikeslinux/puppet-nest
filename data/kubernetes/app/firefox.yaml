@@ -10,9 +10,9 @@ cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
 ingress_class: contour-compute
 node_role: compute
-image: registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:6aafb20e25d4b6abb20f2dce383255244e15d2bd3731cb64fce10eeb892f27e5
-image_revision: 'a47b35eb1a0829c9e79d1c21670398a9c5fd2c18'
-launch_url: about:blank
+image: registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:f23cd9ea717dec6ae992eb539184d57cccf4d4357f22ff2c2302dc6e17239612
+image_revision: '5d2b0feb35fb1fb7c57da17dd704d34301d249e3'
+launch_url: ''
 app_args: ''
 control_protocol: firefox-bidi-ui-v2
 vnc_options: '-disableBasicAuth'
@@ -42,6 +42,10 @@ bitwarden_extension_install_url: file:///opt/nest/firefox/extensions/bitwarden.x
       "DisableTelemetry": true,
       "DisableFirefoxAccounts": true,
       "DontCheckDefaultBrowser": true,
+      "Preferences": {
+        "browser.startup.page": {"Value": 3, "Status": "locked"},
+        "browser.sessionstore.resume_from_crash": {"Value": true, "Status": "locked"}
+      },
       "ExtensionSettings": {
         "%{lookup('bitwarden_extension_id')}": {
           "installation_mode": "force_installed",
@@ -55,6 +59,15 @@ resources:
   backup: {}
   restore: {}
   registry_auths: {}
+
+  bridge-credential:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "%{nest::kubernetes::service}-bridge-credential"
+      namespace: "%{nest::kubernetes::namespace}"
+    stringData:
+      token: "%{nest::service::firefox::bridge_token}"
 
   certs:
     apiVersion: cert-manager.io/v1
@@ -100,10 +113,11 @@ resources:
         4. Joy should re-enter any required login and Bitwarden state directly in the visible browser UI.
 
         This canary exposes only the Nest Firefox/KasmVNC operator UI at
-        https://%{lookup('operator_fqdn')}/. Hermes invokes the in-container
-        Firefox UI bridge through Kubernetes exec. The v2 controller attaches
-        to the same visible Firefox via pod-local Marionette/BiDi; no automation
-        port is exposed by the Service or Ingress. X11/AT-SPI remain available
+        https://%{lookup('operator_fqdn')}/. Hermes invokes fixed authenticated
+        commands at /_nest/bridge/v1 through TLS-verified HTTPS. Kubernetes
+        credentials are not needed for runtime control. Raw Marionette/BiDi
+        listeners remain pod-local; they are never exposed by Service/Ingress.
+        X11/AT-SPI remain available
         for browser chrome and visible screenshots. Credentials and payment
         data stay in Firefox/Bitwarden, not in tool text or checkout evidence.
 
@@ -171,6 +185,8 @@ resources:
         spec:
           affinity: *affinity
           tolerations: *tolerations
+          automountServiceAccountToken: false
+          terminationGracePeriodSeconds: 120
           securityContext:
             fsGroup: 1000
           containers:
@@ -188,6 +204,8 @@ resources:
               env:
                 - name: VNC_PW
                   value: unused
+                - name: FIREFOX_BRIDGE_TOKEN_FILE
+                  value: /run/nest-firefox-bridge/token
                 - name: VNCOPTIONS
                   value: "%{lookup('vnc_options')}"
                 - name: NEST_FIREFOX_IMAGE_REVISION
@@ -211,6 +229,8 @@ resources:
               ports:
                 - name: https
                   containerPort: 6901
+                - name: bridge
+                  containerPort: 8766
               readinessProbe:
                 exec:
                   command:
@@ -231,6 +251,9 @@ resources:
               volumeMounts:
                 - name: profile
                   mountPath: /home/kasm-user
+                - name: bridge-credential
+                  mountPath: /run/nest-firefox-bridge
+                  readOnly: true
                 - name: browser-policy
                   mountPath: /usr/lib64/firefox/distribution/policies.json
                   subPath: policies.json
@@ -242,6 +265,10 @@ resources:
             - name: profile
               persistentVolumeClaim:
                 claimName: "%{nest::kubernetes::service}-profile"
+            - name: bridge-credential
+              secret:
+                secretName: "%{nest::kubernetes::service}-bridge-credential"
+                defaultMode: 0440
             - name: browser-policy
               configMap:
                 name: "%{nest::kubernetes::service}-browser-policy"
@@ -266,6 +293,9 @@ resources:
         - name: https
           port: 6901
           targetPort: https
+        - name: bridge
+          port: 8766
+          targetPort: bridge
 
   ingress:
     apiVersion: projectcontour.io/v1
@@ -280,6 +310,14 @@ resources:
         tls:
           secretName: "%{nest::kubernetes::service}-certs"
       routes:
+        - conditions:
+            - prefix: /_nest/bridge/
+          timeoutPolicy:
+            response: 600s
+            idle: 600s
+          services:
+            - name: "%{nest::kubernetes::service}"
+              port: 8766
         - conditions:
             - prefix: /
           enableWebsockets: true

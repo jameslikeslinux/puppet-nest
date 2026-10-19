@@ -228,6 +228,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_oauth_tool.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_oauth_tool.py',
+    tag     => 'hermes_firefox_bridge',
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -250,9 +251,32 @@ class nest::app::hermes::install {
   }
 
   # Bridge-only updates must not restart the owner-shared Firefox process.
+  if $nest::app::hermes::firefox_bridge_token {
+    file { "${install_dir}/firefox-bridge-token":
+      ensure    => file,
+      content   => $nest::app::hermes::firefox_bridge_token,
+      tag       => 'hermes_firefox_bridge',
+      mode      => '0640',
+      owner     => 'root',
+      group     => $nest::user,
+      show_diff => false,
+      require   => File[$install_dir],
+    }
+  }
+
   file { "${source_dir}/tools/firefox_ui_bridge.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/firefox-browser/firefox-ui-bridge.py',
+    tag     => 'hermes_firefox_bridge',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    require => Vcsrepo[$source_dir],
+  }
+
+  file { "${source_dir}/tools/secure_browser_local_bidi.py":
+    ensure  => file,
+    source  => 'puppet:///modules/nest/app/hermes/secure_browser_local_bidi.py',
     tag     => 'hermes_firefox_bridge',
     mode    => '0644',
     owner   => 'root',

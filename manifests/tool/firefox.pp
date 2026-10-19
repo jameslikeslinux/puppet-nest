@@ -89,6 +89,31 @@ class nest::tool::firefox (
     require => File['/opt/nest/firefox/bin'],
   }
 
+  file { '/opt/nest/firefox/bin/firefox-bridge-server.py':
+    ensure  => file,
+    mode    => '0755',
+    source  => 'puppet:///modules/nest/firefox-browser/firefox-bridge-server.py',
+    require => File['/opt/nest/firefox/bin'],
+  }
+
+  file { '/opt/nest/firefox/bin/secure_browser_bidi.py':
+    ensure  => file,
+    mode    => '0644',
+    source  => 'puppet:///modules/nest/app/hermes/secure_browser_bidi.py',
+    require => File['/opt/nest/firefox/bin'],
+  }
+
+  file { '/opt/nest/firefox/bin/secure_browser_local_bidi.py':
+    ensure  => file,
+    mode    => '0644',
+    source  => 'puppet:///modules/nest/app/hermes/secure_browser_local_bidi.py',
+    require => File['/opt/nest/firefox/bin'],
+  }
+
+  nest::lib::package { 'dev-python/websockets':
+    ensure => installed,
+  }
+
   file { '/opt/nest/firefox/bin/build-kasmvnc.sh':
     ensure  => file,
     mode    => '0755',

@@ -47,7 +47,7 @@ def desktop(windows=1, selected_tabs=1):
     ]) for _ in range(windows)]
     root = Node("application", children=frames)
     module._firefox_root = lambda: root
-    module._browser_pid = lambda: 100
+    module._browser_generation = lambda: 100
     module._state_names = lambda node: ["showing", "visible"] + (["selected"] if node.selected else [])
     module._extent = lambda node: {"x": 0, "y": 0, "width": 10, "height": 10}
     module._text_content = lambda node: ""
@@ -105,7 +105,7 @@ class TabAncestryTests(unittest.TestCase):
             module._resolve_locator(locator)
         browser_tabs[0].name = "New page title"
         self.assertIs(module._resolve_locator(chrome_locator)[0], browser_tabs[0])
-        module._browser_pid = lambda: 101
+        module._browser_generation = lambda: 101
         with self.assertRaisesRegex(ValueError, "generation changed"):
             module._resolve_locator(chrome_locator)
 
@@ -115,33 +115,14 @@ class TabAncestryTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "ambiguous"):
             module._firefox_window_id()
 
-    def test_managed_overlay_executes_in_existing_pod_with_payload_on_stdin(self):
-        module, _ = load_tool()
-        real_run = subprocess.run
-        with tempfile.TemporaryDirectory() as directory:
-            source = Path(directory) / "bridge.py"
-            source.write_text("import json,sys; print(json.dumps({'status':'ok','command':sys.argv[1],'payload':json.load(sys.stdin)}))")
-            module.BRIDGE_SOURCE = source
-
-            def run(argv, **kwargs):
-                self.assertEqual(argv[:9], ["kubectl", "-n", "ai", "exec", "-i", "deployment/firefox", "-c", "kasm-firefox", "--"])
-                self.assertEqual(argv[9:13], ["env", "DISPLAY=:1", "python3", "-c"])
-                envelope = json.loads(kwargs["input"])
-                self.assertEqual(envelope["source"], source.read_text())
-                return real_run(argv[11:], **kwargs)
-
-            with patch.dict(os.environ, {"KUBECONFIG": str(source)}), patch.object(module.subprocess, "run", side_effect=run):
-                result = module._bridge("snapshot", {"workflow_id": "fixture"})
-            self.assertEqual(result, {"status": "ok", "command": "snapshot", "payload": {"workflow_id": "fixture"}})
-
-    def test_missing_managed_overlay_never_falls_back_to_old_image(self):
+    def test_endpoint_authentication_never_falls_back_to_cluster_execution(self):
         module, _ = load_tool()
         with tempfile.TemporaryDirectory() as directory:
             config = Path(directory) / "config"
             config.touch()
-            module.BRIDGE_SOURCE = Path(directory) / "missing.py"
+            module.BRIDGE_TOKEN_FILE = Path(directory) / "missing"
             with patch.dict(os.environ, {"KUBECONFIG": str(config)}), patch.object(module.subprocess, "run") as run:
-                with self.assertRaisesRegex(RuntimeError, "refusing image fallback"):
+                with self.assertRaisesRegex(RuntimeError, "authentication file is unavailable"):
                     module._bridge("snapshot", {})
                 run.assert_not_called()
 
