@@ -289,6 +289,13 @@ def _walk(root: Any) -> Iterable[tuple[Any, tuple[int, ...]]]:
     while stack and visited < MAX_NODES * 8:
         node, path = stack.pop()
         visited += 1
+        # Firefox keeps background documents VISIBLE in AT-SPI even though
+        # they are not SHOWING. Their descendants can also retain VISIBLE.
+        # Do not traverse/read those trees or let their prose consume the
+        # active page's bounded observation budget. Chrome tab objects are
+        # outside these document boundaries and must still all be counted.
+        if node.get_role_name() in {"internal frame", "document web", "document frame"} and "showing" not in _state_names(node):
+            continue
         yield node, path
         with contextlib.suppress(Exception):
             count = min(node.get_child_count(), 1000)
@@ -985,7 +992,14 @@ def _assert_selector_precondition(payload: dict[str, Any]) -> None:
             or current["url"] != payload["expected_url"]
             or current["browser_generation"] != payload.get("expected_generation")
             or selected.get("name") != payload["expected_tab"]):
-        raise RuntimeError("selector observation is stale or belongs to another workflow tab; no input sent")
+        checks = {
+            "url_present": bool(payload.get("expected_url")),
+            "tab_present": bool(payload.get("expected_tab")),
+            "url_matches": current["url"] == payload.get("expected_url"),
+            "generation_matches": current["browser_generation"] == payload.get("expected_generation"),
+            "tab_matches": selected.get("name") == payload.get("expected_tab"),
+        }
+        raise RuntimeError("selector observation is stale or belongs to another workflow tab; no input sent; checks=" + _json(checks))
 
 
 def _assert_screen_coordinate(coordinate: Any) -> tuple[int, int]:
@@ -1055,6 +1069,28 @@ def _webdriver() -> Iterator[Any]:
             process.wait()
 
 
+def _wait_for_native_tab(snapshot: dict[str, Any]) -> None:
+    # WebDriver window selection returns before AT-SPI's URL bar catches up.
+    # Observe only; never repeat selection or relax the final input guard.
+    expected = _selected_tab(snapshot) or {}
+    identity_key = "tab_identity" if expected.get("tab_identity") else "locator"
+    if not expected.get(identity_key) or not snapshot.get("url"):
+        raise RuntimeError("native tab has no observable identity; no input sent")
+    deadline = time.monotonic() + 3
+    while True:
+        current = _snapshot()
+        if current["browser_generation"] != snapshot["browser_generation"]:
+            raise RuntimeError("browser generation changed during native selection; no input sent")
+        selected = _selected_tab(current) or {}
+        if (selected.get(identity_key) == expected[identity_key]
+                and selected.get("name") == expected.get("name")
+                and current["url"] == snapshot["url"]):
+            return
+        if time.monotonic() >= deadline:
+            raise RuntimeError("native selection did not reach matching chrome identity and URL; no input sent")
+        time.sleep(0.05)
+
+
 def _native_selector(command: Any, snapshot: dict[str, Any], selector: str, field_only: bool) -> str:
     """Select the uniquely visible tab and a native WebDriver element handle."""
     if not selector or len(selector) > 512:
@@ -1078,6 +1114,7 @@ def _native_selector(command: Any, snapshot: dict[str, Any], selector: str, fiel
     command("POST", "/window", {"handle": matches[0]})
     if _redact_url(command("GET", "/url")) != snapshot["url"]:
         raise RuntimeError("native selected tab changed; no input sent")
+    _wait_for_native_tab(snapshot)
     found = command("POST", "/elements", {"using": "css selector", "value": selector})
     if len(found) != 1:
         raise RuntimeError("selector must match exactly one element")
@@ -1106,6 +1143,9 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
     action_key = str(payload.get("action_key") or "")
     operation = str(payload.get("operation") or "")
     selector = str(payload.get("selector") or "")
+    mode = str(payload.get("mode", "insert"))
+    if mode not in {"insert", "replace"} or (operation != "type" and mode != "insert"):
+        raise ValueError("input mode must be insert, or replace for selector typing")
     if not action_key or len(action_key) > 200 or operation not in {"click", "type"}:
         raise ValueError("native selector input needs an action_key (1..200) and click or type")
     text = str(payload.get("text") or "")
@@ -1136,7 +1176,7 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
             if operation == "click":
                 command("POST", f"/element/{element}/click", {})
             else:
-                _native_type(command, element, text)
+                _native_type(command, element, text, mode=mode)
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)
         readback = _readback()
@@ -1147,7 +1187,12 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
                 "typed_chars": len(text) if operation == "type" else None, "readback": readback}
 
 
-def _native_type(command: Any, element: str, text: str) -> None:
+def _native_type(command: Any, element: str, text: str, *, mode: str = "insert") -> None:
+    # Replacement is opt-in, on the already guarded public editable element.
+    # Use native Select All, not DOM assignment or an implicit textarea clear.
+    # The caller has persisted delivery_started before even this selection.
+    if mode == "replace":
+        command("POST", f"/element/{element}/value", {"text": "\ue009a\ue000"})
     # One bulk Send Keys command can outrun controlled-input state commits.
     # Yield between characters, retaining the original guarded element handle.
     # A stale element or uncertain delivery must fail, never reselect or retry.
@@ -1246,6 +1291,18 @@ def command_click(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _type_public_text(text: str) -> None:
+    # xdotool type silently drops LF on this Firefox/X11 stack. Deliver each
+    # paragraph separator explicitly; Shift+Return avoids submitting composers.
+    # Keep blank/trailing lines and never clear the existing field implicitly.
+    for index, part in enumerate(text.split("\n")):
+        if index:
+            _xdotool("key", "--clearmodifiers", "shift+Return")
+        if part:
+            _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
+                     "--", part, timeout=45 + len(part) * TYPE_DELAY_SECONDS * 2)
+
+
 def command_type(payload: dict[str, Any]) -> dict[str, Any]:
     text = str(payload.get("text") or "")
     if not text or len(text) > 4096:
@@ -1293,8 +1350,7 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
             _save_state(state)
         if x is not None and y is not None:
             _xdotool("mousemove", "--sync", str(x), str(y), "click", "1")
-        _xdotool("type", "--clearmodifiers", "--delay", str(int(TYPE_DELAY_SECONDS * 1000)),
-                 "--", text, timeout=45 + len(text) * TYPE_DELAY_SECONDS * 2)
+        _type_public_text(text)
         if action_key:
             state["action_keys"][action_key]["delivery_state"] = "delivered"
             _save_state(state)

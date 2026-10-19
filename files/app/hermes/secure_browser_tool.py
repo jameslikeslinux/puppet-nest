@@ -101,6 +101,10 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
     try:
         with opener.open(request, timeout=(timeout or BRIDGE_TIMEOUT) + budget) as response:
             raw = response.read(MAX_RESULT_BYTES + 1)
+    except urllib.error.HTTPError as exc:
+        # Status alone is safe and distinguishes busy refusal from routing or
+        # authentication failure. Never return provider bodies or retry input.
+        raise RuntimeError(f"Firefox endpoint HTTP {exc.code}; outcome may be uncertain; retain the action key") from exc
     except (OSError, urllib.error.URLError, ValueError) as exc:
         # Do not relay URLs, headers, credentials or provider response bodies.
         raise RuntimeError("Firefox endpoint unavailable or refused the operation; outcome may be uncertain; do not replay with a new action key") from exc
@@ -385,6 +389,11 @@ def secure_browser_click_tool(args: dict[str, Any], task_id: str | None = None, 
 
 def secure_browser_type_tool(args: dict[str, Any], task_id: str | None = None, **_kw: Any) -> str:
     def run() -> dict[str, Any]:
+        mode = str(args.get("mode", "insert"))
+        if mode not in {"insert", "replace"}:
+            raise ValueError("typing mode must be insert or replace")
+        if mode == "replace" and not (CONTROL_MODE == "firefox-bidi-ui-v2" and args.get("selector")):
+            raise ValueError("explicit replacement requires a guarded v2 selector; coordinate and locator typing only insert")
         if CONTROL_MODE == "firefox-bidi-ui-v2" and args.get("selector"):
             # Input events may themselves trigger page actions (including
             # auto-submit). Journal selector-backed typing just like clicks.
@@ -400,6 +409,7 @@ def secure_browser_type_tool(args: dict[str, Any], task_id: str | None = None, *
                 "expected_tab": next((tab.get("name") for tab in observed.get("tabs", []) if tab.get("selected")), None),
                 "text": args.get("text", ""),
                 "action_key": action_key,
+                **({"mode": mode} if mode == "replace" else {}),
             })
         if args.get("selector") and not args.get("locator"):
             return {
@@ -490,7 +500,7 @@ SCHEMAS: list[tuple[dict[str, Any], Any]] = [
     ({"name": "secure_browser_screenshot", "description": "Capture the visible persistent Firefox window through X11 and return a local PNG artifact.", "parameters": {"type": "object", "properties": {}}}, secure_browser_screenshot_tool),
     ({"name": "secure_browser_visual_evidence", "description": "Capture visible-window evidence from the persistent Firefox desktop without browser instrumentation.", "parameters": {"type": "object", "properties": {}}}, secure_browser_visual_evidence_tool),
     ({"name": "secure_browser_click", "description": "Click a fresh accessibility locator or visible coordinate (v1) or native CSS element (opt-in v2) in the canonical Firefox tab. A delivered click is never confirmed completion; use action_key and readback.", "parameters": {"type": "object", "properties": {"locator": {"type": "string"}, "coordinate": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2}, "workflow_id": {"type": "string"}, "action_key": {"type": "string"}, "idempotency_key": {"type": "string"}, "max_wait_seconds": {"type": "number", "minimum": 0, "maximum": 15}, "selector": {"type": "string", "description": "Native CSS element on opt-in v2; v1 rejects it"}, "approved_effect": {"type": "string", "description": "Legacy audit label; not an approval gate"}}, "anyOf": [{"required": ["locator"]}, {"required": ["coordinate"]}, {"required": ["selector"]}]}}, secure_browser_click_tool),
-    ({"name": "secure_browser_type", "description": "Type bounded non-secret text into an accessibility locator, visible coordinate, focused field or native CSS element (v2). Every path requires action_key; reuse the same key after uncertain delivery, never retry with a new key. Delivery is not page completion. Never pass secrets.", "parameters": {"type": "object", "properties": {"locator": {"type": "string"}, "coordinate": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2}, "selector": {"type": "string", "description": "Native CSS element on opt-in v2; v1 rejects it"}, "text": {"type": "string", "maxLength": 4096}, "workflow_id": {"type": "string"}, "action_key": {"type": "string", "minLength": 1, "maxLength": 200}, "idempotency_key": {"type": "string", "minLength": 1, "maxLength": 200}}, "required": ["text"], "anyOf": [{"required": ["action_key"]}, {"required": ["idempotency_key"]}]}}, secure_browser_type_tool),
+    ({"name": "secure_browser_type", "description": "Type bounded non-secret text into an accessibility locator, visible coordinate, focused field or native CSS element (v2). Insertion is the default; mode=replace explicitly replaces only a guarded v2 selector field. Coordinate/locator paths never clear. Every path requires action_key; reuse the same key after uncertain delivery, never retry with a new key. Delivery is not page completion. Never pass secrets.", "parameters": {"type": "object", "properties": {"locator": {"type": "string"}, "coordinate": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2}, "selector": {"type": "string", "description": "Native CSS element on opt-in v2; v1 rejects it"}, "mode": {"type": "string", "enum": ["insert", "replace"], "default": "insert", "description": "replace requires a v2 selector; default insert never clears"}, "text": {"type": "string", "maxLength": 4096}, "workflow_id": {"type": "string"}, "action_key": {"type": "string", "minLength": 1, "maxLength": 200}, "idempotency_key": {"type": "string", "minLength": 1, "maxLength": 200}}, "required": ["text"], "anyOf": [{"required": ["action_key"]}, {"required": ["idempotency_key"]}]}}, secure_browser_type_tool),
     ({"name": "secure_browser_tab_lifecycle", "description": "Acquire, keep open, inspect, release or explicitly recover a workflow binding. Recover forgets only the binding, preserving all tabs and action journals; then acquire a blank handoff tab. Uncertain or Joy-owned tabs are preserved; hard caps never close unowned tabs.", "parameters": {"type": "object", "properties": {"action": {"type": "string", "enum": ["status", "acquire", "keep_open", "release", "recover", "preview_cleanup", "cleanup", "mark_keep_open"]}, "workflow_id": {"type": "string"}, "lease_seconds": {"type": "integer"}}}}, secure_browser_tab_lifecycle_tool),
     ({"name": "secure_browser_guardrail_check", "description": "Describe the active versioned Firefox boundary: v1 visible UI only; opt-in v2 adds bounded DOM reads and selector-backed UI input but still denies raw session/profile access and arbitrary scripts.", "parameters": {"type": "object", "properties": {"operation": {"type": "string"}}}}, secure_browser_guardrail_check_tool),
     ({"name": "secure_browser_owner_checkout_review", "description": "Retired compatibility endpoint: owner review is no longer an extra approval gate.", "parameters": {"type": "object", "properties": {}}}, secure_browser_owner_checkout_review_tool),

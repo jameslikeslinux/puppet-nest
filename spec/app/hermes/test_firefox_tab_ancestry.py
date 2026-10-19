@@ -75,6 +75,36 @@ class TabAncestryTests(unittest.TestCase):
     def test_multiple_real_selected_tabs_refuse_input(self):
         self.check_ambiguous(1, 2)
 
+    def test_background_documents_cannot_consume_active_control_budget(self):
+        module, root, browser_tabs, _ = desktop()
+        frame = root.children[0]
+        background_text = [Node("paragraph", "Background prose") for _ in range(module.MAX_NODES * 9)]
+        hidden = Node("internal frame", children=[Node("document web", children=background_text)])
+        active_control = Node("entry", "Active coordinate control")
+        offscreen_prose = Node("paragraph", "Active offscreen prose")
+        active = Node("internal frame", children=[Node("document web", children=[active_control, offscreen_prose])])
+        frame.children[1:] = [hidden, active]
+        original_states = module._state_names
+        module._state_names = lambda node: ["visible"] if node is hidden or node is offscreen_prose else original_states(node)
+        reads = []
+        module._text_content = lambda node: reads.append(node) or ""
+        snapshot = module._snapshot()
+        self.assertEqual(snapshot["tab_count"], 1)
+        self.assertEqual(snapshot["tabs"][0]["tab_identity"], module._tab_identity(browser_tabs[0], 100))
+        self.assertIn("Active coordinate control", [node["name"] for node in snapshot["nodes"]])
+        self.assertIn("Active offscreen prose", [node["name"] for node in snapshot["nodes"]])
+        self.assertFalse(snapshot["truncated"])
+        self.assertFalse(any(node in reads for node in background_text))
+
+    def test_hidden_document_is_pruned_even_without_internal_frame_wrapper(self):
+        module, root, _, _ = desktop()
+        hidden = Node("document web", children=[Node("entry", "Hidden control")])
+        root.children[0].children.append(hidden)
+        original_states = module._state_names
+        module._state_names = lambda node: ["visible"] if node is hidden else original_states(node)
+        snapshot = module._snapshot()
+        self.assertNotIn("Hidden control", [node["name"] for node in snapshot["nodes"]])
+
     def test_multiple_real_windows_refuse_input(self):
         self.check_ambiguous(2, 1)
 

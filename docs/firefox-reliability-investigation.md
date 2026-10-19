@@ -204,12 +204,119 @@ prevented or treated as authorization to operate a different tab.
 
 ## Falsified or unresolved hypotheses
 
+### Installed endpoint activation and follow-up input regression
+
+MR 311 merged at approved head `764aa3c8a0fd0f3e54d47cbdc957ee24202330ac`
+as `dad475874b6cf38c1c2f293da2c0523682316f00` on 2026-10-19. The normal
+Bolt code deployment, `hermes_firefox_bridge` tagged owl apply and
+`nest::eyrie::ai::deploy_firefox` activation succeeded. Deployment generation
+39 uses approved image digest
+`sha256:f23cd9ea717dec6ae992eb539184d57cccf4d4357f22ff2c2302dc6e17239612`.
+Workload and installed client hashes match the approved source. The same PVC
+UID remains bound. Both tabs observed immediately before activation restored;
+object identities changed with the authorized Firefox generation transition,
+and old bindings remain uncertain rather than being silently reassigned.
+Star's fresh runtime record was idle before refresh. Only the named Star and
+Talon units received their supported SIGUSR1 drain/relaunch through Bolt;
+both reached new PIDs and running state without a forced systemd stop.
+
+The first installed endpoint-only canary passed one cycle and exact selector
+multiline readback, then failed a query transport call during its second
+cycle. Its HTTP status was not retained; the generic error does not establish
+a browser crash, session exhaustion or a busy-lock refusal. Thirty subsequent
+read-only queries passed. A separate installed rerun completed eight cycles
+over 290.209 seconds, 111 operations, mean 2.613 seconds and maximum 9.505
+seconds. Both owner-tab identities and Firefox generation stayed unchanged
+across this run and a client-module reconnect. Client subprocess execution
+was forbidden, kubeconfig nonexistent and TLS verified at `browser.eyrie`.
+This is bounded endpoint acceptance, not resolution of the earlier failure
+or of the original sustained-CPU incident.
+
+That rerun also independently reproduced the newly reported coordinate-input
+defect: typing two LF separators into an existing textarea did not add either
+separator. The selector path preserved exact multiline text. This is a
+separate proven input defect, not evidence that the preceding transport error
+or earlier CPU incident has the same cause. The rerun's `passed` flag covers
+its asserted endpoint scenarios; its explicit coordinate measurements are a
+failing input result, not a green multiline acceptance claim.
+
+The follow-up source repair delivers each X11 LF as explicit Shift+Return,
+preserving blank/trailing lines without clearing fields or submitting a chat
+composer. Default typing remains insertion. Explicit `mode=replace` is
+restricted to a guarded v2 selector field and native Select All/Send Keys,
+with the existing action reservation before selection or input. Locator and
+coordinate replacement are rejected, protected fields retain their guard,
+and an uncertain replacement cannot be replayed with a new delivery attempt.
+The public adapter also retains only the numeric HTTP refusal status for
+privacy-safe future diagnosis; it does not expose response bodies or retry.
+This follow-up source is not part of the already activated exact build and
+must not be described as installed until separately verified and authorized.
+
+The follow-up isolated image also reproduced the intermittent selector refusal.
+A failure-message-only fixture overlay captured matching generation and tab
+name but a mismatching chrome URL: the expected fixture was `/cycle-0`, while
+AT-SPI still reported `/survivor-0` after the native WebDriver handle scan had
+returned to the correct tab. The pre-input guard correctly refused input.
+A delayed-observation regression failed before the repair. Native mapping now
+waits at most three seconds for the original generation, selected accessibility
+object, title and URL to agree before element resolution; it observes only,
+does not reselect/retry, and retains the final pre-input guard. Changed
+generation or object regressions still fail closed. This establishes a causal
+seam for this reproduced refusal, not the cause of every prior incident.
+
+The final isolated real-image canary passed three cycles in 186.425 seconds,
+63 operations, mean 2.875 seconds and maximum 8.847 seconds, with five surviving
+tab identities and generation unchanged across bridge replacement and endpoint
+outage. It verifies exact textarea replacement (including terminal LF), exact
+coordinate multiline input, native rich-text interior paragraphs, replay
+refusal and protected-field redaction. Rich-text terminal Enter serialized as
+an additional final line in `innerText`; the fixture records interior paragraph
+behavior separately and does not claim byte-exact rich-text terminal whitespace.
+
+The tracked follow-up image soak completed twelve cycles in 553.304 seconds,
+180 operations, mean 3.043 seconds and maximum 9.701 seconds. Four surviving
+tab identities and browser generation were unchanged across bridge replacement
+and endpoint outage. Native process exit was zero and the disposable container
+was absent afterward. Its survivor documents were short; it did not establish
+multi-long-document accessibility discovery.
+
+The expanded harness independently reproduced coordinate-field disappearance
+with three long survivor pages on that unchanged image. The snapshot contained
+350 nodes, reported truncation and exposed no entry fields. A bounded AT-SPI
+trace showed background internal frames and documents marked VISIBLE but not
+SHOWING, while the active document had both states. The traversal nevertheless
+read background descendants, and the prose inclusion rule accepted VISIBLE
+text. Background prose therefore consumed the active page's observation budget.
+This is a proven discovery defect, not a demonstrated cause of the original
+sustained-CPU incident or the installed query transport refusal.
+
+Traversal now prunes non-SHOWING internal frames and document roots before
+descending or reading text. Chrome tab objects remain outside those boundaries
+and are still enumerated; offscreen VISIBLE prose inside the SHOWING document
+remains observable. Two new regressions failed before this change and pass
+afterward. The identical long-survivor scenario passed with a read-only source
+overlay: two cycles, 131.209 seconds, 50 operations, mean 2.519 seconds and
+maximum 7.773 seconds, five surviving tab identities and unchanged generation,
+including exact coordinate paragraphs and bridge replacement/outage. This is
+overlay verification, not pristine-image or installed acceptance. The source
+change was then built, smoke-tested and published through the normal rootful
+Bolt build wrapper. The actual remote digest was read from the registry API,
+pulled independently and checked for source parity across all five modules:
+`sha256:13f1fee96d1ec597fff37f509ab4d2c96a9eae31f730b577c5a979984700a40f`.
+The pristine rebuilt image passed the same long-survivor scenario in two cycles,
+129.559 seconds and 50 operations, mean 2.489 seconds and maximum 7.725 seconds,
+with four surviving identities and generation unchanged. Graceful fixture
+disposal was verified after both runs. Exact-head CI and longer pristine-image
+acceptance remain required before any further activation proposal. Failed
+harness receipts are retained, not counted as passes.
+
 - Repeated native WebDriver detach/reattach did not terminate the isolated
   browser or lose its tabs. This does not exclude every mixed-protocol race.
-- A generic 3000-message page did not reproduce missing chrome tabs. Its
+- An earlier generic 3000-message page did not reproduce missing chrome tabs. Its
   complete canary passed, with a maximum bridge-operation duration of 7.332
   seconds. A depth-first accessibility-budget hypothesis is therefore not
-  established as the cause, and no speculative traversal rewrite was made.
+  established as the cause of that incident. The later multi-document discovery
+  failure above is a separate, directly reproduced traversal-budget defect.
 - ATK assertions, a defunct GPU process, high main-thread CPU and transport
   timeouts are separate observations, not interchangeable root causes.
 - Kubernetes API transport intermittently timed out during both this isolated

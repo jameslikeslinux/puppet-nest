@@ -806,7 +806,10 @@ def test_native_origin_url_mapping_normalizes_only_empty_path() -> None:
         if path == "/execute/sync":
             return True
         return None
-    assert module._native_selector(command, {"url": module._redact_url("http://fixture.example:18765")}, "#public", False) == "public-element"
+    snapshot = {"url": module._redact_url("http://fixture.example:18765"), "browser_generation": 100,
+                "tabs": [{"name": "Fixture", "selected": True, "tab_identity": "fixture-object"}]}
+    module._snapshot = lambda: snapshot
+    assert module._native_selector(command, snapshot, "#public", False) == "public-element"
     assert ("POST", "/elements") in calls
 
 

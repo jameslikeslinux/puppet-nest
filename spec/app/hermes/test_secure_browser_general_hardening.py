@@ -2,6 +2,7 @@
 import contextlib
 import json
 import subprocess
+from unittest.mock import patch
 
 from test_firefox_ui_bridge import configured_bridge
 from test_secure_browser_firefox_ui import load_tool
@@ -244,6 +245,135 @@ def test_native_typing_paces_characters_and_partial_delivery_is_not_replayed():
         assert sent == ["A"]
     finally:
         tmp.cleanup()
+
+
+def test_coordinate_typing_sends_explicit_returns_without_clearing():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        bridge._xdotool = lambda *args, **kwargs: "1365 768" if args == ("getdisplaygeometry",) else desktop.xdotool(*args, **kwargs)
+        bridge.command_tabs({"action": "acquire", "workflow_id": "w"})
+        desktop.commands.clear()
+        bridge.command_type({"workflow_id": "w", "coordinate": [120, 300],
+                             "text": "First\n\nSecond\n", "action_key": "paragraphs"})
+        typed = [command[-1] for command in desktop.commands if command[0] == "type"]
+        assert typed == ["First", "Second"]
+        assert desktop.commands.count(("key", "--clearmodifiers", "shift+Return")) == 3
+        assert not any("ctrl+a" in command for command in desktop.commands)
+        before = list(desktop.commands)
+        assert bridge.command_type({"workflow_id": "w", "text": "ignored", "action_key": "paragraphs"})["status"] == "already_delivered"
+        assert desktop.commands == before
+    finally:
+        tmp.cleanup()
+
+
+def test_native_replacement_is_explicit_journaled_and_not_retried():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        bridge.command_tabs({"action": "acquire", "workflow_id": "w"})
+        sent = []
+        bridge._native_selector = lambda *args: "original"
+        def command(method, path, data):
+            assert bridge._load_state()["action_keys"][key]["delivery_state"] == "delivery_started"
+            if path == "/execute/async":
+                return
+            assert (method, path) == ("POST", "/element/original/value")
+            sent.append(data["text"])
+            if key == "partial" and len(sent) == 2:
+                raise RuntimeError("delivery interrupted")
+        @contextlib.contextmanager
+        def webdriver():
+            yield command
+        bridge._webdriver = webdriver
+        payload = {"workflow_id": "w", "operation": "type", "selector": "#note", "text": "A\n\nB", "mode": "replace"}
+        key = "replace"
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivered"
+        assert sent == ["\ue009a\ue000", "A", "\n", "\n", "B"]
+        before = list(sent)
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "already_delivered"
+        assert sent == before
+        sent.clear()
+        key = "partial"
+        try:
+            bridge.command_selector_action({**payload, "action_key": key})
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("interrupted replacement reported delivered")
+        before = list(sent)
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
+        assert sent == before
+    finally:
+        tmp.cleanup()
+
+
+def test_native_scan_waits_for_matching_chrome_url_without_reselecting():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        expected = desktop.snapshot()
+        observed = [{**expected, "url": "https://other.test/"}, expected]
+        reads, selections = [], []
+        def snapshot():
+            reads.append(True)
+            return observed.pop(0) if observed else expected
+        bridge._snapshot = snapshot
+        def command(method, path, data=None):
+            if path == "/window/handles":
+                return ["fixture"]
+            if path == "/window":
+                if method == "POST":
+                    assert data is not None
+                    selections.append(data["handle"])
+                return "fixture"
+            if path == "/url":
+                return expected["url"]
+            if path == "/elements":
+                assert len(reads) >= 2
+                return [{"element-6066-11e4-a52e-4f735466cecf": "public"}]
+            if path == "/execute/sync":
+                return True
+            raise AssertionError(path)
+        assert bridge._native_selector(command, expected, "#public", True) == "public"
+        assert selections == ["fixture", "fixture"]
+    finally:
+        tmp.cleanup()
+
+
+def test_native_scan_settling_rejects_changed_generation_or_object():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        expected = desktop.snapshot()
+        for current in (
+            {**expected, "browser_generation": 101},
+            {**expected, "tabs": [{"name": expected["tabs"][0]["name"], "selected": True, "locator": "different-object"}]},
+        ):
+            bridge._snapshot = lambda: current
+            with patch.object(bridge.time, "monotonic", side_effect=[0, 4]):
+                try:
+                    bridge._wait_for_native_tab(expected)
+                except RuntimeError:
+                    pass
+                else:
+                    raise AssertionError("changed browser/tab accepted while settling")
+        assert desktop.commands == []
+    finally:
+        tmp.cleanup()
+
+
+def test_adapter_replacement_only_accepts_guarded_selector_and_forwards_mode():
+    tool, _ = load_tool()
+    calls = []
+    tool._bridge = lambda command, payload: calls.append((command, payload)) or {"status": "ok", "tabs": []}
+    args = {"workflow_id": "w", "text": "exact\n\nparagraphs", "action_key": "replace", "mode": "replace"}
+    assert json.loads(tool.secure_browser_type_tool(args))["status"] == "error"
+    assert calls == []
+    tool.CONTROL_MODE = "firefox-bidi-ui-v2"
+    assert json.loads(tool.secure_browser_type_tool({**args, "coordinate": [1, 2]}))["status"] == "error"
+    assert calls == []
+    assert json.loads(tool.secure_browser_type_tool({**args, "selector": "#note"}))["status"] == "ok"
+    assert calls[-1][1]["mode"] == "replace"
+    calls.clear()
+    assert json.loads(tool.secure_browser_type_tool({**args, "selector": "#note", "mode": "typo"}))["status"] == "error"
+    assert calls == []
 
 
 if __name__ == "__main__":

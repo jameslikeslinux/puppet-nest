@@ -31,9 +31,14 @@ TEXT = "Nonsecret endpoint source text alpha beta gamma.\n" * 180
 
 
 class Fixture(BaseHTTPRequestHandler):
+    long_survivors = False
+
     def do_GET(self):
         body = ('<!doctype html><title>Endpoint fixture ' + self.path.strip('/') + '</title>'
-                + '<p>Generic chat message</p>' * 300 + '<pre>' + TEXT + '</pre>'
+                + '<textarea id="paragraphs" aria-label="Paragraphs"></textarea>'
+                + '<textarea id="coordinate" aria-label="Coordinate paragraphs"></textarea>'
+                + '<div id="editor" contenteditable="true" aria-label="Public editor"></div>'
+                + '<p>Generic chat message</p>' * (300 if self.long_survivors or '/cycle-' in self.path else 1) + '<pre>' + TEXT + '</pre>'
                 + '<input id="note" aria-label="Note"><input type="password" id="protected">'
                 + '<button id="apply" onclick="document.getElementById(\'result\').textContent=\'Applied\'">Apply</button>'
                 + '<p id="result">Ready</p>').encode()
@@ -77,7 +82,10 @@ def main():
     parser.add_argument("--image", required=True)
     parser.add_argument("--iterations", type=int, default=12)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--long-survivors", action="store_true")
+    parser.add_argument("--bridge-source", type=Path, help="Fixture-only read-only bridge overlay; not pristine image acceptance")
     args = parser.parse_args()
+    Fixture.long_survivors = args.long_survivors
     if not args.image.startswith("sha256:"):
         raise SystemExit("Use a verified immutable local image ID")
     container = "nest-firefox-endpoint-fixture-t06982fa3"
@@ -93,7 +101,8 @@ def main():
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-keyout", str(key), "-out", str(cert), "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost"], check=True, capture_output=True)
         fixture = ThreadingHTTPServer(("0.0.0.0", 0), Fixture)
         threading.Thread(target=fixture.serve_forever, daemon=True).start()
-        subprocess.run(["sudo", "-n", "podman", "run", "--detach", "--name", container, "--cap-add", "SETFCAP", "--shm-size", "1g", "--publish", "127.0.0.1::8766", "--volume", f"{token}:/run/nest-firefox-bridge/token:ro", "--env", "FIREFOX_BRIDGE_TOKEN_FILE=/run/nest-firefox-bridge/token", "--env", "FIREFOX_CONTROL_PROTOCOL=firefox-bidi-ui-v2", args.image], check=True, capture_output=True)
+        overlay = ["--volume", f"{args.bridge_source.resolve(strict=True)}:/opt/nest/firefox/bin/firefox-ui-bridge.py:ro"] if args.bridge_source else []
+        subprocess.run(["sudo", "-n", "podman", "run", "--detach", "--name", container, "--cap-add", "SETFCAP", "--shm-size", "1g", "--publish", "127.0.0.1::8766", "--volume", f"{token}:/run/nest-firefox-bridge/token:ro", "--env", "FIREFOX_BRIDGE_TOKEN_FILE=/run/nest-firefox-bridge/token", "--env", "FIREFOX_CONTROL_PROTOCOL=firefox-bidi-ui-v2", *overlay, args.image], check=True, capture_output=True)
         try:
             ports = json.loads(subprocess.run(["sudo", "-n", "podman", "inspect", container], check=True, capture_output=True, text=True).stdout)[0]["NetworkSettings"]["Ports"]["8766/tcp"]
             TLSProxy.backend_port = int(ports[0]["HostPort"])
@@ -154,6 +163,36 @@ def main():
                         if cursor is None:
                             break
                     assert text == TEXT
+                    if index == 0:
+                        paragraphs = "First paragraph.\n\nSecond paragraph.\n"
+                        for selector in ("#paragraphs", "#editor"):
+                            suffix = selector.removeprefix("#")
+                            # Rich-text Enter has block/terminal-BR serialization
+                            # semantics; test its interior paragraphs separately.
+                            desired = paragraphs if selector == "#paragraphs" else "First paragraph.\n\nSecond paragraph."
+                            call("secure_browser_type_tool", {"selector": selector, "text": "Existing text",
+                                 "workflow_id": workflow, "action_key": "seed-" + suffix})
+                            replacement = {"selector": selector, "text": desired, "mode": "replace",
+                                           "workflow_id": workflow, "action_key": "replace-" + suffix}
+                            call("secure_browser_type_tool", replacement)
+                            expression = f'document.querySelector("{selector}").' + ("value" if selector == "#paragraphs" else "innerText")
+                            value = call("secure_browser_query_tool", {"expression": expression})["value"]
+                            assert value == desired, {"selector": selector, "expected": desired, "observed": value}
+                            assert call("secure_browser_type_tool", replacement)["status"] == "already_delivered"
+                        call("secure_browser_click_tool", {"selector": "#coordinate", "workflow_id": workflow, "action_key": "focus-coordinate"})
+                        snap = call("secure_browser_page_snapshot_tool", {})
+                        candidates = [n for n in snap["nodes"] if n.get("role") == "entry" and n.get("name") == "Coordinate paragraphs" and n.get("rect")]
+                        print(json.dumps({"coordinate_snapshot_nodes": len(snap["nodes"]), "truncated": snap.get("truncated"), "coordinate_candidates": len(candidates), "long_survivors": args.long_survivors}), flush=True)
+                        if not candidates:
+                            diagnostic = "import json,runpy; m=runpy.run_path('/opt/nest/firefox/bin/firefox-ui-bridge.py'); print(json.dumps([{'path':p,'role':n.get_role_name(),'states':m['_state_names'](n)} for n,p in m['_walk'](m['_firefox_root']()) if n.get_role_name() in {'document web','internal frame','document frame'}]))"
+                            trace = infrastructure_run(["sudo", "-n", "podman", "exec", container, "python3", "-c", diagnostic], capture_output=True, text=True, timeout=30)
+                            print(json.dumps({"fixture_document_trace": trace.stdout, "trace_exit_code": trace.returncode}), flush=True)
+                        assert len(candidates) == 1, [{k: n.get(k) for k in ("role", "name", "states", "rect")} for n in snap["nodes"] if n.get("role") == "entry"]
+                        node = candidates[0]
+                        rect = node["rect"]
+                        call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
+                             "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        assert call("secure_browser_query_tool", {"expression": 'document.querySelector("#coordinate").value'})["value"] == paragraphs
                     call("secure_browser_tab_lifecycle_tool", {"action": "release", "workflow_id": workflow})
                     snapshot = call("secure_browser_page_snapshot_tool", {})
                     assert snapshot["browser_generation"] == generation
@@ -193,6 +232,11 @@ def main():
             endpoint.shutdown()
             endpoint.server_close()
             result = {"passed": True, "bridge_refresh_preserved_browser": True, "endpoint_outage_preserved_browser": True, "iterations": args.iterations, "duration_seconds": round(time.monotonic() - started, 3), "operations": len(latencies), "mean_seconds": round(sum(latencies) / len(latencies), 3), "max_seconds": round(max(latencies), 3), "surviving_tab_count": len(identities), "generation_unchanged": True, "client_subprocess_forbidden": True, "kubeconfig": "nonexistent", "tls_verification": "default context with isolated fixture CA; localhost endpoint only", "fixture_text_sha256": hashlib.sha256(TEXT.encode()).hexdigest(), "image": args.image, "scope": "isolated actual-image public adapter; not production browser.eyrie acceptance"}
+            result["long_survivors"] = args.long_survivors
+            result["bridge_source_overlay"] = bool(args.bridge_source)
+            if args.bridge_source:
+                result["bridge_source_sha256"] = hashlib.sha256(args.bridge_source.read_bytes()).hexdigest()
+                result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
             print(json.dumps(result), flush=True)
         finally:

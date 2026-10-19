@@ -2,6 +2,7 @@
 import importlib.util
 import io
 import json
+from email.message import Message
 from pathlib import Path
 import tempfile
 import threading
@@ -57,6 +58,18 @@ def test_endpoint_outage_has_no_fallback_and_no_retry():
     assert result["status"] == "error"
     assert "endpoint" in result["message"]
     assert opened.call_count == 1
+
+
+def test_http_refusal_reports_only_status_without_retry_or_body():
+    module, _ = load_tool()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module.BRIDGE_TOKEN_FILE = Path(tmpdir) / "auth"
+        module.BRIDGE_TOKEN_FILE.write_text("fixture-not-a-real-credential")
+        failure = urllib.error.HTTPError("https://browser.eyrie/PRIVATE", 409, "PRIVATE", Message(), io.BytesIO(b"PRIVATE"))
+        with patch("urllib.request.OpenerDirector.open", side_effect=failure) as opened, patch.object(module.subprocess, "run", side_effect=AssertionError("subprocess forbidden")):
+            result = parsed(module.secure_browser_status_tool({}))
+        assert "HTTP 409" in result["message"] and "PRIVATE" not in result["message"]
+        assert opened.call_count == 1
 
 
 def test_endpoint_refuses_non_https_and_redirects():
