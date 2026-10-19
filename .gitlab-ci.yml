@@ -27,6 +27,15 @@ stages:
   script:
     - 'pdk test unit --parallel'
 
+'Joyride private access':
+  extends: .all-branch-ci
+  stage: 'Test'
+  tags: ['owl']
+  variables:
+    PYTHONDONTWRITEBYTECODE: '1'
+  script:
+    - 'python3 spec/app/joyride/test_private_access.py'
+
 'Secure browser fixtures':
   extends: .all-branch-ci
   image: 'node:24-bookworm'

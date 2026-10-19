@@ -1,5 +1,10 @@
 # Luna GitLab-only Tailscale canary
 
+This runbook records the original GitLab-only baseline. The Joyride extension
+is specified in `docs/joyride-luna-private-access.md`: one dedicated TEST /32
+and HTTPS port, not access to shared ingress. Follow its separate owner gates
+before applying the updated source policy or router preferences.
+
 ## Configuration ownership and boundary
 
 Kestrel's `nest::host::kestrel::tailscale` manages the Gentoo package,
