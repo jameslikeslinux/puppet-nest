@@ -41,7 +41,8 @@ class ProductionBoundaries(unittest.TestCase):
             self.assertEqual(deployment['spec']['replicas'], 0)
             pod = deployment['spec']['template']['spec']
             self.assertIs(pod['automountServiceAccountToken'], False)
-            self.assertNotIn('initContainers', pod)
+            if deployment['metadata']['name'] != 'joyride':
+                self.assertNotIn('initContainers', pod)
             self.assertEqual(pod['imagePullSecrets'], [{'name': 'joyride-pull'}])
             for container in pod['containers']:
                 self.assertEqual(container['image'], "%{lookup('joyride_image')}")
@@ -63,6 +64,37 @@ class ProductionBoundaries(unittest.TestCase):
         for resource in self.resources.values():
             if resource.get('kind') == 'Service':
                 self.assertNotIn(resource['spec'].get('type'), ('NodePort', 'LoadBalancer'))
+
+    def test_serial_initialization_is_scoped_to_production_storage(self):
+        pod = self.resources['app']['spec']['template']['spec']
+        migrate, basemap = pod['initContainers']
+        self.assertEqual([c['name'] for c in pod['initContainers']], ['migrate', 'basemap'])
+        self.assertEqual(migrate['command'], ['python', 'manage.py', 'migrate', '--noinput'])
+        self.assertEqual(basemap['command'], ['python', '/platform/bootstrap.py'])
+        web = pod['containers'][0]
+        for initializer in (migrate, basemap):
+            self.assertEqual(initializer['image'], web['image'])
+            self.assertEqual(initializer['securityContext'], web['securityContext'])
+            self.assertEqual(initializer['env'], web['env'])
+            self.assertEqual(initializer['envFrom'], web['envFrom'])
+            self.assertEqual(initializer['resources'], web['resources'])
+        self.assertEqual(migrate['volumeMounts'], [{'name': 'tmp', 'mountPath': '/data/tmp'}])
+        volumes = {v['name']: v for v in pod['volumes']}
+        self.assertEqual(volumes['data']['persistentVolumeClaim'], {'claimName': 'joyride-data'})
+        self.assertEqual(volumes['scripts']['configMap'], {'name': 'joyride-bootstrap', 'defaultMode': 0o444})
+        self.assertEqual(volumes['pull']['secret'], {'secretName': 'joyride-pull'})
+        self.assertEqual(self.resources['scripts']['binaryData'], {
+            'bootstrap.py': '%{nest::service::joyride::bootstrap_script_base64}'})
+        mounts = {m['name']: m for m in basemap['volumeMounts']}
+        self.assertIs(mounts['scripts']['readOnly'], True)
+        self.assertIs(mounts['pull']['readOnly'], True)
+        self.assertFalse(mounts['data'].get('readOnly', False))
+        for deployment in self.deployments:
+            runtime_pod = deployment['spec']['template']['spec']
+            for container in runtime_pod['containers']:
+                self.assertTrue({'pull', 'scripts'}.isdisjoint(m['name'] for m in container['volumeMounts']))
+            if deployment['metadata']['name'] != 'joyride':
+                self.assertTrue({'pull', 'scripts'}.isdisjoint(v['name'] for v in runtime_pod['volumes']))
 
     def test_network_boundary_separates_ops_from_shared_ingress(self):
         self.assertEqual(self.resources['ops_policy']['spec'], {

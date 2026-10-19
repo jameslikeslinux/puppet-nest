@@ -64,6 +64,14 @@ resources:
       PUBLIC_ROOT: /data/public
       MAP_ROOT: /data/maps
       TMPDIR: /data/tmp
+  scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-bootstrap
+      namespace: joyride
+    binaryData:
+      bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
   app:
     apiVersion: apps/v1
     kind: Deployment
@@ -146,13 +154,51 @@ resources:
               readOnly: true
             - name: tmp
               mountPath: /data/tmp
-          volumes: &volumes
+          # Serial initialization belongs to the application pod, never Bolt.
+          # Zero replicas and the TEST-only compile guard prevent execution.
+          initContainers:
+          - name: migrate
+            image: '%{lookup(''joyride_image'')}'
+            command: [python, manage.py, migrate, --noinput]
+            securityContext: *container_security
+            envFrom: *environment
+            env: *runtime
+            resources: *application_resources
+            volumeMounts:
+            - name: tmp
+              mountPath: /data/tmp
+          - name: basemap
+            image: '%{lookup(''joyride_image'')}'
+            command: [python, /platform/bootstrap.py]
+            securityContext: *container_security
+            envFrom: *environment
+            env: *runtime
+            resources: *application_resources
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+            - name: scripts
+              mountPath: /platform
+              readOnly: true
+            - name: pull
+              mountPath: /pull
+              readOnly: true
+          volumes:
           - name: data
             persistentVolumeClaim:
               claimName: joyride-data
           - name: tmp
             emptyDir:
               sizeLimit: 1Gi
+          - name: scripts
+            configMap:
+              name: joyride-bootstrap
+              defaultMode: 0444
+          - name: pull
+            secret:
+              secretName: joyride-pull
   worker:
     apiVersion: apps/v1
     kind: Deployment
@@ -203,7 +249,13 @@ resources:
               mountPath: /data
             - name: tmp
               mountPath: /data/tmp
-          volumes: *volumes
+          volumes: &runtime_volumes
+          - name: data
+            persistentVolumeClaim:
+              claimName: joyride-data
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
   ops_app:
     apiVersion: apps/v1
     kind: Deployment
@@ -256,7 +308,7 @@ resources:
               tcpSocket:
                 port: 8001
             volumeMounts: *read_mounts
-          volumes: *volumes
+          volumes: *runtime_volumes
   web:
     apiVersion: v1
     kind: Service

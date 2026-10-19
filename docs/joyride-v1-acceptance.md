@@ -53,7 +53,7 @@ then verify changed behavior against the exact resulting TEST artifact.
 | WMATA member display | OPEN, backend seam delivered | Application `docs/photo-only-member-contract.md` defines the tested opt-in `<!-- joyride:wmata -->` marker, release-hashed `templates/member-wmata.html` and active-member-only escaped `wmata` context. No supplied fragment is installed. Luna owns markup, integration and editorial/terms review. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
 | Stripe sandbox | UNVERIFIED | Real sandbox credentials and actual checkout/portal/webhook/reconciliation acceptance remain outstanding; mock tests do not close this. No live payments. |
 | Backup/isolated restore and monitoring | Prior TEST milestone verified | Runs 11767/11768 populated restore, scheduled publication, final-generation restore, failure preservation and healthy app alerts. Keep photo authorization and restore in changed-artifact acceptance. |
-| Production source preparation | PARTIAL, dormant | MR 323 merged after exact-head pipeline 10569 passed; separate zero-replica DB/PVC/listener candidate only. Compile guard remains TEST-only. See environment boundaries for missing contracts. |
+| Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate plus serial migration and checksum-pinned basemap initialization. Compile guard remains TEST-only; managed production secrets, private ops, gateway, promotion/protection and live acceptance remain open. See environment boundaries. |
 | Production deployment/public launch/content publication | NOT AUTHORIZED | Separate Joy approval of relevant revision required; no inferred authority from scope reduction. |
 
 ## Concrete source-facing work
@@ -103,10 +103,13 @@ baseline pins preserve this release across Helm upgrades; dormant production
 remains guarded and undeployed. No payment, mail, waiver assent or publication
 approval is conferred.
 
-Shared Firefox is paused for the separately owned MR 321 maintenance window.
-Do not resume UI calls until its owner explicitly announces completion; retain
-existing tabs, journals and bindings. A generation change is not authorization
-to reclaim or recover an uncertain binding. Continue unrelated source work.
+MR 321 note 7173 explicitly ended the shared Firefox maintenance pause. A fresh
+run 11785 attempt nevertheless found inconsistent control/visible-tab state and
+unverified draft delivery; note 7175 records the evidence for the existing browser
+reliability owner. No message send is claimed. Retain tabs, journals and bindings;
+a generation change is not authorization to reclaim an uncertain binding. Check
+fresh supported state before collaboration, and never retry an uncertain mutation
+with a new action key. Continue independent source preparation.
 
 No production deployment, gateway activation, live payment, routine mail, member
 communication, legal assent or business-content publication is authorized here.
