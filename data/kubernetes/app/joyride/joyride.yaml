@@ -1,0 +1,367 @@
+---
+# Dormant production source preparation, NOT a deployment/launch authorization.
+# The common service class deliberately rejects this namespace. Keep that guard
+# closed until private access, promotion and protection are reviewed together.
+include:
+- nest::service::joyride
+service_name: joyride
+fqdn: joyride.eyrie
+runtime_environment: production
+ingress_class: contour
+# Same immutable artifact exercised on TEST; never a mutable production tag.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:646c624c7ab26dd02e7dcfc5e512fc83a781b4df96bab66abaca932531723922
+affinity: {}
+tolerations: []
+resources:
+  # The inherited generic protection Jobs are not application-aware recipes.
+  backup: {}
+  restore: {}
+  nest_registry_auths: {}
+  storage:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: joyride-data
+      namespace: joyride
+    spec:
+      accessModes: [ReadWriteMany]
+      storageClassName: ceph-filesystem
+      resources:
+        requests:
+          storage: 8Gi
+  database:
+    apiVersion: postgresql.cnpg.io/v1
+    kind: Cluster
+    metadata:
+      name: joyride-cnpg
+      namespace: joyride
+    spec:
+      instances: 1
+      imageName: ghcr.io/cloudnative-pg/postgresql:17.11
+      storage:
+        storageClass: ceph-block
+        size: 8Gi
+      bootstrap:
+        initdb:
+          database: joyride
+          owner: joyride
+      monitoring:
+        enablePodMonitor: true
+  config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-config
+      namespace: joyride
+    data:
+      RUNTIME_ENV: production
+      ALLOWED_HOSTS: joyride.eyrie
+      PUBLIC_ORIGIN: https://joyridedc.com
+      MAIL_ENABLED: '0'
+      STRIPE_MODE: disabled
+      OPS_SCOPES: status,diagnostics,member:read
+      PRIVATE_ROOT: /data/private
+      PUBLIC_ROOT: /data/public
+      MAP_ROOT: /data/maps
+      TMPDIR: /data/tmp
+  app:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride
+      namespace: joyride
+    spec:
+      # No candidate frontend/content is published by this preparation.
+      replicas: 0
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: joyride
+      template:
+        metadata:
+          labels:
+            app: joyride
+        spec:
+          automountServiceAccountToken: false
+          securityContext: &pod_security
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          imagePullSecrets:
+          - name: joyride-pull
+          containers:
+          - name: web
+            image: '%{lookup(''joyride_image'')}'
+            command: [gunicorn, 'joyride.wsgi:application', --bind, '0.0.0.0:8000', --workers, '2']
+            securityContext: &container_security
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 10001
+              runAsGroup: 10001
+              capabilities:
+                drop: [ALL]
+            envFrom: &environment
+            - configMapRef:
+                name: joyride-config
+            env: &runtime
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-runtime
+                  key: DJANGO_SECRET_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-cnpg-app
+                  key: uri
+            ports:
+            - name: web
+              containerPort: 8000
+            resources: &application_resources
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            readinessProbe:
+              httpGet: &readiness
+                path: /health/ready
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: joyride.eyrie
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              httpGet:
+                <<: *readiness
+                path: /health/live
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            volumeMounts: &read_mounts
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /data/tmp
+          volumes: &volumes
+          - name: data
+            persistentVolumeClaim:
+              claimName: joyride-data
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+  worker:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride-worker
+      namespace: joyride
+    spec:
+      replicas: 0
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: joyride-worker
+      template:
+        metadata:
+          labels:
+            app: joyride-worker
+        spec:
+          automountServiceAccountToken: false
+          securityContext: *pod_security
+          imagePullSecrets:
+          - name: joyride-pull
+          containers:
+          - name: worker
+            image: '%{lookup(''joyride_image'')}'
+            command: [python, manage.py, worker]
+            securityContext: *container_security
+            envFrom: *environment
+            env:
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-runtime
+                  key: DJANGO_SECRET_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-cnpg-app
+                  key: uri
+            - name: WMATA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-upstream
+                  key: WMATA_API_KEY
+            resources: *application_resources
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
+          volumes: *volumes
+  ops_app:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride-ops
+      namespace: joyride
+    spec:
+      replicas: 0
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: joyride-ops
+      template:
+        metadata:
+          labels:
+            app: joyride-ops
+        spec:
+          automountServiceAccountToken: false
+          securityContext: *pod_security
+          imagePullSecrets:
+          - name: joyride-pull
+          containers:
+          - name: ops
+            image: '%{lookup(''joyride_image'')}'
+            command: [gunicorn, 'joyride.ops_wsgi:application', --bind, '0.0.0.0:8001', --workers, '2']
+            securityContext: *container_security
+            envFrom: *environment
+            env:
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-runtime
+                  key: DJANGO_SECRET_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-cnpg-app
+                  key: uri
+            - name: OPS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-ops-auth
+                  key: OPS_TOKEN
+            resources: *application_resources
+            ports:
+            - name: ops
+              containerPort: 8001
+            readinessProbe:
+              tcpSocket:
+                port: 8001
+            volumeMounts: *read_mounts
+          volumes: *volumes
+  web:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: joyride-web
+      namespace: joyride
+    spec:
+      selector:
+        app: joyride
+      ports:
+      - name: http
+        port: 8000
+        targetPort: 8000
+  ops:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: joyride-ops
+      namespace: joyride
+    spec:
+      selector:
+        app: joyride-ops
+      ports:
+      - name: http
+        port: 8001
+        targetPort: 8001
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: joyride-tls
+      namespace: joyride
+    spec:
+      secretName: joyride-tls
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames: [joyride.eyrie]
+  ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: joyride
+      namespace: joyride
+    spec:
+      ingressClassName: contour
+      tls:
+      - hosts: [joyride.eyrie]
+        secretName: joyride-tls
+      rules:
+      - host: joyride.eyrie
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: joyride-web
+                port:
+                  number: 8000
+  web_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-web
+      namespace: joyride
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride
+      policyTypes: [Ingress]
+      ingress:
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: projectcontour
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+        ports:
+        - protocol: TCP
+          port: 8000
+  ops_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-ops
+      namespace: joyride
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride-ops
+      policyTypes: [Ingress]
+      # No access until a dedicated authenticated VPN/Tailscale path is reviewed.
+      # In particular, the shared public ingress is NOT an ops ingress source.
+      ingress: []
+  worker_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-worker
+      namespace: joyride
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride-worker
+      policyTypes: [Ingress]
+      ingress: []

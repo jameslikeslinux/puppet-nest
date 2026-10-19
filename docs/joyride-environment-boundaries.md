@@ -27,7 +27,51 @@ Luna's token-free capability is specific to the isolated Tailscale-authenticated
 TEST path. It is not an alternative production authentication mechanism. Existing
 member sessions, ordinary ops tokens and CI delivery credentials remain intact.
 
-## Production implementation contract, not yet configured
+## Dormant production source preparation
+
+`data/kubernetes/app/joyride/joyride.yaml` prepares a distinct `joyride` service
+in namespace `joyride`. It is intentionally NOT compilable through the current
+TEST-only class guard, has no production deployment wrapper, and is not deployed.
+All three application Deployments have zero replicas as a second publication
+barrier. These declarations are not a complete production recipe or approval.
+
+The candidate declares separate CNPG/database storage and a separate RWX media
+PVC. Web, ops and worker are separate pods: only the web Service appears in the
+origin Ingress, and its NetworkPolicy admits only projectcontour Envoy on port
+8000. Ops uses the ordinary authenticated port 8001 URL configuration, with a
+separate Secret reference and no deployment scopes. Its NetworkPolicy currently
+denies ALL ingress. There is no token-free listener, TEST access VIP, delivery
+controller, RBAC, importer, verifier or journal in the candidate.
+
+Required production-only Secret contracts (not yet provisioned):
+
+| Secret | Keys | Consumer |
+| --- | --- | --- |
+| `joyride-runtime` | `DJANGO_SECRET_KEY` | web, ops, worker |
+| `joyride-ops-auth` | `OPS_TOKEN` | ops only |
+| `joyride-upstream` | `WMATA_API_KEY` | worker only |
+| `joyride-pull` | `.dockerconfigjson` | image pull only |
+| `joyride-cnpg-app` | `uri` | CNPG-generated, web/ops/worker |
+
+Generate independent signing and ops credentials through encrypted private Hiera;
+never copy TEST runtime secrets. The WMATA platform credential can be reused
+through managed provisioning, but cannot be exposed to web/ops or evidence.
+Only read-package/read-registry scope belongs in the production pull credential.
+No mail/payment/delivery credential is present; mail is disabled, Stripe is
+disabled, and the exact TEST-exercised immutable application image is pinned.
+
+`spec/app/joyride/test_production_boundaries.py` verifies these source integration
+boundaries in the existing Joyride CI lane. Source fixtures do not prove runtime
+network enforcement, application startup, private access, TLS or restore behavior.
+
+The candidate deliberately has no migration/bootstrap init container: before
+activation it still needs reviewed migration and immutable basemap installation,
+production protection, approved exact-artifact promotion/rollback, private TLS
+ops access for Joy and gateway preparation. Those pieces must be implemented and
+verified before the common compile guard can be widened. Do not apply this file
+directly, create its namespace, scale its Deployments or copy TEST controllers.
+
+## Remaining production implementation contract
 
 A future reviewed implementation must establish all of the following before
 widening the compile guard:
