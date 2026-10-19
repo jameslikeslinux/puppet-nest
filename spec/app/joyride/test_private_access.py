@@ -23,21 +23,22 @@ UPSTREAM = '''
 import http.server, json
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(401 if self.path.startswith('/ops/') and not self.headers.get('Authorization') else 200)
+        self.send_response(200)
         self.end_headers()
         self.wfile.write(json.dumps({'path':self.path,'headers':dict(self.headers)}).encode())
     def log_message(self, format, *args):
         pass
+    do_POST = do_GET
 http.server.ThreadingHTTPServer(('0.0.0.0', 8000), Handler).serve_forever()
 '''
 CLIENT = '''
 import base64, json, socket, ssl, sys
-target, path, host, sni, extra = sys.argv[1:]
+target, path, host, sni, extra, method = sys.argv[1:]
 try:
     context = ssl.create_default_context(cafile='/tls/tls.crt')
     with socket.create_connection((target,8443),timeout=5) as raw:
         with context.wrap_socket(raw,server_hostname=sni) as sock:
-            sock.sendall(('GET '+path+' HTTP/1.1\\r\\nHost: '+host+'\\r\\nConnection: close\\r\\n'+extra+'\\r\\n').encode())
+            sock.sendall((method+' '+path+' HTTP/1.1\\r\\nHost: '+host+'\\r\\nConnection: close\\r\\n'+extra+'\\r\\n').encode())
             data=b''
             while chunk := sock.recv(65536):
                 data += chunk
@@ -64,7 +65,7 @@ class PrivateAccess(unittest.TestCase):
         cls.upstream = cls.container + "-upstream"
         cls.network = cls.container + "-network"
         config = (ROOT / "files/app/joyride/test-access-nginx.conf").read_text()
-        for name, port in (("web", 8000), ("ops", 8001)):
+        for name, port in (("web", 8000), ("trusted-test", 8002)):
             config = config.replace(f"joyride-test-{name}.test.svc.cluster.local:{port}", f"{cls.upstream}:8000")
         (cls.path / "nginx.conf").write_text(config)
         run("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=joyride-test.eyrie", "-addext", "subjectAltName=DNS:joyride-test.eyrie", "-keyout", str(cls.path / "tls.key"), "-out", str(cls.path / "tls.crt"))
@@ -89,7 +90,7 @@ class PrivateAccess(unittest.TestCase):
             cls.address = nginx_info["NetworkSettings"]["Networks"][cls.network]["IPAddress"]
             for _ in range(30):
                 try:
-                    probe = run("podman", "exec", cls.upstream, "python", "-c", CLIENT, cls.address, "/", "joyride-test.eyrie", "joyride-test.eyrie", "")
+                    probe = run("podman", "exec", cls.upstream, "python", "-c", CLIENT, cls.address, "/", "joyride-test.eyrie", "joyride-test.eyrie", "", "GET")
                     if json.loads(probe.stdout).get("status") == 200:
                         break
                 except RuntimeError:
@@ -114,8 +115,8 @@ class PrivateAccess(unittest.TestCase):
         cls.cleanup()
         cls.directory.cleanup()
 
-    def request(self, path="/", host="joyride-test.eyrie", sni="joyride-test.eyrie", extra=""):
-        result = json.loads(run("podman", "exec", self.upstream, "python", "-c", CLIENT, self.address, path, host, sni, extra).stdout)
+    def request(self, path="/", host="joyride-test.eyrie", sni="joyride-test.eyrie", extra="", method="GET"):
+        result = json.loads(run("podman", "exec", self.upstream, "python", "-c", CLIENT, self.address, path, host, sni, extra, method).stdout)
         if result.get("ssl_error"):
             raise ssl.SSLError("Fixture TLS handshake rejected")
         return result["status"], base64.b64decode(result["data"])
@@ -147,9 +148,20 @@ class PrivateAccess(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(self.request(path=path)[0], 404)
 
-    def test_status_still_needs_application_auth(self):
-        self.assertEqual(self.request(path="/ops/status")[0], 401)
-        self.assertEqual(self.request(path="/ops/status", extra="Authorization: Bearer fixture-only\r\n")[0], 200)
+    def test_isolated_status_is_token_free_and_strips_caller_identity(self):
+        self.assertEqual(self.request(path="/ops/status")[0], 200)
+        status, data = self.request(path="/ops/status", extra="Authorization: fixture-credential\r\nX-Joyride-Trusted-Test: forged\r\nTailscale-User-Login: forged\r\nForwarded: forged\r\n")
+        self.assertEqual(status, 200)
+        self.assertNotIn(b"fixture-credential", data)
+        self.assertNotIn(b"forged", data)
+
+    def test_exact_ops_methods_and_targets(self):
+        for path in ("/ops/status?x=1", "/ops/status?", "/ops/%73tatus", "/ops/../ops/status", "//ops/status", "/ops//status"):
+            with self.subTest(path=path):
+                self.assertEqual(self.request(path=path)[0], 404)
+        self.assertEqual(self.request(path="/ops/status", method="POST")[0], 405)
+        self.assertEqual(self.request(path="/ops/deploy")[0], 405)
+        self.assertEqual(self.request(path="/ops/deploy", method="POST")[0], 200)
 
     def test_forwarded_headers_are_replaced(self):
         status, data = self.request(extra="Forwarded: host=other.invalid\r\nX-Forwarded-Proto: http\r\nX-Forwarded-Host: other.invalid\r\nX-Forwarded-For: 1.2.3.4\r\n")
@@ -161,6 +173,16 @@ class PrivateAccess(unittest.TestCase):
 
 
 class RouterBoundary(unittest.TestCase):
+    def test_snat_cannot_admit_router_local_or_other_forwarded_sources(self):
+        guard = (ROOT / "files/tailscale/luna-gitlab.nft").read_text()
+        output = guard.split("chain output {", 1)[1].split("}", 1)[0]
+        self.assertIn("ip daddr 172.21.1.3 counter drop", output)
+        forward = guard.split("chain forward {", 1)[1].split("}", 1)[0]
+        allowed = 'iifname "tailscale0" ip saddr 100.127.2.74 ip daddr 172.21.1.3 tcp dport 443 counter return'
+        denied = "ip daddr 172.21.1.3 counter drop"
+        self.assertLess(forward.index(allowed), forward.index(denied))
+        self.assertEqual(forward.count("ip daddr 172.21.1.3"), 2)
+
     def test_tailnet_grants_exact_destinations_only(self):
         policy = json.loads((ROOT / "files/tailscale/luna-gitlab.json").read_text())
         self.assertEqual(policy["acls"], [])
