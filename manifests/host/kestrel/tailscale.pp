@@ -1,4 +1,4 @@
-# GitLab-only subnet canary. Enrollment state is runtime-owned, never Hiera data.
+# Narrow Luna endpoints. Enrollment state is runtime-owned, never Hiera data.
 class nest::host::kestrel::tailscale {
   tag('luna_gitlab')
 
