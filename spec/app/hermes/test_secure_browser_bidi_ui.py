@@ -18,7 +18,7 @@ MODULE = ROOT / "files/app/hermes/secure_browser_bidi.py"
 def load():
     tools = types.ModuleType("tools")
     tools.__path__ = []
-    legacy = types.ModuleType("tools.secure_browser_legacy_support")
+    legacy = types.ModuleType("tools.secure_browser_local_bidi")
     class Session:
         @staticmethod
         def _bidi_value(value):
@@ -28,9 +28,9 @@ def load():
                 return [Session._bidi_value(item) for item in value["value"]]
             return value.get("value")
     legacy.CdpSession = Session
-    tools.secure_browser_legacy_support = legacy
+    tools.secure_browser_local_bidi = legacy
     sys.modules["tools"] = tools
-    sys.modules["tools.secure_browser_legacy_support"] = legacy
+    sys.modules["tools.secure_browser_local_bidi"] = legacy
     spec = importlib.util.spec_from_file_location("tools.secure_browser_bidi", MODULE)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -266,7 +266,7 @@ def test_status_requires_live_bidi_not_just_launch_configuration():
     assert status["control_mode_matches_browser"] is False
     assert status["compatibility"]["dom_selectors"] is False
     assert status["instrumentation"]["bidi"] is False
-    legacy._with_browser = lambda fn: fn(Browser([]))
+    tool._bridge = lambda _cmd, _payload: {"launch_protocol": "firefox-bidi-ui-v2", "native_element_available": True, "bidi_available": True, "status": "ok"}
     status = json.loads(tool.secure_browser_status_tool({}))
     assert status["control_mode_matches_browser"] is True
     assert status["compatibility"]["dom_selectors"] is True

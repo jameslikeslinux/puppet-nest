@@ -1,7 +1,7 @@
 """Hermes adapter for the persistent, owner-visible Firefox desktop.
 
-The browser uses the source-managed Firefox UI bridge inside the Kubernetes
-workload. The bridge uses X11 input, AT-SPI observation, and X11 screenshots.
+The browser uses the authenticated source-managed bridge at browser.eyrie.
+The bridge uses X11 input, AT-SPI observation, and X11 screenshots.
 Opt-in v2 adds a private BiDi page connector without exposing raw profile data.
 """
 
@@ -10,13 +10,16 @@ from __future__ import annotations
 import base64
 import contextlib
 import fcntl
-import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import time
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
 from typing import Any
 
 from tools.registry import registry
@@ -28,13 +31,9 @@ except ImportError:  # pragma: no cover - direct source smoke fallback
         return Path(os.environ.get("HERMES_HOME", Path.home() / ".hermes"))
 
 TOOLSET = "secure_browser"
-NAMESPACE = os.environ.get("SECURE_BROWSER_NAMESPACE", "ai")
-WORKLOAD = os.environ.get("SECURE_BROWSER_WORKLOAD", "deployment/firefox")
-CONTAINER = os.environ.get("SECURE_BROWSER_CONTAINER", "kasm-firefox")
-BRIDGE_PATH = os.environ.get("SECURE_BROWSER_UI_BRIDGE", "/opt/nest/firefox/bin/firefox-ui-bridge.py")
-BRIDGE_SOURCE = Path(__file__).with_name("firefox_ui_bridge.py")
 CONTROL_MODE = os.environ.get("SECURE_BROWSER_CONTROL_MODE", "firefox-ui-v1")
 PUBLIC_URL = os.environ.get("SECURE_BROWSER_PUBLIC_URL", "https://browser.eyrie/")
+BRIDGE_TOKEN_FILE = Path(os.environ.get("SECURE_BROWSER_BRIDGE_TOKEN_FILE", "/opt/hermes-agent/firefox-bridge-token"))
 BRIDGE_TIMEOUT = int(os.environ.get("SECURE_BROWSER_UI_TIMEOUT", "60"))
 MAX_RESULT_BYTES = 8_000_000
 CONTROLLER_STATE_DIR = Path(os.environ.get("SECURE_BROWSER_CONTROLLER_STATE_DIR", Path.home() / ".local/state/nest-firefox-controller"))
@@ -67,84 +66,59 @@ def _workflow_id(args: dict[str, Any], task_id: str | None = None) -> str:
     return WORKFLOW_RE.sub("-", f"{profile}:{stable}")[:160]
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        raise RuntimeError("Firefox endpoint redirects are forbidden")
+
+
 def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None) -> dict[str, Any]:
     if CONTROL_MODE not in {"firefox-ui-v1", "firefox-bidi-ui-v2"}:
         raise RuntimeError(f"unsupported secure browser control mode: {CONTROL_MODE}")
-    kubeconfig = os.environ.get("KUBECONFIG", "").strip()
-    if not kubeconfig:
-        raise RuntimeError("Firefox UI bridge configuration missing: KUBECONFIG is not set for this profile")
-    missing_kubeconfigs = [path for path in kubeconfig.split(os.pathsep) if path and not Path(path).is_file()]
-    if missing_kubeconfigs:
-        raise RuntimeError(f"Firefox UI bridge configuration invalid: KUBECONFIG file does not exist: {missing_kubeconfigs[0]}")
-    # Puppet installs the same authoritative source used by the Firefox image.
-    # Execute this overlay in the existing pod, preserving the shared browser
-    # process and its workflow identities. No new browser API or listener.
+    endpoint = urllib.parse.urlsplit(PUBLIC_URL)
+    if (endpoint.scheme != "https" or not endpoint.hostname or endpoint.username or endpoint.password
+            or endpoint.query or endpoint.fragment or endpoint.path not in {"", "/"}):
+        raise RuntimeError("Firefox endpoint requires a credential-free HTTPS origin")
     try:
-        source = BRIDGE_SOURCE.read_text(encoding="utf-8")
+        token = BRIDGE_TOKEN_FILE.read_text(encoding="utf-8").strip()
     except OSError as exc:
-        raise RuntimeError("Puppet-managed Firefox bridge overlay is unavailable; refusing image fallback") from exc
-    bootstrap = (
-        "import io,json,sys; envelope=json.load(sys.stdin); "
-        "sys.argv=[sys.argv[1],envelope['command']]; "
-        "sys.stdin=io.StringIO(json.dumps(envelope['payload'])); "
-        "exec(compile(envelope['source'],sys.argv[0],'exec'),"
-        "{'__name__':'__main__','__file__':sys.argv[0]})"
+        raise RuntimeError("Firefox endpoint authentication file is unavailable") from exc
+    if len(token) < 20 or any(char.isspace() for char in token):
+        raise RuntimeError("Firefox endpoint authentication is invalid")
+    # No proxy discovery, redirects, retries, cluster discovery or exec fallback.
+    # The caller must retain its action key after an uncertain delivery.
+    opener = urllib.request.build_opener(
+        urllib.request.ProxyHandler({}), _NoRedirect(),
+        urllib.request.HTTPSHandler(context=ssl.create_default_context()),
     )
-    argv = [
-        "kubectl", "-n", NAMESPACE, "exec", "-i", WORKLOAD, "-c", CONTAINER,
-        "--", "env", "DISPLAY=:1", "python3", "-c", bootstrap, BRIDGE_PATH,
-    ]
-    # Keep the existing input bound while allowing deliberate per-character
-    # pacing plus native command overhead. Other operations retain their limit.
-    input_budget = 0
-    if command == "type" or (command == "selector_action" and payload.get("operation") == "type"):
-        input_budget = (min(len(str(payload.get("text") or "")), 4096) + 4) // 5
-    elif command == "navigate":
-        input_budget = (min(len(str(payload.get("url") or "")), 4096) + 4) // 5
+    request = urllib.request.Request(
+        PUBLIC_URL.rstrip("/") + "/_nest/bridge/v1",
+        data=_json({"command": command, "payload": payload}).encode(),
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + token},
+        method="POST",
+    )
+    input_size = len(str(payload.get("text") or payload.get("url") or ""))
+    budget = min(input_size, 4096) // 5 + 1 if command in {"type", "selector_action", "navigate"} else 0
     try:
-        result = subprocess.run(
-            argv,
-            input=_json({"source": source, "command": command, "payload": payload}),
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-            timeout=(timeout or BRIDGE_TIMEOUT) + input_budget,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError(f"Firefox UI bridge invocation failed: {exc}") from exc
-    if result.returncode != 0:
-        # The bridge emits structured errors on stdout. kubectl's generic
-        # exit-code stderr must not hide the actual workflow failure.
-        try:
-            failure = json.loads(result.stdout)
-        except (json.JSONDecodeError, TypeError):
-            failure = None
-        if isinstance(failure, dict) and failure.get("status") == "error":
-            raise RuntimeError(str(failure.get("message") or failure.get("error") or "Firefox UI bridge error")[:1000])
-        message = result.stderr.strip() or result.stdout.strip()
-        if "localhost:8080" in message:
-            raise RuntimeError("Firefox UI bridge Kubernetes configuration is unusable; verify KUBECONFIG selects a reachable cluster")
-        raise RuntimeError(f"Firefox UI bridge failed ({result.returncode}): {message[:1000]}")
-    if len(result.stdout.encode()) > MAX_RESULT_BYTES:
-        raise RuntimeError("Firefox UI bridge response exceeded the bounded result size")
+        with opener.open(request, timeout=(timeout or BRIDGE_TIMEOUT) + budget) as response:
+            raw = response.read(MAX_RESULT_BYTES + 1)
+    except (OSError, urllib.error.URLError, ValueError) as exc:
+        # Do not relay URLs, headers, credentials or provider response bodies.
+        raise RuntimeError("Firefox endpoint unavailable or refused the operation; outcome may be uncertain; do not replay with a new action key") from exc
+    if len(raw) > MAX_RESULT_BYTES:
+        raise RuntimeError("Firefox endpoint response exceeded the bounded result size")
     try:
-        parsed = json.loads(result.stdout)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"Firefox UI bridge returned invalid JSON: {result.stdout[:500]}") from exc
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeError) as exc:
+        raise RuntimeError("Firefox endpoint returned invalid JSON") from exc
     if not isinstance(parsed, dict):
-        raise RuntimeError("Firefox UI bridge response was not an object")
+        raise RuntimeError("Firefox endpoint response was not an object")
     if parsed.get("status") == "error":
-        raise RuntimeError(str(parsed.get("message") or parsed.get("error") or "Firefox UI bridge error"))
-    parsed["bridge_diagnostics"] = {
-        "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
-        "command": command,
-    }
+        raise RuntimeError(str(parsed.get("message") or "Firefox endpoint operation failed")[:1000])
     return parsed
 
 
 def _check_secure_browser() -> bool:
-    return CONTROL_MODE in {"firefox-ui-v1", "firefox-bidi-ui-v2"} and bool(WORKLOAD) and bool(BRIDGE_PATH)
+    return CONTROL_MODE in {"firefox-ui-v1", "firefox-bidi-ui-v2"} and bool(PUBLIC_URL)
 
 
 @contextlib.contextmanager
@@ -223,8 +197,7 @@ def secure_browser_status_tool(args: dict[str, Any], **_kw: Any) -> str:
         bridge_status = _bridge("status", {})
         live_v2 = False
         if CONTROL_MODE == "firefox-bidi-ui-v2" and bridge_status.get("launch_protocol") == CONTROL_MODE:
-            from importlib import import_module
-            live_v2 = import_module("tools.secure_browser_bidi").probe()
+            live_v2 = bool(bridge_status.get("bidi_available"))
         return {
             **bridge_status,
             "protocol": CONTROL_MODE,
@@ -344,10 +317,7 @@ def secure_browser_owner_review_capture_tool(args: dict[str, Any], **_kw: Any) -
 def secure_browser_query_tool(args: dict[str, Any], **_kw: Any) -> str:
     if CONTROL_MODE == "firefox-bidi-ui-v2":
         def run() -> dict[str, Any]:
-            from importlib import import_module
-            secure_browser_bidi = import_module("tools.secure_browser_bidi")
-            return secure_browser_bidi.query(_bridge("snapshot", {}), str(args.get("expression") or ""),
-                                             cursor=args.get("cursor"), snapshot_reader=lambda: _bridge("snapshot", {}))
+            return _bridge("query", {"expression": str(args.get("expression") or ""), "cursor": args.get("cursor")})
         return _safe_call("query", run)
     return _json({
         "operation": "query",

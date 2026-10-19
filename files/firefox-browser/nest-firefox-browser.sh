@@ -50,6 +50,7 @@ kasmvnc_pid=
 xmonad_pid=
 firefox_pid=
 dbus_pid=
+bridge_pid=
 
 if [ ! -f "$HOME/.vnc/self.pem" ]; then
   openssl req \
@@ -71,7 +72,7 @@ cleanup() {
     kill "$firefox_pid" 2>/dev/null || true
     wait "$firefox_pid" 2>/dev/null || true
   fi
-  for pid in "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid"; do
+  for pid in "$bridge_pid" "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid"; do
     [ -z "$pid" ] || kill "$pid" 2>/dev/null || true
   done
 }
@@ -140,6 +141,13 @@ firefox \
   $APP_ARGS \
   "$@" &
 firefox_pid=$!
+
+# Controller disconnects and bridge failures never restart Firefox. Isolated
+# smoke tests without a credential do not start this guarded service listener.
+if [ -n "${FIREFOX_BRIDGE_TOKEN_FILE:-}" ]; then
+  python3 /opt/nest/firefox/bin/firefox-bridge-server.py &
+  bridge_pid=$!
+fi
 
 resize_firefox_windows_once() {
   fallback_width="$1"

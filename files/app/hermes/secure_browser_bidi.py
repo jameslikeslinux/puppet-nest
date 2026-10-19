@@ -1,7 +1,7 @@
 """Private Firefox BiDi page inspection for the visible secure-browser workflow.
 
-This module does not create tabs or navigate. Its listener is reached only via a
-loopback kubectl port-forward and the existing cross-process BiDi session lock.
+This module does not create tabs or navigate. It runs inside the guarded bridge;
+its listener is pod-local and never exposed through the service endpoint.
 The OS/UI adapter remains the authority for tab ownership and input delivery.
 """
 
@@ -13,7 +13,10 @@ import re
 from typing import Any
 from urllib.parse import urlsplit
 
-from . import secure_browser_legacy_support as legacy
+if __package__:
+    from . import secure_browser_local_bidi as legacy
+else:
+    import secure_browser_local_bidi as legacy
 
 MAX_QUERY_CHARS = 8000
 MAX_EXPRESSION_CHARS = 4096

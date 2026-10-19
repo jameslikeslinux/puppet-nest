@@ -98,7 +98,7 @@ def main() -> None:
     session_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "CdpSession")
     names = {"__init__", "close", "_bidi", "_bidi_value", "_bidi_contexts"}
     session_class.body = [node for node in session_class.body if isinstance(node, ast.FunctionDef) and node.name in names]
-    legacy = types.ModuleType("fixture.secure_browser_legacy_support")
+    legacy = types.ModuleType("fixture.secure_browser_local_bidi")
     legacy.__dict__.update({"Any": object, "contextlib": contextlib, "socket": socket, "urlparse": urlparse,
                             "websockets": websockets, "json": json, "REMOTE_DEBUG_PORT": 9222,
                             "CDP_MAX_MESSAGE_BYTES": 8_000_000})

@@ -49,6 +49,7 @@ stages:
     - 'python3 spec/app/hermes/test_secure_browser_bidi_ui.py'
     - 'python3 spec/app/hermes/test_firefox_ui_bridge.py'
     - 'python3 spec/app/hermes/test_firefox_reliability.py'
+    - 'python3 spec/app/hermes/test_firefox_endpoint.py'
     - 'python3 spec/app/hermes/test_secure_browser_firefox_ui.py'
     - 'python3 spec/app/hermes/test_secure_browser_general_hardening.py'
 

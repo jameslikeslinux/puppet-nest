@@ -13,34 +13,17 @@ codes, vault contents, credentials, or token material.
 
 from __future__ import annotations
 
-import contextlib
-import fcntl
-import hashlib
 import json
 import os
 import re
-import shutil
-import socket
-import subprocess
 import time
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-from urllib.request import urlopen
 
-import websockets.sync.client
 from tools.registry import registry
 
 TOOLSET = "secure_browser"
-NAMESPACE = os.environ.get("SECURE_BROWSER_NAMESPACE", os.environ.get("SECURE_BROWSER_OAUTH_NAMESPACE", "ai"))
-SECURE_BROWSER_TARGET = os.environ.get("SECURE_BROWSER_TARGET", "browser.eyrie-firefox")
-WORKLOAD = os.environ.get("SECURE_BROWSER_WORKLOAD", os.environ.get("SECURE_BROWSER_OAUTH_WORKLOAD", "deployment/firefox"))
-EXPECTED_WORKLOAD = os.environ.get("SECURE_BROWSER_EXPECTED_WORKLOAD", "deployment/firefox")
-EXPECTED_IMAGE_RE = os.environ.get("SECURE_BROWSER_EXPECTED_IMAGE_RE", r"nest/tools/firefox")
-EXPECTED_APP_LABEL = os.environ.get("SECURE_BROWSER_EXPECTED_APP_LABEL", "firefox")
-FORBIDDEN_WORKLOAD_RE = os.environ.get("SECURE_BROWSER_FORBIDDEN_WORKLOAD_RE", r"deployment/secure-browser")
-FORBIDDEN_IMAGE_RE = os.environ.get("SECURE_BROWSER_FORBIDDEN_IMAGE_RE", r"kasmweb/chrome")
-REMOTE_DEBUG_PORT = int(os.environ.get("SECURE_BROWSER_CDP_PORT", os.environ.get("SECURE_BROWSER_OAUTH_CDP_PORT", "9222")))
 PUBLIC_URL = os.environ.get("SECURE_BROWSER_PUBLIC_URL", os.environ.get("SECURE_BROWSER_OAUTH_PUBLIC_URL", "https://browser.eyrie/"))
 BROWSER_OWNER = os.environ.get("SECURE_BROWSER_OWNER", os.environ.get("SECURE_BROWSER_OAUTH_OWNER", "oauth"))
 OWNERSHIP_STATE_PATH = os.environ.get("SECURE_BROWSER_OWNERSHIP_STATE", os.path.expanduser("~/.hermes/secure-browser-tabs.json"))
@@ -61,75 +44,13 @@ def _json(data: dict[str, Any]) -> str:
     return json.dumps(data, ensure_ascii=False, sort_keys=True)
 
 
+def _adapter():
+    from tools import secure_browser_tool
+    return secure_browser_tool
+
+
 def _check_secure_browser_oauth() -> bool:
-    return shutil.which("kubectl") is not None
-
-
-def _kubectl_get_json(resource: str) -> dict[str, Any]:
-    cmd = ["kubectl", "-n", NAMESPACE, "get", resource, "-o", "json"]
-    env = os.environ.copy()
-    env.setdefault("HOME", "/home/joy")
-    proc = subprocess.run(cmd, check=False, text=True, capture_output=True, timeout=10, env=env)
-    if proc.returncode != 0:
-        raise RuntimeError(f"kubectl identity check failed for {resource}: {proc.stderr[-500:]}")
-    return json.loads(proc.stdout)
-
-
-def _backend_identity_status() -> dict[str, Any]:
-    status: dict[str, Any] = {
-        "target": SECURE_BROWSER_TARGET,
-        "namespace": NAMESPACE,
-        "workload": WORKLOAD,
-        "expected_workload": EXPECTED_WORKLOAD,
-        "expected_image_re": EXPECTED_IMAGE_RE,
-        "expected_app_label": EXPECTED_APP_LABEL,
-        "forbidden_workload_re": FORBIDDEN_WORKLOAD_RE,
-        "forbidden_image_re": FORBIDDEN_IMAGE_RE,
-    }
-    if "browser.eyrie" in SECURE_BROWSER_TARGET or "firefox" in SECURE_BROWSER_TARGET:
-        if re.search(FORBIDDEN_WORKLOAD_RE, WORKLOAD, re.IGNORECASE):
-            status.update({"ok": False, "reason": "configured workload matches forbidden legacy secure-browser workload"})
-            return status
-        if WORKLOAD != EXPECTED_WORKLOAD:
-            status.update({"ok": False, "reason": "configured workload does not match requested browser.eyrie Firefox target"})
-            return status
-    if shutil.which("kubectl") is None:
-        status.update({"ok": False, "reason": "kubectl is unavailable for backend identity check"})
-        return status
-    try:
-        data = _kubectl_get_json(WORKLOAD)
-        template = data.get("spec", {}).get("template", {})
-        containers = template.get("spec", {}).get("containers") or []
-        images = [str(container.get("image") or "") for container in containers if isinstance(container, dict)]
-        labels = template.get("metadata", {}).get("labels") or {}
-        app_label = str(labels.get("browser.joyfullee.me/app") or labels.get("app") or "")
-        identity = {
-            "name": str(data.get("metadata", {}).get("name") or ""),
-            "images": images,
-            "labels": labels,
-            "ready_replicas": data.get("status", {}).get("readyReplicas", 0),
-            "replicas": data.get("status", {}).get("replicas", 0),
-        }
-    except Exception as exc:
-        status.update({"ok": False, "reason": str(exc)[:500]})
-        return status
-    status["identity"] = identity
-    image_text = " ".join(images)
-    if re.search(FORBIDDEN_IMAGE_RE, image_text, re.IGNORECASE):
-        status.update({"ok": False, "reason": "live workload image matches forbidden legacy Chrome/Kasm backend"})
-    elif EXPECTED_IMAGE_RE and not re.search(EXPECTED_IMAGE_RE, image_text, re.IGNORECASE):
-        status.update({"ok": False, "reason": "live workload image does not match expected Firefox/Kasm backend"})
-    elif EXPECTED_APP_LABEL and app_label != EXPECTED_APP_LABEL:
-        status.update({"ok": False, "reason": "live workload labels do not identify the expected Firefox browser app"})
-    else:
-        status.update({"ok": True, "reason": "backend identity matches requested browser.eyrie Firefox target"})
-    return status
-
-
-def _enforce_backend_identity() -> None:
-    status = _backend_identity_status()
-    if not status.get("ok"):
-        raise RuntimeError(f"secure browser backend identity check failed: {status.get('reason')}; target={SECURE_BROWSER_TARGET}; workload={WORKLOAD}")
+    return _adapter()._check_secure_browser()
 
 
 def _audit(action: str, payload: dict[str, Any]) -> None:
@@ -146,12 +67,6 @@ def _audit(action: str, payload: dict[str, Any]) -> None:
     except Exception:
         # Audit is defense-in-depth; tool calls should still report their action.
         pass
-
-
-def _free_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])
 
 
 def _redact_url(value: str) -> str:
@@ -197,264 +112,40 @@ def _safe_title(value: str) -> str:
     return title[:MAX_TITLE_CHARS]
 
 
-class PortForward:
-    def __init__(self) -> None:
-        self.local_port = _free_port()
-        self.process: subprocess.Popen[str] | None = None
-
-    def __enter__(self) -> int:
-        _enforce_backend_identity()
-        cmd = [
-            "kubectl",
-            "-n",
-            NAMESPACE,
-            "port-forward",
-            "--address",
-            "127.0.0.1",
-            WORKLOAD,
-            f"{self.local_port}:{REMOTE_DEBUG_PORT}",
-        ]
-        env = os.environ.copy()
-        env.setdefault("HOME", "/home/joy")
-        self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
-        deadline = time.time() + PORT_FORWARD_TIMEOUT_SECONDS
-        version_url = f"http://127.0.0.1:{self.local_port}/json/version"
-        while time.time() < deadline:
-            if self.process.poll() is not None:
-                stderr = (self.process.stderr.read() if self.process.stderr else "").strip()
-                raise RuntimeError(f"kubectl port-forward failed: {stderr[:500]}")
-            try:
-                with urlopen(version_url, timeout=1) as response:
-                    json.loads(response.read().decode("utf-8"))
-                return self.local_port
-            except Exception:
-                time.sleep(0.25)
-        raise RuntimeError("timed out waiting for Secure-browser OAuth CDP bridge")
-
-    def __exit__(self, *_exc: object) -> None:
-        if self.process and self.process.poll() is None:
-            self.process.terminate()
-            try:
-                self.process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                self.process.kill()
-                self.process.wait(timeout=3)
-
-
-class CdpSession:
-    def __init__(self, websocket_url: str, port: int | None = None) -> None:
-        self.ws = websockets.sync.client.connect(websocket_url, open_timeout=5, close_timeout=2, max_size=CDP_MAX_MESSAGE_BYTES)
-        self.next_id = 1
-        self.port = port
-
-    def close(self) -> None:
-        self.ws.close()
-
-    def call(self, method: str, params: dict[str, Any] | None = None, session_id: str | None = None) -> dict[str, Any]:
-        msg: dict[str, Any] = {"id": self.next_id, "method": method}
-        call_id = self.next_id
-        self.next_id += 1
-        if params is not None:
-            msg["params"] = params
-        if session_id is not None:
-            msg["sessionId"] = session_id
-        self.ws.send(json.dumps(msg))
-        while True:
-            data = json.loads(self.ws.recv(timeout=10))
-            if data.get("id") == call_id:
-                if "error" in data:
-                    raise RuntimeError(f"CDP {method} failed: {data['error'].get('message', 'unknown error')}")
-                return data.get("result") or {}
-
-
-def _browser_ws_url(port: int) -> str:
-    with urlopen(f"http://127.0.0.1:{port}/json/version", timeout=3) as response:
-        version = json.loads(response.read().decode("utf-8"))
-    url = str(version.get("webSocketDebuggerUrl") or "")
-    if not url:
-        raise RuntimeError("Secure-browser OAuth CDP endpoint did not report a browser websocket")
-    return url
-
-
-def _page_targets_from_http(port: int) -> list[dict[str, Any]]:
-    with urlopen(f"http://127.0.0.1:{port}/json/list", timeout=3) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    return [item for item in data if item.get("type") == "page"]
-
-
-def _current_page_ids(browser: CdpSession) -> set[str]:
-    ids: set[str] = set()
-    if browser.port is not None:
-        with contextlib.suppress(Exception):
-            ids.update(str(target["id"]) for target in _page_targets_from_http(browser.port) if target.get("id"))
-    with contextlib.suppress(Exception):
-        targets = browser.call("Target.getTargets").get("targetInfos") or []
-        ids.update(str(target["targetId"]) for target in targets if target.get("type") == "page" and target.get("targetId"))
-    return ids
-
-
-def _load_owner_state(handle: Any) -> dict[str, Any]:
-    handle.seek(0)
-    raw = handle.read()
-    if not raw.strip():
-        return {"owners": {}}
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        return {"owners": {}}
-    if not isinstance(data, dict):
-        return {"owners": {}}
-    owners = data.get("owners")
-    if not isinstance(owners, dict):
-        data["owners"] = {}
-    return data
-
-
-def _store_owner_state(handle: Any, state: dict[str, Any]) -> None:
-    handle.seek(0)
-    handle.truncate()
-    json.dump(state, handle, ensure_ascii=False, sort_keys=True)
-    handle.write("\n")
-    handle.flush()
-    os.fsync(handle.fileno())
-
-
-def _claim_owner_target(browser: CdpSession, create: bool = False) -> str:
-    os.makedirs(os.path.dirname(OWNERSHIP_STATE_PATH) or ".", exist_ok=True)
-    with open(OWNERSHIP_STATE_PATH, "a+", encoding="utf-8") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
-        try:
-            state = _load_owner_state(handle)
-            owners = state.setdefault("owners", {})
-            live_ids = _current_page_ids(browser)
-            existing = str(owners.get(BROWSER_OWNER, {}).get("target_id") or "")
-            if existing and existing in live_ids and not create:
-                return existing
-            target_id = str(browser.call("Target.createTarget", {"url": "about:blank"})["targetId"])
-            owners[BROWSER_OWNER] = {
-                "target_id": target_id,
-                "toolset": TOOLSET,
-                "workload": WORKLOAD,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            }
-            _store_owner_state(handle, state)
-            return target_id
-        finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
-
-
-def _first_page_target(browser: CdpSession) -> str:
-    return _claim_owner_target(browser, create=False)
-
-
-def _attach(browser: CdpSession, target_id: str) -> str:
-    result = browser.call("Target.attachToTarget", {"targetId": target_id, "flatten": True})
-    session_id = str(result["sessionId"])
-    browser.call("Runtime.enable", session_id=session_id)
-    browser.call("Page.enable", session_id=session_id)
-    return session_id
-
-
-def _evaluate(browser: CdpSession, session_id: str, expression: str) -> Any:
-    result = browser.call("Runtime.evaluate", {"expression": expression, "returnByValue": True, "awaitPromise": True}, session_id=session_id)
-    value = result.get("result") or {}
-    return value.get("value")
-
-
-def _with_browser(fn: Any) -> dict[str, Any]:
-    with PortForward() as port:
-        browser = CdpSession(_browser_ws_url(port), port=port)
-        try:
-            return fn(browser)
-        finally:
-            browser.close()
-
-
-def _page_summary(browser: CdpSession, session_id: str) -> dict[str, Any]:
-    href = str(_evaluate(browser, session_id, "location.href") or "")
-    title = str(_evaluate(browser, session_id, "document.title") or "")
+def _summary(snapshot: dict[str, Any]) -> dict[str, Any]:
+    href = _redact_url(str(snapshot.get("url") or ""))
     parsed = urlparse(href)
-    return {
-        "url": _redact_url(href),
-        "origin": f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else "",
-        "path": parsed.path[:160],
-        "query_keys": [key for key, _value in parse_qsl(parsed.query, keep_blank_values=True)[:20]],
-        "has_fragment": bool(parsed.fragment),
-        "page_title": _safe_title(title),
-        "sensitive_title_redacted": _safe_title(title) != re.sub(r"\s+", " ", title).strip()[:MAX_TITLE_CHARS],
-    }
+    return {"operation": "current_page_summary", "status": "ok", "url": href,
+            "origin": f"{parsed.scheme}://{parsed.netloc}" if parsed.netloc else "",
+            "path": parsed.path[:160], "page_title": _safe_title(str(snapshot.get("title") or "")),
+            "query_keys": [], "public_browser_url": PUBLIC_URL,
+            "secure_browser_owner": BROWSER_OWNER,
+            "boundary": "Selected visible tab metadata only; owner handles credentials and security prompts."}
 
 
 def _navigate(url: str, new_page: bool = False) -> dict[str, Any]:
-    safe_url = _safe_navigation_url(url)
-
-    def run(browser: CdpSession) -> dict[str, Any]:
-        target_id = _claim_owner_target(browser, create=True) if new_page else _first_page_target(browser)
-        session_id = _attach(browser, target_id)
-        browser.call("Page.navigate", {"url": safe_url}, session_id=session_id)
-        deadline = time.time() + PAGE_LOAD_TIMEOUT_SECONDS
-        while time.time() < deadline:
-            ready = _evaluate(browser, session_id, "document.readyState")
-            if ready in ("interactive", "complete"):
-                time.sleep(0.8)
-                break
-            time.sleep(0.25)
-        summary = _page_summary(browser, session_id)
-        result = {"operation": "navigate", "status": "ok", "public_browser_url": PUBLIC_URL, "secure_browser_owner": BROWSER_OWNER, **summary}
-        _audit("navigate", {"url": result["url"], "origin": result["origin"], "path": result["path"], "new_page": new_page})
-        return result
-
-    return _with_browser(run)
+    adapter = _adapter()
+    workflow = adapter._workflow_id({"workflow_id": f"oauth:{os.environ.get('HERMES_PROFILE', 'talon')}:{BROWSER_OWNER}"})
+    with adapter._controller_lock():
+        adapter._bridge("tabs", {"action": "acquire", "workflow_id": workflow})
+        result = adapter._bridge("navigate", {"url": _safe_navigation_url(url), "workflow_id": workflow})
+        # The shared bridge's stable workflow binding is authoritative. A lost
+        # response never silently creates another tab or abandons a binding.
+        readback = result.get("readback") or {}
+        return {**_summary(readback), "operation": "navigate", "status": result.get("status", "ok")}
 
 
 def _current_page_summary() -> dict[str, Any]:
-    def run(browser: CdpSession) -> dict[str, Any]:
-        target_id = _first_page_target(browser)
-        session_id = _attach(browser, target_id)
-        summary = _page_summary(browser, session_id)
-        summary.update({
-            "operation": "current_page_summary",
-            "public_browser_url": PUBLIC_URL,
-            "secure_browser_owner": BROWSER_OWNER,
-            "policy": "Redacted page metadata only. Joy handles login/2FA/CAPTCHA/consent in the Kasm UI; Talon must not request or expose token values, callback codes, cookies, storage, raw DOM, screenshots of secret pages, or credentials.",
-        })
-        return summary
-
-    return _with_browser(run)
+    adapter = _adapter()
+    with adapter._controller_lock():
+        return _summary(adapter._bridge("snapshot", {}))
 
 
 def _readiness_status() -> dict[str, Any]:
-    base = {
-        "toolset": TOOLSET,
-        "namespace": NAMESPACE,
-        "target": SECURE_BROWSER_TARGET,
-        "workload": WORKLOAD,
-        "backend_identity": _backend_identity_status(),
-        "remote_debug_port": REMOTE_DEBUG_PORT,
-        "secure_browser_owner": BROWSER_OWNER,
-        "ownership_state_path": OWNERSHIP_STATE_PATH,
-        "public_browser_url": PUBLIC_URL,
-        "available": _check_secure_browser_oauth(),
-        "boundary": "Secure-browser OAuth tools provide navigation and redacted page metadata only; Joy performs credential entry and approvals through Kasm.",
-    }
-    if not base["available"]:
-        return base
-    cmd = ["kubectl", "-n", NAMESPACE, "get", WORKLOAD, "-o", "json"]
-    env = os.environ.copy()
-    env.setdefault("HOME", "/home/joy")
-    try:
-        proc = subprocess.run(cmd, check=False, text=True, capture_output=True, timeout=10, env=env)
-        base["kubectl_exit_code"] = proc.returncode
-        if proc.returncode == 0:
-            data = json.loads(proc.stdout)
-            base["ready_replicas"] = data.get("status", {}).get("readyReplicas", 0)
-            base["replicas"] = data.get("status", {}).get("replicas", 0)
-            base["observed_generation"] = data.get("status", {}).get("observedGeneration")
-        else:
-            base["kubectl_error"] = proc.stderr[-500:]
-    except Exception as err:
-        base["kubectl_error"] = str(err)[:500]
-    return base
+    status = json.loads(_adapter().secure_browser_status_tool({}))
+    return {"toolset": TOOLSET, "available": status.get("status") == "ok",
+            "status": status.get("status"), "message": status.get("message"),
+            "public_browser_url": PUBLIC_URL, "transport": "authenticated service endpoint"}
 
 
 def secure_browser_oauth_status_tool(args: dict[str, Any], **_kw: Any) -> str:
@@ -483,27 +174,15 @@ def secure_browser_oauth_current_page_summary_tool(args: dict[str, Any], **_kw: 
 
 def secure_browser_oauth_read_only_query_tool(args: dict[str, Any], **_kw: Any) -> str:
     expression = str(args.get("expression") or "").strip()
-    if not expression:
-        return _json({"operation": "read_only_query", "status": "error", "error": "expression is required"})
-    if len(expression) > 1000 or MUTATING_JS_TOKENS.search(expression):
-        return _json({"operation": "read_only_query", "status": "error", "error": "expression is too long or contains mutating/network/storage/navigation tokens"})
-
-    def run(browser: CdpSession) -> dict[str, Any]:
-        target_id = _first_page_target(browser)
-        session_id = _attach(browser, target_id)
-        page = _page_summary(browser, session_id)
-        value = _evaluate(browser, session_id, f"(() => {{ const value = ({expression}); return value; }})()")
-        safe_value = json.loads(json.dumps(value, ensure_ascii=False, default=str))
-        rendered = json.dumps(safe_value, ensure_ascii=False, sort_keys=True, default=str)
-        if SENSITIVE_URL_TEXT.search(rendered) or len(rendered) > 4000:
-            rendered = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
-            return {"operation": "read_only_query", "status": "redacted", "page": page, "value_sha256": rendered, "redaction_reason": "query result looked sensitive or too large"}
-        return {"operation": "read_only_query", "status": "ok", "page": page, "value": safe_value}
-
+    keys = {"document.title": "page_title", "location.origin": "origin", "location.pathname": "path"}
+    if expression not in keys:
+        return _json({"operation": "read_only_query", "status": "error",
+                      "error": "OAuth query accepts only document.title, location.origin or location.pathname; arbitrary scripts are forbidden"})
     try:
-        return _json(_with_browser(run))
-    except Exception as err:
-        return _json({"operation": "read_only_query", "status": "error", "error": str(err)[:800]})
+        page = _current_page_summary()
+        return _json({"operation": "read_only_query", "status": "ok", "page": page, "value": page[keys[expression]]})
+    except (RuntimeError, ValueError) as exc:
+        return _json({"operation": "read_only_query", "status": "error", "error": str(exc)[:800]})
 
 
 def secure_browser_oauth_login_prompt_tool(args: dict[str, Any], **_kw: Any) -> str:
@@ -626,7 +305,7 @@ SUMMARY_SCHEMA = {
 }
 QUERY_SCHEMA = {
     "name": "secure_browser_oauth_read_only_query",
-    "description": "Evaluate a tightly limited read-only JavaScript expression for non-secret facts. Mutating/network/storage/navigation tokens are blocked and sensitive-looking results are hashed/redacted.",
+    "description": "Read one allowlisted OAuth metadata fact: document.title, location.origin or location.pathname. No caller script execution or Kubernetes access.",
     "parameters": {"type": "object", "properties": {"expression": {"type": "string"}}, "required": ["expression"], "additionalProperties": False},
 }
 PROMPT_SCHEMA = {

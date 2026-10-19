@@ -52,6 +52,51 @@ restart, binding recovery or bridge replacement was performed by this worker.
 
 ## Reproduced defects and repairs
 
+### Runtime control-plane coupling (additional owner steering)
+
+After the initial isolated soak, the owner-visible Milk-V workflow reported
+successful acquisition/navigation followed by selected-tab drift and then UI
+exec timeouts. Another supported snapshot exposed a Kubernetes API timeout to
+`172.21.255.255:6443`, while an independent infrastructure readiness check
+returned `ok`. The shared pod still had the original UID/image, restart count 3
+and container start at 17:03:42 UTC. MR 311 remained open and unmerged; the
+reclaimed activation had not changed the production browser image.
+
+This establishes an unwanted control-plane dependency, not the cause of every
+prior CPU hang or tab loss. Endpoint regression tests failed against the old
+adapter: absent kubeconfig prevented reads, a query loaded the cluster-backed
+connector, and an endpoint outage still reached `kubectl`.
+
+The revised transport sends fixed JSON commands to the TLS-verified origin
+`https://browser.eyrie/_nest/bridge/v1`. It does not discover proxies, follow
+redirects, inject source code, retry actions, invoke Kubernetes or fall back to
+another browser. A separate scoped credential is encrypted in Hiera, mounted
+as a Kubernetes Secret and installed only on explicitly configured Hermes
+hosts. It is never a tool argument or printed diagnostic. The existing Kasm
+UI route is unchanged; the guarded bridge rejects browser-origin requests,
+WebSocket upgrades, unknown commands/fields and oversized requests. Raw BiDi,
+WebDriver, filesystem and arbitrary-script APIs are not routed.
+
+The server serializes the whole command, including local BiDi mapping,
+read/revalidation and UI actions. A worker inherits the operation lock so an
+HTTP-server refresh cannot permit another command to overlap a surviving
+worker. A client disconnect does not replay or cancel its action; existing
+workflow uncertainty and action-key journals remain authoritative. The HTTP
+worker is bounded separately from Firefox. Neither endpoint outages nor bridge
+failure restart Firefox or erase profile state. The server-side BiDi reader
+uses only the loopback listener and has no Kubernetes transport fallback.
+OAuth helper operations use the same adapter; their metadata query accepts
+only fixed title/origin/path facts, never caller JavaScript.
+
+Local endpoint tests use an actual HTTP listener for authentication, envelope
+rejection and busy-lock behavior, with nonsecret fixture credentials. Their
+mocked browser dispatch is not live-browser acceptance. The revised transport
+still requires an isolated real-browser endpoint canary, rebuilt image parity,
+exact-head CI and installed public-tool acceptance without Kubernetes client
+credentials. The old image's soak is not counted as proof of the new transport.
+The earlier exact-image approval must not be silently broadened to a different
+image or additional shared-session restart.
+
 ### Asynchronous acquisition, not proof of a dead browser
 
 The same-image empty-profile test reproduced the exact error:
