@@ -1,8 +1,9 @@
 class nest::service::kubernetes (
-  Sensitive         $bolt_private_key,
-  Boolean           $control_plane    = false,
-  Optional[String]  $etcd_zfs_dataset = undef,
-  Optional[Integer] $max_pods         = undef,
+  Sensitive                                            $bolt_private_key,
+  Boolean                                              $control_plane                = false,
+  Optional[String]                                     $etcd_zfs_dataset             = undef,
+  Optional[Integer]                                    $max_pods                     = undef,
+  Optional[Pattern[/\A[1-9][0-9]*(MiB|GiB)\z/]]        $apiserver_go_memory_limit    = undef,
 ) {
   include nest
   include nest::base::bird
@@ -87,6 +88,25 @@ class nest::service::kubernetes (
   }
 
   if $control_plane {
+    $apiserver_memory_ensure = $apiserver_go_memory_limit ? {
+      undef   => absent,
+      default => 'file',
+    }
+    $apiserver_memory_content = $apiserver_go_memory_limit ? {
+      undef   => undef,
+      default => epp('nest/kubernetes/kube-apiserver-memory.yaml.epp', {
+        memory_limit => $apiserver_go_memory_limit,
+      }),
+    }
+    # Manage the kubeadm input only; applying Puppet must not restart the API.
+    # A budget change requires separately guarded API-only reconciliation.
+    file { '/etc/kubernetes/patches/kube-apiserver1+strategic.yaml':
+      ensure  => $apiserver_memory_ensure,
+      content => $apiserver_memory_content,
+      require => File['/etc/kubernetes/patches'],
+      tag     => 'kubernetes_api_memory',
+    }
+
     # Datasets belong to the running host, not its staged build container.
     if $etcd_zfs_dataset and !$facts['is_container'] {
       zfs { $etcd_zfs_dataset:

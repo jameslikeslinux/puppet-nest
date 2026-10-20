@@ -4,3 +4,7 @@ puppet::agent_server_hostname: 'puppet.eyrie'
 
 # Keep etcd's small random I/O aligned to ZFS records on the eMMC data pool
 nest::service::kubernetes::etcd_zfs_dataset: data/crypt/etcd
+
+# Retain the exercised API-only soft budget on this constrained member.
+# This is not a hard RSS limit or a fleet-wide maintenance-safety guarantee.
+nest::service::kubernetes::apiserver_go_memory_limit: 1GiB

@@ -79,9 +79,22 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
     expect(reconcile_plan).to include('kubeadm init phase control-plane apiserver --config=${config_path_quoted}')
     expect(reconcile_plan).to include('nest/kubernetes/append-kubeadm-init-config.rb')
     expect(reconcile_plan).to include('$dry_run_command   = "${api_command} --dry-run"')
-    expect(reconcile_plan).to include('$upgrade_components = false')
+    expect(reconcile_plan).to match(%r{\$upgrade_components\s+= false})
     expect(reconcile_plan).to include('default => $api_command')
     expect(upgrade_plan).to include('upgrade_components => true')
+  end
+
+  it 'requires an exact live cluster version before explicitly selecting a kubeadm binary package' do
+    version_gate = reconcile_plan.index('Require explicit kubeadm version to match the live cluster')
+    install_tool = reconcile_plan.index('Prepare the explicitly selected compatible kubeadm binary package')
+    reconcile = reconcile_plan.index('run_command($reconcile_command')
+
+    expect(version_gate).to be < install_tool
+    expect(install_tool).to be < reconcile
+    expect(reconcile_plan).to include('config.fetch("kubernetesVersion") == ARGV.fetch(0)')
+    expect(reconcile_plan).to include('Explicit kubeadm tool selection is only supported for API-only reconciliation')
+    expect(reconcile_plan).to include("'--usepkgonly'")
+    expect(reconcile_plan).to include('kubeadm.before')
   end
 
   it 'disables the optional object-count metric poller during bootstrap' do

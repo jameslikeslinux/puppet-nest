@@ -9,12 +9,20 @@
 # @param etcd_servers Ordered etcd client endpoints for kube-apiserver
 # @param etcd_member_names Exact voting etcd member names required by the gate
 # @param upgrade_components Explicit version-upgrade path, including etcd and certificates
+# @param kubeadm_version Explicit compatible Gentoo kubeadm tool version, without upgrading cluster components
 plan nest::kubernetes::reconcile_control_plane (
-  TargetSpec    $targets,
-  Array[String] $etcd_servers,
-  Array[String] $etcd_member_names  = ['control1', 'control2', 'control3'],
-  Boolean       $upgrade_components = false,
+  TargetSpec       $targets,
+  Array[String]    $etcd_servers,
+  Array[String]    $etcd_member_names  = ['control1', 'control2', 'control3'],
+  Boolean          $upgrade_components = false,
+  Optional[String] $kubeadm_version    = undef,
 ) {
+  if $kubeadm_version and $kubeadm_version !~ Pattern[/\A[0-9]+\.[0-9]+\.[0-9]+\z/] {
+    fail('kubeadm_version must be an exact major.minor.patch version')
+  }
+  if $kubeadm_version and $upgrade_components {
+    fail('Explicit kubeadm tool selection is only supported for API-only reconciliation')
+  }
   $members = get_targets($targets)
   if $members.length != 1 {
     fail('reconcile_control_plane requires exactly one target')
@@ -99,6 +107,40 @@ plan nest::kubernetes::reconcile_control_plane (
   run_command("test -d ${patches_quoted} && test -x /usr/local/sbin/reconcile-kubeadm-cluster-config && test -x /usr/local/sbin/validate-etcd-cluster", $member, 'Require managed kubeadm assets', {
     _run_as => 'root',
   })
+
+  if $kubeadm_version {
+    # Staged host packages can be newer than the running cluster. Selecting a
+    # tool must not silently upgrade API/etcd images or issue new certificates.
+    $expected_version = "v${kubeadm_version}"
+    $version_check = [
+      'ruby', '-ryaml', '-e',
+      'config = YAML.safe_load(STDIN.read); abort("kubeadm tool must match the live cluster version exactly") unless config.fetch("kubernetesVersion") == ARGV.fetch(0)',
+      $expected_version,
+    ].shellquote
+    run_command("${read_config_command} | ${version_check}", $member, 'Require explicit kubeadm version to match the live cluster', {
+      _run_as => 'root',
+    })
+    $tool_install = [
+      'emerge', '--oneshot', '--usepkgonly', '--verbose', "=sys-cluster/kubeadm-${kubeadm_version}",
+    ].shellquote
+    $tool_prepare_template = @(COMMAND/L)
+      set -eu
+      if [ "$(kubeadm version -o short)" != __EXPECTED_VERSION__ ]; then
+        backup="/root/kubernetes-manifest-backups/kubeadm-tool-$(date -u +%Y%m%dT%H%M%S.%N)"
+        install -d -m 0700 "$backup"
+        install -m 0700 "$(command -v kubeadm)" "$backup/kubeadm.before"
+        kubeadm version -o short > "$backup/version.before"
+        __TOOL_INSTALL__
+      fi
+      test "$(kubeadm version -o short)" = __EXPECTED_VERSION__
+      | COMMAND
+    $tool_prepare = $tool_prepare_template
+      .regsubst('__EXPECTED_VERSION__', $expected_version.shellquote, 'G')
+      .regsubst('__TOOL_INSTALL__', $tool_install, 'G')
+    run_command($tool_prepare, $member, 'Prepare the explicitly selected compatible kubeadm binary package', {
+      _run_as => 'root',
+    })
+  }
 
   $lock_owner = run_command('cat /proc/sys/kernel/random/uuid', $member, 'Create reconciliation lock owner', {
     _run_as => 'root',
