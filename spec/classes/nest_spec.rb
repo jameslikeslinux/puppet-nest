@@ -120,6 +120,7 @@ describe 'nest' do
     'nest::gui::terminals',
     'nest::gui::xmonad',
     'nest::gui::xorg',
+    'nest::gui::xresources',
     'nest::service::bluetooth',
     'nest::service::pipewire',
     'nest::tool::bolt',
@@ -137,6 +138,7 @@ describe 'nest' do
     'nest::gui::media',
     'nest::gui::packages',
     'nest::gui::terminals',
+    'nest::gui::xresources',
     'nest::service::bluetooth',
     'nest::service::pipewire',
   ]
