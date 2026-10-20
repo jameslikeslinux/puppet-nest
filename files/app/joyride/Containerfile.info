@@ -1,7 +1,0 @@
-FROM mirror.gcr.io/library/python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
-COPY informational_site.py /platform/server.py
-COPY informational/bundle-0.json informational/bundle-1.json /site/
-ENV JOYRIDE_INFO_BUNDLE=/site PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-USER 10001:10001
-EXPOSE 8000
-CMD ["python", "-I", "-B", "/platform/server.py"]

@@ -4,3 +4,5 @@
 # never reuse TEST listeners, controller authority or credentials in production.
 include:
 - nest::service::joyride
+# Independently reviewed application operational entrypoints; never candidate tags.
+joyride_operations_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:fd794c3de03d6b4a3bab3bb6250c7ba92edc0084ba95562d512d84bd22daacd1

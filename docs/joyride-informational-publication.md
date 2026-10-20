@@ -6,6 +6,25 @@ application main, not the separate full membership/payment launch gates.
 
 ## Exact content and artifact
 
+Runtime source, deterministic packager, approved literal bundles, focused tests
+and both runtime publishers are owned by `joy/joyride/platform_runtime/`, not
+Nest. Application MR 11 merged at
+`b500350d181db4a64f5f89357b8335901907fe6f`; protected-main pipeline 10760 passed
+check, build, runtime-isolation and smoke before release jobs 43233 and 43234.
+Nest CI neither produces these artifacts nor triggers an application release.
+It retains Puppet and infrastructure configuration/trust-boundary validation.
+
+The current source-managed informational artifact is
+`registry.eyrie/joy/joyride-info@sha256:545368db06fbe67edd3d8febc375ad5486d5e613691823222a05622478900f8d`.
+It is a byte-preserving independent copy of the personal application's
+`registry.gitlab.joyfullee.me/joy/joyride/joyride-info` index at the same digest.
+Both child manifests, configurations, all reachable blobs and approved bundle
+bytes were independently read back before selecting it. This is packaging
+ownership follow-through, not new frontend content or membership activation.
+Deployment/live acceptance must be recorded separately from artifact readback.
+
+The following original publication identities are historical rollback evidence:
+
 Application source is `73c0575179ab995979f9756c6be750f4903d4781`, main pipeline
 10666, with successful check 42875, build 42876 and smoke 42877. Its application
 image is `registry.gitlab.joyfullee.me/joy/joyride/app@sha256:2ce05347638a8b03927eb84cb918b0eab85bc744bf24c275505b017ed70b1da2`.

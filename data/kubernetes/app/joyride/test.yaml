@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Preserve the already verified TEST release during managed platform upgrades.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1dc225fbb3f5fd6eecc300f186d9b405fb88bc38ee7b07ab79ed8dd8d3f758a6
+# Personal application protected-main release with versioned operational entrypoints.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:fd794c3de03d6b4a3bab3bb6250c7ba92edc0084ba95562d512d84bd22daacd1
 affinity: {}
 tolerations: []
 resources:
@@ -20,11 +20,8 @@ resources:
       name: '%{nest::kubernetes::service}-scripts'
       namespace: '%{nest::kubernetes::namespace}'
     binaryData:
-      bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
       import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
       test_delivery_controller.py: '%{nest::service::joyride::test_delivery_base64}'
-      backup.py: '%{nest::service::joyride::backup_script_base64}'
-      monitor.py: '%{nest::service::joyride::monitor_script_base64}'
   delivery_journal:
     apiVersion: v1
     kind: ConfigMap
@@ -374,15 +371,12 @@ resources:
             envFrom:
             - secretRef:
                 name: '%{nest::kubernetes::service}-runtime'
-            command: [python, /platform/bootstrap.py]
+            command: [python, /app/platform_runtime/bootstrap.py]
             volumeMounts:
             - name: data
               mountPath: /data
             - name: tmp
               mountPath: /data/tmp
-            - name: scripts
-              mountPath: /platform
-              readOnly: true
             - name: pull
               mountPath: /pull
               readOnly: true
@@ -528,9 +522,6 @@ resources:
             - manage.py
             - worker
           volumes:
-          - name: scripts
-            configMap:
-              name: '%{nest::kubernetes::service}-scripts'
           - name: pull
             secret:
               secretName: '%{nest::kubernetes::service}-pull'

@@ -41,15 +41,11 @@ stages:
     - 'python3 -m venv .production-boundary-venv'
     - '.production-boundary-venv/bin/python -m pip install --disable-pip-version-check --only-binary=:all: PyYAML==6.0.3 cryptography==50.0.2'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_production_boundaries.py'
-    - '.production-boundary-venv/bin/python spec/app/joyride/test_installed_test_producer.py'
-    - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_key.py'
+    - '.production-boundary-venv/bin/python spec/app/joyride/test_runtime_ownership.py'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_custody.py'
-    - 'python3 spec/app/joyride/test_evidence_runtime.py'
-    - 'python3 spec/app/joyride/test_evidence_release.py'
     # The identity boundary rejects writable ancestors, including CI /tmp.
     - 'install -d -m 0700 "$HOME/.cache/joyride-fixtures"'
     - 'TMPDIR="$HOME/.cache/joyride-fixtures" python3 spec/app/joyride/test_evidence_identity.py'
-    - 'python3 spec/app/joyride/test_informational_site.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci
@@ -67,36 +63,6 @@ stages:
     - 'python3 spec/app/hermes/test_firefox_tab_ancestry.py'
     - 'python3 spec/app/hermes/test_secure_browser_firefox_ui.py'
     - 'python3 spec/app/hermes/test_secure_browser_general_hardening.py'
-
-'Publish Joyride informational runtime':
-  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
-  stage: 'Build'
-  tags: ['owl']
-  interruptible: false
-  script:
-    - 'python3 -B files/app/joyride/release_informational.py informational-runtime.json'
-  artifacts:
-    paths: ['informational-runtime.json']
-    expire_in: '1 year'
-  rules:
-    - if: '$EXECUTOR_ONLY || $BUILD'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
-
-'Publish Joyride evidence runtime':
-  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
-  stage: 'Build'
-  tags: ['owl']
-  interruptible: false
-  script:
-    - 'python3 -B files/app/joyride/release_evidence_runtime.py evidence-runtime.json'
-  artifacts:
-    paths: ['evidence-runtime.json']
-    expire_in: '1 year'
-  rules:
-    - if: '$EXECUTOR_ONLY || $BUILD'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
 
 .template:
   stage: 'Build'

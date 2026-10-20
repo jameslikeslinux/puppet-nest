@@ -35,14 +35,44 @@ resources:
             spec:
               automountServiceAccountToken: false
               restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
               imagePullSecrets:
               - name: joyride-test-backup-pull
+              - name: joyride-test-pull
+              initContainers:
+              - name: admit-backup
+                image: '%{lookup(''joyride_operations_image'')}'
+                command:
+                - python
+                - -I
+                - -B
+                - -c
+                - |
+                  import hashlib, os
+                  data = open('/app/platform_runtime/backup.py', 'rb').read()
+                  if hashlib.sha256(data).hexdigest() != '0bd5c397f068b7e9eed784ce48afcd0abf4eeb4ae3b5a11c53aaa04939415f5c':
+                      raise SystemExit('Operational source hash mismatch')
+                  fd = os.open('/trusted/backup.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o444)
+                  with os.fdopen(fd, 'wb') as stream:
+                      stream.write(data)
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+                volumeMounts:
+                - name: scripts
+                  mountPath: /trusted
               containers:
               - name: backup
                 # Trusted Nest operational image, not a frontend release.
                 image: '%{lookup(''config_image'')}'
                 imagePullPolicy: Always
-                command: [python3, -B, /platform/backup.py, --stage-root, /scratch]
+                command: [python3, -B, /trusted/backup.py, --stage-root, /scratch]
                 env:
                 - name: KUBECONFIG
                   value: /kubeconfig/eyrie.conf
@@ -61,7 +91,7 @@ resources:
                     ephemeral-storage: 24Gi
                 volumeMounts:
                 - name: scripts
-                  mountPath: /platform
+                  mountPath: /trusted
                   readOnly: true
                 - name: scratch
                   mountPath: /scratch
@@ -72,11 +102,8 @@ resources:
                   readOnly: true
               volumes:
               - name: scripts
-                configMap:
-                  name: joyride-test-scripts
-                  items:
-                  - key: backup.py
-                    path: backup.py
+                emptyDir:
+                  sizeLimit: 1Mi
               - name: scratch
                 emptyDir:
                   sizeLimit: 24Gi
@@ -122,8 +149,8 @@ resources:
               - name: joyride-test-pull
               containers:
               - name: monitor
-                image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
-                command: [python, -B, /platform/monitor.py]
+                image: '%{lookup(''joyride_operations_image'')}'
+                command: [python, -B, /app/platform_runtime/monitor.py]
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -135,17 +162,6 @@ resources:
                     memory: 32Mi
                   limits:
                     memory: 64Mi
-                volumeMounts:
-                - name: scripts
-                  mountPath: /platform
-                  readOnly: true
-              volumes:
-              - name: scripts
-                configMap:
-                  name: joyride-test-scripts
-                  items:
-                  - key: monitor.py
-                    path: monitor.py
   alert_rules:
     apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule

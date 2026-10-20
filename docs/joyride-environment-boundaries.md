@@ -71,16 +71,17 @@ The candidate declares serial `migrate` and `basemap` init containers on the web
 Deployment, using the same immutable application image, non-root security context
 and production-local database/signing references. Migration mounts only scratch
 space. The basemap initializer reuses the existing checksum-pinned OSM installer;
-only it mounts the read-only package credential and bootstrap script. Runtime
-containers do not mount that credential or script, and ops/worker pods do not
+only it mounts the read-only package credential and runs the application image's
+`/app/platform_runtime/bootstrap.py`. Runtime containers do not mount that
+credential or injected source, and ops/worker pods do not
 carry those volumes. The installer registers the open basemap, not routes,
 members, waivers or content, and does not reset an existing active map selection.
 No initialization executes while replicas remain zero and the compile guard
 remains closed. The shared installer has TEST evidence, not production runtime
 acceptance.
 
-The candidate also includes a suspended `joyride-monitor` CronJob, a separate
-monitor-only script ConfigMap and an application-probe alert. The shared probe
+The candidate also includes a suspended `joyride-monitor` CronJob using the
+independently pinned `joyride_operations_image` and an application-probe alert. The shared probe
 helper accepts only explicit `test` or `production` targets; its default TEST
 behavior is unchanged. The production target is the anonymous production web
 Service on port 8000, with its explicit Host header. It checks readiness,
@@ -97,7 +98,7 @@ No production Job or rule has been deployed/evaluated; live acceptance remains
 required after approved activation.
 
 The candidate now also declares a suspended administrative `joyride-backup`
-CronJob and separate helper ConfigMap. It uses the trusted Nest config image,
+CronJob and hash-checked helper admission from `joyride_operations_image`. It uses the trusted Nest config image,
 never a Luna-selected application image, and the established administrative
 read-only host kubeconfig. That kubeconfig is privileged: the namespace allowlist
 is an application safety boundary, not Kubernetes credential scope. Only this
