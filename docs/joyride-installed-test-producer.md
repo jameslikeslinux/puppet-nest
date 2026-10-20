@@ -328,6 +328,15 @@ runtime, mount only the child kubeconfig and independent scoped GitLab read
 credential, serialize collection with delivery, and revoke on normal completion.
 Never interpret a successful permission canary as signed receipt acceptance.
 
+Target binding is independently infrastructure-owned. The helper reads the
+fully observed single-replica Deployment, its current Deployment-owned
+ReplicaSet and unique ready Pod before issuing authority. It verifies the
+delivery UUID, six immutable image references and matching Pod/container
+templates without importing the application-owned producer or a checkout module.
+This separation also keeps the operator command usable after application source
+leaves Nest. The collector retains its own runtime/restart and repeated snapshot
+fences; provisioning does not replace fresh collection or serialize delivery.
+
 ## Evidence and remaining work
 
 A real unsigned collection against installed generation 14, source
