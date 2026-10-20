@@ -43,14 +43,14 @@ then verify changed behavior against the exact resulting TEST artifact.
 | --- | --- | --- |
 | Real scout video | OUT OF SCOPE FOR V1 | Closed by Joy's scope reduction, not tested/passed; no footage request. |
 | Synthetic motion-test MP4 | Prototype evidence only | Run 11773 exercised playback then removed fixtures; clip must not ship as v1. Do not rerun video acceptance. |
-| Photos-only frontend | OPEN, Luna-owned | Consume Luna's next hero/member revision through existing application Git/CI integration. Verify deployed public assets and member behavior contain no enabled video UI, references or bundled clip. Talon must not edit Luna's design. |
-| Backend photo-only exposure | Verified on TEST, frontend still OPEN | Application MR 5, exact source `ff6385dc43e6e99aab30880f2975842952f52bad`; run 11783 verifies installed source parity, ready-video omission/direct denial, pre-transcode processing rejection, blocked historical static clip and unchanged protected photos/ranges. Dormant schema/originals remain. |
+| Photos-only frontend | Verified on private TEST, Luna-authored | Application MR 6, exact source `028a8df0994dd9ad33659c3473d5982316dd4c58`; run 11808 verifies all release hashes, absent MP4/video UI, photo hero and populated member photo lightbox on desktop/phone. No Talon frontend edits. |
+| Backend photo-only exposure | Verified on TEST with Luna's photos-only frontend | Application MR 5, exact source `ff6385dc43e6e99aab30880f2975842952f52bad`; runs 11783 and 11808 verify installed source parity, ready-video omission/direct denial, pre-transcode processing rejection, blocked historical static clip and unchanged protected photos/ranges. Dormant schema/originals remain. |
 | TEST website, sessions and protected route/photo/GPX | Prior milestone verified | Run 11770 ingress/session checks and run 11773 populated desktop/phone checks; repeat affected photo/security behavior on resulting photo-only artifact, with exact fixture cleanup. |
 | Regional self-hosted basemap | Prior milestone verified | Existing checksum/region/range evidence and run 11773 painted tiles/HTTP 206; preserve self-hosted attribution/dependencies and private-route separation. |
 | Luna Git/CI/backchannel | Prior milestone verified | Run 11733 actual independent Tailscale status/diagnostics/deploy success; preserve narrow trust and credentials. No new access request for closed canaries. |
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
-| WMATA member display | OPEN, backend seam delivered | Application `docs/photo-only-member-contract.md` defines the tested opt-in `<!-- joyride:wmata -->` marker, release-hashed `templates/member-wmata.html` and active-member-only escaped `wmata` context. No supplied fragment is installed. Luna owns markup, integration and editorial/terms review. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
+| WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
 | Stripe sandbox | UNVERIFIED | Real sandbox credentials and actual checkout/portal/webhook/reconciliation acceptance remain outstanding; mock tests do not close this. No live payments. |
 | Backup/isolated restore and monitoring | Prior TEST milestone verified | Runs 11767/11768 populated restore, scheduled publication, final-generation restore, failure preservation and healthy app alerts. Keep photo authorization and restore in changed-artifact acceptance. |
 | Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended credential-free monitor and fixed-environment administrative backup. Compile guard remains TEST-only; managed production secrets, private ops, gateway, promotion and real production backup/isolated restore acceptance remain open. See environment boundaries. |
@@ -113,3 +113,35 @@ with a new action key. Continue independent source preparation.
 
 No production deployment, gateway activation, live payment, routine mail, member
 communication, legal assent or business-content publication is authorized here.
+
+## Photos-only frontend TEST acceptance, run 11808
+
+Luna delivered the separated integration revision in application MR 6. Exact-head
+MR pipeline 10608 and branch pipeline 10607 passed check/build/smoke. Independent
+audit verified all 34 release hashes, supplied provenance, authored JavaScript
+syntax and byte-identical photo changes from the preserved draft. The source and
+image omit the prototype MP4, enabled video UI and the unapproved WMATA seam.
+
+MR 6 merged as `0e20a7cc872f8f2e304a118e8523eaef1165306c`. The normal trusted
+importer verified source/pipeline/image and registered immutable digest
+`sha256:01cc06f72742755c98c498b12e1e819578a527f95f6625a1b3039cbadac7d104`.
+The existing authenticated TEST request and controller completed Deployment
+generation 10 with one ready replica and a successful application callback.
+The TEST baseline pin now preserves this artifact through platform upgrades.
+
+Real CA-verified Chromium checks passed on desktop and phone using temporary
+synthetic membership and supplied private GPX/streams/photo inputs. Both rendered
+the route line, elevation, protected photo gallery/lightbox and painted self-hosted
+basemap tiles through HTTP 206. Anonymous/private and retained-video denials,
+photo range reads, GPX download, logout and the two-photo/no-video homepage passed.
+There were no page exceptions, external requests or horizontal overflow. Expected
+console errors from explicit negative HTTP probes were counted, not called zero.
+No waiver was accepted. Exact live fixtures, sessions and files were removed.
+
+A separate populated database-and-files restore on this artifact verified exact
+file-manifest parity, photo metadata scrubbing, private file/range parity and
+anonymous/expired-entitlement denials. Both disposable databases and temporary
+container files were removed; live member/route/media counts returned to zero.
+This is not a new managed final-generation backup receipt: the historical
+intermittent archive parsing failure remains unexplained. Stripe sandbox,
+WMATA display approval and remaining guarded production contracts stay open.
