@@ -112,6 +112,44 @@ for dry-run and publication. Do not substitute `kubeadm upgrade node phase
 control-plane`: that broader phase can restart etcd and renew Kubernetes
 certificates even when only API read endpoints were intended to change.
 
+The installed kubeadm tool must also support the running cluster version. A
+Stage 3 root can contain a newer kubeadm than its still-running static Pods;
+API-only reconciliation must not turn that mismatch into an implicit cluster
+upgrade. The optional `kubeadm_version` argument selects an exact Gentoo binary
+package only after checking that it matches the live kubeadm ConfigMap's
+`kubernetesVersion`. The previous executable and version are preserved outside
+the watched directory. Tool selection is refused with `upgrade_components=true`.
+An unavailable binary package fails closed rather than starting a source build.
+Omitting the argument leaves the installed tool unchanged.
+
+For a live v1.34.2 cluster with an incompatible newer host tool, for example:
+
+    bolt plan run nest::kubernetes::reconcile_control_plane targets=control2 'etcd_servers=["https://172.22.4.9:2379","https://172.22.4.8:2379"]' kubeadm_version=1.34.2
+
+Afterward, independently verify the installed tool version, actual API
+container turnover when required, unchanged etcd containers and public
+certificates, direct readiness, quorum and the preserved rollback executable.
+
+The optional host-level `nest::service::kubernetes::apiserver_go_memory_limit`
+manages a kubeadm patch setting the API process's `GOMEMLIMIT`. It accepts
+positive integer MiB or GiB values; the default is absent. Only Control2 selects
+`1GiB`. Puppet manages the input file without notifying kubelet or regenerating
+static manifests. Use `kubernetes_api_memory` for a narrowly tagged catalog
+application, then separately reconcile the API only if its desired input changed.
+
+The Control2 decision retains a stable canary, not a fleet-wide causal claim:
+the mature thirty-minute natural-workload window had no sampled strict or
+authenticated API failures, unchanged containers, six subsecond etcd compactions
+and API RSS between 837705728 and 981229568 bytes. The Go heap cycled through
+multiple collections instead of simply remaining small immediately after startup.
+Restart effects and workload differences still confound comparison with other
+members. `GOMEMLIMIT` is a soft Go-runtime budget, not a hard RSS cap or proof
+that ZFS copy/reset pressure is safe. Do not apply this setting to the other
+controllers without their own evidence. If the budget harms latency or CPU,
+remove the host selection and the exact patch, then restore the preserved API
+manifest through a guarded single-member rollback; restoring the manifest alone
+would let the next kubeadm reconciliation reintroduce the budget.
+
 Require a sustained log-correlated interval with intended advertisers healthy,
 correct external next hops, successful strict API and etcd proposal checks,
 advancing synchronized members, no unplanned leader changes or proposal failures,
