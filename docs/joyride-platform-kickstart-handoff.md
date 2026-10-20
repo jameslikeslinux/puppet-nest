@@ -1,5 +1,10 @@
 # Joyride platform kickstart: engineering handoff
 
+Joy's 2026-10-20 informational-publication authorization supersedes the blanket
+public-homepage hold below, but not membership, checkout, payments or messaging
+gates. See `joyride-informational-publication.md` for the bounded recipe and
+actual verification status. Full-platform production remains dormant.
+
 ## Current v1 contract and acceptance
 
 Joy's photos-only v1 steering supersedes the original photo/video requirement.

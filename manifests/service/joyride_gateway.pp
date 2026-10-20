@@ -1,6 +1,8 @@
-# Dormant production candidate. No host data includes this class. Activation
-# requires Joy's separate approval, supervised certificates and origin acceptance.
-class nest::service::joyride_gateway {
+# Joy approved bounded informational publication. TLS is enabled only after
+# supervised ACME issuance and verified static-only origin acceptance.
+class nest::service::joyride_gateway (
+  Boolean $tls_enabled = false,
+) {
   include 'nest::service::apache'
   include 'apache::mod::ssl'
   include 'apache::mod::rewrite'
@@ -11,8 +13,14 @@ class nest::service::joyride_gateway {
     zfs => false,
   }
 
+  $gateway_config = $tls_enabled ? {
+    true    => file('nest/app/joyride/production-gateway-apache.conf'),
+    default => file('nest/app/joyride/production-acme-apache.conf'),
+  }
+
   apache::custom_config { 'joyride-gateway':
-    content        => file('nest/app/joyride/production-gateway-apache.conf'),
+    content        => $gateway_config,
     verify_command => ['/usr/sbin/apache2', '-t'],
+    require        => Nest::Lib::Srv['www/joyridedc.com'],
   }
 }

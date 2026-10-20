@@ -2,6 +2,7 @@
 nest::classes:
   - 'nest::service::gateway'
   - 'nest::service::reverse_proxy'
+  - 'nest::service::joyride_gateway'
 
 nest::packages:
   - 'app-crypt/certbot'
