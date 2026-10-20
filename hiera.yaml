@@ -31,6 +31,11 @@ hierarchy:
       - "private/kubernetes/common.yaml"
       - "kubernetes/common.yaml"
 
+  # Operator-only custody, selected inside the dedicated service class. An
+  # ordinary application or host catalog does not select the signing scope.
+  - name: 'Joyride Evidence Supervisor'
+    path: "private/joyride/%{nest::service::joyride_evidence::scope}.yaml"
+
   # Relating to specific instances
   - name: 'Hosts'
     paths:

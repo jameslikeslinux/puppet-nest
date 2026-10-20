@@ -46,6 +46,7 @@ stages:
     # The identity boundary rejects writable ancestors, including CI /tmp.
     - 'install -d -m 0700 "$HOME/.cache/joyride-fixtures"'
     - 'TMPDIR="$HOME/.cache/joyride-fixtures" python3 spec/app/joyride/test_evidence_identity.py'
+    - 'TMPDIR="$HOME/.cache/joyride-fixtures" python3 spec/app/joyride/test_evidence_supervisor.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci
