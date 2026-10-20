@@ -1,0 +1,186 @@
+---
+# Joy approved the merged informational frontend, not the member platform.
+include:
+- nest::service::joyride_info
+service_name: joyride-info
+fqdn: joyride.eyrie
+affinity: {}
+tolerations: []
+resources:
+  backup: {}
+  restore: {}
+  nest_registry_auths: {}
+  scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-info-server
+      namespace: joyride-info
+    binaryData:
+      server.py: '%{nest::service::joyride_info::server_base64}'
+  bundle_0:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-info-pages
+      namespace: joyride-info
+    binaryData:
+      bundle-0.json: '%{nest::service::joyride_info::bundle_0}'
+  bundle_1:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-info-fonts
+      namespace: joyride-info
+    binaryData:
+      bundle-1.json: '%{nest::service::joyride_info::bundle_1}'
+  app:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride-info
+      namespace: joyride-info
+    spec:
+      replicas: 2
+      revisionHistoryLimit: 3
+      selector:
+        matchLabels:
+          app: joyride-info
+      template:
+        metadata:
+          labels:
+            app: joyride-info
+          annotations:
+            joyride/source: 73c0575179ab995979f9756c6be750f4903d4781
+            joyride/release: luna-frontend-v6-2026-10-20-r4
+            checksum/server: '%{nest::service::joyride_info::server_sha256}'
+            checksum/bundle: '%{nest::service::joyride_info::bundle_sha256}'
+        spec:
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: web
+            image: mirror.gcr.io/library/python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
+            command: [python, -B, /platform/server.py]
+            env:
+            - name: JOYRIDE_INFO_BUNDLE
+              value: /site
+            ports:
+            - name: web
+              containerPort: 8000
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                cpu: '1'
+                memory: 128Mi
+            readinessProbe:
+              httpGet: &probe
+                path: /health/ready
+                port: web
+                httpHeaders:
+                - name: Host
+                  value: joyride.eyrie
+            livenessProbe:
+              httpGet:
+                <<: *probe
+                path: /health/live
+            volumeMounts:
+            - name: scripts
+              mountPath: /platform
+              readOnly: true
+            - name: bundle
+              mountPath: /site
+              readOnly: true
+          volumes:
+          - name: scripts
+            configMap:
+              name: joyride-info-server
+          - name: bundle
+            projected:
+              sources:
+              - configMap:
+                  name: joyride-info-pages
+              - configMap:
+                  name: joyride-info-fonts
+  web:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: joyride-info
+      namespace: joyride-info
+    spec:
+      selector:
+        app: joyride-info
+      ports:
+      - name: web
+        port: 8000
+        targetPort: web
+  certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: joyride-info
+      namespace: joyride-info
+    spec:
+      secretName: joyride-info-tls
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames: [joyride.eyrie]
+  ingress:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: joyride-info
+      namespace: joyride-info
+    spec:
+      ingressClassName: contour
+      tls:
+      - hosts: [joyride.eyrie]
+        secretName: joyride-info-tls
+      rules:
+      - host: joyride.eyrie
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: joyride-info
+                port:
+                  number: 8000
+  policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-info
+      namespace: joyride-info
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride-info
+      policyTypes: [Ingress, Egress]
+      ingress:
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: projectcontour
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+        ports:
+        - protocol: TCP
+          port: 8000
+      egress: []

@@ -268,6 +268,54 @@ even after checksum rewriting, incomplete completion, traversal/symlink members,
 unsafe permissions, no-overwrite and partial-failure preservation. They do not
 claim that a real managed generation has been backed up or installed.
 
+### Ephemeral TEST Kubernetes identity
+
+`evidence_identity.py` is a trusted operator-side provisioning helper, excluded
+from the evidence image. Its administrative Kubernetes transport never enters
+the collector kubeconfig. It creates a fresh per-invocation ServiceAccount,
+Role and RoleBinding in `test`, after binding the supplied Pod name to the
+current fully observed installed Deployment/ReplicaSet/Pod identity.
+
+The Role permits get of only Deployment `joyride-test`, namespace-local Pod and
+ReplicaSet metadata lists, and get/exec of only that exact current Pod name.
+Kubernetes RBAC cannot restrict a list grant by label selector or restrict exec
+to a container/command. Thus lists expose TEST namespace metadata, and exec can
+reach every container and its runtime credentials in that one application Pod.
+This is a real TEST database/media mutation capability, not a read-only identity.
+It cannot exec another Pod, read Secrets directly, patch a Deployment, create
+workloads/tokens/RBAC, inspect nodes or operate production. A replacement Pod
+requires a new independently bound identity, never a namespace-wide exec grant.
+
+Only the cluster's exact CA-verified Eyrie server and a newly issued short-lived
+TokenRequest token are written to the mode 0600 child kubeconfig. The server's
+actual expiry must be within sixteen minutes; requested lifetime is fifteen.
+No operator client key, exec plugin, alternate server, impersonation, insecure
+TLS option or signing key is copied. Sixteen actual SelfSubjectAccessReviews
+check positive permissions and representative negative/ambient-authority cases.
+These probes supplement exact Role/Binding readback; they are not an exhaustive
+enumeration of all possible Kubernetes permissions.
+
+The operator must provide a new owner-owned mode 0700 directory under trusted
+non-writable ancestors. Intent and exact resource UIDs are persisted before
+subsequent actions. Normal revocation deletes only those UIDs, ServiceAccount
+first, and independently verifies absence before removing the child kubeconfig
+and writing a completion. An ambiguous create/delete or failed check preserves
+the private journal and any remaining resources/config for supervised recovery;
+there is no automatic retry, adoption, name-only delete or broad cleanup.
+Do not mount that journal directory or administrative transport in the runtime.
+
+The command-line canary provisions, verifies and revokes an identity only:
+
+    python3 -B files/app/joyride/evidence_identity.py \
+      --directory <new-private-directory> --pod <exact-installed-test-pod>
+
+It does not collect or sign evidence, suspend delivery, provision GitLab API
+credentials, select private Hiera, install a supervisor or activate trust. A
+future supervisor must keep this administrative helper outside the immutable
+runtime, mount only the child kubeconfig and independent scoped GitLab read
+credential, serialize collection with delivery, and revoke on normal completion.
+Never interpret a successful permission canary as signed receipt acceptance.
+
 ## Evidence and remaining work
 
 A real unsigned collection against installed generation 14, source
