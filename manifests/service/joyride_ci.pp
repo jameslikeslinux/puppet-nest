@@ -2,7 +2,9 @@
 # engine identity; jobs can control that engine, never the host rootful engine.
 class nest::service::joyride_ci {
   unless $facts['is_container'] {
-    require nest::base::containers
+    # Account creation precedes the base class's final subuid/subgid files, so
+    # order individual engine dependencies rather than requiring that class.
+    include nest::base::containers
     require nest::tool::qemu
 
     $scope = 'ci-runner'
