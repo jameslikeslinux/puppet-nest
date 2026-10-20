@@ -232,6 +232,9 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertFalse((ROOT / 'plans/eyrie/deploy_joyride.yaml').exists())
         gateway = (ROOT / 'data/host/gateway.yaml').read_text()
         self.assertNotIn('joyridedc.com', gateway)
+        self.assertNotIn('joyride_gateway', gateway)
+        activation = (ROOT / 'manifests/service/gateway.pp').read_text()
+        self.assertNotIn('joyride_gateway', activation)
 
 
 if __name__ == '__main__':
