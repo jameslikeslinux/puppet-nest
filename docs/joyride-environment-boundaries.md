@@ -39,8 +39,10 @@ The candidate declares separate CNPG/database storage and a separate RWX media
 PVC. Web, ops and worker are separate pods: only the web Service appears in the
 origin Ingress, and its NetworkPolicy admits only projectcontour Envoy on port
 8000. Ops uses the ordinary authenticated port 8001 URL configuration, with a
-separate Secret reference and no deployment scopes. Its NetworkPolicy currently
-denies ALL ingress. There is no token-free listener, TEST access VIP, delivery
+separate Secret reference and no deployment scopes. The dormant ops pod now has a
+dedicated VPN-only TLS sidecar; its NetworkPolicy permits only the VPN source
+range to that TLS port, never the shared ingress or ordinary ops port. There is
+no token-free listener, TEST access VIP, delivery
 controller, RBAC, importer, verifier or journal in the candidate.
 
 Required production-only Secret contracts (not yet provisioned):
@@ -126,12 +128,59 @@ objects and verify live continuity. The detailed isolation rules in
 `joyride-test-recurring-protection.md` apply, with explicit production identity
 and no implicit TEST fallback. No production capture or drill has run yet.
 
-Before activation the candidate still needs production protection, approved
-exact-artifact promotion/rollback, private TLS ops access for Joy and gateway
-preparation, plus managed credentials and live initialization acceptance.
+Before activation the candidate still needs approved exact-artifact
+promotion/rollback and gateway preparation, plus managed credentials, private
+ops live acceptance, production protection and live initialization acceptance.
 Those pieces must be implemented and
 verified before the common compile guard can be widened. Do not apply this file
 directly, create its namespace, scale its Deployments or copy TEST controllers.
+
+### Dormant private TLS ops candidate
+
+`joyride-ops.eyrie` is prepared as a separate source-preserving LoadBalancer
+candidate at `172.21.0.2:443`, not a host/path on shared Contour. Repository and
+live Service discovery found no existing allocation of that address; recheck
+allocation before activation. No DNS record, namespace, Service, route, certificate
+or pod has been created by this source preparation. The existing OpenVPN-pushed
+`172.21.0.0/16` route covers it without expanding the VPN or Luna's Tailscale grant.
+This is Joy's VPN access candidate, not a new Luna production capability.
+
+Service `externalTrafficPolicy: Local` preserves the client source and restricts
+it to the existing OpenVPN pools, collectively `172.22.0.0/24`. Both nginx's
+source allowlist and NetworkPolicy repeat that range. The ops pod selects an
+ordinary worker so the default MetalLB worker advertisement can reach its local
+endpoint. Do not widen this to LAN/node sources to repair an unexpected SNAT:
+verify routing and fail closed. IP allowlisting assumes the existing VPN/network
+trust roots; it does not authenticate a particular human or defend against a
+compromised router/node. Ordinary scoped bearer authentication is also mandatory.
+
+The pinned, non-root read-only nginx sidecar has only its dedicated managed TLS
+certificate, static configuration and bounded tmpfs. It has no runtime secrets,
+database, media mount or service-account token. Exact SNI/Host checks reject other
+origins. Only raw `GET /ops/status` and `GET /ops/diagnostics` reach the ordinary
+bearer-authenticated application listener on same-pod `127.0.0.1:8001`. Wrong
+methods and normalized/query variants fail closed. Other ops, admin, roster,
+deployment and controller routes are absent. Caller headers are discarded except
+the bearer credential; fixed internal Host/HTTPS metadata is supplied. There is
+no identity injection or token-free TEST process. The ordinary listener no longer
+binds the PodIP, and no Service targets port 8001. The public origin still reaches
+only the separate web pod/URL configuration on port 8000.
+
+Real pinned-nginx isolated fixtures verify exact TLS/Host/path handling, ordinary
+bearer propagation, unauthorized rejection, spoofed-header removal and denial of
+a non-VPN source even with the correct synthetic bearer. Positive cases substitute
+only the allowlisted CIDR with the fixture's loopback; the denial case uses the
+original source configuration. These are synthetic upstream fixtures, not live
+VPN, Kubernetes enforcement or installed production app authentication acceptance.
+
+After a separate approved activation, require normal CA/hostname-verified access
+from Joy's actual VPN client, correct-bearer status/diagnostics, unauthenticated
+and wrong-bearer denial, non-VPN/spoofed-source denial, absent public ops/admin
+routes, and no direct PodIP 8001 listener. Verify all additive NetworkPolicies,
+source preservation, selected certificate/endpoint/image and continuity of TEST
+and existing gateway services. Provision a separate production credential through
+the existing encrypted private source; never put bearer values into chat, logs,
+screenshots or evidence. No such production credential or live canary exists yet.
 
 ## Remaining production implementation contract
 

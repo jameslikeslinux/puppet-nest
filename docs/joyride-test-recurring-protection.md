@@ -67,6 +67,28 @@ and does not weaken tar/member/hash or completion-record validation. Real manage
 capture, publication and isolated restore must pass after the reviewed change is
 installed before the repair is accepted.
 
+That repair gate passed in run 11809. The single managed verification Job
+`joyride-backup-fixed-verify-run11808` completed using the installed helper whose
+bytes matched reviewed MR 335. It published generation
+`20261020T040601Z-c7b621fa184c4051918a2dac95a21030.tar`, SHA-256
+`d2404da4074655886fb521d06cc0d7423e96cd3d13e16507cdf799511e138c68`.
+The verifier read back its matching completion record, exact archive size and
+hash, checked both payload hashes and safely restored the file archive. The
+generation's actual database restored into a new disposable database and passed
+the installed application's migrations and checks. Its two files were basemap
+files and its member database was empty: this is managed publication/restore
+acceptance, not a new populated photo/authorization drill. The populated isolated
+photo restore is separate run 11808 evidence.
+
+Independent readback confirmed disposable database absence, live DB continuity,
+all six application/initializer image fields matching the selected photo-only
+digest, normal TLS readiness, unchanged idle delivery journal and unsuspended
+controller. The exact completed verification Job was removed and read back
+absent; no final backup generation was removed. Production namespace remained
+absent. Safe receipts are in `build/joyride-run11809/managed-backup-receipt.json`
+and `build/joyride-run11809/independent-continuity.json`; private archives and
+credentials are not report attachments.
+
 ## Explicit isolated restore
 
 1. Suspend the backup schedule and wait for the active Job if inspecting a
@@ -93,7 +115,8 @@ installed before the repair is accepted.
 The preceding populated isolated drill is recorded in
 `build/joyride-run11767/populated-restore-and-scheduled-importer.md`. That is not
 proof that this new recurring workload has run or its publication restored.
-Require fresh managed-Job and final archive restore evidence before acceptance.
+Run 11809 supplies that fresh managed-Job/final-generation restore evidence as
+described above; it does not convert an empty generation into a populated drill.
 
 ## Application monitoring
 
