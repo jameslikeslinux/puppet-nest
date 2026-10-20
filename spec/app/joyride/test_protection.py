@@ -1,8 +1,12 @@
 """Synthetic fixtures: publication failures and anonymous probe contracts."""
 import importlib.util
+import contextlib
 import io
 import json
 from pathlib import Path
+import runpy
+import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -23,6 +27,39 @@ monitor = load('monitor')
 
 
 class ProtectionTests(unittest.TestCase):
+    def test_failure_diagnostics_never_include_private_exception_text(self):
+        private = '/private/synthetic-member credential=synthetic-secret'
+        for error, expected in (
+                (tarfile.ReadError(private), 'files_archive_invalid'),
+                (tarfile.StreamError(private), 'files_archive_invalid'),
+                (subprocess.TimeoutExpired(private, 1200), 'capture_timeout'),
+                (BlockingIOError(private), 'capture_already_running'),
+                (OSError(private), 'local_io_failed'),
+                (backup.BackupError('files_changed_during_capture'), 'files_changed_during_capture'),
+                (backup.BackupError('capture_command_failed'), 'capture_command_failed'),
+                (backup.BackupError(private), 'unclassified_failure'),
+                (RuntimeError(private), 'unclassified_failure')):
+            with self.subTest(kind=type(error).__name__, expected=expected):
+                self.assertEqual(backup.failure_reason(error), expected)
+                self.assertNotIn(private, backup.failure_reason(error))
+
+    def test_invalid_archive_has_safe_diagnostic_category(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / 'files.tar'
+            path.write_bytes(b'synthetic invalid archive, not a real payload')
+            with self.assertRaises(tarfile.ReadError) as raised:
+                backup.verify_files(path, {})
+            self.assertEqual(backup.failure_reason(raised.exception), 'files_archive_invalid')
+
+    def test_cli_failure_is_nonzero_and_redacted(self):
+        output = io.StringIO()
+        with patch.object(sys, 'argv', ['backup.py', '--stage-root', '/synthetic']), \
+                patch.object(Path, 'resolve', side_effect=tarfile.ReadError('private synthetic payload')), \
+                contextlib.redirect_stderr(output), self.assertRaises(SystemExit) as raised:
+            runpy.run_path(str(ROOT / 'files/app/joyride/backup.py'), run_name='__main__')
+        self.assertEqual(raised.exception.code, 1)
+        self.assertEqual(output.getvalue(), 'Joyride backup failed (files_archive_invalid); previous completed generations retained\n')
+
     def test_publish_and_private_permissions(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

@@ -19,6 +19,27 @@ class BackupError(Exception):
     pass
 
 
+def failure_reason(error):
+    """Only fixed codes may reach logs, never paths or subprocess diagnostics."""
+    if isinstance(error, BackupError) and str(error) in {
+            'capture_command_failed', 'ambiguous_ready_pod',
+            'unsafe_archive_path', 'unsafe_archive_member',
+            'files_changed_during_capture', 'publication_readback_failed',
+            'receipt_readback_failed', 'environment_destination_mismatch',
+            'staging_must_be_local', 'database_archive_invalid',
+            'application_replaced_during_capture'}:
+        return str(error)
+    if isinstance(error, tarfile.TarError):
+        return 'files_archive_invalid'
+    if isinstance(error, subprocess.TimeoutExpired):
+        return 'capture_timeout'
+    if isinstance(error, BlockingIOError):
+        return 'capture_already_running'
+    if isinstance(error, OSError):
+        return 'local_io_failed'
+    return 'unclassified_failure'
+
+
 TARGETS = {
     'test': ('test', 'joyride-test', 'joyride-test-cnpg', Path('/nest/backup/joyride-test')),
     'production': ('joyride', 'joyride', 'joyride-cnpg', Path('/nest/backup/joyride')),
@@ -207,6 +228,6 @@ if __name__ == '__main__':
     try:
         record = backup(args.stage_root, environment=args.environment)
         print(json.dumps({'backup': 'complete', 'archive': record['archive'], 'sha256': record['sha256']}))
-    except Exception:
-        print('Joyride backup failed; previous completed generations retained', file=sys.stderr)
+    except Exception as error:
+        print('Joyride backup failed (' + failure_reason(error) + '); previous completed generations retained', file=sys.stderr)
         sys.exit(1)
