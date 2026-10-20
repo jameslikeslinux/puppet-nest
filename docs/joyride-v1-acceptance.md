@@ -128,6 +128,9 @@ importer verified source/pipeline/image and registered immutable digest
 The existing authenticated TEST request and controller completed Deployment
 generation 10 with one ready replica and a successful application callback.
 The TEST baseline pin now preserves this artifact through platform upgrades.
+The dormant production candidate retains the same-artifact source invariant;
+its compile guard, zero replicas and suspended Jobs remain unchanged. Updating
+that inactive pin does not deploy production or authorize promotion.
 
 Real CA-verified Chromium checks passed on desktop and phone using temporary
 synthetic membership and supplied private GPX/streams/photo inputs. Both rendered
