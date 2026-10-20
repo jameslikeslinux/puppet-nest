@@ -56,7 +56,7 @@ then verify changed behavior against the exact resulting TEST artifact.
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
 | WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
-| Disabled/no-op billing | Backend/worker verified on TEST; frontend OPEN | Application MR 7 and run 11814 verify explicit disabled capability/errors, terminal skipped billing jobs, no provider calls or entitlement/identity writes, session/CSRF/waiver/private-access boundaries and exact installed source. Luna-authored graceful frontend and resulting browser checks remain required. |
+| Disabled/no-op billing | Backend/worker and Luna frontend verified on private TEST | Application MR 7/run 11814 preserve the disabled API/worker protections. Application MR 8/run 11835 verify Luna's graceful UI on desktop/phone, zero billing POSTs and installed auth/CSRF/waiver/private-access boundaries. Factual wording remains Luna-drafted, not publication approval. |
 | Real Stripe sandbox/provider acceptance | DEFERRED by Joy | LLC/account setup, selected account/product/Price ID, secure credentials and actual checkout/portal/signed-webhook/reconciliation proof belong to later explicit activation. Not passed and not a blocker to the no-Stripe phase. No live payments. |
 | Backup/isolated restore and monitoring | TEST milestone and transport repair verified | Runs 11767/11768 protection and alerts; run 11808 populated photo restore; run 11809 repaired managed capture, completion readback and exact-generation isolated restore with independent cleanup/live continuity. That managed generation was empty of members, not a populated photo drill. |
 | Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended monitor/backup and dedicated VPN TLS ops candidate with real pinned-nginx fixtures. Compile guard remains TEST-only; managed production secrets, private ops live acceptance, gateway, promotion and real production protection acceptance remain open. See environment boundaries. |
@@ -234,8 +234,53 @@ member/checkout/webhook/waiver/route/media counts to zero. Prior populated
 photo/map/restore receipts remain distinct; these checks do not repeat them or
 claim a new provider or frontend acceptance.
 
-The Luna handoff remains unverified. Fresh supported reads still show a drafted
-message in DOM while the visible composer is empty, with the existing selected
-chat and workflow preserved. No retry/send, restart, binding recovery, duplicate
-message or frontend revision is claimed. The current frontend and separate WMATA
-editorial/terms gates remain open; Stripe account/provider acceptance is deferred.
+At that checkpoint the Luna handoff remained unverified because DOM and visible
+composer state disagreed. The subsequent approved browser recovery and actual
+frontend delivery are recorded below; this historical failure is not a current
+frontend acceptance blocker. WMATA editorial/terms approval remains open and
+Stripe account/provider acceptance remains deferred.
+
+## Disabled-billing frontend TEST acceptance, run 11835
+
+Luna delivered application MR 8 from exact source
+`ca488979700427a626966115b04f9238a06c6960`. Independent source review verified
+all 34 release hashes and the narrow frontend-only change. Branch pipeline 10644
+and MR pipeline 10645 both passed check/build/smoke with the same immutable
+multi-architecture digest. MR 8 merged as
+`213a31d132ced63febcfe882d10a9ff7b11f48d1`; Luna's source branch is preserved.
+
+The trusted importer retained its original pipeline 10644 receipt for digest
+`sha256:e94453b4981897144039b80b06744d10fc367bf6ddb6c99edbeb25c0e445ebc2`.
+The existing authenticated TEST API and controller completed generation 12 and
+the successful terminal callback. All six application/init image fields match;
+installed frontend and backend source hashes match the reviewed exact source.
+The baseline pins preserve that already installed release through later platform
+upgrades; the equal dormant production pin does not activate production.
+
+Real CA/hostname-verified Chromium checks on desktop and phone verified disabled
+checkout/portal buttons, Luna's closed note, zero billing POSTs, no nonmember
+private-route requests, no page exceptions, no external requests and no horizontal
+overflow. Separate explicitly intercepted response fixtures verified each action
+becomes disabled after one 503 response and does not redirect or repeat a POST.
+Those fixtures are not real provider acceptance. Initial test-harness failures
+were resolved by supplying Node the installed system CA bundle and using
+locator assertions rather than CSP-blocked string evaluation; no TLS bypass or
+application CSP relaxation was used.
+
+Installed HTTPS checks again verified authenticated disabled capabilities,
+checkout/portal/unsigned-webhook 503, auth/CSRF enforcement, checkout-return
+identity denial, unpaid route/GPX denial, exact waiver text/hash readback,
+stale-version rejection and logout. No waiver was accepted and no provider or
+mail action occurred. Exact synthetic fixtures were removed; independent
+member/checkout/webhook/waiver/route/media counts returned to zero. Prior
+populated photo/map/restore evidence remains separate and was not redundantly
+repeated. Photo-only v1 and the inactive WMATA draft are unchanged.
+
+Luna's three factual wording changes remain drafts for Joy's editorial pass,
+not public-content approval. A completion acknowledgement was drafted through
+the supported browser but not sent: native DOM contains it while screenshot
+and accessibility again show an empty composer. No uncertain input was replayed,
+no restart/recovery was attempted, and tabs/journals are preserved. The incoming
+source delivery and independent TEST acceptance above are verified despite this
+outgoing acknowledgement failure. Continue agent-owned dormant production
+preparation; do not reopen deferred Stripe or closed frontend canaries.
