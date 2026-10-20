@@ -284,3 +284,38 @@ no restart/recovery was attempted, and tabs/journals are preserved. The incoming
 source delivery and independent TEST acceptance above are verified despite this
 outgoing acknowledgement failure. Continue agent-owned dormant production
 preparation; do not reopen deferred Stripe or closed frontend canaries.
+
+## Delivery admission hardening TEST acceptance, run 11842
+
+Application MR 9 merged as `3e4aa09b2b5baecf9070b5e0c5a41d94c32b8198`.
+Independent readback verified successful required check/build/PostgreSQL smoke in
+pipeline 10658 at exact source `101d5ec541ce305f81555813efee58ad5d0b922f`.
+Its immutable linux/amd64 and linux/arm64 index is
+`sha256:ca2779f1991b8c975db52e8fc314b8e44b6de5ec5f473c218baae360d88f15e3`.
+The trusted importer registered that exact receipt; the ordinary authenticated
+TEST request and existing controller completed generation 13 and a successful
+terminal application callback. Baseline pins retain this release without another
+rollout. The equal dormant production pin is not activation or promotion approval.
+
+Installed migration 0004, selected application/init images and reviewed source
+hashes match. Real ordinary-listener auth/status/queue, same-request replay,
+terminal callback replay and denied production enqueue passed without new
+deployment/approval rows. TEST runtime, disabled mail/payments, absent approval
+signing key and default-closed production delivery were independently checked.
+The rollout was observed through intermediate image/readiness/callback states;
+those early incomplete probes were not counted as acceptance or retried releases.
+
+Real CA/hostname-verified HTTPS checks preserved session/CSRF, disabled billing,
+checkout-return identity denial, non-entitled route/GPX denial, verbatim waiver
+hash/version, stale-version rejection and logout. The exact synthetic member and
+session were removed; member/checkout/webhook/waiver/route/media counts returned
+to zero. No provider, mail or legal assent occurred. Unchanged Luna frontend
+hashes and photo-only homepage were verified; prior populated map/photo/restore
+and desktop/phone evidence remains distinct, not a new repeated drill.
+
+Strict signed-receipt parsing, cross-runtime UUID/callback isolation and atomic
+approval race proofs remain disposable application CI fixtures, not production
+runtime proof. Real Joy provenance, trusted cross-environment installed-TEST
+evidence and distinct production controller/topology are still unimplemented.
+Admission stays closed rather than trusting CI or fabricated TEST history. Keep
+all production/publication/payment/mail gates and the inactive WMATA draft intact.
