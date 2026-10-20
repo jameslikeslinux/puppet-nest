@@ -46,6 +46,7 @@ stages:
     - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_custody.py'
     - 'python3 spec/app/joyride/test_evidence_runtime.py'
     - 'python3 spec/app/joyride/test_evidence_release.py'
+    - 'python3 spec/app/joyride/test_evidence_identity.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci
