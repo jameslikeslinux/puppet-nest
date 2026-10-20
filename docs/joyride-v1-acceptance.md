@@ -56,7 +56,7 @@ then verify changed behavior against the exact resulting TEST artifact.
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
 | WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
-| Disabled/no-op billing | OPEN, current-phase requirement | Credential-free startup; explicit stable disabled capability and outcomes; no provider calls, fabricated success or entitlement grants. Backend/worker regression, Luna-authored graceful frontend and resulting installed TEST checks required. |
+| Disabled/no-op billing | Backend/worker verified on TEST; frontend OPEN | Application MR 7 and run 11814 verify explicit disabled capability/errors, terminal skipped billing jobs, no provider calls or entitlement/identity writes, session/CSRF/waiver/private-access boundaries and exact installed source. Luna-authored graceful frontend and resulting browser checks remain required. |
 | Real Stripe sandbox/provider acceptance | DEFERRED by Joy | LLC/account setup, selected account/product/Price ID, secure credentials and actual checkout/portal/signed-webhook/reconciliation proof belong to later explicit activation. Not passed and not a blocker to the no-Stripe phase. No live payments. |
 | Backup/isolated restore and monitoring | TEST milestone and transport repair verified | Runs 11767/11768 protection and alerts; run 11808 populated photo restore; run 11809 repaired managed capture, completion readback and exact-generation isolated restore with independent cleanup/live continuity. That managed generation was empty of members, not a populated photo drill. |
 | Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended monitor/backup and dedicated VPN TLS ops candidate with real pinned-nginx fixtures. Compile guard remains TEST-only; managed production secrets, private ops live acceptance, gateway, promotion and real production protection acceptance remain open. See environment boundaries. |
@@ -205,3 +205,37 @@ Later activation checklist, not a scheduled task or authorization:
 4. Separate explicit live-payment implementation/activation approval. Existing
    production deployment, public launch, mail, member communications and relevant
    business-content publication gates remain closed until separately authorized.
+
+## Disabled-billing backend TEST acceptance, run 11814
+
+Application MR 7 merged as `c6d79b9530c9383df613bcf27bb9d6da421adc8e`.
+Exact source `0180ca6330de57fe7a540108a34a48094dbcd31a` passed check/build/smoke
+in pipelines 10628 and 10629. Independent readback confirmed the image evidence
+and both architectures. The normal trusted importer registered pipeline 10628;
+the original receipt was preserved for the equivalent MR pipeline.
+
+The existing authenticated TEST deployment API and controller selected digest
+`sha256:a742cfd7cf2d7cdbae508e6a596a60621dedaa447a1f45c0fa8e2cb5e4b98e25`
+at generation 11, with a successful terminal callback, one ready replica and all
+six application/init image fields matching. Five changed installed source files
+match the exact source hashes. TEST and dormant production baseline pins preserve
+the exercised artifact without enabling production; no configuration or schema
+migration was required. Source-only acceptance MR 337 also passed all required
+jobs and merged as `f2c06430e8c46e814ff9dd3bf4c3ea85c4c1b09b`.
+
+Five installed disabled-mode regression tests passed in a disposable in-memory
+database, with provider/network guards and truthful terminal skipped-job checks.
+Real CA-verified HTTPS ingress checks used a labelled synthetic non-entitled
+member session: authenticated disabled capability, checkout/portal/unsigned
+webhook HTTP 503, authentication and CSRF gates, return identity denial, unpaid
+route/GPX denial, exact source waiver read, stale-version rejection and logout
+passed. No legal assent or payment was made. Exact fixture cleanup returned
+member/checkout/webhook/waiver/route/media counts to zero. Prior populated
+photo/map/restore receipts remain distinct; these checks do not repeat them or
+claim a new provider or frontend acceptance.
+
+The Luna handoff remains unverified. Fresh supported reads still show a drafted
+message in DOM while the visible composer is empty, with the existing selected
+chat and workflow preserved. No retry/send, restart, binding recovery, duplicate
+message or frontend revision is claimed. The current frontend and separate WMATA
+editorial/terms gates remain open; Stripe account/provider acceptance is deferred.
