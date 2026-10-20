@@ -16,6 +16,13 @@ backup/restore and monitoring milestones have engineering evidence. Overall v1
 acceptance is still open. Production configuration remains dormant and guarded;
 there is no production deployment or public launch approval.
 
+Joy's 2026-10-20 steering defers real Stripe account/credential/provider acceptance
+until a later explicit activation phase. It is not a blocker or a passed test.
+Current delivery requires truthful disabled/no-op billing, graceful Luna-authored
+frontend handling and installed non-payment TEST verification without entitlement
+bypasses. The current acceptance ledger and later activation checklist are in
+`joyride-v1-acceptance.md`; historical Stripe pending lists below are superseded.
+
 ## Historical discovery and integration notes
 
 The chronological notes below preserve earlier observations, including failures

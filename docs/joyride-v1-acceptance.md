@@ -7,6 +7,11 @@ photo/video deliverable and every earlier real-scout-video pending item. The
 original request and chronological reports remain historical evidence, not a
 reason to require footage. Commonplace is input-only; do not alter its CI/hooks.
 
+Joy's 2026-10-20 no-Stripe steering also supersedes the original current-phase
+provider acceptance requirement. LLC/account setup, credentials and REAL Stripe
+sandbox acceptance are DEFERRED, not passed and not blockers to this phase.
+Do not repeat the withdrawn Stripe setup proposal or schedule automatic enablement.
+
 ## Ownership and unchanged requirements
 
 Joy and Luna own business decisions, legal/content approval, branding and ALL
@@ -24,8 +29,8 @@ Dormant reusable video internals may remain harmlessly, but no video ingest,
 transcode, poster or playback capability may be exposed or counted as shipped v1.
 No future-video task or footage request is needed for this version.
 
-All other original requirements remain: verified email-only sessions, Stripe
-Checkout/portal, signed idempotent webhooks and reconciliation, versioned verbatim
+Other current requirements remain: verified email-only sessions, explicit disabled
+billing with the real Stripe adapter preserved for later activation, versioned verbatim
 approved waiver with resume/fallback, protected member routes/GPX, self-hosted
 regional OSM basemap and dependencies with attribution, Luna's independent Git/
 CI/TEST delivery, immutable-artifact promotion/rollback, environment separation,
@@ -51,7 +56,8 @@ then verify changed behavior against the exact resulting TEST artifact.
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
 | WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
-| Stripe sandbox | UNVERIFIED | Real sandbox credentials and actual checkout/portal/webhook/reconciliation acceptance remain outstanding; mock tests do not close this. No live payments. |
+| Disabled/no-op billing | OPEN, current-phase requirement | Credential-free startup; explicit stable disabled capability and outcomes; no provider calls, fabricated success or entitlement grants. Backend/worker regression, Luna-authored graceful frontend and resulting installed TEST checks required. |
+| Real Stripe sandbox/provider acceptance | DEFERRED by Joy | LLC/account setup, selected account/product/Price ID, secure credentials and actual checkout/portal/signed-webhook/reconciliation proof belong to later explicit activation. Not passed and not a blocker to the no-Stripe phase. No live payments. |
 | Backup/isolated restore and monitoring | TEST milestone and transport repair verified | Runs 11767/11768 protection and alerts; run 11808 populated photo restore; run 11809 repaired managed capture, completion readback and exact-generation isolated restore with independent cleanup/live continuity. That managed generation was empty of members, not a populated photo drill. |
 | Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended monitor/backup and dedicated VPN TLS ops candidate with real pinned-nginx fixtures. Compile guard remains TEST-only; managed production secrets, private ops live acceptance, gateway, promotion and real production protection acceptance remain open. See environment boundaries. |
 | Production deployment/public launch/content publication | NOT AUTHORIZED | Separate Joy approval of relevant revision required; no inferred authority from scope reduction. |
@@ -160,5 +166,42 @@ controller journal continuity and production namespace absence. The completed
 verification Job was removed; previous final generations were untouched. Its
 member database was empty and its two files were basemap files; retain the
 separate populated photo-authorization evidence rather than conflating scopes.
-Stripe sandbox, WMATA display approval and remaining guarded production contracts
-stay open.
+Real Stripe acceptance is now deferred under Joy's later no-Stripe steering.
+Disabled billing, WMATA display approval and remaining guarded production
+contracts retain their separate current dispositions.
+
+## No-Stripe current-phase acceptance and later activation
+
+The current phase can finish without a Stripe account, API key, webhook secret,
+product or Price ID once the revised requirements and other genuine current
+requirements pass. Preserve real integration code behind the existing adapter;
+do not introduce a mock-payment framework or a production billing bypass.
+
+- Publish a nonsecret disabled capability for the authenticated frontend and
+  stable explicit disabled checkout/portal/webhook outcomes. No nonexistent
+  provider URL, fictitious receipt or success assertion may be returned.
+- No Stripe network call, charge attempt, subscription creation, paid-member
+  grant or unsigned/fabricated webhook acceptance is permitted in disabled mode.
+  Worker reconciliation must no-op cleanly, not loop on disabled-provider errors.
+- Preserve checkout-return ownership, verified sessions, exact versioned waiver
+  and private route/photo/GPX entitlement enforcement. A waiver is not payment.
+- Luna owns graceful frontend behavior and wording, delivered through the existing
+  dedicated side chat and application Git/CI lane. Talon does not author their UI.
+- Use only labelled isolated disposable TEST fixtures for member/waiver checks;
+  never turn fixtures into a free-membership policy. Distinguish local fixture
+  evidence from real provider checkout, portal, webhook delivery or reconciliation.
+- Verify the exact resulting immutable TEST artifact through the existing
+  importer/controller and quick installed non-payment checks. Preserve prior
+  backup/photo/access receipts and avoid redundant deployments or stability soaks.
+
+Later activation checklist, not a scheduled task or authorization:
+
+1. LLC/account availability and Joy's chosen actual Stripe account/product/Price ID.
+2. Secure TEST credential provisioning and signed webhook configuration through
+   managed secret storage; never keys in chat, frontend or evidence.
+3. Actual sandbox checkout, billing portal, signed idempotent webhook and
+   authoritative reconciliation acceptance, including ownership and entitlement
+   denial cases. Local fixtures do not satisfy these checks.
+4. Separate explicit live-payment implementation/activation approval. Existing
+   production deployment, public launch, mail, member communications and relevant
+   business-content publication gates remain closed until separately authorized.
