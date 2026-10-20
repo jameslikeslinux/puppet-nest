@@ -586,3 +586,49 @@ Rebuilt-image parity, extended churn acceptance, exact final-head CI and any
 newly authorized installed activation remain separate requirements. MR 329's
 earlier static-cache head passed pipeline 10591; that does not certify later
 launcher changes. Production has not been interrupted for this investigation.
+
+## Selected-tab refusal after the descriptor repair — 2026-10-20
+
+MR 329 was subsequently merged and installed under its exact approval. Its
+installed acceptance completed 24 interaction cycles and 300 additional
+snapshots, with fixture cleanup, preserved owner tabs and zero retained pidfds.
+Those results do not cover the remaining Joyride selected-tab refusal. Joy
+superseded prolonged soak gates with focused regression and quick installed
+acceptance; do not launch further longevity certification as a completion gate.
+
+A fresh installed `document.title` query still failed with “BiDi selected-tab
+mapping is absent or ambiguous”. Read-only diagnostic metadata showed four UI
+tabs and four native browsing contexts, exactly one selected UI tab and one
+active native window. Three contexts matched the selected URL exactly; only
+one of those three was natively visible. No URLs, titles, page contents,
+credentials or profile data were persisted. This is duplicate-URL ambiguity,
+not proof of a fresh Firefox hang or a client/gateway schema failure.
+
+The old URL-only mapping cannot distinguish surviving duplicate tabs. The
+repair narrows duplicate URL candidates to the one native visible document in
+the one active native client window. It uses a fixed boolean visibility read
+in an isolated BiDi sandbox, never a page title, strip index, workflow binding,
+caller-supplied script or tab activation. Missing/ambiguous windows, malformed
+visibility responses, multiple visible candidates and zero visible candidates
+still fail closed. The existing post-read UI, generation and native-context
+revalidation discards results if selection moves during observation. Uncertain
+workflow bindings and action journals are neither repaired nor replayed.
+
+The isolated public-endpoint regression now has `--duplicate-survivors`: three
+equal-title/equal-URL fixture tabs survive while each selected tab is read.
+The unchanged installed-image source fails at its second duplicate; overlaying
+only the repaired adapter passes the one-cycle canary, including protected
+input redaction, exact text pagination, replay protection, bridge refresh and
+endpoint outage, without changing browser generation or survivor identities.
+The first green receipt took 79.349 seconds and 40 public operations. It is
+source-overlay evidence, not pristine-image or installed acceptance.
+
+Reproduce with the command in the prior section, replacing the churn flags
+with `--iterations 1 --duplicate-survivors`. For a labelled source-overlay
+comparison add `--bidi-source files/app/hermes/secure_browser_bidi.py`; omit
+all overlays for rebuilt-image acceptance. Focused source fixtures additionally
+exercise equal-title/different-URL tabs, inactive/ambiguous windows, malformed
+visibility, and stale selection. Required exact-head CI and a quick supported
+installed query of the previously failing page remain mandatory. Deployment
+of a new image needs its own coordinated interruption authorization; a gateway
+refresh cannot fix the reproduced server-side URL ambiguity.

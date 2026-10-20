@@ -214,16 +214,44 @@ def _selected_context(browser: Any, ui_snapshot: dict[str, Any]) -> str:
         return f"{parsed.scheme}://{parsed.hostname}{port}{parsed.path[:300]}"
     # The accessibility bridge intentionally removes URL queries from tool
     # text. Match exact URLs when available, otherwise require a *unique*
-    # sanitized path, never guess between same-path checkout contexts.
+    # sanitized path. Duplicate URLs require independent native visibility,
+    # never a title, strip index or saved workflow binding.
     snapshot_redacted = "?" not in selected and "#" not in selected
-    matches = [
-        str(item.get("context")) for item in browser._bidi_contexts()
+    candidates = [
+        item for item in browser._bidi_contexts()
         if item.get("context") and (visible_identity(str(item.get("url") or "")) == selected
                                     if snapshot_redacted else _url_identity(str(item.get("url") or "")) == selected)
     ]
-    if len(matches) != 1:
+    if len(candidates) > 1:
+        try:
+            windows = browser._bidi("browser.getClientWindows").get("clientWindows", [])
+            active = [item["clientWindow"] for item in windows
+                      if item.get("active") is True and item.get("clientWindow")]
+            if len(active) != 1:
+                raise RuntimeError("native active window is ambiguous")
+            visible = []
+            for item in candidates:
+                if item.get("clientWindow") != active[0]:
+                    continue
+                # A fresh isolated realm uses native DOM getters, not globals
+                # overridden by page code. This fixed read neither activates
+                # tabs nor exports content; no caller-supplied script is run.
+                result = browser._bidi("script.evaluate", {
+                    "expression": 'document.visibilityState === "visible"',
+                    "target": {"context": item["context"], "sandbox": "nest-tab-observation"},
+                    "awaitPromise": False, "resultOwnership": "none",
+                })
+                value = result.get("result") or {}
+                if result.get("type") == "exception" or value.get("type") != "boolean" or type(value.get("value")) is not bool:
+                    raise RuntimeError("native visibility is unavailable")
+                if value["value"]:
+                    visible.append(item)
+            candidates = visible
+        except Exception:
+            raise RuntimeError("BiDi selected-tab mapping is absent or ambiguous (native visibility unavailable); no page operation was performed") from None
+    if len(candidates) != 1:
         raise RuntimeError("BiDi selected-tab mapping is absent or ambiguous; no page operation was performed")
-    return matches[0]
+    return str(candidates[0]["context"])
 
 
 def _evaluate(browser: Any, context: str, expression: str) -> Any:

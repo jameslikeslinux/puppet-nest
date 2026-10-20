@@ -114,6 +114,84 @@ def test_general_collection_read_is_bounded_and_redacts_each_field():
         else:
             raise AssertionError("unsafe collection expression was accepted")
 
+
+def test_duplicate_url_mapping_uses_native_visibility_in_active_window():
+    module, _ = load()
+    contexts = [{"context": name, "url": "https://fixture.example/shop", "clientWindow": window}
+                for name, window in (("hidden", "active"), ("selected", "active"), ("other-window", "inactive"))]
+    browser = Browser(contexts)
+    selected = ["selected"]
+    def observe(method, payload=None):
+        if method == "browser.getClientWindows":
+            return {"clientWindows": [{"clientWindow": "active", "active": True},
+                                      {"clientWindow": "inactive", "active": False}]}
+        assert method == "script.evaluate"
+        assert payload["expression"] == 'document.visibilityState === "visible"'
+        assert payload["target"]["sandbox"] == "nest-tab-observation"
+        return {"result": {"type": "boolean", "value": payload["target"]["context"] == selected[0]}}
+    browser._bidi = observe
+    assert module._selected_context(browser, snapshot()) == "selected"
+    # Equal titles are not authority; selection follows the native document.
+    browser.contexts.reverse()
+    assert module._selected_context(browser, snapshot()) == "selected"
+    # A stale UI snapshot cannot authorize a result after native selection moves.
+    legacy = sys.modules["tools.secure_browser_local_bidi"]
+    legacy._with_browser = lambda fn: fn(browser)
+    native_observe = browser._bidi
+    def evaluate(method, payload=None):
+        if method == "script.evaluate" and payload["expression"] != 'document.visibilityState === "visible"':
+            selected[0] = "hidden"
+            return {"result": {"type": "string", "value": "Must be discarded"}}
+        return native_observe(method, payload)
+    browser._bidi = evaluate
+    try:
+        module.query(snapshot(), "document.title", snapshot_reader=snapshot)
+    except RuntimeError as exc:
+        assert "changed during observation" in str(exc)
+    else:
+        raise AssertionError("a stale selected-tab observation exported page content")
+
+
+def test_duplicate_url_mapping_still_refuses_missing_or_ambiguous_visibility():
+    module, _ = load()
+    browser = Browser([{"context": name, "url": "https://fixture.example/shop", "clientWindow": "active"}
+                       for name in ("one", "two")])
+    for visible in (False, True, "true"):
+        def observe(method, payload=None):
+            if method == "browser.getClientWindows":
+                return {"clientWindows": [{"clientWindow": "active", "active": True}]}
+            return {"result": {"type": "boolean", "value": visible}}
+        browser._bidi = observe
+        try:
+            module._selected_context(browser, snapshot())
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("ambiguous or malformed visibility selected an owner tab")
+
+
+def test_duplicate_mapping_refuses_ambiguous_windows_and_ignores_equal_titles():
+    module, _ = load()
+    browser = Browser([{"context": name, "url": "https://fixture.example/shop", "clientWindow": "active"}
+                       for name in ("one", "two")])
+    for windows in ([], [{"clientWindow": "active", "active": False}],
+                    [{"clientWindow": "active", "active": True}, {"clientWindow": "other", "active": True}]):
+        def observe(method, payload=None):
+            assert method == "browser.getClientWindows", "ambiguous windows must not inspect documents"
+            return {"clientWindows": windows}
+        browser._bidi = observe
+        try:
+            module._selected_context(browser, snapshot())
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("ambiguous window became selection authority")
+    # Equal titles on different URLs do not create mapping ambiguity.
+    browser = Browser([{"context": "wrong", "url": "https://fixture.example/elsewhere", "title": "Unrelated shop"},
+                       {"context": "selected", "url": "https://fixture.example/shop", "title": "Unrelated shop"}])
+    assert module._selected_context(browser, snapshot()) == "selected"
+    assert browser.calls == []
+
 def test_site_independent_dom_snapshot_is_generated_and_bounded():
     module, legacy = load()
     script = module._read_script("document.domSnapshot")
@@ -466,6 +544,10 @@ def test_native_selector_reorder_overlay_cross_site_and_uncertain_replay():
 
 if __name__ == "__main__":
     test_unambiguous_visible_page_query_and_secret_guard()
+    test_origin_address_bar_without_slash_matches_bidi_canonical_url()
+    test_duplicate_url_mapping_uses_native_visibility_in_active_window()
+    test_duplicate_url_mapping_still_refuses_missing_or_ambiguous_visibility()
+    test_duplicate_mapping_refuses_ambiguous_windows_and_ignores_equal_titles()
     test_general_collection_read_is_bounded_and_redacts_each_field()
     test_site_independent_dom_snapshot_is_generated_and_bounded()
     test_dom_snapshot_executes_without_exporting_credential_values()
@@ -479,4 +561,4 @@ if __name__ == "__main__":
     test_selector_typing_reserves_before_input_and_replay_never_retypes()
     test_ui_bridge_rejects_displaced_tab_and_offscreen_coordinate()
     test_native_selector_reorder_overlay_cross_site_and_uncertain_replay()
-    print("fourteen Firefox BiDi/UI source fixtures passed")
+    print("eighteen Firefox BiDi/UI source fixtures passed")
