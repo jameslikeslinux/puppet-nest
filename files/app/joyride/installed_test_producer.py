@@ -48,7 +48,7 @@ def kube(*args):
 
 
 def gitlab(path):
-    return json.loads(command(["glab", "api", "projects/83/" + path]))
+    return json.loads(command(["glab", "api", "--hostname", "gitlab.joyfullee.me", "projects/83/" + path]))
 
 
 def verify_ci(pipeline_id, digest, head):

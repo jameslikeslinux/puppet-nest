@@ -2,8 +2,10 @@
 
 This is Nest-owned engineering source, not application code, a Joy approval
 service, a production importer or a deployment controller. It does not widen the
-TEST-only compile guard or create any Kubernetes resource. No signing key or
-production trust root has been provisioned by this phase.
+TEST-only compile guard or create any Kubernetes resource. No managed signing key
+or production trust root has been provisioned. Disposable fixture keys are never
+production trust. The isolated runtime and key-generation tools described below
+are implemented and exercised, not a deployed signer service.
 
 ## Implemented and exercised
 
@@ -106,6 +108,82 @@ pinned image with an independent key mount and reviewed privilege boundaries.
 It must not inherit the existing TEST controller's production authority, because
 that controller has none.
 
+### Isolated execution artifact
+
+`Containerfile.evidence` builds only from the digest-pinned trusted Nest tools
+image, with binary-only `cryptography==50.0.2`, `cffi==2.1.1` and
+`pycparser==3.11`. Its context is `files/app/joyride`, never an application
+checkout, private store or credential directory. Only the fixed collector,
+probes, key helper and entrypoint enter the runtime source directory. The image
+does not contain a key, kubeconfig, GitLab identity, member database or app code.
+The GitLab API target is explicitly fixed to `gitlab.joyfullee.me`, independent
+of the caller's working directory and default host.
+
+The fixed entrypoint uses Python isolated mode, a root-owned image source path,
+and a clean environment. Caller `PYTHONPATH`, `PYTHONHOME`, working-directory
+modules, executable search path, proxies and CA overrides are not inherited.
+Only `collect` and `key` operations exist. Credentials, when deliberately mounted
+by the trusted supervisor, are read from `/credentials/kubeconfig` and
+`/credentials/gitlab`. The caller must enforce rootless Podman, read-only root,
+all capabilities dropped, no privilege escalation, bounded PID/memory/CPU limits
+and private ephemeral `/scratch`. Never mount the engine socket, host filesystem,
+application checkout or a writable source directory. Runtime mounts are trusted
+supervisor inputs, not a safe interface for an untrusted agent to select.
+
+Key creation/inspection is offline and must use `--network=none`. Collection
+needs only the normal TLS Kubernetes/GitLab/TEST endpoints. A signed collection
+additionally mounts the chosen private generation read-only and one private
+output directory read-write; it never mounts production credentials. These
+container restrictions isolate the process filesystem, not Kubernetes authority.
+An administrative kubeconfig is still administrative even inside this image.
+Do not call the current exercised path narrowly RBAC-scoped.
+
+The existing Nest CI lane builds a disposable local image and exercises actual
+rootless containers: real disposable generation/readback, overwrite refusal,
+caller Python/executable injection rejection, immutable source and a network
+failure producing no receipt. It neither publishes an evidence image nor
+provides live credentials or keys. A later managed signer requires a separately
+verified registry artifact digest at the exact reviewed Nest source; a local
+image ID or successful fixture build is not that release receipt.
+
+### Private generation lifecycle
+
+`evidence_key.py` implements `create <absolute-new-generation>` and
+`inspect <absolute-existing-generation>`; the image exposes these through
+`key create` and `key inspect`. The caller supplies an independently managed
+mode 0700 private parent. All ancestors must be non-symlink directories owned by
+the executing identity or root, without group/world write permission. The store
+and generation must be owned by the executing identity with exact mode 0700.
+
+Create exclusively makes a new generation, writes and fsyncs the raw 32-byte
+mode 0600 signing key, canonical public manifest and completion marker, then
+fsyncs the generation and parent directories. Inspection rederives the public
+key/fingerprint from the protected private key and checks the exact canonical
+manifest and completion marker. Private files must be owner-owned regular
+single-link mode 0600 files. Only the public key, algorithm and SHA256 public-key
+fingerprint can reach stdout. Errors are bounded and do not print exception
+messages or paths containing credential material.
+
+An existing generation is never overwritten or repaired. Failed creation leaves
+partial material for supervised inspection, not automatic regeneration or
+deletion. A second generation has a different fingerprint but activates neither
+generation. There is no active pointer, key export, consumer trust mutation,
+automatic rotation or self-issued owner approval. Never create a real generation
+in an ephemeral job, source checkout, CI artifact directory or public report.
+
+Before a real generation may sign, provision it through the existing encrypted
+private-source/managed-secret process, independently read back the managed
+private/public pair and validate a restricted backup plus isolated restore using
+these checks. No such real provision/backup/restore has happened. Preserve the
+original protected generation until recoverable managed storage is verified.
+Copy only the reviewed public root into the production-only consumer contract;
+do not configure TEST with a key or root. Rotation is a deliberate, serialized
+trust-root replacement, not a receipt signed by the old key: stop collection and
+imports, establish/recover the new managed pair, replace the consumer root and
+require fresh proof. Old or pending receipts must not be grandfathered, and no
+rollback can restore a revoked root silently. Keep private generations out of
+logs, evidence, ordinary CI and application images throughout.
+
 ## Evidence and remaining work
 
 A real unsigned collection against installed generation 14, source
@@ -115,9 +193,18 @@ passed all six checks, successful delivery binding, stable three-snapshot
 installation and exact fixture cleanup. No repeat rollout occurred. Nest MR 346
 preserves this release and merged after all required exact-head CI jobs passed.
 
+The isolated image also completed the real unsigned collection on this unchanged
+TEST generation with ordinary TLS and exact cleanup. Its temporary flattened
+kubeconfig was removed; the existing GitLab config was mounted read-only; no key
+or production credential was mounted. Independent readback found zero fixture
+members/routes, evidence, owner approvals or production deliveries and unchanged
+deployment/Pod/runtime fences. This exercises actual containerized collection,
+not just a container's startup or an HTTP readiness badge.
+
 This is not a positive trusted-signature/import/admission canary. Remaining
-parent-owned engineering is the managed producer key/public-root lifecycle,
-reviewed isolated execution/deployment, independent production CI registration
+parent-owned engineering is actual managed key/public-root provisioning and
+recoverability, exact reviewed runtime publication/deployment and scoped
+execution authority, independent production CI registration
 and bounded receipt import, actual Joy exact-artifact/action/scope approval
 provenance and a distinct production controller/topology. Do not enable
 production delivery, provision production runtime state, scale dormant pods or
