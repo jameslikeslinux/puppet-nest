@@ -42,10 +42,12 @@ stages:
     - '.production-boundary-venv/bin/python -m pip install --disable-pip-version-check --only-binary=:all: PyYAML==6.0.3 cryptography==50.0.2'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_production_boundaries.py'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_installed_test_producer.py'
+    - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_key.py'
+    - 'python3 spec/app/joyride/test_evidence_runtime.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci
-  image: 'node:24-bookworm'
+  image: 'mirror.gcr.io/library/node@sha256:14078204b6bb268c107ceff6d3c43f45a888105e5c2b18b14c32b3409d93a1b0'
   stage: 'Test'
   variables:
     PYTHONDONTWRITEBYTECODE: '1'
