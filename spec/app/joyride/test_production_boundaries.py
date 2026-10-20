@@ -27,12 +27,12 @@ class ProductionBoundaries(unittest.TestCase):
                 self.assertEqual(resource['metadata']['namespace'], 'joyride')
                 self.assertNotIn(resource['kind'], ('Secret', 'Role', 'RoleBinding', 'ServiceAccount', 'Job'))
                 if resource['kind'] == 'CronJob':
-                    self.assertEqual(resource['metadata']['name'], 'joyride-monitor')
+                    self.assertIn(resource['metadata']['name'], ('joyride-monitor', 'joyride-backup'))
                     self.assertIs(resource['spec']['suspend'], True)
         self.assertNotIn('joyride-test', self.source)
         self.assertNotIn('8002', self.source)
         self.assertNotIn('172.21.1.3', self.source)
-        self.assertEqual(self.resources['backup'], {})
+
         self.assertEqual(self.resources['restore'], {})
 
     def test_immutable_same_artifact_and_inert_deployments(self):
@@ -147,9 +147,38 @@ class ProductionBoundaries(unittest.TestCase):
             'podSelector': {'matchLabels': {'app': 'joyride'}}, 'policyTypes': ['Ingress'],
             'ingress': [{'from': [{'podSelector': {'matchLabels': {'app': 'joyride-monitor'}}}],
                          'ports': [{'protocol': 'TCP', 'port': 8000}]}]})
-        rule, = self.resources['alert_rules']['spec']['groups'][0]['rules']
+        rule = self.resources['alert_rules']['spec']['groups'][0]['rules'][0]
         self.assertIn('kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-monitor"} == 0', rule['expr'])
         self.assertIn('unless on(namespace,cronjob)', rule['expr'])
+
+    def test_backup_is_suspended_administrative_capture_not_restore(self):
+        job = self.resources['backup']['spec']
+        self.assertIs(job['suspend'], True)
+        self.assertEqual(job['concurrencyPolicy'], 'Forbid')
+        pod = job['jobTemplate']['spec']['template']['spec']
+        self.assertIs(pod['automountServiceAccountToken'], False)
+        self.assertEqual(pod['imagePullSecrets'], [{'name': 'joyride-backup-pull'}])
+        container, = pod['containers']
+        self.assertEqual(container['image'], "%{lookup('config_image')}")
+        self.assertEqual(container['command'], [
+            'python3', '-B', '/platform/backup.py', '--stage-root', '/scratch', '--environment', 'production'])
+        self.assertEqual(container['env'], [{'name': 'KUBECONFIG', 'value': '/kubeconfig/eyrie.conf'}])
+        self.assertNotIn('envFrom', container)
+        self.assertIs(container['securityContext']['readOnlyRootFilesystem'], True)
+        mounts = {m['name']: m for m in container['volumeMounts']}
+        self.assertIs(mounts['scripts']['readOnly'], True)
+        self.assertIs(mounts['kubeconfig']['readOnly'], True)
+        self.assertEqual(mounts['backup']['mountPath'], '/nest/backup/joyride')
+        volumes = {v['name']: v for v in pod['volumes']}
+        self.assertEqual(set(volumes), {'scripts', 'scratch', 'backup', 'kubeconfig'})
+        self.assertEqual(volumes['backup']['hostPath']['path'], '/nest/backup/joyride')
+        self.assertEqual(volumes['scratch']['emptyDir'], {'sizeLimit': '24Gi'})
+        self.assertEqual(self.resources['backup_scripts']['binaryData'], {
+            'backup.py': '%{nest::service::joyride::backup_script_base64}'})
+        rule = self.resources['alert_rules']['spec']['groups'][0]['rules'][1]
+        self.assertIn('kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-backup"} == 0', rule['expr'])
+        self.assertIn('unless on(namespace,cronjob)', rule['expr'])
+        self.assertEqual(self.resources['restore'], {})
 
     def test_storage_does_not_reference_test_claims_or_database(self):
         self.assertEqual(self.resources['database']['metadata']['name'], 'joyride-cnpg')

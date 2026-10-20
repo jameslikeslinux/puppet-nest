@@ -51,6 +51,7 @@ Required production-only Secret contracts (not yet provisioned):
 | `joyride-ops-auth` | `OPS_TOKEN` | ops only |
 | `joyride-upstream` | `WMATA_API_KEY` | worker only |
 | `joyride-pull` | `.dockerconfigjson` | image pull only |
+| `joyride-backup-pull` | `.dockerconfigjson` | trusted Nest backup image pull only |
 | `joyride-cnpg-app` | `uri` | CNPG-generated, web/ops/worker |
 
 Generate independent signing and ops credentials through encrypted private Hiera;
@@ -91,7 +92,39 @@ detects both missing and stale successful probes. Suspended source preparation
 does not report a production outage. This does not test ingress TLS, browser
 behavior, payments, email, worker/cache freshness, backup or notification delivery.
 No production Job or rule has been deployed/evaluated; live acceptance remains
-required after approved activation. Production backup/restore is still absent.
+required after approved activation.
+
+The candidate now also declares a suspended administrative `joyride-backup`
+CronJob and separate helper ConfigMap. It uses the trusted Nest config image,
+never a Luna-selected application image, and the established administrative
+read-only host kubeconfig. That kubeconfig is privileged: the namespace allowlist
+is an application safety boundary, not Kubernetes credential scope. Only this
+trusted Job mounts it; application/ops/worker/monitor pods receive no such access.
+Its separate pull Secret is not yet provisioned. No production backup executes
+while suspended, replicas are zero and the compile guard is closed.
+
+`backup.py` retains TEST as its default. Explicit `--environment production`
+selects only namespace `joyride`, app `joyride`, CNPG `joyride-cnpg` and final
+directory `/nest/backup/joyride`. Unknown environments and cross-environment
+destinations are refused before capture. TEST remains fixed to its original
+namespace, selectors and `/nest/backup/joyride-test` destination. Scratch is local
+ephemeral storage, never the backup mount. Each generation has the same private
+permissions, PostgreSQL archive validation, stable-file and app-identity checks,
+hash/readback completion receipt and previous-generation preservation as TEST.
+The production backup alert is gated on unsuspended state, including missing
+successes. There is no automatic pruning or restore Job.
+
+These are source and synthetic integration contracts, not production backup or
+restore acceptance. Before activation, verify a real production generation and
+its completion receipt, copy only to restricted local staging, validate all tar
+members and hashes, and restore into a NEW disposable database and file root.
+Use installed handlers to check photo/GPX authorization, metadata scrubbing,
+private byte ranges and basemap parity without payments, mail or legal assent.
+Never redirect live workloads, overwrite the live database/PVC, reuse TEST signing
+credentials, or export archives/feeds as evidence. Remove only exact drill-created
+objects and verify live continuity. The detailed isolation rules in
+`joyride-test-recurring-protection.md` apply, with explicit production identity
+and no implicit TEST fallback. No production capture or drill has run yet.
 
 Before activation the candidate still needs production protection, approved
 exact-artifact promotion/rollback, private TLS ops access for Joy and gateway

@@ -14,7 +14,82 @@ affinity: {}
 tolerations: []
 resources:
   # The inherited generic protection Jobs are not application-aware recipes.
-  backup: {}
+  backup:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-backup
+      namespace: joyride
+    spec:
+      # Remains inactive until production activation and protection acceptance.
+      suspend: true
+      schedule: '37 */3 * * *'
+      timeZone: UTC
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 2
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 600
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 3600
+          template:
+            metadata:
+              labels:
+                app: joyride-backup
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              imagePullSecrets:
+              - name: joyride-backup-pull
+              containers:
+              - name: backup
+                # Administrative capture must not use Luna's application image.
+                image: '%{lookup(''config_image'')}'
+                imagePullPolicy: Always
+                command: [python3, -B, /platform/backup.py, --stage-root, /scratch, --environment, production]
+                env:
+                - name: KUBECONFIG
+                  value: /kubeconfig/eyrie.conf
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                    ephemeral-storage: 2Gi
+                  limits:
+                    memory: 512Mi
+                    ephemeral-storage: 24Gi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+                - name: scratch
+                  mountPath: /scratch
+                - name: backup
+                  mountPath: /nest/backup/joyride
+                - name: kubeconfig
+                  mountPath: /kubeconfig/eyrie.conf
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-backup
+              - name: scratch
+                emptyDir:
+                  sizeLimit: 24Gi
+              - name: backup
+                hostPath:
+                  path: /nest/backup/joyride
+                  type: DirectoryOrCreate
+              - name: kubeconfig
+                hostPath:
+                  path: /nest/home/kubeconfigs/eyrie.conf
+                  type: File
   restore: {}
   nest_registry_auths: {}
   storage:
@@ -417,6 +492,14 @@ resources:
           app: joyride-worker
       policyTypes: [Ingress]
       ingress: []
+  backup_scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-backup
+      namespace: joyride
+    binaryData:
+      backup.py: '%{nest::service::joyride::backup_script_base64}'
   monitor_scripts:
     apiVersion: v1
     kind: ConfigMap
@@ -512,3 +595,11 @@ resources:
           annotations:
             summary: Joyride application probes have no recent success
             description: Check the private production monitor Job. Readiness, session shell, basemap and homepage must pass; never print member data or credentials.
+        - alert: JoyrideBackupStale
+          expr: (kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-backup"} == 0) unless on(namespace,cronjob) (time() - kube_cronjob_status_last_successful_time{namespace="joyride",cronjob="joyride-backup"} <= 14400)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Joyride has no verified recent backup generation
+            description: Inspect the private backup Job and completion receipt before restore. Never publish private archives or use an archive without matching completion metadata.

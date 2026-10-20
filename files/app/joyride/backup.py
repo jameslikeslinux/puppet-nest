@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Restricted TEST logical generations; local staging, final-copy publication only."""
+"""Fixed environment logical generations; local staging, final-copy publication."""
 import argparse
 import fcntl
 import hashlib
@@ -17,6 +17,12 @@ import uuid
 
 class BackupError(Exception):
     pass
+
+
+TARGETS = {
+    'test': ('test', 'joyride-test', 'joyride-test-cnpg', Path('/nest/backup/joyride-test')),
+    'production': ('joyride', 'joyride', 'joyride-cnpg', Path('/nest/backup/joyride')),
+}
 
 
 # Hash names and bytes without logging private paths. Refuse special files and
@@ -56,12 +62,13 @@ def command(args, output=None, data=None):
     return result.stdout
 
 
-def kube(*args, output=None, data=None):
-    return command(['kubectl', '--request-timeout=60s', '-n', 'test', *args], output, data)
+def kube(*args, output=None, data=None, environment='test'):
+    namespace = TARGETS[environment][0]
+    return command(['kubectl', '--request-timeout=60s', '-n', namespace, *args], output, data)
 
 
-def select_pod(selector):
-    pods = json.loads(kube('get', 'pods', '-l', selector, '-o', 'json'))['items']
+def select_pod(selector, environment='test'):
+    pods = json.loads(kube('get', 'pods', '-l', selector, '-o', 'json', environment=environment))['items']
     ready = [p for p in pods if not p['metadata'].get('deletionTimestamp')
              and any(c['type'] == 'Ready' and c['status'] == 'True'
                      for c in p.get('status', {}).get('conditions', []))]
@@ -70,8 +77,8 @@ def select_pod(selector):
     return ready[0]
 
 
-def app(pod, code):
-    return kube('exec', pod['metadata']['name'], '-c', 'web', '--', 'python', '-c', code)
+def app(pod, code, environment='test'):
+    return kube('exec', pod['metadata']['name'], '-c', 'web', '--', 'python', '-c', code, environment=environment)
 
 
 def verify_files(path, expected):
@@ -140,10 +147,13 @@ def publish(payload, destination, metadata):
     return record
 
 
-def backup(stage_root, destination):
+def backup(stage_root, destination=None, environment='test'):
+    namespace, application, database, fixed_destination = TARGETS[environment]
     os.umask(0o077)
     stage_root = stage_root.resolve()
-    destination = destination.resolve()
+    destination = (destination or fixed_destination).resolve()
+    if destination != fixed_destination:
+        raise BackupError('environment_destination_mismatch')
     if (stage_root == destination or destination in stage_root.parents
             or stage_root == Path('/nest/backup') or Path('/nest/backup') in stage_root.parents):
         raise BackupError('staging_must_be_local')
@@ -151,32 +161,32 @@ def backup(stage_root, destination):
     destination.chmod(0o700)
     with (destination / '.backup.lock').open('a+b') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        pod = select_pod('app=joyride-test')
-        primary = select_pod('cnpg.io/cluster=joyride-test-cnpg,cnpg.io/instanceRole=primary')
-        before = json.loads(app(pod, SCAN))
+        pod = select_pod('app=' + application, environment=environment)
+        primary = select_pod('cnpg.io/cluster=' + database + ',cnpg.io/instanceRole=primary', environment=environment)
+        before = json.loads(app(pod, SCAN, environment=environment))
         with tempfile.TemporaryDirectory(prefix='joyride-', dir=stage_root) as temporary:
             stage = Path(temporary)
             dump = stage / 'database.dump'
             with dump.open('wb') as out:
                 kube('exec', primary['metadata']['name'], '-c', 'postgres', '--',
-                     'pg_dump', '-U', 'postgres', '-d', 'joyride', '--format=custom', output=out)
+                     'pg_dump', '-U', 'postgres', '-d', 'joyride', '--format=custom', output=out, environment=environment)
             # A real PostgreSQL archive parser, not just a magic-byte check.
             with dump.open('rb') as source:
-                result = subprocess.run(['kubectl', '--request-timeout=60s', '-n', 'test', 'exec', '-i',
+                result = subprocess.run(['kubectl', '--request-timeout=60s', '-n', namespace, 'exec', '-i',
                                          primary['metadata']['name'], '-c', 'postgres', '--', 'pg_restore', '--list'],
                                         stdin=source, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200)
                 if result.returncode:
                     raise BackupError('database_archive_invalid')
             files = stage / 'files.tar'
             with files.open('wb') as out:
-                kube('exec', pod['metadata']['name'], '-c', 'web', '--', 'python', '-c', ARCHIVE, output=out)
+                kube('exec', pod['metadata']['name'], '-c', 'web', '--', 'python', '-c', ARCHIVE, output=out, environment=environment)
             verify_files(files, before)
-            if json.loads(app(pod, SCAN)) != before:
+            if json.loads(app(pod, SCAN, environment=environment)) != before:
                 raise BackupError('files_changed_during_capture')
-            current = select_pod('app=joyride-test')
+            current = select_pod('app=' + application, environment=environment)
             if current['metadata']['uid'] != pod['metadata']['uid']:
                 raise BackupError('application_replaced_during_capture')
-            metadata = {'schema': 1, 'environment': 'test', 'created_at': int(time.time()),
+            metadata = {'schema': 1, 'environment': environment, 'created_at': int(time.time()),
                         'images': {c['name']: c['image'] for c in pod['spec']['containers']},
                         'database_sha256': sha256(dump), 'files_sha256': sha256(files),
                         'file_count': len(before), 'consistency': 'database_snapshot_with_stable_files'}
@@ -191,11 +201,12 @@ def backup(stage_root, destination):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--stage-root', type=Path, required=True)
-    # Deliberately fixed TEST target; this helper cannot back up or restore prod.
+    parser.add_argument('--environment', choices=TARGETS, default='test')
+    # Explicit allowlisted targets only; no arbitrary namespace or destination.
     args = parser.parse_args()
     try:
-        record = backup(args.stage_root, Path('/nest/backup/joyride-test'))
+        record = backup(args.stage_root, environment=args.environment)
         print(json.dumps({'backup': 'complete', 'archive': record['archive'], 'sha256': record['sha256']}))
     except Exception:
-        print('Joyride TEST backup failed; previous completed generations retained', file=sys.stderr)
+        print('Joyride backup failed; previous completed generations retained', file=sys.stderr)
         sys.exit(1)
