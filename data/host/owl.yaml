@@ -4,7 +4,6 @@ nest::classes:
   - 'nest::app::hermes'
   - 'nest::lib::toolchains'
   - 'nest::service::gitlab_runner'
-  - 'nest::service::joyride_evidence'
   - 'nest::service::kubernetes'
   - 'nest::service::rocm'
   - 'nest::tool::bolt'

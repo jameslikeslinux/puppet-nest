@@ -1,7 +1,7 @@
 # Operator-only installed TEST evidence supervisor
 
-`nest::service::joyride_evidence` installs independent infrastructure orchestration
-on Owl. It is not an application runtime, an application CI job, an approval
+`nest::service::joyride_evidence` defines opt-in infrastructure orchestration.
+It is not selected by any host. It is not an application runtime, an application CI job, an approval
 service, a listener, a timer or a production delivery controller. Merely applying
 its files does not collect fixtures, sign a receipt or activate a consumer root.
 Application runtime production remains exclusively in `joy/joyride` CI.
@@ -12,7 +12,7 @@ The class explicitly selects `private/joyride/evidence-supervisor.yaml` through
 its body-local scope before requesting the existing encrypted keys. Other host
 and Kubernetes catalogs do not select that scope. The private generation is
 unchanged; independent encrypted backup/restore evidence remains in run 11854.
-Only Owl includes the service. The root-owned admission config and two reviewed
+No host includes the service yet. The root-owned admission config and two reviewed
 infrastructure scripts are installed under `/etc/joyride-evidence` and
 `/opt/joyride-evidence-supervisor`. The protected state directory is
 `/var/lib/joyride-evidence`, owned by the Nest operator, mode 0700. Credentials
@@ -30,7 +30,21 @@ The application publisher cannot change these constants or its admission config.
 Updating them requires another reviewed infrastructure change, not a branch tip,
 a moving tag or an application-authored release receipt alone.
 
-Run as the unprivileged Nest operator, from the normal inventory-backed Bolt
+Before selecting this class, establish an actual host authority boundary from
+application CI. Discovery confirmed application jobs 43230 and 43234 run on
+instance runner 125 on Owl. Its source-managed runner configuration enables the
+host Podman socket, Bolt transport and eyaml mounts. Such jobs can potentially
+reach host files; different containers and mode 0600 files do not isolate a key
+from that authority. The replacement application runner must be project-scoped,
+run against its own unprivileged rootless engine, have no Bolt/eyaml/SSH/admin
+mounts or host-root socket, and the application project must no longer be able
+to select broad instance runners. Verify real jobs and representative denials
+before managed key placement or signing. Merely changing job tags is insufficient.
+This is agent-owned engineering, not another Joy approval request. Existing
+private recovery and original generations remain preserved; no exposure or key
+compromise is asserted from this capability finding alone.
+
+After that prerequisite, run as the unprivileged Nest operator, from the normal inventory-backed Bolt
 workflow. First run only `admit`:
 
     bolt command run 'python3 -I -B /opt/joyride-evidence-supervisor/evidence_supervisor.py admit' --targets owl --stream

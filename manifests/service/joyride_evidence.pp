@@ -55,11 +55,12 @@ class nest::service::joyride_evidence {
   }
   File['/var/lib/joyride-evidence'] -> File['/var/lib/joyride-evidence/sessions']
 
-  {
+  $secrets = {
     'signing-key.base64' => $key,
     'registry.json'     => $registry,
     'gitlab-token'      => $token,
-  }.each |$name, $value| {
+  }
+  $secrets.each |$name, $value| {
     file { "/var/lib/joyride-evidence/${name}":
       ensure    => file,
       owner     => $nest::user,
