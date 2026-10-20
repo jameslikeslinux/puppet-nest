@@ -25,7 +25,10 @@ class ProductionBoundaries(unittest.TestCase):
         for resource in self.resources.values():
             if resource:
                 self.assertEqual(resource['metadata']['namespace'], 'joyride')
-                self.assertNotIn(resource['kind'], ('Secret', 'Role', 'RoleBinding', 'ServiceAccount', 'CronJob', 'Job'))
+                self.assertNotIn(resource['kind'], ('Secret', 'Role', 'RoleBinding', 'ServiceAccount', 'Job'))
+                if resource['kind'] == 'CronJob':
+                    self.assertEqual(resource['metadata']['name'], 'joyride-monitor')
+                    self.assertIs(resource['spec']['suspend'], True)
         self.assertNotIn('joyride-test', self.source)
         self.assertNotIn('8002', self.source)
         self.assertNotIn('172.21.1.3', self.source)
@@ -124,6 +127,29 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(config['STRIPE_MODE'], 'disabled')
         self.assertEqual(config['OPS_SCOPES'], 'status,diagnostics,member:read')
         self.assertEqual(config['ALLOWED_HOSTS'], 'joyride.eyrie')
+
+    def test_monitor_has_no_runtime_credentials_or_privileged_network_path(self):
+        job = self.resources['monitor']['spec']
+        self.assertIs(job['suspend'], True)
+        self.assertEqual(job['concurrencyPolicy'], 'Forbid')
+        pod = job['jobTemplate']['spec']['template']['spec']
+        self.assertIs(pod['automountServiceAccountToken'], False)
+        self.assertEqual(pod['volumes'], [{'name': 'scripts', 'configMap': {'name': 'joyride-monitor'}}])
+        container, = pod['containers']
+        self.assertEqual(container['image'], "%{lookup('joyride_image')}")
+        self.assertEqual(container['command'], ['python', '-B', '/platform/monitor.py', '--environment', 'production'])
+        self.assertNotIn('env', container)
+        self.assertNotIn('envFrom', container)
+        self.assertIs(container['securityContext']['readOnlyRootFilesystem'], True)
+        self.assertEqual(self.resources['monitor_scripts']['binaryData'], {
+            'monitor.py': '%{nest::service::joyride::monitor_script_base64}'})
+        self.assertEqual(self.resources['monitor_policy']['spec'], {
+            'podSelector': {'matchLabels': {'app': 'joyride'}}, 'policyTypes': ['Ingress'],
+            'ingress': [{'from': [{'podSelector': {'matchLabels': {'app': 'joyride-monitor'}}}],
+                         'ports': [{'protocol': 'TCP', 'port': 8000}]}]})
+        rule, = self.resources['alert_rules']['spec']['groups'][0]['rules']
+        self.assertIn('kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-monitor"} == 0', rule['expr'])
+        self.assertIn('unless on(namespace,cronjob)', rule['expr'])
 
     def test_storage_does_not_reference_test_claims_or_database(self):
         self.assertEqual(self.resources['database']['metadata']['name'], 'joyride-cnpg')

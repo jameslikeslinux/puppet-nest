@@ -76,6 +76,23 @@ No initialization executes while replicas remain zero and the compile guard
 remains closed. The shared installer has TEST evidence, not production runtime
 acceptance.
 
+The candidate also includes a suspended `joyride-monitor` CronJob, a separate
+monitor-only script ConfigMap and an application-probe alert. The shared probe
+helper accepts only explicit `test` or `production` targets; its default TEST
+behavior is unchanged. The production target is the anonymous production web
+Service on port 8000, with its explicit Host header. It checks readiness,
+CSRF/session shell, current basemap metadata and HTML, refusing redirects and
+bounding response size/time. It carries no runtime secret, environment, database,
+media mount or service-account token. A separate same-namespace NetworkPolicy
+admits only monitor-labelled pods to web port 8000; ops remains deny-all.
+
+The alert evaluates only when this exact CronJob exists and is unsuspended, and
+detects both missing and stale successful probes. Suspended source preparation
+does not report a production outage. This does not test ingress TLS, browser
+behavior, payments, email, worker/cache freshness, backup or notification delivery.
+No production Job or rule has been deployed/evaluated; live acceptance remains
+required after approved activation. Production backup/restore is still absent.
+
 Before activation the candidate still needs production protection, approved
 exact-artifact promotion/rollback, private TLS ops access for Joy and gateway
 preparation, plus managed credentials and live initialization acceptance.

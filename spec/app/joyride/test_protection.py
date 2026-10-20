@@ -102,12 +102,14 @@ class ProtectionTests(unittest.TestCase):
         with self.assertRaises(backup.BackupError):
             backup.backup(Path('/nest/backup/staging'), Path('/nest/backup/joyride-test'))
 
-    def opener(self, bad=None):
+    def opener(self, bad=None, environment='test'):
         fixtures = {'/health/ready': {'status': 'ready'}, '/api/csrf': {'csrf_token': 'a' * 64},
                     '/maps/current': {'sha256': '0' * 64, 'url': '/maps/synthetic.pmtiles'}, '/': '<html>synthetic</html>'}
         def open_url(request, timeout):
             path = request.selector
-            self.assertEqual(request.get_header('Host'), 'joyride-test.eyrie')
+            origin, host = monitor.TARGETS[environment]
+            self.assertEqual(request.get_header('Host'), host)
+            self.assertEqual(request.full_url, origin + path)
             self.assertLessEqual(timeout, 10)
             value = bad if bad is not None and path == '/health/ready' else fixtures[path]
             body = value.encode() if isinstance(value, str) else json.dumps(value).encode()
@@ -124,6 +126,18 @@ class ProtectionTests(unittest.TestCase):
         for value in ({'status': 'unavailable'}, 'x' * 65537):
             with self.assertRaises(ValueError):
                 monitor.probe(self.opener(value))
+
+    def test_production_monitor_uses_only_fixed_anonymous_production_paths(self):
+        self.assertIn('passed', monitor.probe(self.opener(environment='production'), environment='production'))
+        for value in ({'status': 'unavailable'}, 'x' * 65537):
+            with self.assertRaises(ValueError):
+                monitor.probe(self.opener(value, environment='production'), environment='production')
+
+    def test_monitor_refuses_unknown_target_before_any_request(self):
+        with patch.object(monitor.urllib.request, 'build_opener') as opener:
+            with self.assertRaises(KeyError):
+                monitor.probe(environment='http://untrusted.invalid')
+            opener.assert_not_called()
 
     def test_redirect_is_not_followed(self):
         self.assertIsNone(monitor.NoRedirect().redirect_request(None, None, 302, '', {}, 'http://other.invalid'))
