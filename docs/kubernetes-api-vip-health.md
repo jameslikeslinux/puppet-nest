@@ -132,8 +132,9 @@ certificates, direct readiness, quorum and the preserved rollback executable.
 
 The optional host-level `nest::service::kubernetes::apiserver_go_memory_limit`
 manages a kubeadm patch setting the API process's `GOMEMLIMIT`. It accepts
-positive integer MiB or GiB values; the default is absent. Only Control2 selects
-`1GiB`. Puppet manages the input file without notifying kubelet or regenerating
+positive integer MiB or GiB values; the default is absent. Control2 retains its
+qualified `1GiB` budget; Control3 selects `1GiB` for its own guarded canary.
+Puppet manages the input file without notifying kubelet or regenerating
 static manifests. Use `kubernetes_api_memory` for a narrowly tagged catalog
 application, then separately reconcile the API only if its desired input changed.
 
@@ -149,6 +150,17 @@ controllers without their own evidence. If the budget harms latency or CPU,
 remove the host selection and the exact patch, then restore the preserved API
 manifest through a guarded single-member rollback; restoring the manifest alone
 would let the next kubeadm reconciliation reintroduce the budget.
+
+Control3's separate canary addresses measured post-defrag pressure, not an
+assumed fleet-wide benefit. Its database shrank from about 200 MB to 65 MB, but
+a later natural-workload interval still recorded an etcd major-fault step of
+5592 and a 3.8-second compaction. Its API RSS was about 1.2 GB while available
+host memory fell below 750 MB. This supports testing a bounded Go heap, not a
+claim that memory pressure is the sole cause. Control2 serves a different
+request mix, so its lower RSS is not a matched causal comparison. Require
+Control3's actual heap/GC, CPU, fault, API error-counter, object-read and
+compaction evidence before accepting the canary or attempting payload work.
+Keep the API-only rollback manifest and remove the host input too if rejected.
 
 Require a sustained log-correlated interval with intended advertisers healthy,
 correct external next hops, successful strict API and etcd proposal checks,
