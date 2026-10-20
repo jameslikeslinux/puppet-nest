@@ -43,6 +43,7 @@ stages:
     - '.production-boundary-venv/bin/python spec/app/joyride/test_production_boundaries.py'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_installed_test_producer.py'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_key.py'
+    - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_custody.py'
     - 'python3 spec/app/joyride/test_evidence_runtime.py'
     - 'python3 spec/app/joyride/test_evidence_release.py'
 
