@@ -4,36 +4,15 @@ include:
 - nest::service::joyride_info
 service_name: joyride-info
 fqdn: joyride.eyrie
+# Protected-main publication job 43058; exact frontend release, no app backend.
+joyride_info_image: registry.eyrie/nest/joyride-info@sha256:cca3e7b5e3ab5c8ccf57b56996e65bcea2aad39292fd1be0c49a538ef2c55efd
 affinity: {}
 tolerations: []
 resources:
   backup: {}
   restore: {}
   nest_registry_auths: {}
-  scripts:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-info-server
-      namespace: joyride-info
-    binaryData:
-      server.py: '%{nest::service::joyride_info::server_base64}'
-  bundle_0:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-info-pages
-      namespace: joyride-info
-    binaryData:
-      bundle-0.json: '%{nest::service::joyride_info::bundle_0}'
-  bundle_1:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-info-fonts
-      namespace: joyride-info
-    binaryData:
-      bundle-1.json: '%{nest::service::joyride_info::bundle_1}'
+
   app:
     apiVersion: apps/v1
     kind: Deployment
@@ -53,8 +32,7 @@ resources:
           annotations:
             joyride/source: 73c0575179ab995979f9756c6be750f4903d4781
             joyride/release: luna-frontend-v6-2026-10-20-r4
-            checksum/server: '%{nest::service::joyride_info::server_sha256}'
-            checksum/bundle: '%{nest::service::joyride_info::bundle_sha256}'
+
         spec:
           automountServiceAccountToken: false
           securityContext:
@@ -65,11 +43,7 @@ resources:
               type: RuntimeDefault
           containers:
           - name: web
-            image: mirror.gcr.io/library/python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
-            command: [python, -B, /platform/server.py]
-            env:
-            - name: JOYRIDE_INFO_BUNDLE
-              value: /site
+            image: '%{lookup(''joyride_info_image'')}'
             ports:
             - name: web
               containerPort: 8000
@@ -96,24 +70,7 @@ resources:
               httpGet:
                 <<: *probe
                 path: /health/live
-            volumeMounts:
-            - name: scripts
-              mountPath: /platform
-              readOnly: true
-            - name: bundle
-              mountPath: /site
-              readOnly: true
-          volumes:
-          - name: scripts
-            configMap:
-              name: joyride-info-server
-          - name: bundle
-            projected:
-              sources:
-              - configMap:
-                  name: joyride-info-pages
-              - configMap:
-                  name: joyride-info-fonts
+
   web:
     apiVersion: v1
     kind: Service
