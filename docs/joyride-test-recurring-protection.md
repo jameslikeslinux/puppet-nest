@@ -15,6 +15,13 @@ and local ephemeral scratch. No SSH key, private Hiera or entire `/nest` mount
 is needed. Neither app release nor ops token can change this helper/workload.
 
 `files/app/joyride/backup.py` finds exactly one ready app and CNPG primary. It
+defaults to the original fixed TEST target. A separately suspended production
+candidate explicitly selects `--environment production`; it is not deployed or
+enabled by TEST follow-through. Unknown environments and mismatched final
+destinations are refused before capture. Neither CLI accepts arbitrary namespaces,
+selectors or backup destinations.
+
+For the selected fixed environment, the helper
 hashes private/public/map files, takes a PostgreSQL custom-format logical dump,
 checks it with the actual PostgreSQL archive parser, archives and verifies all
 files, then rechecks file hashes and app pod identity. Concurrent file mutations

@@ -102,6 +102,68 @@ class ProtectionTests(unittest.TestCase):
         with self.assertRaises(backup.BackupError):
             backup.backup(Path('/nest/backup/staging'), Path('/nest/backup/joyride-test'))
 
+    def test_backup_target_refused_before_io(self):
+        with patch.object(backup, 'command') as command, patch.object(backup.os, 'umask') as umask:
+            with self.assertRaises(KeyError):
+                backup.backup(Path('/scratch'), environment='arbitrary-namespace')
+            command.assert_not_called()
+            umask.assert_not_called()
+        for environment, other in (('production', 'test'), ('test', 'production')):
+            with patch.object(backup, 'command') as command:
+                with self.assertRaisesRegex(backup.BackupError, 'environment_destination_mismatch'):
+                    backup.backup(Path('/scratch'), backup.TARGETS[other][3], environment=environment)
+                command.assert_not_called()
+
+    def test_fixed_environment_capture_and_completion_receipt(self):
+        # Synthetic subprocesses only; real staging, tar validation and final
+        # publication exercise the complete capture path for both targets.
+        for environment, (namespace, application, database, _) in backup.TARGETS.items():
+            with self.subTest(environment=environment), tempfile.TemporaryDirectory() as root:
+                root = Path(root)
+                stage = root / 'scratch'
+                stage.mkdir()
+                destination = root / 'final'
+                target = (namespace, application, database, destination)
+                calls = []
+
+                def command(args, output=None, data=None):
+                    calls.append(args)
+                    self.assertEqual(args[:4], ['kubectl', '--request-timeout=60s', '-n', namespace])
+                    if args[4] == 'get':
+                        selector = args[args.index('-l') + 1]
+                        self.assertIn(selector, ('app=' + application,
+                                                'cnpg.io/cluster=' + database + ',cnpg.io/instanceRole=primary'))
+                        name = application if selector.startswith('app=') else database
+                        return json.dumps({'items': [{'metadata': {'name': name, 'uid': name},
+                                                      'status': {'conditions': [{'type': 'Ready', 'status': 'True'}]},
+                                                      'spec': {'containers': [{'name': 'web', 'image': 'synthetic@sha256:fixed'}]}}]}).encode()
+                    if args[-1] == backup.SCAN:
+                        return b'{}'
+                    if args[-1] == backup.ARCHIVE:
+                        with tarfile.open(fileobj=output, mode='w'):
+                            pass
+                        return None
+                    self.assertIn('pg_dump', args)
+                    assert output is not None
+                    output.write(b'synthetic PostgreSQL archive')
+
+                with patch.dict(backup.TARGETS, {environment: target}), patch.object(backup, 'command', side_effect=command), \
+                        patch.object(backup.subprocess, 'run') as parser:
+                    parser.return_value.returncode = 0
+                    if environment == 'test':
+                        result = backup.backup(stage)
+                    else:
+                        result = backup.backup(stage, environment=environment)
+                    parser_args = parser.call_args.args[0]
+                    self.assertEqual(parser_args[:4], ['kubectl', '--request-timeout=60s', '-n', namespace])
+                    self.assertIn(database, parser_args)
+                    self.assertIn('pg_restore', parser_args)
+                self.assertEqual(result['environment'], environment)
+                self.assertTrue(result['complete'])
+                self.assertEqual(backup.sha256(destination / result['archive']), result['sha256'])
+                self.assertEqual(list(stage.iterdir()), [])
+                self.assertEqual(len(calls), 7)
+
     def opener(self, bad=None, environment='test'):
         fixtures = {'/health/ready': {'status': 'ready'}, '/api/csrf': {'csrf_token': 'a' * 64},
                     '/maps/current': {'sha256': '0' * 64, 'url': '/maps/synthetic.pmtiles'}, '/': '<html>synthetic</html>'}
