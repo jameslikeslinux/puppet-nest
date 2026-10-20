@@ -29,15 +29,38 @@ class EvidenceRuntime(unittest.TestCase):
         self.addCleanup(self.folder.cleanup)
         self.path = Path(self.folder.name)
         self.path.chmod(0o700)
+        self.volume = 'joyride-evidence-keys-' + uuid.uuid4().hex
+        subprocess.run(['podman', 'volume', 'create', self.volume],
+                       capture_output=True, text=True, timeout=30, check=True)
+        self.addCleanup(subprocess.run, ['podman', 'volume', 'rm', self.volume],
+                        capture_output=True, check=True, timeout=30)
+        initialized = self.run_image('-c', 'import os; os.chmod("/keys", 0o700)',
+                                     options=('--entrypoint=/opt/joyride-evidence/venv/bin/python',))
+        self.assertEqual(initialized.returncode, 0, initialized.stderr)
 
     def run_image(self, *args, options=()):
-        return subprocess.run([
-            'podman', 'run', '--rm', '--network=none', '--read-only',
+        # The CI client and remote Podman engine do not share /tmp. Transfer
+        # disposable fixtures through cp and an engine-owned volume instead of
+        # assuming any client path exists on the engine host.
+        container = 'joyride-evidence-run-' + uuid.uuid4().hex
+        subprocess.run([
+            'podman', 'create', '--name', container, '--network=none', '--read-only',
             '--cap-drop=ALL', '--security-opt=no-new-privileges',
             '--pids-limit=64', '--memory=256m', '--cpus=1',
             '--tmpfs=/scratch:rw,noexec,nosuid,nodev,size=16m,mode=700',
-            '-v', str(self.path) + ':/keys:rw', *options, self.image, *args],
-            capture_output=True, text=True, timeout=60, check=False)
+            '-v', self.volume + ':/keys:rw', *options, self.image, *args],
+            capture_output=True, text=True, timeout=60, check=True)
+        try:
+            subprocess.run(['podman', 'cp', str(self.path) + '/.', container + ':/keys'],
+                           capture_output=True, text=True, timeout=30, check=True)
+            result = subprocess.run(['podman', 'start', '--attach', container],
+                                    capture_output=True, text=True, timeout=60, check=False)
+            subprocess.run(['podman', 'cp', container + ':/keys/.', str(self.path)],
+                           capture_output=True, text=True, timeout=30, check=True)
+            return result
+        finally:
+            subprocess.run(['podman', 'rm', '-f', container],
+                           capture_output=True, text=True, timeout=30, check=True)
 
     def test_real_generation_roundtrip_and_no_private_output(self):
         created = self.run_image('key', 'create', '/keys/generation')
