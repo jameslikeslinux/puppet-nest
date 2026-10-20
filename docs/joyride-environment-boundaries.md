@@ -186,11 +186,11 @@ screenshots or evidence. No such production credential or live canary exists yet
 
 ### Installed delivery admission hardening
 
-Application MR 9, exact source `101d5ec541ce305f81555813efee58ad5d0b922f`,
-is installed on private TEST at generation 13. Required check/build/PostgreSQL
-smoke in pipeline 10658 passed. The ordinary authenticated TEST request and
+Application MR 10, exact source `04fcfbe9efa62a68f820ddb86ae64c5617bb9de1`,
+is installed on private TEST at generation 14. Required check/build/PostgreSQL
+smoke in pipeline 10665 passed. The ordinary authenticated TEST request and
 existing controller selected the exact multi-architecture image, applied additive
-migration 0004 and returned a successful terminal callback. Installed source
+migrations through 0005 and returned a successful terminal callback. Installed source
 hashes, runtime-local queue/status, idempotent request/callback replay and negative
 production enqueue were checked. No production Deployment or approval row was
 created. TEST omits `PRODUCTION_DELIVERY_ENABLED`, which defaults false, and has
@@ -204,8 +204,18 @@ production rollback additionally requires prior successful production history.
 Atomic approval consumption and idempotency races have disposable PostgreSQL CI
 evidence, not live production acceptance. No real Joy receipt was signed/imported.
 
-Production admission deliberately returns `trusted_test_evidence_required` because
-an authenticated cross-environment installed-TEST handoff is not implemented.
+Production admission deliberately returns `trusted_test_evidence_required` without
+a valid parent-issued Ed25519 installed-TEST receipt. The consumer and immutable
+evidence model are implemented; trusted collection/signing and production import
+are not. The exact wire contract is in the application's
+`docs/installed-test-evidence.md`. The signer must bind real installation identity,
+all six ordered checks and bounded observation/expiry, never CI alone.
+No signing key or public trust root is configured in TEST. Installed negative
+checks verified that TEST rejects proof import before opening the receipt file,
+cannot supply production evidence, and rejects empty proof. No evidence, owner
+approval or production row was created. These are fail-closed TEST observations,
+not a positive trusted producer/import/production-admission canary.
+
 A CI receipt, locally inserted TEST deployment row, agent-authored evidence label
 or synthetic HMAC signature cannot replace it or Joy's actual exact-action
 approval. The existing TEST importer/controller must not acquire production

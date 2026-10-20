@@ -319,3 +319,40 @@ runtime proof. Real Joy provenance, trusted cross-environment installed-TEST
 evidence and distinct production controller/topology are still unimplemented.
 Admission stays closed rather than trusting CI or fabricated TEST history. Keep
 all production/publication/payment/mail gates and the inactive WMATA draft intact.
+
+## Installed TEST evidence consumer acceptance, run 11846
+
+Application MR 10 merged as `73c0575179ab995979f9756c6be750f4903d4781`.
+Independent readback verified exact source
+`04fcfbe9efa62a68f820ddb86ae64c5617bb9de1`, successful pipeline 10665 and
+required check 42869, build 42874 and PostgreSQL smoke 42871. The actual build
+receipt has both linux/amd64 and linux/arm64 manifests and immutable index
+`sha256:1dc225fbb3f5fd6eecc300f186d9b405fb88bc38ee7b07ab79ed8dd8d3f758a6`.
+The trusted importer registered its exact source/pipeline identity. Ordinary TEST
+request `4ba6e8cf-f01b-452c-bbae-9beaff5db62a` completed through the existing
+controller at generation 14, with all six application/init image fields matching,
+one updated/ready/available replica and a successful terminal callback. The
+baseline and equal inactive production pins preserve this tested artifact, not a
+second rollout or production authorization.
+
+Installed migration 0005 and twelve reviewed source/frontend hashes match the
+exact application source. TEST denies the production-only proof importer before
+opening its input, rejects empty proof and cannot supply production evidence.
+No public trust root, owner signing key, evidence row, owner approval or production
+row exists. Default-closed delivery, ordinary auth, runtime-local queue,
+cross-environment enqueue denial and idempotent request/callback replay passed.
+
+Real CA-verified ingress session/CSRF, disabled billing, checkout-return identity,
+private route/GPX denial, exact waiver text/hash, stale-version rejection and logout
+checks passed again. Exact synthetic session/member cleanup was independently
+read back; member/checkout/webhook/waiver/route/media counts returned to zero.
+The unchanged Luna frontend release hash and photo-only homepage passed. No
+provider request, mail or waiver assent occurred. Prior populated photo/map/restore
+and browser evidence remains separate; these checks did not repeat those drills.
+
+This verifies the installed consumer and its closed TEST boundary, NOT a trusted
+producer or positive production admission. Parent-owned collection/signing,
+managed trust roots, isolated production import, actual Joy provenance and a
+distinct production controller remain engineering prerequisites. No real receipt
+was generated or imported. Keep the production compile guard, zero replicas,
+suspended protection and all external activation gates closed.
