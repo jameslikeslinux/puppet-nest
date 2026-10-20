@@ -21,6 +21,7 @@ RestartSec=5
 PrivateTmp=yes
 ProtectHome=yes
 ProtectSystem=strict
+InaccessiblePaths=-/etc/eyaml -/etc/puppetlabs/bolt -/etc/puppetlabs/puppet -/etc/joyride-ci -/etc/gemrc -/srv/gitlab-runner -/var/lib/joyride-evidence -/run/podman -/run/user
 ReadWritePaths=/var/lib/joyride-ci /run/joyride-ci
 # newuidmap/newgidmap must be allowed to establish the subordinate namespace.
 # NoNewPrivileges would prevent that; it is not an isolation substitute.
