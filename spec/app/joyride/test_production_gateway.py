@@ -14,7 +14,7 @@ import uuid
 
 from test_private_access import PYTHON, ROOT, run
 
-HTTPD = 'docker.io/library/httpd@sha256:cc4c94eb4e9c3d94ac2147cb9ce8057096362de83fa12b7aeecd4c0c3d5d1f21'
+HTTPD = 'mirror.gcr.io/library/httpd@sha256:cc4c94eb4e9c3d94ac2147cb9ce8057096362de83fa12b7aeecd4c0c3d5d1f21'
 UPSTREAM = '''
 import http.server,json,ssl
 class Handler(http.server.BaseHTTPRequestHandler):
