@@ -25,6 +25,11 @@ minimal immutable informational image, never embedded in Helm release state:
 Protected-main pipeline 10700, publication job 43058, produced the image from
 Nest source `a927b5745b3a7effa0019cbd9ab619c1a32855fe`; actual registry readback
 verified both platforms and the pulled image's server/bundle hashes.
+This initial image has the wrong application ownership prefix. Joyride is Joy's
+personal application, hosted on Eyrie and supported by Nest. New informational
+publications use `registry.eyrie/joy/joyride-info`; shared deployment tooling
+remains in `nest/config`. Keep the initial image available for current consumers
+and rollback until the corrected publication is verified and source-pinned.
 No credential is needed by the running site. Repack only after exact source/CI
 and content-authorization review; never automatically follow a branch.
 
