@@ -1,4 +1,7 @@
 ---
+# This host's staged identity uses the new CA; legacy hosts keep their default.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 nest::classes:
   - 'nest::service::pipewire'
 

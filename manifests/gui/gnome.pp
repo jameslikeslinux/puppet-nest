@@ -1,5 +1,6 @@
 class nest::gui::gnome {
   contain nest::gui::keyboard
+  contain nest::gui::xresources
 
   # Mutter has an unexpressed dependency on rst2man
   nest::lib::package { 'dev-python/docutils':

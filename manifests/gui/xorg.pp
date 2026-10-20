@@ -6,6 +6,7 @@ class nest::gui::xorg {
       }
 
       contain nest::gui::keyboard
+      contain nest::gui::xresources
 
       $monitor_layout       = $nest::monitor_layout
       $primary_monitor      = $nest::primary_monitor
@@ -27,13 +28,6 @@ class nest::gui::xorg {
         owner   => 'root',
         group   => 'root',
         content => template('nest/xorg/libinput.conf.erb'),
-      }
-
-      file { '/etc/X11/Xresources':
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        content => "Xcursor.theme: breeze_cursors\nXcursor.size: ${nest::cursor_size}\nXft.dpi: ${nest::dpi}\n",
       }
 
       nest::lib::package { [
