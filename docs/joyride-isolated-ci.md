@@ -15,8 +15,11 @@ operator's engine nor its storage is shared.
 
 The rootless API runs in a dedicated system service with delegated cgroups,
 private temporary storage, hidden home directories and a read-only host system
-outside its own state/runtime paths. It requires setuid newuidmap/newgidmap for
-subordinate mappings; NoNewPrivileges is intentionally not used on that service.
+outside its own state/runtime paths. Administrative credential directories, existing runner
+state, custody, and the rootful/operator sockets are explicitly inaccessible in
+the engine's mount namespace, even when a directory is otherwise world-readable.
+It requires setuid newuidmap/newgidmap for subordinate mappings;
+NoNewPrivileges is intentionally not used on that service.
 The rootless API is full authority as this unprivileged identity, not a
 read-only socket. This is not a claim of VM-level or hostile-kernel isolation.
 

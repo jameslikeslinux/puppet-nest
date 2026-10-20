@@ -29,6 +29,9 @@ class CiBoundaryTests(unittest.TestCase):
             self.assertIn(line + '\n', service)
         self.assertNotIn('User=root\n', service)
         self.assertNotIn('/run/podman/podman.sock', service)
+        self.assertIn('InaccessiblePaths=-/etc/eyaml -/etc/puppetlabs/bolt', service)
+        self.assertIn('-/etc/joyride-ci', service)
+        self.assertIn('-/var/lib/joyride-evidence', service)
 
     def test_manager_custody_is_outside_engine_and_scope_is_explicit(self):
         source = (ROOT / 'manifests/service/joyride_ci.pp').read_text()
