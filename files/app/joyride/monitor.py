@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bounded anonymous application probes; no credentials, logs or member data."""
+import argparse
 import json
 import re
 import sys
@@ -11,12 +12,19 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def probe(open_url=None):
+TARGETS = {
+    'test': ('http://joyride-test-web.test.svc:8000', 'joyride-test.eyrie'),
+    'production': ('http://joyride-web.joyride.svc:8000', 'joyride.eyrie'),
+}
+
+
+def probe(open_url=None, environment='test'):
+    # Explicit allowlist, not a configurable URL or privileged listener probe.
+    origin, host = TARGETS[environment]
     open_url = open_url or urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect()).open
     for path, expected in (('/health/ready', 'ready'), ('/api/csrf', 'csrf'),
                            ('/maps/current', 'map'), ('/', 'html')):
-        request = urllib.request.Request('http://joyride-test-web.test.svc:8000' + path,
-                                         headers={'Host': 'joyride-test.eyrie'})
+        request = urllib.request.Request(origin + path, headers={'Host': host})
         with open_url(request, timeout=10) as response:
             if response.status != 200:
                 raise ValueError('status')
@@ -40,8 +48,12 @@ def probe(open_url=None):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--environment', choices=TARGETS, default='test')
+    args = parser.parse_args()
+    label = 'TEST' if args.environment == 'test' else 'production'
     try:
-        print('Joyride TEST monitor: ' + probe())
+        print('Joyride ' + label + ' monitor: ' + probe(environment=args.environment))
     except Exception:
-        print('Joyride TEST application probe failed', file=sys.stderr)
+        print('Joyride ' + label + ' application probe failed', file=sys.stderr)
         sys.exit(1)

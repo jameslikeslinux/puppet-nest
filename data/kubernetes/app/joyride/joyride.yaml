@@ -417,3 +417,98 @@ resources:
           app: joyride-worker
       policyTypes: [Ingress]
       ingress: []
+  monitor_scripts:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-monitor
+      namespace: joyride
+    binaryData:
+      monitor.py: '%{nest::service::joyride::monitor_script_base64}'
+  monitor:
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: joyride-monitor
+      namespace: joyride
+    spec:
+      # Source preparation only, including after a future render/apply.
+      suspend: true
+      schedule: '*/2 * * * *'
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 2
+      startingDeadlineSeconds: 60
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 90
+          template:
+            metadata:
+              labels:
+                app: joyride-monitor
+            spec:
+              automountServiceAccountToken: false
+              restartPolicy: Never
+              securityContext: *pod_security
+              imagePullSecrets:
+              - name: joyride-pull
+              containers:
+              - name: monitor
+                image: '%{lookup(''joyride_image'')}'
+                command: [python, -B, /platform/monitor.py, --environment, production]
+                securityContext: *container_security
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 64Mi
+                volumeMounts:
+                - name: scripts
+                  mountPath: /platform
+                  readOnly: true
+              volumes:
+              - name: scripts
+                configMap:
+                  name: joyride-monitor
+  monitor_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-monitor-web
+      namespace: joyride
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride
+      policyTypes: [Ingress]
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-monitor
+        ports:
+        - protocol: TCP
+          port: 8000
+  alert_rules:
+    apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: joyride
+      namespace: joyride
+      labels:
+        release: kube-prometheus-stack
+    spec:
+      groups:
+      - name: joyride
+        rules:
+        - alert: JoyrideApplicationProbeStale
+          # Suspended preparation is not a missing production success.
+          expr: (kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-monitor"} == 0) unless on(namespace,cronjob) (time() - kube_cronjob_status_last_successful_time{namespace="joyride",cronjob="joyride-monitor"} <= 360)
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: Joyride application probes have no recent success
+            description: Check the private production monitor Job. Readiness, session shell, basemap and homepage must pass; never print member data or credentials.
