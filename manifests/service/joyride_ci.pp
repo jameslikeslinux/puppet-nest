@@ -6,7 +6,13 @@ class nest::service::joyride_ci {
     require nest::tool::qemu
 
     $scope = 'ci-runner'
-    $runner_token = assert_type(Sensitive[String], lookup('nest::service::joyride_ci::runner_token'))
+    # lookup_options may already be cached before this body selects its scope.
+    # Wrap the decrypted lookup explicitly as well as accepting converted data.
+    $looked_up_token = lookup('nest::service::joyride_ci::runner_token')
+    $runner_token = $looked_up_token ? {
+      Sensitive[String] => $looked_up_token,
+      default           => Sensitive(assert_type(String, $looked_up_token)),
+    }
 
     if !('joyride-ci' in $nest::rootless_users) {
       fail('Joyride CI requires a dedicated subordinate identity in nest::rootless_users')
