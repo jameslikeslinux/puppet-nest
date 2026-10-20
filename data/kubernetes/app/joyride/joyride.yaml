@@ -9,7 +9,7 @@ fqdn: joyride.eyrie
 runtime_environment: production
 ingress_class: contour
 # Same immutable artifact exercised on TEST; never a mutable production tag.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:f63077c1dad36a0445855805966ba23ba713ceb415128a285f08ad5d2d9a02f2
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:01cc06f72742755c98c498b12e1e819578a527f95f6625a1b3039cbadac7d104
 affinity: {}
 tolerations: []
 resources:
