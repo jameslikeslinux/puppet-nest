@@ -19,6 +19,87 @@ POD = "joyride-test-76677fdf79-wx6lb"
 UID = "10000000-0000-4000-8000-000000000001"
 
 
+class TargetBinding(unittest.TestCase):
+    def setUp(self):
+        self.reset_target()
+        self.api = patch.object(identity, "command", side_effect=self.read).start()
+        self.addCleanup(patch.stopall)
+
+    def reset_target(self):
+        image = "registry.gitlab.joyfullee.me/joy/joyride/app@sha256:" + "a" * 64
+        self.deployment = {
+            "metadata": {"name": "joyride-test", "namespace": "test", "uid": UID, "generation": 2},
+            "spec": {"replicas": 1, "strategy": {"type": "Recreate"}, "template": {
+                "metadata": {"annotations": {"joyride.nest/delivery-id": UID}},
+                "spec": {"containers": [{"name": name, "image": image}
+                                        for name in ("web", "ops", "worker", "trusted-test")],
+                         "initContainers": [{"name": name, "image": image}
+                                            for name in ("migrate", "basemap")]}}},
+            "status": {"observedGeneration": 2, "replicas": 1, "updatedReplicas": 1,
+                       "readyReplicas": 1, "availableReplicas": 1}}
+        self.replica = {"metadata": {"uid": UID, "ownerReferences": [
+            {"kind": "Deployment", "uid": UID, "controller": True}]},
+            "spec": {"replicas": 1, "template": copy.deepcopy(self.deployment["spec"]["template"])}}
+        self.pod = {"metadata": {"name": POD, "namespace": "test", "uid": UID,
+                                 "ownerReferences": [{"kind": "ReplicaSet", "uid": UID, "controller": True}]},
+                    "spec": copy.deepcopy(self.deployment["spec"]["template"]["spec"]),
+                    "status": {"phase": "Running", "conditions": [{"type": "Ready", "status": "True"}]}}
+
+    def read(self, args):
+        if args[1] == "deployment":
+            return self.deployment
+        if args[1] == "replicasets":
+            return {"items": [self.replica]}
+        if args[1] == "pods":
+            return {"items": [self.pod]}
+        raise AssertionError(args)
+
+    def test_binding_runs_without_application_module(self):
+        # Real binding path, not IdentityContracts' provisioning mock. The
+        # application producer no longer exists on the Nest import path.
+        result = identity.bind_target(POD)
+        self.assertEqual(result["pod_uid"], UID)
+        self.assertEqual(result["deployment_uid"], UID)
+        self.assertEqual(result["generation"], 2)
+
+    def test_stale_or_unrelated_target_is_refused(self):
+        mutations = (
+            lambda: self.deployment["status"].update(observedGeneration=1),
+            lambda: self.replica["metadata"]["ownerReferences"][0].update(uid="other"),
+            lambda: self.pod["metadata"].update(name=POD + "other"),
+            lambda: self.pod["metadata"].update(deletionTimestamp="now"),
+            lambda: self.pod["status"].update(conditions=[]),
+            lambda: self.pod["spec"]["containers"][0].update(image="unreviewed:latest"),
+            lambda: self.deployment["spec"]["template"]["spec"]["containers"][0].update(image="unreviewed:latest"),
+            lambda: self.replica["metadata"]["ownerReferences"][0].update(kind="StatefulSet"),
+            lambda: self.pod["metadata"]["ownerReferences"][0].update(controller=False),
+            lambda: self.pod["metadata"].update(namespace="joyride"),
+        )
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                self.reset_target()
+                mutate()
+                with self.assertRaises(ValueError):
+                    identity.bind_target(POD)
+
+    def test_duplicate_live_pod_is_refused(self):
+        original = self.read
+        def read(args):
+            result = original(args)
+            if args[1] == "pods":
+                result["items"].append(copy.deepcopy(self.pod))
+            return result
+        self.api.side_effect = read
+        with self.assertRaises(ValueError):
+            identity.bind_target(POD)
+
+    def test_binding_does_not_load_application_or_signer_modules(self):
+        import ast
+        tree = ast.parse((ROOT / "files/app/joyride/evidence_identity.py").read_text())
+        imports = {node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
+        self.assertFalse(imports.intersection({"installed_test_producer", "evidence_key", "django"}))
+
+
 class IdentityContracts(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

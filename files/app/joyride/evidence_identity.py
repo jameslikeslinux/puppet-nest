@@ -6,6 +6,7 @@ an automatic namespace-wide cleanup. Run only from reviewed Nest source.
 """
 import argparse
 from datetime import datetime
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -89,15 +90,59 @@ def private_directory(path):
 
 
 def bind_target(pod):
+    # Infrastructure authorizes exec independently of the application-owned
+    # collector. Never import a checkout module while holding operator authority.
+    require(re.fullmatch(r"joyride-test-[a-z0-9]+-[a-z0-9]+", pod) is not None)
     deployment = command(["get", "deployment", "joyride-test", "-n", "test", "-o", "json"])
-    image = deployment["spec"]["template"]["spec"]["containers"][0]["image"]
-    require(image.startswith("registry.gitlab.joyfullee.me/joy/joyride/app@sha256:"))
-    from installed_test_producer import installation
-    installed = installation(image.split("@", 1)[1])
-    actual = command(["get", "pod", pod, "-n", "test", "-o", "json"])
-    require(actual["metadata"]["uid"] == installed["pod_uid"]
-            and not actual["metadata"].get("deletionTimestamp"))
-    return installed
+    metadata, spec, status = deployment["metadata"], deployment["spec"], deployment["status"]
+    require(metadata["name"] == "joyride-test" and metadata["namespace"] == "test"
+            and not metadata.get("deletionTimestamp"))
+    require(str(uuid.UUID(metadata["uid"])) == metadata["uid"])
+    require(type(metadata["generation"]) is int and metadata["generation"] > 0)
+    require(spec.get("replicas") == 1 and spec.get("strategy", {}).get("type") == "Recreate"
+            and status.get("observedGeneration") == metadata["generation"])
+    require(all(status.get(key) == 1 for key in
+                ("replicas", "updatedReplicas", "readyReplicas", "availableReplicas"))
+            and status.get("unavailableReplicas", 0) == 0)
+    template = spec["template"]
+    delivery = template.get("metadata", {}).get("annotations", {}).get("joyride.nest/delivery-id")
+    require(str(uuid.UUID(delivery)) == delivery)
+    images = set()
+    for group, names in (("containers", {"web", "ops", "worker", "trusted-test"}),
+                         ("initContainers", {"migrate", "basemap"})):
+        rows = template["spec"][group]
+        require(len(rows) == len(names) and {row["name"] for row in rows} == names)
+        images.update(row["image"] for row in rows)
+    require(len(images) == 1)
+    image = images.pop()
+    require(re.fullmatch(r"registry\.gitlab\.joyfullee\.me/joy/joyride/app@sha256:[0-9a-f]{64}", image))
+    replicas = command(["get", "replicasets", "-n", "test", "-l", "app=joyride-test", "-o", "json"])["items"]
+    owners = {row["metadata"]["uid"] for row in replicas if
+              not row["metadata"].get("deletionTimestamp") and row["spec"].get("replicas") == 1
+              and row["spec"]["template"].get("metadata", {}).get("annotations", {}).get(
+                  "joyride.nest/delivery-id") == delivery
+              and all(row["spec"]["template"]["spec"][group] == template["spec"][group]
+                      for group in ("containers", "initContainers"))
+              and any(owner.get("uid") == metadata["uid"] and owner.get("kind") == "Deployment"
+                      and owner.get("controller") is True
+                      for owner in row["metadata"].get("ownerReferences", []))}
+    require(len(owners) == 1)
+    pods = command(["get", "pods", "-n", "test", "-l", "app=joyride-test", "-o", "json"])["items"]
+    candidates = [row for row in pods if not row["metadata"].get("deletionTimestamp") and any(
+        owner.get("uid") in owners and owner.get("kind") == "ReplicaSet" and owner.get("controller") is True
+        for owner in row["metadata"].get("ownerReferences", []))]
+    require(len(candidates) == 1)
+    actual = candidates[0]
+    require(actual["metadata"]["name"] == pod and actual["metadata"]["namespace"] == "test"
+            and str(uuid.UUID(actual["metadata"]["uid"])) == actual["metadata"]["uid"])
+    require(actual["status"].get("phase") == "Running" and any(
+        row.get("type") == "Ready" and row.get("status") == "True"
+        for row in actual["status"].get("conditions", [])))
+    require(all(actual["spec"][group] == template["spec"][group] for group in ("containers", "initContainers")))
+    return {"deployment_uid": metadata["uid"], "generation": metadata["generation"],
+            "delivery_id": delivery, "pod_uid": actual["metadata"]["uid"], "image": image,
+            "spec_sha256": hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(",", ":"),
+                                                     allow_nan=False).encode()).hexdigest()}
 
 
 class Identity:
