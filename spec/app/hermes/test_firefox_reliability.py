@@ -1,6 +1,7 @@
 """Regressions for the persistent Firefox controller lifecycle."""
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from types import SimpleNamespace
 import tempfile
 import threading
 from unittest.mock import patch
@@ -58,6 +59,25 @@ def test_non_text_accessibles_never_invoke_text_interface():
     with patch.object(module.importlib, "import_module") as imported:
         assert module._text_content(Node()) == ""
         imported.assert_not_called()
+
+
+def test_accessibility_type_discovery_is_once_per_bridge_worker():
+    module = fixtures.load_bridge()
+    labels = ("FOCUSED", "FOCUSABLE", "SELECTED", "EDITABLE", "ENABLED", "VISIBLE",
+              "SHOWING", "CHECKED", "PRESSED", "ACTIVE", "EXPANDED", "INDETERMINATE")
+    states = SimpleNamespace(contains=lambda state: state in {"FOCUSED", "VISIBLE", "SHOWING"})
+    node = SimpleNamespace(get_state_set=lambda: states, get_interfaces=lambda: ["Text"])
+    atspi = SimpleNamespace(StateType=SimpleNamespace(**{label: label for label in labels}),
+                            Text=SimpleNamespace(get_character_count=lambda node: 4,
+                                                 get_text=lambda node, start, end: "safe"))
+    gi = SimpleNamespace(require_version=lambda *args: None)
+    with patch.object(gi, "require_version") as require, patch.object(module.importlib, "import_module") as imported:
+        imported.side_effect = lambda name: gi if name == "gi" else atspi
+        for _ in range(3):
+            assert module._state_names(node) == ["focused", "visible", "showing"]
+            assert module._text_content(node) == "safe"
+        require.assert_called_once_with("Atspi", "2.0")
+        assert imported.call_count == 2
 
 
 def test_two_workflows_cannot_claim_the_same_blank_tab():

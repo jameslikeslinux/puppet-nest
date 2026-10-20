@@ -12,6 +12,7 @@ import argparse
 import base64
 import contextlib
 import fcntl
+from functools import cache
 import hashlib
 import http.client
 import importlib
@@ -180,12 +181,22 @@ def _safe_name(role: str, name: str) -> str:
     return compact
 
 
+@cache
+def _atspi() -> Any:
+    # require_version discovers installed typelibs. Repeating that filesystem
+    # work for every state of every accessible dominates large snapshots.
+    # Cache only the static API, never live accessibles, states or identities.
+    gi = importlib.import_module("gi")
+    gi.require_version("Atspi", "2.0")
+    return importlib.import_module("gi.repository.Atspi")
+
+
 def _text_content(node: Any) -> str:
     """Read AT-SPI text through the interface's static GI methods."""
     with contextlib.suppress(Exception):
         if "Text" not in node.get_interfaces():
             return ""
-        Atspi = importlib.import_module("gi.repository.Atspi")
+        Atspi = _atspi()
         count = int(Atspi.Text.get_character_count(node))
         if count > 0:
             return str(Atspi.Text.get_text(node, 0, min(count, MAX_PAGE_TEXT)) or "")
@@ -236,6 +247,7 @@ def _state_names(node: Any) -> list[str]:
     result: list[str] = []
     with contextlib.suppress(Exception):
         states = node.get_state_set()
+        Atspi = _atspi()
         for label, enum_name in (
             ("focused", "FOCUSED"), ("focusable", "FOCUSABLE"),
             ("selected", "SELECTED"), ("editable", "EDITABLE"),
@@ -245,9 +257,6 @@ def _state_names(node: Any) -> list[str]:
             ("expanded", "EXPANDED"), ("indeterminate", "INDETERMINATE"),
         ):
             with contextlib.suppress(Exception):
-                gi = importlib.import_module("gi")
-                gi.require_version("Atspi", "2.0")
-                Atspi = importlib.import_module("gi.repository.Atspi")
                 if states.contains(getattr(Atspi.StateType, enum_name)):
                     result.append(label)
     return result
@@ -255,9 +264,7 @@ def _state_names(node: Any) -> list[str]:
 
 def _extent(node: Any) -> dict[str, int] | None:
     with contextlib.suppress(Exception):
-        gi = importlib.import_module("gi")
-        gi.require_version("Atspi", "2.0")
-        Atspi = importlib.import_module("gi.repository.Atspi")
+        Atspi = _atspi()
         component = node.get_component_iface()
         if component:
             rect = component.get_extents(Atspi.CoordType.SCREEN)
@@ -268,9 +275,7 @@ def _extent(node: Any) -> dict[str, int] | None:
 
 def _desktop() -> Any:
     _load_session_environment()
-    gi = importlib.import_module("gi")
-    gi.require_version("Atspi", "2.0")
-    Atspi = importlib.import_module("gi.repository.Atspi")
+    Atspi = _atspi()
     return Atspi.get_desktop(0)
 
 

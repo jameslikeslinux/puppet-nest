@@ -326,6 +326,66 @@ harness receipts are retained, not counted as passes.
 - The original sustained-CPU incident remains causally unexplained. The source
   fixes and short soak do not establish hours-long Luna-workflow reliability.
 
+## Installed follow-up and latency attribution — 2026-10-20
+
+MR 321 subsequently merged at exact head
+`7a5710eb710c83e341145071c601f0d0addb7d20`, with successful exact-head
+pipeline 10562. Under the separately recorded maintenance authorization, normal
+Bolt/Puppet/KubeCM activation installed the pinned follow-up image. Deployment
+generation 40, zero pod restarts, unchanged Bound PVC and restoration of all
+three preactivation owner-tab title hashes were verified. Star's named gateway
+refresh completed. Talon's remaining named refresh was deferred because its
+gateway still reported an active turn; installed files are not proof that the
+old gateway process has loaded the updated schema.
+
+Installed TLS-verified `browser.eyrie` acceptance completed 24 cycles in
+1999.849 seconds and 336 operations, with client subprocess execution forbidden
+and nonexistent kubeconfig. Exact textarea replacement, selector and coordinate
+multiline input, replay refusal, protected-field redaction, long-document
+discovery and controller reconnect passed. Owner identities and generation were
+unchanged; fixture release completed without cleanup errors. The shared-browser
+fixture pause then ended. These assertions do not close the original hang:
+late-cycle duration increased substantially, and the original aggregate harness
+did not attribute operation time. The historical unrecorded query refusal also
+remains unclassified. A separate observed HTTP 409 during ongoing input was
+positively identified as endpoint serialization, not a browser hang.
+
+A pristine-image isolated diagnostic completed 32 long-survivor cycles in
+1382.623 seconds and 440 operations. Maximum operation time was 11.269 seconds;
+five surviving identities and generation were unchanged across bridge refresh
+and outage. Graceful disposal was independently verified. That run did not
+reproduce the installed late-cycle spikes, but operation times still increased
+gradually. Bridge and controller timing fields place most of the observed
+duration inside the bridge rather than outer HTTPS transit. This does not
+identify the cause of the separate production spikes.
+
+An explicitly labelled, fixture-only numeric profiling overlay then measured
+493 snapshots in an eight-cycle run. Traversal size stayed bounded; large
+snapshots visited 382–392 nodes. A typical snapshot nevertheless performed
+roughly 9500 `gi.Repository.enumerate_versions` calls: `_state_names` required
+the same static API once for every state of every node, and `_extent` repeated
+that discovery. This is measured amplification in the controller, not proof
+that it causes sustained CPU usage in Firefox.
+
+The minimal source repair lazily caches only the static AT-SPI API per bridge
+worker. Node states, text, geometry and ownership observations remain fresh.
+The new regression failed before the repair with 36 version checks instead of
+one; the eight focused suites now pass 99 tests. The existing text-interface
+fixture was updated to stub the new API boundary without changing assertions.
+
+The same instrumented eight-cycle scenario passed before and after the repair:
+368.806 versus 254.777 seconds, 128 operations each, maximum 9.875 versus
+7.006 seconds. Large-snapshot median was 0.484468 versus 0.224144 seconds.
+These are sequential diagnostic runs, not a randomized benchmark; a surviving
+blank tab differed between profiles. Both used read-only source overlays, not
+rebuilt-image or installed acceptance. Crucially, gradual growth persists:
+first/last twenty large-snapshot medians after the repair were 0.155446 and
+0.327324 seconds. The static API cache is therefore an overhead reduction, not
+a complete fix for that growth or the canonical reliability incident. Do not
+roll out another image or reuse a consumed maintenance approval on this evidence
+alone. Numeric receipts and diagnostic wrappers are retained under
+`build/firefox-reliability/run11787-*`.
+
 ## Reproduction and measured verification
 
 Artifacts for this run are under `build/firefox-reliability/` in the request's
@@ -430,3 +490,99 @@ project dependencies. Repeating inventory discovery and
    policy application, owner-tab retention and authentication continuity without
    reading private storage. Retain live rollout/acceptance evidence before
    declaring the request complete.
+
+## Reproduced long-lived AT-SPI descriptor retention — 2026-10-20
+
+The completed fixed-document diagnostic separates observer lifetime from page
+growth. Forty snapshots in one observer stayed approximately flat within each
+round (first/last ten medians 0.300673/0.302024 seconds, then
+0.350370/0.349750 seconds). Fresh public workers between those rounds grew from
+0.424968 to 0.460753 seconds, then 0.469175 to 0.509631 seconds. The full
+fixture-only overlay run passed eight cycles and 208 public operations in
+316.262 seconds. Generation and five surviving identities stayed unchanged;
+graceful fixture disposal was independently verified. These are not installed
+or pristine-image acceptance receipts.
+
+Further controlled experiments narrow the trigger:
+
+- Eighty API-import-only workers and eighty desktop-initialization-only workers
+  did not materially increase fixed-document snapshot time: medians were
+  0.194987, 0.197261 and 0.197638 seconds. Merely importing GI is not the cause.
+- Eighty Firefox-root discoveries, without reading the document tree, increased
+  median snapshot time from 0.193732 to 0.281922 seconds. Subsequent eighty-worker
+  tree and snapshot phases increased it to 0.377590 and 0.475013 seconds.
+- Numeric process sampling reproduced Firefox descriptor growth from 418 to
+  646, 888 and 1083, while both D-Bus daemon descriptor counts stayed constant.
+  Explicit `Atspi.exit()` and bounded client GLib event draining did not prevent
+  growth. Neither workaround is included in source.
+- A descriptor-type reproduction identifies retained `anon_inode:[pidfd]`
+  handles: 195 before churn, 438 after eighty Firefox-root discoveries and 681
+  after another eighty. Socket counts did not show the same retained growth.
+  The fixture image contains AT-SPI 2.58.8, libdbus 1.16.2 and GLib 2.88.3.
+- A bounded numeric syscall trace attached only to the disposable Firefox main
+  thread shows `getsockopt(SO_PEERPIDFD)` during direct-client authentication.
+  The trace decodes no received message payloads. It supports the descriptor
+  attribution, not a claim that this exact trace reproduces the production hang.
+
+The upstream AT-SPI 2.58.8 `atk-adaptor/bridge.c` retains each direct connection
+in `spi_global_app_data->direct_connections` without the disconnected-client
+removal filter present in current upstream source. Libdbus keeps process
+credential descriptors with those connection objects. Relevant source:
+
+- https://github.com/GNOME/at-spi2-core/blob/2.58.8/atk-adaptor/bridge.c
+- https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/bridge.c
+- https://dbus.freedesktop.org/releases/dbus/dbus-1.16.2.tar.xz
+
+The minimal launcher repair sets `ATSPI_DISABLE_P2P=1` before Firefox loads
+atk-bridge. This disables advertisement of the leaking direct socket, not
+accessibility or authentication: workers continue using the same private
+desktop accessibility bus. Setting it only in the client is insufficient for
+this image; its older client library does not implement the switch. The earlier
+client-only experiment therefore does not test the server mitigation.
+
+With the server switch on the unchanged image, eight public canary cycles and
+128 operations passed, followed by two eighty-worker root-discovery phases.
+Firefox pidfds stayed zero; total descriptors were 150, 150 and 151. Snapshot
+medians stayed 0.222371, 0.221090 and 0.224248 seconds. The complete diagnostic
+took 301.446 seconds and preserved five surviving identities across isolated
+bridge refresh/outage. This explicitly labelled configuration/source-overlay
+experiment is not rebuilt-image or production acceptance.
+
+The shipped endpoint canary now has an opt-in `--observer-churn` regression
+using real public snapshots and numeric-only disposable-browser descriptor
+samples. Against the unchanged image, forty snapshots fail the regression:
+pidfds rise from 141 to 261 and total descriptors from 355 to 471. With only
+the repaired launcher overlaid, the same regression passes: pidfds remain zero,
+total descriptors decrease from 216 to 207, and the full one-cycle canary
+passes 77 operations in 129.445 seconds with five surviving identities. The
+initial launcher-overlay attempt lacked executable permissions and failed
+fixture readiness; the harness now copies it into its temporary directory with
+the executable mode Puppet normally installs. That harness failure is not
+counted as a browser regression or successful acceptance.
+
+Reproduce against a verified immutable image, without an owner profile:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 SECURE_BROWSER_CONTROL_MODE=firefox-ui-v1 \
+  build/firefox-reliability/venv/bin/python \
+  spec/app/hermes/firefox_endpoint_canary.py \
+  --image <immutable-local-image-id> --iterations 1 --long-survivors \
+  --observer-churn 40 --output <receipt.json>
+```
+
+`--launcher-source files/firefox-browser/nest-firefox-browser.sh` explicitly
+labels a source-overlay test; omit it for pristine rebuilt-image acceptance.
+Only isolated infrastructure sampling/setup/cleanup uses Podman. Browser
+operations still use the TLS-verified public adapter with nonexistent kubeconfig
+and forbidden client subprocess execution. Generation, surviving-tab identity,
+protected-control redaction, replay refusal, bridge refresh and endpoint-outage
+checks remain in place. No automatic restart, descriptor-closing injection,
+profile reset, recovery loop or broad permission change is introduced.
+
+This is an isolated causal reproduction and passing mitigation for descriptor
+retention and gradual latency growth. The historical sustained-CPU incident was
+not traced at this seam, so it remains unproven whether it had the same cause.
+Rebuilt-image parity, extended churn acceptance, exact final-head CI and any
+newly authorized installed activation remain separate requirements. MR 329's
+earlier static-cache head passed pipeline 10591; that does not certify later
+launcher changes. Production has not been interrupted for this investigation.

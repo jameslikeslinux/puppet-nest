@@ -8,6 +8,12 @@ export APP_ARGS="${APP_ARGS:-}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/runtime-firefox}"
 export NO_AT_BRIDGE=0
 export GTK_MODULES="${GTK_MODULES:-atk-bridge}"
+# AT-SPI 2.58 retains disconnected direct client connections in Firefox,
+# including their libdbus pidfds. Fresh bridge workers then grow descriptors
+# and dispatch latency indefinitely. Use the same private accessibility bus
+# instead of advertising a direct socket; keep accessibility/authentication on.
+# This must be set before Firefox loads atk-bridge, not only in its clients.
+export ATSPI_DISABLE_P2P=1
 vnc_geometry="${VNC_RESOLUTION:-1365x768x24}"
 vnc_width="${vnc_geometry%%x*}"
 vnc_height_depth="${vnc_geometry#*x}"
