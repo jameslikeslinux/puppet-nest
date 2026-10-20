@@ -52,8 +52,8 @@ then verify changed behavior against the exact resulting TEST artifact.
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
 | WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
 | Stripe sandbox | UNVERIFIED | Real sandbox credentials and actual checkout/portal/webhook/reconciliation acceptance remain outstanding; mock tests do not close this. No live payments. |
-| Backup/isolated restore and monitoring | Prior TEST milestone verified | Runs 11767/11768 populated restore, scheduled publication, final-generation restore, failure preservation and healthy app alerts. Keep photo authorization and restore in changed-artifact acceptance. |
-| Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended credential-free monitor and fixed-environment administrative backup. Compile guard remains TEST-only; managed production secrets, private ops, gateway, promotion and real production backup/isolated restore acceptance remain open. See environment boundaries. |
+| Backup/isolated restore and monitoring | TEST milestone and transport repair verified | Runs 11767/11768 protection and alerts; run 11808 populated photo restore; run 11809 repaired managed capture, completion readback and exact-generation isolated restore with independent cleanup/live continuity. That managed generation was empty of members, not a populated photo drill. |
+| Production source preparation | PARTIAL, dormant | Separate zero-replica DB/PVC/listener candidate, serial migration, pinned basemap initialization, suspended monitor/backup and dedicated VPN TLS ops candidate with real pinned-nginx fixtures. Compile guard remains TEST-only; managed production secrets, private ops live acceptance, gateway, promotion and real production protection acceptance remain open. See environment boundaries. |
 | Production deployment/public launch/content publication | NOT AUTHORIZED | Separate Joy approval of relevant revision required; no inferred authority from scope reduction. |
 
 ## Concrete source-facing work
@@ -151,5 +151,14 @@ exec transport despite exit zero, while WebSocket producer/receiver hashes and
 bytes matched. The helper's explicit transport selection and required installed
 managed capture/restore acceptance are tracked in
 `joyride-test-recurring-protection.md`; this isolated photo restore does not close
-that repair gate. Stripe sandbox, WMATA display approval and remaining guarded
-production contracts stay open.
+that repair gate on its own. Run 11809 subsequently closed the managed repair
+gate: the installed reviewed helper completed a real generation, verified its
+final completion/hash readback and restored that exact database/files generation
+in isolation. Installed migration/check passed and independent readback confirmed
+disposable database cleanup, live DB/TLS readiness, all six selected image fields,
+controller journal continuity and production namespace absence. The completed
+verification Job was removed; previous final generations were untouched. Its
+member database was empty and its two files were basemap files; retain the
+separate populated photo-authorization evidence rather than conflating scopes.
+Stripe sandbox, WMATA display approval and remaining guarded production contracts
+stay open.

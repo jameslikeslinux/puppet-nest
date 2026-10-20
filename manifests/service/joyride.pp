@@ -33,4 +33,6 @@ class nest::service::joyride (
   $test_access_config_sha256     = sha256(file('nest/app/joyride/test-access-nginx.conf'))
   $backup_script_base64          = base64('encode', file('nest/app/joyride/backup.py'))
   $monitor_script_base64         = base64('encode', file('nest/app/joyride/monitor.py'))
+  $production_ops_config_base64  = base64('encode', file('nest/app/joyride/production-ops-nginx.conf'))
+  $production_ops_config_sha256  = sha256(file('nest/app/joyride/production-ops-nginx.conf'))
 }

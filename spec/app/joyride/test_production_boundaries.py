@@ -48,7 +48,10 @@ class ProductionBoundaries(unittest.TestCase):
                 self.assertNotIn('initContainers', pod)
             self.assertEqual(pod['imagePullSecrets'], [{'name': 'joyride-pull'}])
             for container in pod['containers']:
-                self.assertEqual(container['image'], "%{lookup('joyride_image')}")
+                if container['name'] == 'tls-ops':
+                    self.assertRegex(container['image'], r'^docker.io/nginxinc/nginx-unprivileged@sha256:[0-9a-f]{64}$')
+                else:
+                    self.assertEqual(container['image'], "%{lookup('joyride_image')}")
                 self.assertIs(container['securityContext']['readOnlyRootFilesystem'], True)
                 self.assertIs(container['securityContext']['allowPrivilegeEscalation'], False)
 
@@ -66,7 +69,8 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertIn('joyride.wsgi:application', web[0]['command'])
         for resource in self.resources.values():
             if resource.get('kind') == 'Service':
-                self.assertNotIn(resource['spec'].get('type'), ('NodePort', 'LoadBalancer'))
+                if resource['metadata']['name'] != 'joyride-ops':
+                    self.assertNotIn(resource['spec'].get('type'), ('NodePort', 'LoadBalancer'))
 
     def test_serial_initialization_is_scoped_to_production_storage(self):
         pod = self.resources['app']['spec']['template']['spec']
@@ -102,7 +106,9 @@ class ProductionBoundaries(unittest.TestCase):
     def test_network_boundary_separates_ops_from_shared_ingress(self):
         self.assertEqual(self.resources['ops_policy']['spec'], {
             'podSelector': {'matchLabels': {'app': 'joyride-ops'}},
-            'policyTypes': ['Ingress'], 'ingress': []})
+            'policyTypes': ['Ingress'], 'ingress': [{
+                'from': [{'ipBlock': {'cidr': '172.22.0.0/24'}}],
+                'ports': [{'protocol': 'TCP', 'port': 8443}]}]})
         self.assertEqual(self.resources['worker_policy']['spec']['ingress'], [])
         self.assertEqual(self.resources['web_policy']['spec']['ingress'], [{
             'from': [{'namespaceSelector': {'matchLabels': {
@@ -114,6 +120,11 @@ class ProductionBoundaries(unittest.TestCase):
         actual = {}
         for deployment in self.deployments:
             for container in deployment['spec']['template']['spec']['containers']:
+                if container['name'] == 'tls-ops':
+                    self.assertNotIn('env', container)
+                    self.assertNotIn('envFrom', container)
+                    self.assertEqual({m['name'] for m in container['volumeMounts']}, {'ops-config', 'ops-tls', 'nginx-tmp'})
+                    continue
                 self.assertEqual(container['envFrom'], [{'configMapRef': {'name': 'joyride-config'}}])
                 actual[container['name']] = {item['name']: item['valueFrom']['secretKeyRef'] for item in container['env']}
         common = {'DJANGO_SECRET_KEY': {'name': 'joyride-runtime', 'key': 'DJANGO_SECRET_KEY'},
@@ -127,6 +138,32 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(config['STRIPE_MODE'], 'disabled')
         self.assertEqual(config['OPS_SCOPES'], 'status,diagnostics,member:read')
         self.assertEqual(config['ALLOWED_HOSTS'], 'joyride.eyrie')
+
+    def test_private_ops_has_dedicated_tls_vpn_service_and_loopback_auth(self):
+        service = self.resources['ops']['spec']
+        self.assertEqual(service['type'], 'LoadBalancer')
+        self.assertEqual(service['loadBalancerIP'], '172.21.0.2')
+        self.assertIs(service['allocateLoadBalancerNodePorts'], False)
+        self.assertEqual(service['externalTrafficPolicy'], 'Local')
+        self.assertEqual(service['loadBalancerSourceRanges'], ['172.22.0.0/24'])
+        self.assertEqual(service['ports'], [{'name': 'https', 'port': 443, 'targetPort': 8443}])
+        pod = self.resources['ops_app']['spec']['template']['spec']
+        self.assertEqual(pod['nodeSelector'], {'node-role.kubernetes.io/worker': ''})
+        ops, tls = pod['containers']
+        self.assertIn('127.0.0.1:8001', ops['command'])
+        self.assertNotIn('ports', ops)
+        self.assertEqual(tls['ports'], [{'name': 'tls-ops', 'containerPort': 8443}])
+        self.assertEqual(self.resources['ops_certificate']['spec']['dnsNames'], ['joyride-ops.eyrie'])
+        self.assertEqual(self.resources['ops_config']['binaryData'], {
+            'nginx.conf': '%{nest::service::joyride::production_ops_config_base64}'})
+        config = (ROOT / 'files/app/joyride/production-ops-nginx.conf').read_text()
+        self.assertIn('allow 172.22.0.0/24;', config)
+        self.assertIn('deny all;', config)
+        self.assertIn('proxy_set_header Authorization $http_authorization;', config)
+        self.assertIn('proxy_pass_request_headers off;', config)
+        self.assertIn('server 127.0.0.1:8001;', config)
+        self.assertNotIn('real_ip_header', config)
+        self.assertNotIn('8002', config)
 
     def test_monitor_has_no_runtime_credentials_or_privileged_network_path(self):
         job = self.resources['monitor']['spec']

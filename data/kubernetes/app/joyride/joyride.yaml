@@ -348,15 +348,19 @@ resources:
         metadata:
           labels:
             app: joyride-ops
+          annotations:
+            checksum/ops-config: '%{nest::service::joyride::production_ops_config_sha256}'
         spec:
           automountServiceAccountToken: false
+          nodeSelector:
+            node-role.kubernetes.io/worker: ''
           securityContext: *pod_security
           imagePullSecrets:
           - name: joyride-pull
           containers:
           - name: ops
             image: '%{lookup(''joyride_image'')}'
-            command: [gunicorn, 'joyride.ops_wsgi:application', --bind, '0.0.0.0:8001', --workers, '2']
+            command: [gunicorn, 'joyride.ops_wsgi:application', --bind, '127.0.0.1:8001', --workers, '2']
             securityContext: *container_security
             envFrom: *environment
             env:
@@ -376,14 +380,53 @@ resources:
                   name: joyride-ops-auth
                   key: OPS_TOKEN
             resources: *application_resources
+            readinessProbe:
+              exec:
+                command: [python, -c, 'import socket; socket.create_connection(("127.0.0.1", 8001), timeout=2).close()']
+            volumeMounts: *read_mounts
+          - name: tls-ops
+            image: docker.io/nginxinc/nginx-unprivileged@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+            command: [nginx, -g, 'daemon off;']
+            securityContext: *container_security
             ports:
-            - name: ops
-              containerPort: 8001
+            - name: tls-ops
+              containerPort: 8443
             readinessProbe:
               tcpSocket:
-                port: 8001
-            volumeMounts: *read_mounts
-          volumes: *runtime_volumes
+                port: 8443
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+            volumeMounts:
+            - name: ops-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: ops-tls
+              mountPath: /tls
+              readOnly: true
+            - name: nginx-tmp
+              mountPath: /tmp
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: joyride-data
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+          - name: ops-config
+            configMap:
+              name: joyride-ops-config
+          - name: ops-tls
+            secret:
+              secretName: joyride-ops-tls
+          - name: nginx-tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 64Mi
   web:
     apiVersion: v1
     kind: Service
@@ -404,12 +447,38 @@ resources:
       name: joyride-ops
       namespace: joyride
     spec:
+      type: LoadBalancer
+      # Reserved candidate only; no Service or route is created during preparation.
+      loadBalancerIP: 172.21.0.2
+      allocateLoadBalancerNodePorts: false
+      externalTrafficPolicy: Local
+      loadBalancerSourceRanges: [172.22.0.0/24]
       selector:
         app: joyride-ops
       ports:
-      - name: http
-        port: 8001
-        targetPort: 8001
+      - name: https
+        port: 443
+        targetPort: 8443
+  ops_config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: joyride-ops-config
+      namespace: joyride
+    binaryData:
+      nginx.conf: '%{nest::service::joyride::production_ops_config_base64}'
+  ops_certificate:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: joyride-ops-tls
+      namespace: joyride
+    spec:
+      secretName: joyride-ops-tls
+      issuerRef:
+        name: eyrie-ca
+        kind: ClusterIssuer
+      dnsNames: [joyride-ops.eyrie]
   certificate:
     apiVersion: cert-manager.io/v1
     kind: Certificate
@@ -477,9 +546,15 @@ resources:
         matchLabels:
           app: joyride-ops
       policyTypes: [Ingress]
-      # No access until a dedicated authenticated VPN/Tailscale path is reviewed.
-      # In particular, the shared public ingress is NOT an ops ingress source.
-      ingress: []
+      # Dedicated VPN source-preserving TLS only; never shared public ingress.
+      # The authenticated port 8001 is bound only to same-pod loopback.
+      ingress:
+      - from:
+        - ipBlock:
+            cidr: 172.22.0.0/24
+        ports:
+        - protocol: TCP
+          port: 8443
   worker_policy:
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
