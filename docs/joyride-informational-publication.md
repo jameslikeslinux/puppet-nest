@@ -19,8 +19,13 @@ map library, private GPX, original media or video in this projection.
 The selected files are the approved homepage/public ride brief, their exact
 assets, silhouettes, distance/elevation shape, self-hosted fonts and font licenses.
 `package_informational.py` reproducibly exports this literal allowlist from the
-pinned Git revision. The two JSON bundles are source-managed public artifacts;
-no credential is needed by the running site. Repack only after exact source/CI
+pinned Git revision. The two JSON bundles are source-managed public artifacts packaged inside the
+minimal immutable informational image, never embedded in Helm release state:
+`registry.eyrie/nest/joyride-info@sha256:cca3e7b5e3ab5c8ccf57b56996e65bcea2aad39292fd1be0c49a538ef2c55efd`.
+Protected-main pipeline 10700, publication job 43058, produced the image from
+Nest source `a927b5745b3a7effa0019cbd9ab619c1a32855fe`; actual registry readback
+verified both platforms and the pulled image's server/bundle hashes.
+No credential is needed by the running site. Repack only after exact source/CI
 and content-authorization review; never automatically follow a branch.
 
 ## Isolation

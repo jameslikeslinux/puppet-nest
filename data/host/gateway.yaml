@@ -18,6 +18,9 @@ nest::reset_filter_rules:
 nest::service::apache::manage_firewall: true
 nest::service::gateway::http: true
 
+# Bounded informational publication; supervised apex/www certificate is issued.
+nest::service::joyride_gateway::tls_enabled: true
+
 nest::service::gateway::port_forwards:
   git:
     dest: '45.77.156.204'
