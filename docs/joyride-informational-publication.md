@@ -28,8 +28,17 @@ verified both platforms and the pulled image's server/bundle hashes.
 Joyride is Joy's personal application, hosted on Eyrie and supported by Nest.
 Informational publications use `registry.eyrie/joy/joyride-info`; shared deployment
 tooling remains in `nest/config`. The compiler rejects other repository prefixes.
-Keep the prior image available for historical Helm revisions and rollback; do
-not confuse registry ownership with the unchanged `joyride-info` namespace.
+The original image is preserved byte-for-byte, including both platforms, as
+`registry.eyrie/joy/joyride-info@sha256:cca3e7b5e3ab5c8ccf57b56996e65bcea2aad39292fd1be0c49a538ef2c55efd`
+with tag `rollback-informational-original-10700`. Historical Helm revisions 1
+and 2 predate the ownership correction and are audit records, not executable
+rollback targets. Do not run `helm rollback` to those revisions. If their
+runtime is needed, pin this preserved personal-repository digest in reviewed
+KubeCM source and deploy normally; the compiler's ownership guard still applies.
+Retire the superseded zero-replica ReplicaSet before removing obsolete repository
+metadata. Do not confuse registry ownership with the unchanged `joyride-info`
+namespace. Registry metadata removal does not imply shared-blob disk reclamation;
+leave that to scheduled garbage collection, without a global restart or purge.
 No credential is needed by the running site. Repack only after exact source/CI
 and content-authorization review; never automatically follow a branch.
 
