@@ -84,7 +84,11 @@ def main():
     parser.add_argument("--output", required=True)
     parser.add_argument("--long-survivors", action="store_true")
     parser.add_argument("--bridge-source", type=Path, help="Fixture-only read-only bridge overlay; not pristine image acceptance")
+    parser.add_argument("--launcher-source", type=Path, help="Fixture-only read-only launcher overlay; not pristine image acceptance")
+    parser.add_argument("--observer-churn", type=int, default=0, help="Additional public snapshots to check Firefox descriptor retention (20–500)")
     args = parser.parse_args()
+    if args.observer_churn and not 20 <= args.observer_churn <= 500:
+        parser.error("--observer-churn must be zero or between 20 and 500")
     Fixture.long_survivors = args.long_survivors
     if not args.image.startswith("sha256:"):
         raise SystemExit("Use a verified immutable local image ID")
@@ -102,6 +106,11 @@ def main():
         fixture = ThreadingHTTPServer(("0.0.0.0", 0), Fixture)
         threading.Thread(target=fixture.serve_forever, daemon=True).start()
         overlay = ["--volume", f"{args.bridge_source.resolve(strict=True)}:/opt/nest/firefox/bin/firefox-ui-bridge.py:ro"] if args.bridge_source else []
+        if args.launcher_source:
+            launcher = work / "nest-firefox-browser.sh"
+            launcher.write_bytes(args.launcher_source.resolve(strict=True).read_bytes())
+            launcher.chmod(0o555)
+            overlay.extend(["--volume", f"{launcher}:/opt/nest/firefox/bin/nest-firefox-browser.sh:ro"])
         subprocess.run(["sudo", "-n", "podman", "run", "--detach", "--name", container, "--cap-add", "SETFCAP", "--shm-size", "1g", "--publish", "127.0.0.1::8766", "--volume", f"{token}:/run/nest-firefox-bridge/token:ro", "--env", "FIREFOX_BRIDGE_TOKEN_FILE=/run/nest-firefox-bridge/token", "--env", "FIREFOX_CONTROL_PROTOCOL=firefox-bidi-ui-v2", *overlay, args.image], check=True, capture_output=True)
         try:
             ports = json.loads(subprocess.run(["sudo", "-n", "podman", "inspect", container], check=True, capture_output=True, text=True).stdout)[0]["NetworkSettings"]["Ports"]["8766/tcp"]
@@ -200,6 +209,33 @@ def main():
                     print(json.dumps({"cycle": index + 1, "elapsed": round(time.monotonic() - started, 3)}), flush=True)
                 status = call("secure_browser_status_tool", {})
                 assert status["control_mode_matches_browser"]
+                observer_resources = None
+                if args.observer_churn:
+                    # Numeric infrastructure evidence from this disposable
+                    # browser only; never inspect profile or page contents.
+                    resource_script = """import json,os,pathlib,subprocess
+windows=subprocess.check_output(['xdotool','search','--onlyvisible','--classname','Navigator']).split()
+assert len(windows)==1
+pid=int(subprocess.check_output(['xdotool','getwindowpid',windows[0]]))
+links=[]
+for fd in pathlib.Path(f'/proc/{pid}/fd').iterdir():
+    try: links.append(os.readlink(fd))
+    except FileNotFoundError: pass
+print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]')}))
+"""
+                    def resource_sample():
+                        sample = infrastructure_run(["sudo", "-n", "podman", "exec", container, "env", "DISPLAY=:1", "python3", "-c", resource_script], capture_output=True, text=True, check=True, timeout=15)
+                        return json.loads(sample.stdout)
+                    before_resources = resource_sample()
+                    for _ in range(args.observer_churn):
+                        current = call("secure_browser_page_snapshot_tool", {})
+                        assert current["browser_generation"] == generation
+                        assert identities <= {tab["locator"] for tab in current["tabs"]}
+                    after_resources = resource_sample()
+                    observer_resources = {"snapshots": args.observer_churn, "before": before_resources, "after": after_resources}
+                    print(json.dumps({"observer_resources": observer_resources}), flush=True)
+                    assert after_resources["pidfds"] - before_resources["pidfds"] <= 3, observer_resources
+                    assert after_resources["open_fds"] - before_resources["open_fds"] <= 8, observer_resources
                 # Explicit infrastructure maintenance on this disposable image
                 # only. This is not a browser tool or a recovery of owner state.
                 refresh = (
@@ -234,8 +270,14 @@ def main():
             result = {"passed": True, "bridge_refresh_preserved_browser": True, "endpoint_outage_preserved_browser": True, "iterations": args.iterations, "duration_seconds": round(time.monotonic() - started, 3), "operations": len(latencies), "mean_seconds": round(sum(latencies) / len(latencies), 3), "max_seconds": round(max(latencies), 3), "surviving_tab_count": len(identities), "generation_unchanged": True, "client_subprocess_forbidden": True, "kubeconfig": "nonexistent", "tls_verification": "default context with isolated fixture CA; localhost endpoint only", "fixture_text_sha256": hashlib.sha256(TEXT.encode()).hexdigest(), "image": args.image, "scope": "isolated actual-image public adapter; not production browser.eyrie acceptance"}
             result["long_survivors"] = args.long_survivors
             result["bridge_source_overlay"] = bool(args.bridge_source)
+            result["launcher_source_overlay"] = bool(args.launcher_source)
+            if observer_resources is not None:
+                result["observer_resources"] = observer_resources
             if args.bridge_source:
                 result["bridge_source_sha256"] = hashlib.sha256(args.bridge_source.read_bytes()).hexdigest()
+                result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
+            if args.launcher_source:
+                result["launcher_source_sha256"] = hashlib.sha256(args.launcher_source.read_bytes()).hexdigest()
                 result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
             print(json.dumps(result), flush=True)
