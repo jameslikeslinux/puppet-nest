@@ -46,7 +46,14 @@ Directories are mode 0700, archives and receipts 0600. Archives include private
 application data and WMATA cache, not runtime secrets. Credential recovery remains
 in the private encrypted source and existing credential backups. Never attach,
 commit, publish or send these archives to Luna. Logs contain only success/failure,
-nonsecret generation name and digest, never subprocess diagnostics or file names.
+an allowlisted failure category, nonsecret generation name and digest, never
+exception text, subprocess diagnostics or file names. Archive parsing failures
+are `files_archive_invalid`; command exit failures, timeouts, concurrent captures,
+local I/O failures and stable-file mismatches have distinct categories. Unknown
+exceptions become `unclassified_failure`, not their message or traceback. These
+codes support diagnosis; they do not establish a transport/storage root cause or
+authorize automatic retry. Preserve earlier complete generations and investigate
+recurrence with bounded read-only captures rather than retrying until one passes.
 
 ## Explicit isolated restore
 
