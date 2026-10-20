@@ -184,6 +184,35 @@ screenshots or evidence. No such production credential or live canary exists yet
 
 ## Remaining production implementation contract
 
+### Installed delivery admission hardening
+
+Application MR 9, exact source `101d5ec541ce305f81555813efee58ad5d0b922f`,
+is installed on private TEST at generation 13. Required check/build/PostgreSQL
+smoke in pipeline 10658 passed. The ordinary authenticated TEST request and
+existing controller selected the exact multi-architecture image, applied additive
+migration 0004 and returned a successful terminal callback. Installed source
+hashes, runtime-local queue/status, idempotent request/callback replay and negative
+production enqueue were checked. No production Deployment or approval row was
+created. TEST omits `PRODUCTION_DELIVERY_ENABLED`, which defaults false, and has
+no approval HMAC key. The selected dormant production image remains equal to
+this exercised TEST artifact; its guard and zero replicas remain unchanged.
+
+The application now strictly imports the existing bounded signed approval receipt,
+preserving exact evidence identity and immutable scope. Historical hash-only
+approvals cannot authorize new delivery. Queue/result selection is runtime-local;
+production rollback additionally requires prior successful production history.
+Atomic approval consumption and idempotency races have disposable PostgreSQL CI
+evidence, not live production acceptance. No real Joy receipt was signed/imported.
+
+Production admission deliberately returns `trusted_test_evidence_required` because
+an authenticated cross-environment installed-TEST handoff is not implemented.
+A CI receipt, locally inserted TEST deployment row, agent-authored evidence label
+or synthetic HMAC signature cannot replace it or Joy's actual exact-action
+approval. The existing TEST importer/controller must not acquire production
+authority. Distinct trusted proof import, Joy provenance/import isolation and
+production controller/topology remain engineering prerequisites before activation;
+do not enable delivery or widen the compile guard to work around their absence.
+
 ### Dormant public gateway candidate
 
 `nest::service::joyride_gateway` and
