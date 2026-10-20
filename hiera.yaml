@@ -36,6 +36,9 @@ hierarchy:
   - name: 'Joyride Evidence Supervisor'
     path: "private/joyride/%{nest::service::joyride_evidence::scope}.yaml"
 
+  - name: 'Joyride Isolated CI'
+    path: "private/joyride/%{nest::service::joyride_ci::scope}.yaml"
+
   # Relating to specific instances
   - name: 'Hosts'
     paths:
