@@ -44,6 +44,7 @@ stages:
     - '.production-boundary-venv/bin/python spec/app/joyride/test_installed_test_producer.py'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_key.py'
     - 'python3 spec/app/joyride/test_evidence_runtime.py'
+    - 'python3 spec/app/joyride/test_evidence_release.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci
@@ -61,6 +62,21 @@ stages:
     - 'python3 spec/app/hermes/test_firefox_tab_ancestry.py'
     - 'python3 spec/app/hermes/test_secure_browser_firefox_ui.py'
     - 'python3 spec/app/hermes/test_secure_browser_general_hardening.py'
+
+'Publish Joyride evidence runtime':
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  stage: 'Build'
+  tags: ['owl']
+  interruptible: false
+  script:
+    - 'python3 -B files/app/joyride/release_evidence_runtime.py evidence-runtime.json'
+  artifacts:
+    paths: ['evidence-runtime.json']
+    expire_in: '1 year'
+  rules:
+    - if: '$EXECUTOR_ONLY || $BUILD'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
 
 .template:
   stage: 'Build'
