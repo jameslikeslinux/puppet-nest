@@ -326,6 +326,66 @@ harness receipts are retained, not counted as passes.
 - The original sustained-CPU incident remains causally unexplained. The source
   fixes and short soak do not establish hours-long Luna-workflow reliability.
 
+## Installed follow-up and latency attribution — 2026-10-20
+
+MR 321 subsequently merged at exact head
+`7a5710eb710c83e341145071c601f0d0addb7d20`, with successful exact-head
+pipeline 10562. Under the separately recorded maintenance authorization, normal
+Bolt/Puppet/KubeCM activation installed the pinned follow-up image. Deployment
+generation 40, zero pod restarts, unchanged Bound PVC and restoration of all
+three preactivation owner-tab title hashes were verified. Star's named gateway
+refresh completed. Talon's remaining named refresh was deferred because its
+gateway still reported an active turn; installed files are not proof that the
+old gateway process has loaded the updated schema.
+
+Installed TLS-verified `browser.eyrie` acceptance completed 24 cycles in
+1999.849 seconds and 336 operations, with client subprocess execution forbidden
+and nonexistent kubeconfig. Exact textarea replacement, selector and coordinate
+multiline input, replay refusal, protected-field redaction, long-document
+discovery and controller reconnect passed. Owner identities and generation were
+unchanged; fixture release completed without cleanup errors. The shared-browser
+fixture pause then ended. These assertions do not close the original hang:
+late-cycle duration increased substantially, and the original aggregate harness
+did not attribute operation time. The historical unrecorded query refusal also
+remains unclassified. A separate observed HTTP 409 during ongoing input was
+positively identified as endpoint serialization, not a browser hang.
+
+A pristine-image isolated diagnostic completed 32 long-survivor cycles in
+1382.623 seconds and 440 operations. Maximum operation time was 11.269 seconds;
+five surviving identities and generation were unchanged across bridge refresh
+and outage. Graceful disposal was independently verified. That run did not
+reproduce the installed late-cycle spikes, but operation times still increased
+gradually. Bridge and controller timing fields place most of the observed
+duration inside the bridge rather than outer HTTPS transit. This does not
+identify the cause of the separate production spikes.
+
+An explicitly labelled, fixture-only numeric profiling overlay then measured
+493 snapshots in an eight-cycle run. Traversal size stayed bounded; large
+snapshots visited 382–392 nodes. A typical snapshot nevertheless performed
+roughly 9500 `gi.Repository.enumerate_versions` calls: `_state_names` required
+the same static API once for every state of every node, and `_extent` repeated
+that discovery. This is measured amplification in the controller, not proof
+that it causes sustained CPU usage in Firefox.
+
+The minimal source repair lazily caches only the static AT-SPI API per bridge
+worker. Node states, text, geometry and ownership observations remain fresh.
+The new regression failed before the repair with 36 version checks instead of
+one; the eight focused suites now pass 99 tests. The existing text-interface
+fixture was updated to stub the new API boundary without changing assertions.
+
+The same instrumented eight-cycle scenario passed before and after the repair:
+368.806 versus 254.777 seconds, 128 operations each, maximum 9.875 versus
+7.006 seconds. Large-snapshot median was 0.484468 versus 0.224144 seconds.
+These are sequential diagnostic runs, not a randomized benchmark; a surviving
+blank tab differed between profiles. Both used read-only source overlays, not
+rebuilt-image or installed acceptance. Crucially, gradual growth persists:
+first/last twenty large-snapshot medians after the repair were 0.155446 and
+0.327324 seconds. The static API cache is therefore an overhead reduction, not
+a complete fix for that growth or the canonical reliability incident. Do not
+roll out another image or reuse a consumed maintenance approval on this evidence
+alone. Numeric receipts and diagnostic wrappers are retained under
+`build/firefox-reliability/run11787-*`.
+
 ## Reproduction and measured verification
 
 Artifacts for this run are under `build/firefox-reliability/` in the request's

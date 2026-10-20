@@ -440,13 +440,9 @@ def test_atspi_text_api_and_safe_commerce_canonicalization() -> None:
             assert end == len("Subtotal $50.00")
             return "Subtotal $50.00"
 
-    original_import = module.importlib.import_module
-    module.importlib.import_module = lambda name: type("AtspiModule", (), {"Text": TextAPI}) if name == "gi.repository.Atspi" else original_import(name)
-    try:
-        node = type("TextNode", (), {"get_interfaces": lambda self: ["Text"]})()
-        assert module._text_content(node) == "Subtotal $50.00"
-    finally:
-        module.importlib.import_module = original_import
+    module._atspi = lambda: type("AtspiModule", (), {"Text": TextAPI})
+    node = type("TextNode", (), {"get_interfaces": lambda self: ["Text"]})()
+    assert module._text_content(node) == "Subtotal $50.00"
 
     assert module._safe_visible_commerce_text("Subtotal $50.00") == "Subtotal $50.00"
     assert module._safe_visible_commerce_text("Shipping Free") == "Shipping free"
