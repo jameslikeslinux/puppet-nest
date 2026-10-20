@@ -129,7 +129,7 @@ objects and verify live continuity. The detailed isolation rules in
 and no implicit TEST fallback. No production capture or drill has run yet.
 
 Before activation the candidate still needs approved exact-artifact
-promotion/rollback and gateway preparation, plus managed credentials, private
+promotion/rollback and gateway live acceptance, plus managed credentials, private
 ops live acceptance, production protection and live initialization acceptance.
 Those pieces must be implemented and
 verified before the common compile guard can be widened. Do not apply this file
@@ -183,6 +183,49 @@ the existing encrypted private source; never put bearer values into chat, logs,
 screenshots or evidence. No such production credential or live canary exists yet.
 
 ## Remaining production implementation contract
+
+### Dormant public gateway candidate
+
+`nest::service::joyride_gateway` and
+`files/app/joyride/production-gateway-apache.conf` prepare Apache configuration
+using the existing gateway's IPv4/IPv6 addresses and Apache resource conventions.
+Neither gateway host data nor any active class includes it. Adding source does
+not create DNS, request a certificate, change a firewall, reload Apache or expose
+the application. Do not include the class before separately approved activation.
+The existing gateway's host map and global `StrictHostCheck` are unchanged.
+
+The candidate requires a supervised certificate at the existing Let's Encrypt
+path covering BOTH apex and `www`. HTTP provides only the restricted ACME webroot
+exception and a fixed apex HTTPS redirect. HTTPS `www` also redirects to the
+fixed apex, retaining path/query. Exact Host/SNI checks reject mismatches and
+unconfigured hosts. The only proxy destination is `https://joyride.eyrie/`,
+with mandatory trusted chain, peer-name and expiry verification against the
+system CA bundle. It cannot address the private ops Service or ports 8001/8002.
+Normalized ops/admin/delivery prefixes are denied before proxying; encoded
+slashes remain disabled. Public session/CSRF/Origin/Range headers survive, but
+caller forwarding and TEST/Tailscale identity headers are removed and HTTPS
+metadata is fixed. It does not grant a member entitlement or approve content.
+Access logging is disabled per vhost to avoid member login query/cookie capture;
+error verbosity is critical-only. Application monitoring remains separate.
+
+`test_production_gateway.py` exercises real digest-pinned Apache with an isolated
+synthetic TLS origin and client. It verifies apex/HTTP redirects, path/query,
+Host/SNI rejection, normalized private-path denial, session/CSRF/range propagation,
+spoofed-header removal and rejection of both a trusted wrong-name certificate
+and a correct-name untrusted certificate. Double-encoded paths remain encoded,
+not twice-decoded into privileged paths. Only fixture addresses/ports and
+certificates differ. These fixtures do NOT establish live gateway TLS, Gentoo
+Apache module parity, DNS, Kubernetes/origin policy or application acceptance.
+
+Before approved activation: verify exact certificate SANs/chain/expiry and origin
+TLS from the inventory-backed gateway path; render/validate the full Apache
+configuration alongside existing vhosts; inspect additive network policies and
+upstream listener selection; then apply through normal reviewed Puppet/Bolt.
+Require actual apex/`www` TLS, member/CSRF/range behavior, negative public
+ops/admin/delivery and Host probes, non-public TEST, and existing-service continuity.
+Do not obtain certificates, change DNS, include this class or run that apply as
+part of dormant source preparation. No production wrapper or compile-guard
+widening is introduced.
 
 A future reviewed implementation must establish all of the following before
 widening the compile guard:
