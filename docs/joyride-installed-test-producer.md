@@ -2,10 +2,11 @@
 
 This is Nest-owned engineering source, not application code, a Joy approval
 service, a production importer or a deployment controller. It does not widen the
-TEST-only compile guard or create any Kubernetes resource. No managed signing key
-or production trust root has been provisioned. Disposable fixture keys are never
-production trust. The isolated runtime and key-generation tools described below
-are implemented and exercised, not a deployed signer service.
+TEST-only compile guard or create any Kubernetes resource. An independent key
+generation is recoverable through the separate private-source scope, but no
+production consumer root or deployed signer service is active. Disposable
+fixture keys are never production trust. The isolated runtime, generation and
+custody tools below do not themselves activate signing.
 
 ## Implemented and exercised
 
@@ -201,8 +202,9 @@ in an ephemeral job, source checkout, CI artifact directory or public report.
 Before a real generation may sign, provision it through the existing encrypted
 private-source/managed-secret process, independently read back the managed
 private/public pair and validate a restricted backup plus isolated restore using
-these checks. No such real provision/backup/restore has happened. Preserve the
-original protected generation until recoverable managed storage is verified.
+these checks. Private-source provisioning and independent decrypt/rederive were
+completed in private MR 10; operational custody acceptance is separate. Preserve
+the original protected generation until backup and isolated restore are verified.
 Copy only the reviewed public root into the production-only consumer contract;
 do not configure TEST with a key or root. Rotation is a deliberate, serialized
 trust-root replacement, not a receipt signed by the old key: stop collection and
@@ -210,6 +212,61 @@ imports, establish/recover the new managed pair, replace the consumer root and
 require fresh proof. Old or pending receipts must not be grandfathered, and no
 rollback can restore a revoked root silently. Keep private generations out of
 logs, evidence, ordinary CI and application images throughout.
+
+### Encrypted operational custody
+
+`evidence_custody.py` is a supervisor-side tool, not part of the evidence image,
+application, CI signing job or automatic key activation. It inspects the selected
+private generation and independently supplied public root, captures only the
+three exact generation files into an in-memory archive, and rechecks the source.
+OpenSSL CMS AES-256-GCM authenticates and encrypts that archive to the existing
+PKCS7 recipient certificate before any backup write. Plaintext archives are
+never staged on disk. Only the completed ciphertext is copied to an exclusive
+final name under `/nest/backup/joyride-evidence`; there is no working directory,
+temporary copy or active state on the backup mount.
+
+The custody leaf must be owner-owned mode 0700; archive and completion are
+single-link regular mode 0600. An existing shared/symlinked leaf is refused, not
+silently repaired. The shared backup parent is not a trusted plaintext boundary:
+group-writable ancestors can replace or deny access to ciphertext, but cannot
+decrypt it or satisfy authenticated restore with an independent public root.
+After fsync and full ciphertext readback, a canonical completion records its
+checksum, length, public fingerprint and encryption format. A checksum is not a
+signature or proof against deletion; incomplete archives are never restorable.
+
+Restore requires an explicit completion, recipient certificate, independently
+protected PKCS7 private key, independently selected public root and new target
+under an owner-owned mode 0700 local parent. It verifies completion and ciphertext,
+authenticates/decrypts in memory and accepts only the three exact regular-file
+entries. It never extracts archive paths. The rederived private/public pair and
+canonical manifests must match before the target is created. Fresh exclusive
+mode 0600 writes, directory fsync and the reviewed generation inspector establish
+the recovered result. Existing or partial generations are never overwritten or
+removed. Interrupted backup/restore material stays for supervised inspection.
+
+Example trusted-operator invocation, with identities discovered independently:
+
+    python3 -B files/app/joyride/evidence_custody.py backup \
+      --generation <protected-generation> --public-key <exact-public-hex>
+    python3 -B files/app/joyride/evidence_custody.py restore \
+      --completion <exact-final-completion> --target <new-private-generation> \
+      --public-key <exact-public-hex> \
+      --private-key /etc/eyaml/keys/private_key.pkcs7.pem
+
+Use the locked cryptography environment and system OpenSSL with CMS GCM support.
+No private bytes or subprocess diagnostics reach stdout/stderr. Only sanitized
+completion identity and public inspection may enter reports. Never attach these
+archives, private keys or restore directories to a task. Recovery of this archive
+still depends on independent PKCS7 custody; restoring using the current recipient
+key is an isolated signer recovery drill, not a disaster-recovery test of loss of
+that recipient key. The helper is operator-invoked, not a scheduled backup policy.
+Keep encrypted private-source recovery and its established PKCS7 custody intact.
+
+Actual disposable-certificate tests exercise authenticated encrypted publication,
+independent restore with the original unavailable, wrong public roots, tampering
+even after checksum rewriting, incomplete completion, traversal/symlink members,
+unsafe permissions, no-overwrite and partial-failure preservation. They do not
+claim that a real managed generation has been backed up or installed.
 
 ## Evidence and remaining work
 
