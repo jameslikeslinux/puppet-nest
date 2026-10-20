@@ -76,8 +76,12 @@ def sha256(path):
 
 def command(args, output=None, data=None):
     # Never forward private subprocess output or exception messages to Job logs.
+    # The administrative image's legacy exec transport can truncate binary
+    # stdout while returning zero. Pin the independently verified WebSocket path;
+    # archive/hash validation still fails closed and no retry is introduced.
     result = subprocess.run(args, input=data, stdout=output or subprocess.PIPE,
-                            stderr=subprocess.DEVNULL, timeout=1200, check=False)
+                            stderr=subprocess.DEVNULL, timeout=1200, check=False,
+                            env={**os.environ, 'KUBECTL_REMOTE_COMMAND_WEBSOCKETS': 'true'})
     if result.returncode:
         raise BackupError('capture_command_failed')
     return result.stdout
@@ -195,7 +199,8 @@ def backup(stage_root, destination=None, environment='test'):
             with dump.open('rb') as source:
                 result = subprocess.run(['kubectl', '--request-timeout=60s', '-n', namespace, 'exec', '-i',
                                          primary['metadata']['name'], '-c', 'postgres', '--', 'pg_restore', '--list'],
-                                        stdin=source, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200)
+                                        stdin=source, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200,
+                                        env={**os.environ, 'KUBECTL_REMOTE_COMMAND_WEBSOCKETS': 'true'})
                 if result.returncode:
                     raise BackupError('database_archive_invalid')
             files = stage / 'files.tar'

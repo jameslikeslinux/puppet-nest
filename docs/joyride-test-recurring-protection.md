@@ -55,6 +55,18 @@ codes support diagnosis; they do not establish a transport/storage root cause or
 authorize automatic retry. Preserve earlier complete generations and investigate
 recurrence with bounded read-only captures rather than retrying until one passes.
 
+The administrative helper explicitly selects kubectl's WebSocket remote-command
+transport, including the PostgreSQL parser input stream. A bounded run 11808
+comparison independently counted and hashed producer and receiver bytes: the
+WebSocket transfer matched the complete 59320320-byte archive, while the legacy
+transport returned zero but delivered only 54546432 bytes and failed tar parsing.
+Source hashes remained unchanged. This isolates a binary exec-stream truncation
+at that transport seam; it does not assign a lower-level Kubernetes/network cause.
+The selection introduces no retries, changes no cluster-wide transport settings
+and does not weaken tar/member/hash or completion-record validation. Real managed
+capture, publication and isolated restore must pass after the reviewed change is
+installed before the repair is accepted.
+
 ## Explicit isolated restore
 
 1. Suspend the backup schedule and wait for the active Job if inspecting a

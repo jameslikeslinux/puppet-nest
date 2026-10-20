@@ -27,6 +27,14 @@ monitor = load('monitor')
 
 
 class ProtectionTests(unittest.TestCase):
+    def test_capture_uses_websocket_transport_even_with_legacy_caller_setting(self):
+        with patch.dict(backup.os.environ, {'KUBECTL_REMOTE_COMMAND_WEBSOCKETS': 'false'}), \
+                patch.object(backup.subprocess, 'run') as capture:
+            capture.return_value.returncode = 0
+            capture.return_value.stdout = b'synthetic'
+            self.assertEqual(backup.command(['kubectl', 'exec', 'synthetic']), b'synthetic')
+            self.assertEqual(capture.call_args.kwargs['env']['KUBECTL_REMOTE_COMMAND_WEBSOCKETS'], 'true')
+
     def test_failure_diagnostics_never_include_private_exception_text(self):
         private = '/private/synthetic-member credential=synthetic-secret'
         for error, expected in (
@@ -195,6 +203,7 @@ class ProtectionTests(unittest.TestCase):
                     self.assertEqual(parser_args[:4], ['kubectl', '--request-timeout=60s', '-n', namespace])
                     self.assertIn(database, parser_args)
                     self.assertIn('pg_restore', parser_args)
+                    self.assertEqual(parser.call_args.kwargs['env']['KUBECTL_REMOTE_COMMAND_WEBSOCKETS'], 'true')
                 self.assertEqual(result['environment'], environment)
                 self.assertTrue(result['complete'])
                 self.assertEqual(backup.sha256(destination / result['archive']), result['sha256'])

@@ -145,6 +145,11 @@ A separate populated database-and-files restore on this artifact verified exact
 file-manifest parity, photo metadata scrubbing, private file/range parity and
 anonymous/expired-entitlement denials. Both disposable databases and temporary
 container files were removed; live member/route/media counts returned to zero.
-This is not a new managed final-generation backup receipt: the historical
-intermittent archive parsing failure remains unexplained. Stripe sandbox,
-WMATA display approval and remaining guarded production contracts stay open.
+This is not a new managed final-generation backup receipt. A subsequent bounded
+run 11808 comparison reproduced truncated binary output on the legacy kubectl
+exec transport despite exit zero, while WebSocket producer/receiver hashes and
+bytes matched. The helper's explicit transport selection and required installed
+managed capture/restore acceptance are tracked in
+`joyride-test-recurring-protection.md`; this isolated photo restore does not close
+that repair gate. Stripe sandbox, WMATA display approval and remaining guarded
+production contracts stay open.
