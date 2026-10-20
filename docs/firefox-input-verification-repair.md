@@ -45,6 +45,9 @@ reported successful closure; and recovery discarded binding provenance.
   their old dispatch-only tests no longer call that delivered. Readback failure
   leaves the reserved `delivery_started` journal, which also blocks replay.
   AX confirmation is not pixel OCR or proof of page submission/completion.
+  New journals retain only a confirmation boolean. Historical dispatch-only
+  typing journals without that evidence remain untouched and non-replayable,
+  but are not reported as verified delivery or used to clear recovery uncertainty.
 - Native selector mapping previously activated every handle to scan URLs and
   rejected duplicates. It now observes the selected context through the same
   WebDriver session's BiDi connection, using the existing active-window and
@@ -69,10 +72,11 @@ reported successful closure; and recovery discarded binding provenance.
 ## Focused verification and image evidence
 
 Source implementation commit:
-`d4680c858fd15e22837613fd7705de930fe8709b`.
+`33446a97108d6ec4d9b71bad32999d6f5122da70` (including the historic-journal
+confirmation fence after initial implementation `d4680c858fd15e22837613fd7705de930fe8709b`).
 
-The nine focused Python suites passed 112 tests. The new stdlib-only regression
-script also passed all ten tests directly and is in Secure browser fixtures CI.
+The nine focused Python suites passed 113 tests. The new stdlib-only regression
+script passed all eleven tests directly and is in Secure browser fixtures CI.
 `git diff --check` passed. Required exact-head CI is recorded on the MR; these
 local results are not a substitute for that gate.
 
@@ -86,36 +90,49 @@ read-only title observation rather than replaying navigation or input.
 The final managed Bolt build refreshed the existing production-family image in
 an isolated build container, applied the checked-out Puppet source and passed
 its headless smoke test. Dedicated published tag:
-`registry.gitlab.joyfullee.me/nest/tools/firefox:ar2016-input-d4680c85`.
+`registry.gitlab.joyfullee.me/nest/tools/firefox:ar2016-input-33446a97`.
 Independently pulled registry digest:
-`sha256:ab149fcfbbfeef632439494be26e294a7c9c760c94325717e0a6a13c8c1b7e69`.
+`sha256:3c295158d93aa2450e63a76eaa9be9675c16238d4a61c422b946d71e976600c1`.
 Local image config identity:
-`sha256:2e833606011a1b0d65d40974e4dc2c6059067e0495b16b89cfa6961415859028`.
+`sha256:ad89463a77b1ac62993630ace9f1473e700a5d34106387aef1077f7dfde788d3`.
 
 The final pristine image, without overlays or an owner profile, passed two
-cycles and 67 public operations in 118.03 seconds, maximum operation 6.678
+cycles and 67 public operations in 114.667 seconds, maximum operation 6.567
 seconds. It verified equal-title/equal-URL native input, exact textarea
 entry/replacement, protected-field redaction, idempotent replay, four explicit
 recover/acquire pairs with no added replacement tabs, exact survivor count after
 release, source pagination, endpoint reconnect/outage and bridge refresh.
-Four survivor identities and browser generation were preserved. The disposable
+Five survivor identities and browser generation were preserved. The disposable
 browser exited gracefully and its container was absent afterward. This was a
 TLS-verified localhost fixture through the shipped public adapter, with client
 subprocess execution forbidden and no kubeconfig. It is not `browser.eyrie`
 production acceptance, a live Luna chat test or a longevity certification.
 
+A separate stronger coordinate-status run initially refused its fixture title
+assertion because the empty profile's Bitwarden onboarding tab became selected.
+It did not reach coordinate input. The returned query identified that actual
+selected page rather than guessing the fixture. A bounded, opt-in initial
+onboarding observation now precedes fixture workflows. On the identical final
+image, the strengthened run passed 52 operations in 92.47 seconds, including
+an explicit `delivered` and `visible_value_confirmed` assertion for coordinate
+multiline input, with five survivor identities unchanged. This is a fixture
+startup race, not proof of the original Muse rendering cause. No production
+extension or profile configuration was altered. Receipt:
+`coordinate-confirmation-ready-green.json`; the failed run remains retained.
+
 Source and final-image hashes independently matched:
 
 | Component | SHA256 |
 | --- | --- |
-| UI bridge | `9f520d20f228b90a3cd14962ce6b94bcb95d2afe502e106be3f7dffe0b8155b4` |
+| UI bridge | `b9ce86f8095c795df931953b62c530fc0996396332748b1a31bb4ec4cdb0038b` |
 | HTTP endpoint | `cf7d733550e0438c98bd48070bef323e674e151a22a155d627ea71357be33d11` |
 | Bounded BiDi reads | `75360acb63bf8af19fd52f6bcbf0cb2c11cbabd3b803610d3e3e1f6ff0d5ae70` |
 | Local BiDi session helper | `b058f32129206a2c2af126973a1421dfc92eb38b99703763a061b16326c19559` |
 
 Safe receipts live under this task's `build/browser-repair/`: original
 `isolated-red.log`, passing `isolated-green.json`, `pristine-green.json` and
-`final-pristine-green.json`. The final receipt is the authoritative pristine
+`final-pristine-green.json` and `journal-pristine-green.json`. The journal-fenced
+receipt is the authoritative final pristine
 revision. Raw build/fact logs are not user deliverables.
 
 Registry push succeeded through the existing managed credential path. The
@@ -141,7 +158,7 @@ and `owl`. No direct SSH or ad-hoc Puppet fallback was used.
 
 The source build used the repository Bolt wrapper and existing build plan:
 
-    sudo -n env BOLT_CLEANUP_CMD='podman stop nest-firefox-ar2016-input >/dev/null 2>&1' ./bin/bolt-wrapper plan run nest::build::firefox container=nest-firefox-ar2016-input cpu=zen5 tag=ar2016-input-d4680c85 registry=registry.gitlab.joyfullee.me build=true init=false deploy=true --stream
+    sudo -n env BOLT_CLEANUP_CMD='podman stop nest-firefox-ar2016-input >/dev/null 2>&1' ./bin/bolt-wrapper plan run nest::build::firefox container=nest-firefox-ar2016-input cpu=zen5 tag=ar2016-input-33446a97 registry=registry.gitlab.joyfullee.me build=true init=false deploy=true --stream
 
 The initial build-container initialization used `refresh=true`,
 `tag=ar1993-selected-context`, `deploy=false` on this same dedicated container.

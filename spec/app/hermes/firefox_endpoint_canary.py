@@ -87,6 +87,7 @@ def main():
     parser.add_argument("--bidi-source", type=Path, help="Fixture-only fixed-query adapter overlay; not pristine image acceptance")
     parser.add_argument("--local-bidi-source", type=Path, help="Fixture-only session helper overlay; not pristine image acceptance")
     parser.add_argument("--container-name", default="nest-firefox-endpoint-fixture-t06982fa3")
+    parser.add_argument("--await-extension-onboarding", action="store_true", help="Observe Bitwarden's first-launch tab before starting empty-profile fixture workflows")
     parser.add_argument("--duplicate-survivors", action="store_true", help="Read the selected tab among equal-title, equal-URL surviving tabs")
     parser.add_argument("--launcher-source", type=Path, help="Fixture-only read-only launcher overlay; not pristine image acceptance")
     parser.add_argument("--observer-churn", type=int, default=0, help="Additional public snapshots to check Firefox descriptor retention (20–500)")
@@ -150,6 +151,15 @@ def main():
                         raise RuntimeError("isolated image endpoint did not become ready")
                     time.sleep(.5)
                 generation = result["browser_generation"]
+                if args.await_extension_onboarding:
+                    deadline = time.monotonic() + 10
+                    while True:
+                        initial = call("secure_browser_page_snapshot_tool", {})
+                        if any("Browser Extension Getting Started" in tab.get("name", "") for tab in initial["tabs"]):
+                            break
+                        if time.monotonic() >= deadline:
+                            raise RuntimeError("isolated first-launch extension onboarding was not observed")
+                        time.sleep(.1)
                 for index in range(3):
                     workflow = "endpoint-survivor-" + str(index)
                     call("secure_browser_tab_lifecycle_tool", {"action": "acquire", "workflow_id": workflow})
@@ -237,8 +247,10 @@ def main():
                         assert len(candidates) == 1, [{k: n.get(k) for k in ("role", "name", "states", "rect")} for n in snap["nodes"] if n.get("role") == "entry"]
                         node = candidates[0]
                         rect = node["rect"]
-                        call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
-                             "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        coordinate_result = call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
+                                                 "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        assert coordinate_result["status"] == "delivered", coordinate_result
+                        assert coordinate_result["delivery"]["visible_value_confirmed"] is True
                         assert call("secure_browser_query_tool", {"expression": 'document.querySelector("#coordinate").value'})["value"] == paragraphs
                     released = call("secure_browser_tab_lifecycle_tool", {"action": "release", "workflow_id": workflow})
                     assert released["status"] == "released_closed_owned_tab", released
@@ -313,6 +325,7 @@ print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]
             result["bidi_source_overlay"] = bool(args.bidi_source)
             result["local_bidi_source_overlay"] = bool(args.local_bidi_source)
             result["duplicate_survivors"] = bool(args.duplicate_survivors)
+            result["awaited_extension_onboarding"] = args.await_extension_onboarding
             result["launcher_source_overlay"] = bool(args.launcher_source)
             if observer_resources is not None:
                 result["observer_resources"] = observer_resources
