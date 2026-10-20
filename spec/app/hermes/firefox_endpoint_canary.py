@@ -85,6 +85,9 @@ def main():
     parser.add_argument("--long-survivors", action="store_true")
     parser.add_argument("--bridge-source", type=Path, help="Fixture-only read-only bridge overlay; not pristine image acceptance")
     parser.add_argument("--bidi-source", type=Path, help="Fixture-only fixed-query adapter overlay; not pristine image acceptance")
+    parser.add_argument("--local-bidi-source", type=Path, help="Fixture-only session helper overlay; not pristine image acceptance")
+    parser.add_argument("--container-name", default="nest-firefox-endpoint-fixture-t06982fa3")
+    parser.add_argument("--await-extension-onboarding", action="store_true", help="Observe Bitwarden's first-launch tab before starting empty-profile fixture workflows")
     parser.add_argument("--duplicate-survivors", action="store_true", help="Read the selected tab among equal-title, equal-URL surviving tabs")
     parser.add_argument("--launcher-source", type=Path, help="Fixture-only read-only launcher overlay; not pristine image acceptance")
     parser.add_argument("--observer-churn", type=int, default=0, help="Additional public snapshots to check Firefox descriptor retention (20–500)")
@@ -94,7 +97,7 @@ def main():
     Fixture.long_survivors = args.long_survivors
     if not args.image.startswith("sha256:"):
         raise SystemExit("Use a verified immutable local image ID")
-    container = "nest-firefox-endpoint-fixture-t06982fa3"
+    container = args.container_name
     latencies = []
     started = time.monotonic()
     infrastructure_run = subprocess.run
@@ -110,6 +113,8 @@ def main():
         overlay = ["--volume", f"{args.bridge_source.resolve(strict=True)}:/opt/nest/firefox/bin/firefox-ui-bridge.py:ro"] if args.bridge_source else []
         if args.bidi_source:
             overlay.extend(["--volume", f"{args.bidi_source.resolve(strict=True)}:/opt/nest/firefox/bin/secure_browser_bidi.py:ro"])
+        if args.local_bidi_source:
+            overlay.extend(["--volume", f"{args.local_bidi_source.resolve(strict=True)}:/opt/nest/firefox/bin/secure_browser_local_bidi.py:ro"])
         if args.launcher_source:
             launcher = work / "nest-firefox-browser.sh"
             launcher.write_bytes(args.launcher_source.resolve(strict=True).read_bytes())
@@ -146,14 +151,39 @@ def main():
                         raise RuntimeError("isolated image endpoint did not become ready")
                     time.sleep(.5)
                 generation = result["browser_generation"]
+                if args.await_extension_onboarding:
+                    deadline = time.monotonic() + 10
+                    while True:
+                        initial = call("secure_browser_page_snapshot_tool", {})
+                        if any("Browser Extension Getting Started" in tab.get("name", "") for tab in initial["tabs"]):
+                            break
+                        if time.monotonic() >= deadline:
+                            raise RuntimeError("isolated first-launch extension onboarding was not observed")
+                        time.sleep(.1)
                 for index in range(3):
                     workflow = "endpoint-survivor-" + str(index)
                     call("secure_browser_tab_lifecycle_tool", {"action": "acquire", "workflow_id": workflow})
                     path = "duplicate" if args.duplicate_survivors else f"survivor-{index}"
                     call("secure_browser_navigate_tool", {"url": f"http://host.containers.internal:{fixture.server_port}/{path}", "workflow_id": workflow})
                     if args.duplicate_survivors:
-                        read = call("secure_browser_query_tool", {"expression": "document.title"})
-                        assert read["value"] == "Endpoint fixture duplicate"
+                        title_deadline = time.monotonic() + 3
+                        while True:
+                            read = call("secure_browser_query_tool", {"expression": "document.title"})
+                            if read["value"] == "Endpoint fixture duplicate" or time.monotonic() >= title_deadline:
+                                break
+                            # Native navigation completion and AX stability do
+                            # not imply the fixture document title has loaded.
+                            # Observe only; never repeat navigation or input.
+                            time.sleep(.1)
+                        assert read["value"] == "Endpoint fixture duplicate", read
+                        # Exercise input mapping as well as reads while all
+                        # equal-URL documents still exist. No tab scan may
+                        # select a convenient duplicate in place of this one.
+                        note = f"duplicate field {index}"
+                        typed = call("secure_browser_type_tool", {"selector": "#note", "text": note,
+                                     "workflow_id": workflow, "action_key": f"duplicate-type-{index}"})
+                        assert typed["status"] == "delivered", typed
+                        assert call("secure_browser_query_tool", {"expression": 'document.querySelector("#note").value'})["value"] == note
                     call("secure_browser_tab_lifecycle_tool", {"action": "keep_open", "workflow_id": workflow})
                 before = call("secure_browser_page_snapshot_tool", {})
                 identities = {tab["locator"] for tab in before["tabs"]}
@@ -162,7 +192,8 @@ def main():
                     call("secure_browser_tab_lifecycle_tool", {"action": "acquire", "workflow_id": workflow})
                     call("secure_browser_navigate_tool", {"url": f"http://host.containers.internal:{fixture.server_port}/cycle-{index}", "workflow_id": workflow})
                     action = {"selector": "#note", "text": "safe fixture input", "workflow_id": workflow, "action_key": f"type-{index}"}
-                    call("secure_browser_type_tool", action)
+                    dispatched = call("secure_browser_type_tool", action)
+                    assert dispatched["status"] == "delivered", dispatched
                     typed = call("secure_browser_query_tool", {"expression": 'document.querySelector("#note").value'})
                     assert typed["value"] == "safe fixture input"
                     protected = call("secure_browser_query_tool", {"expression": 'document.querySelector("#protected").value'})
@@ -172,6 +203,12 @@ def main():
                     assert clicked["value"] == "Applied"
                     replay = call("secure_browser_type_tool", action)
                     assert replay.get("status") in {"replayed", "duplicate", "already_delivered"} or replay.get("deduplicated"), replay
+                    for _ in range(2):
+                        recovered = call("secure_browser_tab_lifecycle_tool", {"action": "recover", "workflow_id": workflow})
+                        assert recovered["status"] == "recovered_reused_tab"
+                        acquired = call("secure_browser_tab_lifecycle_tool", {"action": "acquire", "workflow_id": workflow})
+                        assert acquired["created_tab"] is False
+                        assert acquired["tab_count"] == len(identities) + 1
                     cursor, text = None, ""
                     while True:
                         read = call("secure_browser_query_tool", {"expression": 'document.readText("pre",0)', "cursor": cursor})
@@ -195,7 +232,10 @@ def main():
                             expression = f'document.querySelector("{selector}").' + ("value" if selector == "#paragraphs" else "innerText")
                             value = call("secure_browser_query_tool", {"expression": expression})["value"]
                             assert value == desired, {"selector": selector, "expected": desired, "observed": value}
-                            assert call("secure_browser_type_tool", replacement)["status"] == "already_delivered"
+                            replayed = call("secure_browser_type_tool", replacement)
+                            # Rich-text controls without exact value/selection
+                            # observations must remain honestly uncertain.
+                            assert replayed["status"] == ("already_delivered" if selector == "#paragraphs" else "delivery_uncertain")
                         call("secure_browser_click_tool", {"selector": "#coordinate", "workflow_id": workflow, "action_key": "focus-coordinate"})
                         snap = call("secure_browser_page_snapshot_tool", {})
                         candidates = [n for n in snap["nodes"] if n.get("role") == "entry" and n.get("name") == "Coordinate paragraphs" and n.get("rect")]
@@ -207,12 +247,16 @@ def main():
                         assert len(candidates) == 1, [{k: n.get(k) for k in ("role", "name", "states", "rect")} for n in snap["nodes"] if n.get("role") == "entry"]
                         node = candidates[0]
                         rect = node["rect"]
-                        call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
-                             "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        coordinate_result = call("secure_browser_type_tool", {"coordinate": [rect["x"] + rect["width"] // 2, rect["y"] + rect["height"] // 2],
+                                                 "text": paragraphs, "workflow_id": workflow, "action_key": "coordinate-paragraphs"})
+                        assert coordinate_result["status"] == "delivered", coordinate_result
+                        assert coordinate_result["delivery"]["visible_value_confirmed"] is True
                         assert call("secure_browser_query_tool", {"expression": 'document.querySelector("#coordinate").value'})["value"] == paragraphs
-                    call("secure_browser_tab_lifecycle_tool", {"action": "release", "workflow_id": workflow})
+                    released = call("secure_browser_tab_lifecycle_tool", {"action": "release", "workflow_id": workflow})
+                    assert released["status"] == "released_closed_owned_tab", released
                     snapshot = call("secure_browser_page_snapshot_tool", {})
                     assert snapshot["browser_generation"] == generation
+                    assert snapshot["tab_count"] == len(identities)
                     assert identities <= {tab["locator"] for tab in snapshot["tabs"]}
                     print(json.dumps({"cycle": index + 1, "elapsed": round(time.monotonic() - started, 3)}), flush=True)
                 status = call("secure_browser_status_tool", {})
@@ -279,7 +323,9 @@ print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]
             result["long_survivors"] = args.long_survivors
             result["bridge_source_overlay"] = bool(args.bridge_source)
             result["bidi_source_overlay"] = bool(args.bidi_source)
+            result["local_bidi_source_overlay"] = bool(args.local_bidi_source)
             result["duplicate_survivors"] = bool(args.duplicate_survivors)
+            result["awaited_extension_onboarding"] = args.await_extension_onboarding
             result["launcher_source_overlay"] = bool(args.launcher_source)
             if observer_resources is not None:
                 result["observer_resources"] = observer_resources
@@ -291,6 +337,9 @@ print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]
                 result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             if args.bidi_source:
                 result["bidi_source_sha256"] = hashlib.sha256(args.bidi_source.read_bytes()).hexdigest()
+                result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
+            if args.local_bidi_source:
+                result["local_bidi_source_sha256"] = hashlib.sha256(args.local_bidi_source.read_bytes()).hexdigest()
                 result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
             print(json.dumps(result), flush=True)

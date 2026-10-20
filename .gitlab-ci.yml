@@ -64,6 +64,7 @@ stages:
     - 'python3 spec/app/hermes/test_firefox_tab_ancestry.py'
     - 'python3 spec/app/hermes/test_secure_browser_firefox_ui.py'
     - 'python3 spec/app/hermes/test_secure_browser_general_hardening.py'
+    - 'python3 spec/app/hermes/test_firefox_input_confirmation.py'
 
 .template:
   stage: 'Build'

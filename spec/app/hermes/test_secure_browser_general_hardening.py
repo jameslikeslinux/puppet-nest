@@ -228,9 +228,10 @@ def test_native_typing_paces_characters_and_partial_delivery_is_not_replayed():
         bridge._webdriver = webdriver
         payload = {"workflow_id": "w", "operation": "type", "selector": "#note", "text": "Aé🦉"}
         key = "paced"
-        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivered"
+        # This dispatch-only fixture has no observed field value.
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
         assert sent == list(payload["text"]) and pauses == [100] * 3
-        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "already_delivered"
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
         assert len(sent) == 3
         key = "partial"
         sent.clear()
@@ -260,7 +261,7 @@ def test_coordinate_typing_sends_explicit_returns_without_clearing():
         assert desktop.commands.count(("key", "--clearmodifiers", "shift+Return")) == 3
         assert not any("ctrl+a" in command for command in desktop.commands)
         before = list(desktop.commands)
-        assert bridge.command_type({"workflow_id": "w", "text": "ignored", "action_key": "paragraphs"})["status"] == "already_delivered"
+        assert bridge.command_type({"workflow_id": "w", "text": "ignored", "action_key": "paragraphs"})["status"] == "delivery_uncertain"
         assert desktop.commands == before
     finally:
         tmp.cleanup()
@@ -286,10 +287,10 @@ def test_native_replacement_is_explicit_journaled_and_not_retried():
         bridge._webdriver = webdriver
         payload = {"workflow_id": "w", "operation": "type", "selector": "#note", "text": "A\n\nB", "mode": "replace"}
         key = "replace"
-        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivered"
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
         assert sent == ["\ue009a\ue000", "A", "\n", "\n", "B"]
         before = list(sent)
-        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "already_delivered"
+        assert bridge.command_selector_action({**payload, "action_key": key})["status"] == "delivery_uncertain"
         assert sent == before
         sent.clear()
         key = "partial"

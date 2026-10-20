@@ -387,12 +387,12 @@ def test_selector_typing_reserves_before_input_and_replay_never_retypes():
         payload = {"workflow_id": "w", "coordinate": [120, 300], "text": "ordinary text", "action_key": "type-1",
                    "expected_url": "https://example.test/", "expected_generation": 100, "expected_tab": "New Tab"}
         first = bridge.command_type(payload)
-        assert first["status"] == "delivered" and first["typed_chars"] == len(payload["text"])
+        assert first["status"] == "delivery_uncertain" and first["dispatched_chars"] == len(payload["text"])
         assert sum(command[0] == "type" for command in desktop.commands) == 1
         typed = next(command for command in desktop.commands if command[0] == "type")
         assert typed[typed.index("--delay") + 1] == "100"
         second = bridge.command_type(payload)
-        assert second["status"] == "already_delivered" and second["delivery"]["input_sent"] is False
+        assert second["status"] == "delivery_uncertain" and second["delivery"]["input_sent"] is False
         assert sum(command[0] == "type" for command in desktop.commands) == 1
         try:
             bridge.command_click({"workflow_id": "w", "action_key": "type-1", "coordinate": [120, 300]})
@@ -433,7 +433,7 @@ def test_selector_typing_reserves_before_input_and_replay_never_retypes():
         # a selector precondition.
         bridge._xdotool = lambda *args, **kw: "1365 768" if args == ("getdisplaygeometry",) else desktop.xdotool(*args, **kw)
         legacy = bridge.command_type({"workflow_id": "w", "text": "focused field", "action_key": "focused-once"})
-        assert legacy["status"] == "delivered" and legacy["typed_chars"] == 13
+        assert legacy["status"] == "delivery_uncertain" and legacy["dispatched_chars"] == 13
     finally:
         tmp.cleanup()
 
