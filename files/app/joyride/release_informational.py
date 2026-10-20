@@ -11,7 +11,7 @@ from release_evidence_runtime import identity, run
 
 SOURCE = Path(__file__).resolve().parent
 FILES = ("Containerfile.info", "informational_site.py", "informational/bundle-0.json", "informational/bundle-1.json")
-REPOSITORY = "registry.eyrie/nest/joyride-info"
+REPOSITORY = "registry.eyrie/joy/joyride-info"
 
 
 def publish(env, output):
