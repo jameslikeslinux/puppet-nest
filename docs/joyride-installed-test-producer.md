@@ -146,6 +146,33 @@ provides live credentials or keys. A later managed signer requires a separately
 verified registry artifact digest at the exact reviewed Nest source; a local
 image ID or successful fixture build is not that release receipt.
 
+### Reviewed runtime publication
+
+The separate `Publish Joyride evidence runtime` Build job runs only after the
+required Test stage on a protected `main` push in `nest/config`. MR/tag/manual
+pipelines, partial CPU builds and executor-only pipelines cannot publish it.
+`release_evidence_runtime.py` also enforces these identities, exact checkout HEAD
+and unmodified tracked source before login. It builds from an allowlisted
+five-file context, never the whole checkout or a credential directory. The
+digest-pinned toolchain and dependency versions are unchanged.
+
+The job uses its own registry identity over stdin and an ephemeral auth file;
+there is no durable credential change or application registry authority. The
+destination is `registry.gitlab.joyfullee.me/nest/config/joyride-evidence`, with a
+unique source/pipeline/job tag and no moving `latest` tag. Publication pushes the
+image, reads the actual pushed digest, pulls it again from the registry by that
+digest and checks repository digest, exact source revision, fixed isolated
+entrypoint and Linux amd64 platform. The sanitized `evidence-runtime.json`
+artifact is written only after readback and job-local tag/auth cleanup. It binds
+the immutable image to the source commit, pipeline/job and source-file SHA256s.
+It is a release identity receipt, not installed TEST evidence or Joy approval.
+
+There are no live credentials, signing keys, cluster access, deployment commands
+or signing invocation in this job. Private generation and supervised collection
+remain separate. Only a successful actual main release job and independent
+artifact/registry readback establish publication; fixture tests cannot establish
+it. This source change does not yet claim that such a release has occurred.
+
 ### Private generation lifecycle
 
 `evidence_key.py` implements `create <absolute-new-generation>` and
