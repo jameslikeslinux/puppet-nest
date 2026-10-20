@@ -46,7 +46,9 @@ stages:
     - '.production-boundary-venv/bin/python spec/app/joyride/test_evidence_custody.py'
     - 'python3 spec/app/joyride/test_evidence_runtime.py'
     - 'python3 spec/app/joyride/test_evidence_release.py'
-    - 'python3 spec/app/joyride/test_evidence_identity.py'
+    # The identity boundary rejects writable ancestors, including CI /tmp.
+    - 'install -d -m 0700 "$HOME/.cache/joyride-fixtures"'
+    - 'TMPDIR="$HOME/.cache/joyride-fixtures" python3 spec/app/joyride/test_evidence_identity.py'
     - 'python3 spec/app/joyride/test_informational_site.py'
 
 'Secure browser fixtures':
