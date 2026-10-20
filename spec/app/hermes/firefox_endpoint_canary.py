@@ -84,6 +84,8 @@ def main():
     parser.add_argument("--output", required=True)
     parser.add_argument("--long-survivors", action="store_true")
     parser.add_argument("--bridge-source", type=Path, help="Fixture-only read-only bridge overlay; not pristine image acceptance")
+    parser.add_argument("--bidi-source", type=Path, help="Fixture-only fixed-query adapter overlay; not pristine image acceptance")
+    parser.add_argument("--duplicate-survivors", action="store_true", help="Read the selected tab among equal-title, equal-URL surviving tabs")
     parser.add_argument("--launcher-source", type=Path, help="Fixture-only read-only launcher overlay; not pristine image acceptance")
     parser.add_argument("--observer-churn", type=int, default=0, help="Additional public snapshots to check Firefox descriptor retention (20–500)")
     args = parser.parse_args()
@@ -106,6 +108,8 @@ def main():
         fixture = ThreadingHTTPServer(("0.0.0.0", 0), Fixture)
         threading.Thread(target=fixture.serve_forever, daemon=True).start()
         overlay = ["--volume", f"{args.bridge_source.resolve(strict=True)}:/opt/nest/firefox/bin/firefox-ui-bridge.py:ro"] if args.bridge_source else []
+        if args.bidi_source:
+            overlay.extend(["--volume", f"{args.bidi_source.resolve(strict=True)}:/opt/nest/firefox/bin/secure_browser_bidi.py:ro"])
         if args.launcher_source:
             launcher = work / "nest-firefox-browser.sh"
             launcher.write_bytes(args.launcher_source.resolve(strict=True).read_bytes())
@@ -145,7 +149,11 @@ def main():
                 for index in range(3):
                     workflow = "endpoint-survivor-" + str(index)
                     call("secure_browser_tab_lifecycle_tool", {"action": "acquire", "workflow_id": workflow})
-                    call("secure_browser_navigate_tool", {"url": f"http://host.containers.internal:{fixture.server_port}/survivor-{index}", "workflow_id": workflow})
+                    path = "duplicate" if args.duplicate_survivors else f"survivor-{index}"
+                    call("secure_browser_navigate_tool", {"url": f"http://host.containers.internal:{fixture.server_port}/{path}", "workflow_id": workflow})
+                    if args.duplicate_survivors:
+                        read = call("secure_browser_query_tool", {"expression": "document.title"})
+                        assert read["value"] == "Endpoint fixture duplicate"
                     call("secure_browser_tab_lifecycle_tool", {"action": "keep_open", "workflow_id": workflow})
                 before = call("secure_browser_page_snapshot_tool", {})
                 identities = {tab["locator"] for tab in before["tabs"]}
@@ -270,6 +278,8 @@ print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]
             result = {"passed": True, "bridge_refresh_preserved_browser": True, "endpoint_outage_preserved_browser": True, "iterations": args.iterations, "duration_seconds": round(time.monotonic() - started, 3), "operations": len(latencies), "mean_seconds": round(sum(latencies) / len(latencies), 3), "max_seconds": round(max(latencies), 3), "surviving_tab_count": len(identities), "generation_unchanged": True, "client_subprocess_forbidden": True, "kubeconfig": "nonexistent", "tls_verification": "default context with isolated fixture CA; localhost endpoint only", "fixture_text_sha256": hashlib.sha256(TEXT.encode()).hexdigest(), "image": args.image, "scope": "isolated actual-image public adapter; not production browser.eyrie acceptance"}
             result["long_survivors"] = args.long_survivors
             result["bridge_source_overlay"] = bool(args.bridge_source)
+            result["bidi_source_overlay"] = bool(args.bidi_source)
+            result["duplicate_survivors"] = bool(args.duplicate_survivors)
             result["launcher_source_overlay"] = bool(args.launcher_source)
             if observer_resources is not None:
                 result["observer_resources"] = observer_resources
@@ -278,6 +288,9 @@ print(json.dumps({'open_fds':len(links),'pidfds':links.count('anon_inode:[pidfd]
                 result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             if args.launcher_source:
                 result["launcher_source_sha256"] = hashlib.sha256(args.launcher_source.read_bytes()).hexdigest()
+                result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
+            if args.bidi_source:
+                result["bidi_source_sha256"] = hashlib.sha256(args.bidi_source.read_bytes()).hexdigest()
                 result["scope"] = "isolated image with read-only source overlay; not pristine image or production acceptance"
             Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
             print(json.dumps(result), flush=True)
