@@ -56,8 +56,33 @@ class nest::base::network {
     }
 
     unless $facts['is_container'] {
+      # A physically present radio must not gate online readiness when Wi-Fi
+      # is disabled. Earlier host-specific link policies still take priority.
+      $wireless_disabled = @(NETWORK)
+        [Match]
+        Name=wl*
+
+        [Link]
+        RequiredForOnline=no
+        ActivationPolicy=down
+        | NETWORK
+
+      $wireless_disabled_ensure = $nest::wifi ? {
+        true    => absent,
+        default => file,
+      }
+
+      file { '/etc/systemd/network/10-wireless-disabled.network':
+        ensure  => $wireless_disabled_ensure,
+        tag     => 'wireless_policy',
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+        content => $wireless_disabled,
+      }
+      ~>
       exec { 'systemd-networkd-reload':
-        tag         => 'dns_failover',
+        tag         => ['dns_failover', 'wireless_policy'],
         command     => '/bin/networkctl reload',
         onlyif      => '/bin/systemctl is-active systemd-networkd',
         refreshonly => true,
