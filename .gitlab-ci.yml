@@ -39,8 +39,9 @@ stages:
     - 'python3 spec/app/joyride/test_production_ops.py'
     - 'python3 spec/app/joyride/test_production_gateway.py'
     - 'python3 -m venv .production-boundary-venv'
-    - '.production-boundary-venv/bin/python -m pip install --disable-pip-version-check --only-binary=:all: PyYAML==6.0.3'
+    - '.production-boundary-venv/bin/python -m pip install --disable-pip-version-check --only-binary=:all: PyYAML==6.0.3 cryptography==50.0.2'
     - '.production-boundary-venv/bin/python spec/app/joyride/test_production_boundaries.py'
+    - '.production-boundary-venv/bin/python spec/app/joyride/test_installed_test_producer.py'
 
 'Secure browser fixtures':
   extends: .all-branch-ci

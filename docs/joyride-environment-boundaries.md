@@ -206,8 +206,11 @@ evidence, not live production acceptance. No real Joy receipt was signed/importe
 
 Production admission deliberately returns `trusted_test_evidence_required` without
 a valid parent-issued Ed25519 installed-TEST receipt. The consumer and immutable
-evidence model are implemented; trusted collection/signing and production import
-are not. The exact wire contract is in the application's
+evidence model are installed. Nest-owned collection/signing source now exists
+and real unsigned live collection passed; managed signer deployment, trust-root
+provisioning and production import are not implemented. See
+[`joyride-installed-test-producer.md`](joyride-installed-test-producer.md).
+The exact wire contract is in the application's
 `docs/installed-test-evidence.md`. The signer must bind real installation identity,
 all six ordered checks and bounded observation/expiry, never CI alone.
 No signing key or public trust root is configured in TEST. Installed negative
