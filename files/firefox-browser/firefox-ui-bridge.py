@@ -802,12 +802,15 @@ def _reconcile_state(state: dict[str, Any], snapshot: dict[str, Any]) -> dict[st
                 # reuse. Never close an agent-created tab automatically.
 
                 report["preserved_uncertain"].append(workflow_id)
+                if not record.get("uncertain"):
+                    record["uncertainty_reason"] = "lease_expired"
                 record["uncertain"] = True
                 continue
             del state["workflows"][workflow_id]
             continue
         if record.get("browser_generation") != current_generation:
             record["uncertain"] = True
+            record["uncertainty_reason"] = "generation_changed"
             report["preserved_uncertain"].append(workflow_id)
     cutoff = now - 7 * 86400
     state["action_keys"] = {
@@ -835,13 +838,18 @@ def _ensure_workflow(state: dict[str, Any], workflow_id: str, lease_seconds: int
     selected = _selected_tab(snapshot)
     if not selected:
         raise RuntimeError("selected Firefox tab is absent or ambiguous; preserving tabs and refusing creation")
+    known_bindings = list(state["workflows"].values()) + [
+        record for records in state.get("abandoned_bindings", {}).values() for record in records
+    ]
     claimed = any(
         any(tab.get("locator") == selected.get("locator") for tab in _matching_tabs(snapshot, record))
-        for record in state["workflows"].values()
+        for record in known_bindings
     )
     if not claimed and selected["name"] in {"New Tab", "New Private Tab", "about:blank", "Firefox"}:
         created = False
     elif allow_create:
+        if state.get("abandoned_bindings", {}).get(workflow_id):
+            raise RuntimeError("workflow has unresolved abandoned tab provenance; refusing another replacement tab")
         if snapshot["tab_count"] >= DEFAULT_HARD_TAB_CAP:
             raise RuntimeError(f"local tab hard cap reached ({DEFAULT_HARD_TAB_CAP}); refusing to create a tab or close unowned tabs")
         previous_count = snapshot["tab_count"]
@@ -943,6 +951,13 @@ def command_status(_: dict[str, Any]) -> dict[str, Any]:
             }
             for key, value in state["workflows"].items()
         ]
+        abandoned = [
+            {"workflow_id": key, "disposition": value["disposition"],
+             "same_browser_generation": value.get("browser_generation") == snapshot["browser_generation"],
+             "matching_tab_count": len(_matching_tabs(snapshot, value)),
+             "created_by_agent": bool(value.get("created_by_agent"))}
+            for key, values in state.get("abandoned_bindings", {}).items() for value in values
+        ]
     native_available = False
     if os.environ.get("FIREFOX_CONTROL_PROTOCOL") == "firefox-bidi-ui-v2" and shutil.which("geckodriver"):
         try:
@@ -954,7 +969,7 @@ def command_status(_: dict[str, Any]) -> dict[str, Any]:
         "operation": "status", "status": "ok", "protocol": "firefox-ui-v1",
         "browser": {key: snapshot[key] for key in ("browser_generation", "title", "url", "tab_count")},
         "launch_protocol": os.environ.get("FIREFOX_CONTROL_PROTOCOL", "firefox-ui-v1"),
-        "workflows": workflows, "reconciliation": reconciliation,
+        "workflows": workflows, "reconciliation": reconciliation, "abandoned_bindings": abandoned,
         "native_element_available": native_available,
         "instrumentation": {"webdriver": native_available, "marionette": native_available, "bidi": False, "cdp": False, "dom": False},
     }
@@ -1057,10 +1072,25 @@ def _webdriver() -> Iterator[Any]:
                 time.sleep(0.1)
         else:
             raise RuntimeError("native Firefox element driver did not become ready")
-        created = request("POST", "/session", {"capabilities": {"alwaysMatch": {"browserName": "firefox"}}})
+        created = request("POST", "/session", {"capabilities": {"alwaysMatch": {"browserName": "firefox", "webSocketUrl": True}}})
         session = created["sessionId"]
         def command(method: str, path: str, data: Any = None) -> Any:
             return request(method, f"/session/{session}{path}", data)
+        def selected_context(snapshot: dict[str, Any]) -> str:
+            # Observe the same WebDriver session; a second session.new can
+            # exhaust Firefox's session capacity and is unnecessary here.
+            from secure_browser_local_bidi import CdpSession
+            from secure_browser_bidi import _selected_context
+            endpoint = created.get("capabilities", {}).get("webSocketUrl", "")
+            parsed = urlsplit(endpoint)
+            if parsed.scheme != "ws" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"} or parsed.username or parsed.password:
+                raise RuntimeError("native observation endpoint is unavailable; no input sent")
+            browser = CdpSession(websocket_url=endpoint)
+            try:
+                return _selected_context(browser, snapshot)
+            finally:
+                browser.close()
+        command.selected_context = selected_context
         yield command
     finally:
         if session:
@@ -1103,12 +1133,20 @@ def _native_selector(command: Any, snapshot: dict[str, Any], selector: str, fiel
     original = command("GET", "/window")
     try:
         handles = command("GET", "/window/handles")
-        matches = []
-        for handle in handles:
-            command("POST", "/window", {"handle": handle})
-            url = command("GET", "/url")
-            if _redact_url(url) == snapshot["url"]:
-                matches.append(handle)
+        resolver = getattr(command, "selected_context", None)
+        if resolver:
+            # BiDi navigable IDs equal WebDriver window handles (W3C BiDi
+            # browsingContext.BrowsingContext). Visibility is observed before
+            # activation, never inferred from URL/title or scan order.
+            selected = resolver(snapshot)
+            matches = [selected] if selected in handles else []
+        else:
+            matches = []
+            for handle in handles:
+                command("POST", "/window", {"handle": handle})
+                url = command("GET", "/url")
+                if _redact_url(url) == snapshot["url"]:
+                    matches.append(handle)
         if len(matches) != 1:
             raise RuntimeError("native selected-tab mapping is absent or ambiguous; no input sent")
     except Exception:
@@ -1175,21 +1213,59 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
         with _webdriver() as command:
             element = _native_selector(command, snapshot, selector, operation == "type")
             _assert_selector_precondition(payload)
+            expected_value = None
             state["action_keys"][action_key] = {"created_at": time.time(), "workflow_id": workflow_id,
                                                 "operation": operation, "delivery_state": "delivery_started"}
             _save_state(state)
             if operation == "click":
                 command("POST", f"/element/{element}/click", {})
             else:
+                expected_value = _native_typing_expectation(command, element, text, mode=mode)
                 _native_type(command, element, text, mode=mode)
-            state["action_keys"][action_key]["delivery_state"] = "delivered"
+            readback = _readback()
+            confirmed = operation == "click"
+            if operation == "type":
+                # DOM success alone is insufficient, as is an unrelated AX
+                # field. Require the guarded native element to be active and
+                # agree exactly with the private visible AX observation.
+                observed = _observe_focused_field()
+                selected = _selected_tab(snapshot) or {}
+                confirmed = bool(expected_value is not None and observed
+                                 and observed["value"] == expected_value
+                                 and observed["tab_identity"] == selected.get("tab_identity"))
+                if confirmed:
+                    active = command("GET", "/element/active")
+                    value = command("GET", f"/element/{element}/property/value")
+                    confirmed = bool(active and active.get("element-6066-11e4-a52e-4f735466cecf") == element
+                                     and value == expected_value)
+            state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
             _save_state(state)
-        readback = _readback()
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
-        return {"operation": operation, "status": "delivered", "action_key": action_key,
-                "delivery": {"state": "delivered", "input_sent": True, "via": "native_element"},
-                "typed_chars": len(text) if operation == "type" else None, "readback": readback}
+        return {"operation": operation, "status": "delivered" if confirmed else "delivery_uncertain", "action_key": action_key,
+                "delivery": {"state": "delivered" if confirmed else "delivery_uncertain", "input_sent": True,
+                             "visible_value_confirmed": confirmed if operation == "type" else None, "via": "native_element"},
+                "typed_chars": len(text) if operation == "type" and confirmed else None, "readback": readback}
+
+
+def _native_typing_expectation(command: Any, element: str, text: str, *, mode: str) -> str | None:
+    try:
+        value = command("GET", f"/element/{element}/property/value")
+        if not isinstance(value, str) or len(value) > MAX_PAGE_TEXT:
+            return None
+        if mode == "replace":
+            return text
+        start = command("GET", f"/element/{element}/property/selectionStart")
+        end = command("GET", f"/element/{element}/property/selectionEnd")
+        if type(start) is not int or type(end) is not int or not 0 <= start <= end <= len(value):
+            return None
+        # Native input selection offsets use UTF-16 code units, not Python
+        # code points. Refuse ambiguous non-BMP prefixes rather than guess.
+        if any(ord(character) > 0xffff for character in value):
+            return None
+        return value[:start] + text + value[end:]
+    except Exception:
+        return None
 
 
 def _native_type(command: Any, element: str, text: str, *, mode: str = "insert") -> None:
@@ -1308,6 +1384,49 @@ def _type_public_text(text: str) -> None:
                      "--", part, timeout=45 + len(part) * TYPE_DELAY_SECONDS * 2)
 
 
+def _observe_focused_field() -> dict[str, Any] | None:
+    """Private exact AX observation; never persist or return field contents."""
+    try:
+        snapshot = _snapshot()
+        candidates = [node for node in snapshot["nodes"]
+                      if {"focused", "editable", "showing"} <= set(node.get("states", []))
+                      and node.get("role") in {"entry", "text"}
+                      and not SENSITIVE_RE.search(str(node.get("name", "")))
+                      and node.get("rect", {}).get("width", 0) > 0
+                      and node.get("rect", {}).get("height", 0) > 0]
+        if len(candidates) != 1:
+            return None
+        node, _ = _resolve_locator(candidates[0]["locator"])
+        if "Text" not in node.get_interfaces():
+            return None
+        api = _atspi().Text
+        count = int(api.get_character_count(node))
+        if count < 0 or count > MAX_PAGE_TEXT or api.get_n_selections(node) != 0:
+            return None
+        value = str(api.get_text(node, 0, count) or "")
+        caret = int(api.get_caret_offset(node))
+        if len(value) != count or not 0 <= caret <= count:
+            return None
+        selected = _selected_tab(snapshot)
+        if not selected or not selected.get("tab_identity"):
+            return None
+        return {"identity": _tab_identity(node, snapshot["browser_generation"]),
+                "tab_identity": selected["tab_identity"], "value": value, "caret": caret,
+                "locator": candidates[0]["locator"], "rect": candidates[0]["rect"]}
+    except Exception:
+        # Unobservable is not empty and cannot establish delivery. No raw AX
+        # exception or value may escape this private comparison.
+        return None
+
+
+def _confirm_typed_input(before: dict[str, Any] | None, text: str, *, mode: str = "insert") -> bool:
+    after = _observe_focused_field()
+    if not before or not after or any(before[key] != after[key] for key in ("identity", "tab_identity")):
+        return False
+    expected = text if mode == "replace" else before["value"][:before["caret"]] + text + before["value"][before["caret"]:]
+    return after["value"] == expected
+
+
 def command_type(payload: dict[str, Any]) -> dict[str, Any]:
     text = str(payload.get("text") or "")
     if not text or len(text) > 4096:
@@ -1355,15 +1474,24 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
             _save_state(state)
         if x is not None and y is not None:
             _xdotool("mousemove", "--sync", str(x), str(y), "click", "1")
+        before = _observe_focused_field()
+        if before and locator and before["locator"] != locator:
+            before = None
+        if before and x is not None and y is not None:
+            rect = before["rect"]
+            if not (rect["x"] <= x < rect["x"] + rect["width"] and rect["y"] <= y < rect["y"] + rect["height"]):
+                before = None
         _type_public_text(text)
-        if action_key:
-            state["action_keys"][action_key]["delivery_state"] = "delivered"
-            _save_state(state)
         readback = _readback()
+        confirmed = _confirm_typed_input(before, text)
+        state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
+        _save_state(state)
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
-    return {"operation": "type", "status": "delivered", "typed_chars": len(text), "text_redacted": True,
-            "action_key": action_key or None, "readback": readback}
+    return {"operation": "type", "status": "delivered" if confirmed else "delivery_uncertain",
+            "typed_chars": len(text) if confirmed else 0, "dispatched_chars": len(text), "text_redacted": True,
+            "delivery": {"input_sent": True, "visible_value_confirmed": confirmed},
+            "action_key": action_key, "readback": readback}
 
 
 def command_wait(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1437,9 +1565,28 @@ def command_tabs(payload: dict[str, Any]) -> dict[str, Any]:
         snapshot = _snapshot()
         reconciliation = _reconcile_state(state, snapshot)
         if action == "recover":
+            existing = state["workflows"].get(workflow_id)
+            pending = any(item.get("workflow_id") == workflow_id and item.get("delivery_state") != "delivered"
+                          for item in state["action_keys"].values())
+            if (existing and existing.get("tab_identity") and not existing.get("closure_state") and not pending
+                    and (not existing.get("uncertain") or existing.get("uncertainty_reason") == "lease_expired")
+                    and len(_matching_tabs(snapshot, existing)) == 1):
+                # Only expiry-derived uncertainty can be renewed from exact
+                # same-process object provenance. Never adopt a replacement,
+                # erase an uncertain action, select a tab or discard a draft.
+                existing["uncertain"] = False
+                existing.pop("uncertainty_reason", None)
+                existing["lease_expires_at"] = time.time() + lease
+                return {"operation": "tab_lifecycle", "status": "recovered_reused_tab", "action": action,
+                        "workflow_id": workflow_id, "created_tab": False, "tab_count": snapshot["tab_count"]}
             # Explicitly abandon only the binding. Never close or claim the
             # owner-selected tab, and never erase uncertain input journals.
-            state["workflows"].pop(workflow_id, None)
+            abandoned = state["workflows"].pop(workflow_id, None)
+            if abandoned:
+                # A forgotten binding is not a disposed tab. Retain its exact
+                # process/object provenance for explicit later disposition.
+                state.setdefault("abandoned_bindings", {}).setdefault(workflow_id, []).append(
+                    {**abandoned, "disposition": "preserved_unresolved", "abandoned_at": time.time()})
             return {"operation": "tab_lifecycle", "status": "recovered_preserved_tab",
                     "action": action, "workflow_id": workflow_id,
                     "next_action": "acquire a blank handoff tab explicitly"}
@@ -1469,7 +1616,26 @@ def command_tabs(payload: dict[str, Any]) -> dict[str, Any]:
             # A tab-strip click may be dropped. Reuse the same selected-tab
             # readback gate as navigation before Ctrl+W can close anything.
             _select_workflow_tab(record)
+            record["uncertain"] = True
+            record["closure_state"] = "closure_started"
+            _save_state(state)
             _xdotool("key", "--clearmodifiers", "ctrl+w")
+            expected_ids = {tab.get("tab_identity") for tab in current["tabs"]} - {record.get("tab_identity")}
+            deadline = time.monotonic() + 1
+            closed, after = False, current
+            for _ in range(10):
+                after = _snapshot()
+                after_ids = {tab.get("tab_identity") for tab in after["tabs"]}
+                closed = (after["browser_generation"] == current["browser_generation"]
+                          and after["tab_count"] == current["tab_count"] - 1
+                          and bool(record.get("tab_identity")) and None not in expected_ids
+                          and after_ids == expected_ids and len(after_ids) == after["tab_count"])
+                if closed or after["browser_generation"] != current["browser_generation"] or time.monotonic() >= deadline:
+                    break
+                time.sleep(0.05)
+            if not closed:
+                return {"operation": "tab_lifecycle", "status": "closure_uncertain", "action": action,
+                        "workflow_id": workflow_id, "tab_count": after["tab_count"]}
             del state["workflows"][workflow_id]
             return {"operation": "tab_lifecycle", "status": "released_closed_owned_tab", "action": action, "workflow_id": workflow_id, "readback": _readback()}
         if action != "status":

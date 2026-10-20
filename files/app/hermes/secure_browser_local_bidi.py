@@ -12,14 +12,16 @@ import websockets.sync.client
 class CdpSession:
     protocol = "bidi"
 
-    def __init__(self):
+    def __init__(self, *, websocket_url: str | None = None):
         self.next_id = 0
+        self.owns_session = websocket_url is None
         self.ws = websockets.sync.client.connect(
-            "ws://127.0.0.1:9222/session", open_timeout=5, close_timeout=2,
+            websocket_url or "ws://127.0.0.1:9222/session", open_timeout=5, close_timeout=2,
             max_size=2_000_000, compression=None, proxy=None,
         )
         try:
-            self._bidi("session.new", {"capabilities": {"alwaysMatch": {}}})
+            if self.owns_session:
+                self._bidi("session.new", {"capabilities": {"alwaysMatch": {}}})
         except Exception:
             self.ws.close()
             raise
@@ -52,8 +54,9 @@ class CdpSession:
 
     def close(self):
         # End the controller session, never the Firefox process or its tabs.
-        with contextlib.suppress(Exception):
-            self._bidi("session.end")
+        if self.owns_session:
+            with contextlib.suppress(Exception):
+                self._bidi("session.end")
         self.ws.close()
 
 
