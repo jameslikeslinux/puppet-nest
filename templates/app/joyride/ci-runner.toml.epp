@@ -1,0 +1,26 @@
+<%- | String $runner_token, Array[String] $qemu_targets | -%>
+concurrent = 2
+check_interval = 3
+
+[[runners]]
+  name = "Joyride isolated rootless"
+  url = "https://gitlab.joyfullee.me/"
+  id = 127
+  token = <%= to_json($runner_token) %>
+  executor = "docker"
+  limit = 2
+  output_limit = 524288
+  request_concurrency = 2
+  environment = ["CONTAINER_HOST=unix:///run/podman/podman.sock"]
+  [runners.docker]
+    host = "unix:///run/joyride-ci/podman.sock"
+    image = "registry.gitlab.joyfullee.me/nest/stage1/server"
+    privileged = false
+    disable_cache = true
+    dns = ["172.22.4.3"]
+    volumes = [
+      "/run/joyride-ci/podman.sock:/run/podman/podman.sock",
+<% $qemu_targets.each |$arch| { -%>
+      "/usr/bin/qemu-<%= $arch %>:/usr/bin/qemu-<%= $arch %>:ro",
+<% } -%>
+    ]
