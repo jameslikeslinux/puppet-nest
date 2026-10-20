@@ -40,12 +40,12 @@ class nest::service::joyride_ci {
     File['/var/lib/joyride-ci'] -> File['/var/lib/joyride-ci/tmp']
 
     file { '/etc/systemd/system/joyride-ci-engine.service':
-      ensure  => file,
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      source  => 'puppet:///modules/nest/app/joyride/joyride-ci-engine.service',
-      notify  => Nest::Lib::Systemd_reload['joyride-ci'],
+      ensure => file,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0644',
+      source => 'puppet:///modules/nest/app/joyride/joyride-ci-engine.service',
+      notify => Nest::Lib::Systemd_reload['joyride-ci'],
     }
     ~>
     nest::lib::systemd_reload { 'joyride-ci': }
