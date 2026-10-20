@@ -21,15 +21,15 @@ assets, silhouettes, distance/elevation shape, self-hosted fonts and font licens
 `package_informational.py` reproducibly exports this literal allowlist from the
 pinned Git revision. The two JSON bundles are source-managed public artifacts packaged inside the
 minimal immutable informational image, never embedded in Helm release state:
-`registry.eyrie/nest/joyride-info@sha256:cca3e7b5e3ab5c8ccf57b56996e65bcea2aad39292fd1be0c49a538ef2c55efd`.
-Protected-main pipeline 10700, publication job 43058, produced the image from
-Nest source `a927b5745b3a7effa0019cbd9ab619c1a32855fe`; actual registry readback
+`registry.eyrie/joy/joyride-info@sha256:fc33bf13f116a77d83c74cc4fb0cf3e2c1edec73d721c3245af1d4fa59aeea98`.
+Protected-main pipeline 10738, publication job 43118, produced the image from
+Nest source `46e28397c5cffb5616b3fefeaeffc8de8141f38c`; actual registry readback
 verified both platforms and the pulled image's server/bundle hashes.
-This initial image has the wrong application ownership prefix. Joyride is Joy's
-personal application, hosted on Eyrie and supported by Nest. New informational
-publications use `registry.eyrie/joy/joyride-info`; shared deployment tooling
-remains in `nest/config`. Keep the initial image available for current consumers
-and rollback until the corrected publication is verified and source-pinned.
+Joyride is Joy's personal application, hosted on Eyrie and supported by Nest.
+Informational publications use `registry.eyrie/joy/joyride-info`; shared deployment
+tooling remains in `nest/config`. The compiler rejects other repository prefixes.
+Keep the prior image available for historical Helm revisions and rollback; do
+not confuse registry ownership with the unchanged `joyride-info` namespace.
 No credential is needed by the running site. Repack only after exact source/CI
 and content-authorization review; never automatically follow a branch.
 
