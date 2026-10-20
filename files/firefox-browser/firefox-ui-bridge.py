@@ -1204,8 +1204,9 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
         if prior:
             if prior.get("workflow_id") != workflow_id or prior.get("operation") != operation:
                 raise ValueError("action_key is already bound to another workflow or operation")
-            return {"operation": operation, "status": "already_delivered" if prior.get("delivery_state") == "delivered" else "delivery_uncertain",
-                    "action_key": action_key, "delivery": {"input_sent": False, "state": "replayed" if prior.get("delivery_state") == "delivered" else "uncertain_replay_blocked"},
+            verified = prior.get("delivery_state") == "delivered" and (operation == "click" or prior.get("visible_value_confirmed") is True)
+            return {"operation": operation, "status": "already_delivered" if verified else "delivery_uncertain",
+                    "action_key": action_key, "delivery": {"input_sent": False, "state": "replayed" if verified else "uncertain_replay_blocked"},
                     "readback": _readback()}
         _select_workflow_tab(record)
         _assert_selector_precondition(payload)
@@ -1239,6 +1240,8 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
                     confirmed = bool(active and active.get("element-6066-11e4-a52e-4f735466cecf") == element
                                      and value == expected_value)
             state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
+            if operation == "type":
+                state["action_keys"][action_key]["visible_value_confirmed"] = confirmed
             _save_state(state)
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
@@ -1451,9 +1454,10 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
                 raise ValueError("action_key is already bound to another workflow or operation")
             _select_workflow_tab(record)
             delivery_state = delivered.get("delivery_state", "delivery_started")
-            return {"operation": "type", "status": "already_delivered" if delivery_state == "delivered" else "delivery_uncertain",
+            verified = delivery_state == "delivered" and delivered.get("visible_value_confirmed") is True
+            return {"operation": "type", "status": "already_delivered" if verified else "delivery_uncertain",
                     "action_key": action_key, "typed_chars": 0, "text_redacted": True,
-                    "delivery": {"state": "replayed" if delivery_state == "delivered" else "uncertain_replay_blocked", "input_sent": False},
+                    "delivery": {"state": "replayed" if verified else "uncertain_replay_blocked", "input_sent": False},
                     "readback": _readback()}
         _select_workflow_tab(record)
         _assert_selector_precondition(payload)
@@ -1485,6 +1489,7 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
         readback = _readback()
         confirmed = _confirm_typed_input(before, text)
         state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
+        state["action_keys"][action_key]["visible_value_confirmed"] = confirmed
         _save_state(state)
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
@@ -1566,7 +1571,9 @@ def command_tabs(payload: dict[str, Any]) -> dict[str, Any]:
         reconciliation = _reconcile_state(state, snapshot)
         if action == "recover":
             existing = state["workflows"].get(workflow_id)
-            pending = any(item.get("workflow_id") == workflow_id and item.get("delivery_state") != "delivered"
+            pending = any(item.get("workflow_id") == workflow_id
+                          and (item.get("delivery_state") != "delivered"
+                               or (item.get("operation") == "type" and item.get("visible_value_confirmed") is not True))
                           for item in state["action_keys"].values())
             if (existing and existing.get("tab_identity") and not existing.get("closure_state") and not pending
                     and (not existing.get("uncertain") or existing.get("uncertainty_reason") == "lease_expired")

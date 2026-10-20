@@ -226,6 +226,26 @@ def test_native_confirmation_requires_dom_ax_and_active_element_agreement():
         tmp.cleanup()
 
 
+def test_historic_dispatch_only_success_is_not_reclassified_or_replayed():
+    bridge, desktop, tmp = configured_bridge()
+    try:
+        bridge.command_tabs({"action": "acquire", "workflow_id": "w"})
+        with bridge._locked_state() as state:
+            state["action_keys"]["historic"] = {"workflow_id": "w", "operation": "type",
+                                                "created_at": bridge.time.time(), "delivery_state": "delivered"}
+        prior = bridge._load_state()["action_keys"].copy()
+        commands = list(desktop.commands)
+        for operation in (bridge.command_type, bridge.command_selector_action):
+            result = operation({"workflow_id": "w", "operation": "type", "selector": "#note",
+                                "action_key": "historic", "text": "must not resend"})
+            assert result["status"] == "delivery_uncertain"
+            assert result["delivery"]["input_sent"] is False
+        assert desktop.commands == commands
+        assert bridge._load_state()["action_keys"] == prior
+    finally:
+        tmp.cleanup()
+
+
 if __name__ == "__main__":
     tests = [value for name, value in list(globals().items()) if name.startswith("test_")]
     for test in tests:
