@@ -1,3 +1,7 @@
 ---
 # Keep etcd's small random I/O aligned to ZFS records on the eMMC data pool
 nest::service::kubernetes::etcd_zfs_dataset: data/crypt/etcd
+
+# Bound the API Go heap on this 4 GiB member after measured reclaim/fault bursts.
+# Qualify through guarded API-only reconciliation, not a Puppet restart.
+nest::service::kubernetes::apiserver_go_memory_limit: 1GiB
