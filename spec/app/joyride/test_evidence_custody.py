@@ -13,8 +13,8 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "files/app/joyride"))
 import evidence_custody as custody
-import evidence_key as keytool
-from installed_test_producer import EvidenceError, canonical
+from evidence_custody import CustodyError as EvidenceError, canonical
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 class CustodyContracts(unittest.TestCase):
@@ -25,7 +25,14 @@ class CustodyContracts(unittest.TestCase):
         self.root.chmod(0o700)
         self.destination = self.root / "backup"
         self.generation = self.root / "original"
-        self.public = keytool.create(self.generation)
+        self.generation.mkdir(mode=0o700)
+        fixture_key = Ed25519PrivateKey.generate()
+        self.public = custody.manifest(fixture_key)
+        custody.write_bytes(self.generation / "signing.key", fixture_key.private_bytes_raw())
+        custody.write_private(self.generation / "public.json", self.public)
+        custody.write_private(self.generation / "complete.json", {
+            "schema": 1, "kind": "joyride-installed-test-key-complete-v1",
+            "fingerprint": self.public["fingerprint"]})
         self.key, self.cert = self.root / "recipient.key", self.root / "recipient.pem"
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
                         "-keyout", str(self.key), "-out", str(self.cert), "-days", "1",
@@ -54,7 +61,7 @@ class CustodyContracts(unittest.TestCase):
         # Make the original unavailable before recovery; restore cannot read it.
         self.generation.rename(self.root / "unavailable-original")
         self.assertEqual(self.restore(receipt), self.public)
-        self.assertEqual(keytool.inspect(self.root / "restored"), self.public)
+        self.assertEqual(custody.inspect(self.root / "restored"), self.public)
         self.assertEqual({p.name for p in self.destination.iterdir()}, {receipt.name, record["archive"]})
 
     def test_no_overwrite_or_rotation_and_distinct_backups(self):
@@ -63,8 +70,8 @@ class CustodyContracts(unittest.TestCase):
         self.restore(first)
         with self.assertRaises(EvidenceError):
             self.restore(second)
-        self.assertEqual(keytool.inspect(self.generation), self.public)
-        self.assertEqual(keytool.inspect(self.root / "restored"), self.public)
+        self.assertEqual(custody.inspect(self.generation), self.public)
+        self.assertEqual(custody.inspect(self.root / "restored"), self.public)
 
     def test_wrong_independent_public_root_fails_before_target_creation(self):
         receipt = self.backup()
@@ -136,7 +143,7 @@ class CustodyContracts(unittest.TestCase):
                 self.backup()
         self.assertEqual(len(list(self.destination.glob("*.cms"))), 1)
         self.assertEqual(list(self.destination.glob("*.complete.json")), [])
-        self.assertEqual(keytool.inspect(self.generation), self.public)
+        self.assertEqual(custody.inspect(self.generation), self.public)
 
     def test_restore_failure_preserves_partial_generation(self):
         receipt = self.backup()

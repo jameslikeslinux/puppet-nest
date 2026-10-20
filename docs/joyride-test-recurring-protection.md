@@ -6,15 +6,28 @@ operator action; there is no automatic destructive restore CronJob.
 
 ## Backup capture and publication
 
+Operational implementations and tests live in personal `joy/joyride`, not Nest CI.
+The independently reviewed operational image is pinned by
+`joyride_operations_image`, separately from candidate application deliveries.
+An unprivileged init container with no credential or backup mounts copies only
+`/app/platform_runtime/backup.py` after checking its reviewed SHA256
+`0bd5c397f068b7e9eed784ce48afcd0abf4eeb4ae3b5a11c53aaa04939415f5c`.
+The administrative Nest tools container mounts that completed helper read-only
+at `/trusted/backup.py`. Only that container receives its existing kubeconfig and
+final backup subtree; application CI receives neither. Monitor runs the reviewed
+image's `/app/platform_runtime/monitor.py` without credentials or injected source.
+Bootstrap likewise comes from the immutable application image. No application
+implementation is embedded into Helm ConfigMaps or packaged by Nest CI.
+
 `joyride-test-backup` runs every three hours at minute 17, UTC. It uses the
 existing trusted Nest config operational image and read-only host kubeconfig,
 not a Luna-selected application image. This is an administrative workload like
 other Nest backup jobs: its kubeconfig is privileged. It mounts only the final
-`/nest/backup/joyride-test` subtree, the kubeconfig file, source-managed helper
+`/nest/backup/joyride-test` subtree, the kubeconfig file, admitted helper
 and local ephemeral scratch. No SSH key, private Hiera or entire `/nest` mount
 is needed. Neither app release nor ops token can change this helper/workload.
 
-`files/app/joyride/backup.py` finds exactly one ready app and CNPG primary. It
+Application-owned `platform_runtime/backup.py` finds exactly one ready app and CNPG primary. It
 defaults to the original fixed TEST target. A separately suspended production
 candidate explicitly selects `--environment production`; it is not deployed or
 enabled by TEST follow-through. Unknown environments and mismatched final

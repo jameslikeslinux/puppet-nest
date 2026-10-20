@@ -4,8 +4,8 @@ include:
 - nest::service::joyride_info
 service_name: joyride-info
 fqdn: joyride.eyrie
-# Protected-main publication job 43118; personal application, no app backend.
-joyride_info_image: registry.eyrie/joy/joyride-info@sha256:fc33bf13f116a77d83c74cc4fb0cf3e2c1edec73d721c3245af1d4fa59aeea98
+# Personal application pipeline 10760, job 43233; independently copied and verified.
+joyride_info_image: registry.eyrie/joy/joyride-info@sha256:545368db06fbe67edd3d8febc375ad5486d5e613691823222a05622478900f8d
 affinity: {}
 tolerations: []
 resources:

@@ -9,7 +9,7 @@ fqdn: joyride.eyrie
 runtime_environment: production
 ingress_class: contour
 # Same immutable artifact exercised on TEST; never a mutable production tag.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1dc225fbb3f5fd6eecc300f186d9b405fb88bc38ee7b07ab79ed8dd8d3f758a6
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:fd794c3de03d6b4a3bab3bb6250c7ba92edc0084ba95562d512d84bd22daacd1
 affinity: {}
 tolerations: []
 resources:
@@ -40,14 +40,44 @@ resources:
             spec:
               automountServiceAccountToken: false
               restartPolicy: Never
+              securityContext:
+                fsGroup: 10001
               imagePullSecrets:
               - name: joyride-backup-pull
+              - name: joyride-pull
+              initContainers:
+              - name: admit-backup
+                image: '%{lookup(''joyride_operations_image'')}'
+                command:
+                - python
+                - -I
+                - -B
+                - -c
+                - |
+                  import hashlib, os
+                  data = open('/app/platform_runtime/backup.py', 'rb').read()
+                  if hashlib.sha256(data).hexdigest() != '0bd5c397f068b7e9eed784ce48afcd0abf4eeb4ae3b5a11c53aaa04939415f5c':
+                      raise SystemExit('Operational source hash mismatch')
+                  fd = os.open('/trusted/backup.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o444)
+                  with os.fdopen(fd, 'wb') as stream:
+                      stream.write(data)
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  runAsGroup: 10001
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+                volumeMounts:
+                - name: scripts
+                  mountPath: /trusted
               containers:
               - name: backup
                 # Administrative capture must not use Luna's application image.
                 image: '%{lookup(''config_image'')}'
                 imagePullPolicy: Always
-                command: [python3, -B, /platform/backup.py, --stage-root, /scratch, --environment, production]
+                command: [python3, -B, /trusted/backup.py, --stage-root, /scratch, --environment, production]
                 env:
                 - name: KUBECONFIG
                   value: /kubeconfig/eyrie.conf
@@ -66,7 +96,7 @@ resources:
                     ephemeral-storage: 24Gi
                 volumeMounts:
                 - name: scripts
-                  mountPath: /platform
+                  mountPath: /trusted
                   readOnly: true
                 - name: scratch
                   mountPath: /scratch
@@ -77,8 +107,8 @@ resources:
                   readOnly: true
               volumes:
               - name: scripts
-                configMap:
-                  name: joyride-backup
+                emptyDir:
+                  sizeLimit: 1Mi
               - name: scratch
                 emptyDir:
                   sizeLimit: 24Gi
@@ -139,14 +169,7 @@ resources:
       PUBLIC_ROOT: /data/public
       MAP_ROOT: /data/maps
       TMPDIR: /data/tmp
-  scripts:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-bootstrap
-      namespace: joyride
-    binaryData:
-      bootstrap.py: '%{nest::service::joyride::bootstrap_script_base64}'
+
   app:
     apiVersion: apps/v1
     kind: Deployment
@@ -244,7 +267,7 @@ resources:
               mountPath: /data/tmp
           - name: basemap
             image: '%{lookup(''joyride_image'')}'
-            command: [python, /platform/bootstrap.py]
+            command: [python, /app/platform_runtime/bootstrap.py]
             securityContext: *container_security
             envFrom: *environment
             env: *runtime
@@ -254,9 +277,6 @@ resources:
               mountPath: /data
             - name: tmp
               mountPath: /data/tmp
-            - name: scripts
-              mountPath: /platform
-              readOnly: true
             - name: pull
               mountPath: /pull
               readOnly: true
@@ -267,10 +287,6 @@ resources:
           - name: tmp
             emptyDir:
               sizeLimit: 1Gi
-          - name: scripts
-            configMap:
-              name: joyride-bootstrap
-              defaultMode: 0444
           - name: pull
             secret:
               secretName: joyride-pull
@@ -567,22 +583,7 @@ resources:
           app: joyride-worker
       policyTypes: [Ingress]
       ingress: []
-  backup_scripts:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-backup
-      namespace: joyride
-    binaryData:
-      backup.py: '%{nest::service::joyride::backup_script_base64}'
-  monitor_scripts:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-monitor
-      namespace: joyride
-    binaryData:
-      monitor.py: '%{nest::service::joyride::monitor_script_base64}'
+
   monitor:
     apiVersion: batch/v1
     kind: CronJob
@@ -613,8 +614,8 @@ resources:
               - name: joyride-pull
               containers:
               - name: monitor
-                image: '%{lookup(''joyride_image'')}'
-                command: [python, -B, /platform/monitor.py, --environment, production]
+                image: '%{lookup(''joyride_operations_image'')}'
+                command: [python, -B, /app/platform_runtime/monitor.py, --environment, production]
                 securityContext: *container_security
                 resources:
                   requests:
@@ -622,14 +623,6 @@ resources:
                     memory: 32Mi
                   limits:
                     memory: 64Mi
-                volumeMounts:
-                - name: scripts
-                  mountPath: /platform
-                  readOnly: true
-              volumes:
-              - name: scripts
-                configMap:
-                  name: joyride-monitor
   monitor_policy:
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy

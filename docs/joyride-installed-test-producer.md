@@ -10,7 +10,7 @@ custody tools below do not themselves activate signing.
 
 ## Implemented and exercised
 
-`files/app/joyride/installed_test_producer.py` independently reads the exact
+Application-owned `platform_runtime/installed_test_producer.py` reads the exact
 application GitLab pipeline, its required non-optional check/build/smoke jobs and
 the immutable multi-architecture `image.json`. It validates each job's commit and
 pipeline identity, not the pipeline badge alone. It refuses truncated job lists,
@@ -77,7 +77,8 @@ roundtrips; CI has no real signing key or live producer job.
 
 For a fresh diagnostic collection:
 
-    python3 -B files/app/joyride/installed_test_producer.py \
+    # Historical diagnostic CLI; privileged use requires admitted immutable runtime.
+    python3 -B platform_runtime/installed_test_producer.py \
       --collect-only --pipeline <exact-pipeline-id> \
       --digest sha256:<exact-index-digest> --source-head <exact-commit> \
       --output <new-private-report-path>
@@ -104,7 +105,7 @@ The local kubeconfig is an administrative authority, not narrow RBAC. The
 collector's fixed target checks are application safety fences, not a substitute
 for isolating its execution identity. It must never be launched from Luna's CI,
 a selected application image, a runtime pod or a caller-supplied Python module.
-Any future scheduled producer must execute reviewed Nest source in a trusted
+Any future scheduled producer must execute independently reviewed source in a trusted
 pinned image with an independent key mount and reviewed privilege boundaries.
 It must not inherit the existing TEST controller's production authority, because
 that controller has none.
@@ -113,8 +114,8 @@ that controller has none.
 
 `Containerfile.evidence` builds only from the digest-pinned trusted Nest tools
 image, with binary-only `cryptography==50.0.2`, `cffi==2.1.1` and
-`pycparser==3.11`. Its context is `files/app/joyride`, never an application
-checkout, private store or credential directory. Only the fixed collector,
+`pycparser==3.11`. Its allowlisted context is application-owned `platform_runtime/`,
+never a whole checkout, private store or credential directory. Only the fixed collector,
 probes, key helper and entrypoint enter the runtime source directory. The image
 does not contain a key, kubeconfig, GitLab identity, member database or app code.
 The GitLab API target is explicitly fixed to `gitlab.joyfullee.me`, independent
@@ -139,19 +140,20 @@ container restrictions isolate the process filesystem, not Kubernetes authority.
 An administrative kubeconfig is still administrative even inside this image.
 Do not call the current exercised path narrowly RBAC-scoped.
 
-The existing Nest CI lane builds a disposable local image and exercises actual
+The application CI `runtime-isolation` lane builds a disposable local image and exercises actual
 rootless containers: real disposable generation/readback, overwrite refusal,
 caller Python/executable injection rejection, immutable source and a network
 failure producing no receipt. It neither publishes an evidence image nor
 provides live credentials or keys. A later managed signer requires a separately
-verified registry artifact digest at the exact reviewed Nest source; a local
+verified registry artifact digest at the exact independently reviewed source; a local
 image ID or successful fixture build is not that release receipt.
 
 ### Reviewed runtime publication
 
-The separate `Publish Joyride evidence runtime` Build job runs only after the
-required Test stage on a protected `main` push in `nest/config`. MR/tag/manual
-pipelines, partial CPU builds and executor-only pipelines cannot publish it.
+The personal `joy/joyride` application `release-evidence` job runs only after
+required application checks and runtime isolation on a protected `main` push.
+MR/tag/manual pipelines cannot publish it. Nest CI does not build, test or
+publish application runtimes and does not trigger their release pipeline.
 `release_evidence_runtime.py` also enforces these identities, exact checkout HEAD
 and unmodified tracked source before login. It builds from an allowlisted
 five-file context, never the whole checkout or a credential directory. The
@@ -159,11 +161,11 @@ digest-pinned toolchain and dependency versions are unchanged.
 
 The job uses its own registry identity over stdin and an ephemeral auth file;
 there is no durable credential change or application registry authority. The
-destination is `registry.gitlab.joyfullee.me/nest/config/joyride-evidence`, with a
+destination is `registry.gitlab.joyfullee.me/joy/joyride/joyride-evidence`, with a
 unique source/pipeline/job tag and no moving `latest` tag. Publication pushes the
 image, reads the actual pushed digest, pulls it again from the registry by that
 digest and checks repository digest, exact source revision, fixed isolated
-entrypoint and Linux amd64 platform. The sanitized `evidence-runtime.json`
+entrypoint and Linux amd64 platform. The sanitized `runtime-release-evidence.json`
 artifact is written only after readback and job-local tag/auth cleanup. It binds
 the immutable image to the source commit, pipeline/job and source-file SHA256s.
 It is a release identity receipt, not installed TEST evidence or Joy approval.
@@ -172,7 +174,14 @@ There are no live credentials, signing keys, cluster access, deployment commands
 or signing invocation in this job. Private generation and supervised collection
 remain separate. Only a successful actual main release job and independent
 artifact/registry readback establish publication; fixture tests cannot establish
-it. This source change does not yet claim that such a release has occurred.
+it. MR 11 merged at `b500350d181db4a64f5f89357b8335901907fe6f`; protected-main
+pipeline 10760 and publisher job 43234 passed. Independently pulled/stopped
+container source hashes matched the reviewed source. The admitted candidate is
+`registry.gitlab.joyfullee.me/joy/joyride/joyride-evidence@sha256:3b3b3da4de283e91ec0aca5af1f89f43a55305b4ee2f960d3da50a29960ed535`.
+It has not been activated as a signer. Application CI owns production of bytes,
+not their admission to privileged execution: infrastructure must independently
+pin source, hashes, entrypoint, dependencies, runtime isolation and credentials.
+Never trust an application-authored receipt as its own signing authority.
 
 ### Private generation lifecycle
 
@@ -219,6 +228,9 @@ logs, evidence, ordinary CI and application images throughout.
 application, CI signing job or automatic key activation. It inspects the selected
 private generation and independently supplied public root, captures only the
 three exact generation files into an in-memory archive, and rechecks the source.
+Its canonicalization, protected-file inspection and public-key derivation are
+minimal independent infrastructure code. It imports neither the moved producer
+nor key helper, and never loads a mutable application checkout with keys present.
 OpenSSL CMS AES-256-GCM authenticates and encrypts that archive to the existing
 PKCS7 recipient certificate before any backup write. Plaintext archives are
 never staged on disk. Only the completed ciphertext is copied to an exclusive

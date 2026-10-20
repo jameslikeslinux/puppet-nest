@@ -25,14 +25,11 @@ class nest::service::joyride (
   $email_host_user_base64        = base64('encode', $runtime_secrets.unwrap['EMAIL_HOST_USER']).chomp
   $email_host_password_base64    = base64('encode', $runtime_secrets.unwrap['EMAIL_HOST_PASSWORD']).chomp
   $registry_dockerconfig_base64  = base64('encode', $registry_dockerconfig.unwrap).chomp
-  $bootstrap_script_base64       = base64('encode', file('nest/app/joyride/bootstrap.py'))
   $verifier_token_base64         = base64('encode', $artifact_verifier_token.unwrap).chomp
   $artifact_import_base64        = base64('encode', file('nest/app/joyride/import_artifacts.py'))
   $test_delivery_base64          = base64('encode', file('nest/app/joyride/test_delivery_controller.py'))
   $test_access_config_base64     = base64('encode', file('nest/app/joyride/test-access-nginx.conf'))
   $test_access_config_sha256     = sha256(file('nest/app/joyride/test-access-nginx.conf'))
-  $backup_script_base64          = base64('encode', file('nest/app/joyride/backup.py'))
-  $monitor_script_base64         = base64('encode', file('nest/app/joyride/monitor.py'))
   $production_ops_config_base64  = base64('encode', file('nest/app/joyride/production-ops-nginx.conf'))
   $production_ops_config_sha256  = sha256(file('nest/app/joyride/production-ops-nginx.conf'))
 }

@@ -77,7 +77,7 @@ class ProductionBoundaries(unittest.TestCase):
         migrate, basemap = pod['initContainers']
         self.assertEqual([c['name'] for c in pod['initContainers']], ['migrate', 'basemap'])
         self.assertEqual(migrate['command'], ['python', 'manage.py', 'migrate', '--noinput'])
-        self.assertEqual(basemap['command'], ['python', '/platform/bootstrap.py'])
+        self.assertEqual(basemap['command'], ['python', '/app/platform_runtime/bootstrap.py'])
         web = pod['containers'][0]
         for initializer in (migrate, basemap):
             self.assertEqual(initializer['image'], web['image'])
@@ -88,12 +88,11 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(migrate['volumeMounts'], [{'name': 'tmp', 'mountPath': '/data/tmp'}])
         volumes = {v['name']: v for v in pod['volumes']}
         self.assertEqual(volumes['data']['persistentVolumeClaim'], {'claimName': 'joyride-data'})
-        self.assertEqual(volumes['scripts']['configMap'], {'name': 'joyride-bootstrap', 'defaultMode': 0o444})
+        self.assertNotIn('scripts', volumes)
         self.assertEqual(volumes['pull']['secret'], {'secretName': 'joyride-pull'})
-        self.assertEqual(self.resources['scripts']['binaryData'], {
-            'bootstrap.py': '%{nest::service::joyride::bootstrap_script_base64}'})
+        self.assertNotIn('scripts', self.resources)
         mounts = {m['name']: m for m in basemap['volumeMounts']}
-        self.assertIs(mounts['scripts']['readOnly'], True)
+        self.assertNotIn('scripts', mounts)
         self.assertIs(mounts['pull']['readOnly'], True)
         self.assertFalse(mounts['data'].get('readOnly', False))
         for deployment in self.deployments:
@@ -171,15 +170,14 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(job['concurrencyPolicy'], 'Forbid')
         pod = job['jobTemplate']['spec']['template']['spec']
         self.assertIs(pod['automountServiceAccountToken'], False)
-        self.assertEqual(pod['volumes'], [{'name': 'scripts', 'configMap': {'name': 'joyride-monitor'}}])
+        self.assertNotIn('volumes', pod)
         container, = pod['containers']
-        self.assertEqual(container['image'], "%{lookup('joyride_image')}")
-        self.assertEqual(container['command'], ['python', '-B', '/platform/monitor.py', '--environment', 'production'])
+        self.assertEqual(container['image'], "%{lookup('joyride_operations_image')}")
+        self.assertEqual(container['command'], ['python', '-B', '/app/platform_runtime/monitor.py', '--environment', 'production'])
         self.assertNotIn('env', container)
         self.assertNotIn('envFrom', container)
         self.assertIs(container['securityContext']['readOnlyRootFilesystem'], True)
-        self.assertEqual(self.resources['monitor_scripts']['binaryData'], {
-            'monitor.py': '%{nest::service::joyride::monitor_script_base64}'})
+        self.assertNotIn('monitor_scripts', self.resources)
         self.assertEqual(self.resources['monitor_policy']['spec'], {
             'podSelector': {'matchLabels': {'app': 'joyride'}}, 'policyTypes': ['Ingress'],
             'ingress': [{'from': [{'podSelector': {'matchLabels': {'app': 'joyride-monitor'}}}],
@@ -194,11 +192,11 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(job['concurrencyPolicy'], 'Forbid')
         pod = job['jobTemplate']['spec']['template']['spec']
         self.assertIs(pod['automountServiceAccountToken'], False)
-        self.assertEqual(pod['imagePullSecrets'], [{'name': 'joyride-backup-pull'}])
+        self.assertEqual(pod['imagePullSecrets'], [{'name': 'joyride-backup-pull'}, {'name': 'joyride-pull'}])
         container, = pod['containers']
         self.assertEqual(container['image'], "%{lookup('config_image')}")
         self.assertEqual(container['command'], [
-            'python3', '-B', '/platform/backup.py', '--stage-root', '/scratch', '--environment', 'production'])
+            'python3', '-B', '/trusted/backup.py', '--stage-root', '/scratch', '--environment', 'production'])
         self.assertEqual(container['env'], [{'name': 'KUBECONFIG', 'value': '/kubeconfig/eyrie.conf'}])
         self.assertNotIn('envFrom', container)
         self.assertIs(container['securityContext']['readOnlyRootFilesystem'], True)
@@ -210,8 +208,14 @@ class ProductionBoundaries(unittest.TestCase):
         self.assertEqual(set(volumes), {'scripts', 'scratch', 'backup', 'kubeconfig'})
         self.assertEqual(volumes['backup']['hostPath']['path'], '/nest/backup/joyride')
         self.assertEqual(volumes['scratch']['emptyDir'], {'sizeLimit': '24Gi'})
-        self.assertEqual(self.resources['backup_scripts']['binaryData'], {
-            'backup.py': '%{nest::service::joyride::backup_script_base64}'})
+        self.assertNotIn('backup_scripts', self.resources)
+        self.assertEqual(volumes['scripts']['emptyDir'], {'sizeLimit': '1Mi'})
+        initializer, = pod['initContainers']
+        self.assertEqual(initializer['image'], "%{lookup('joyride_operations_image')}")
+        self.assertNotIn('env', initializer)
+        self.assertNotIn('envFrom', initializer)
+        self.assertEqual(initializer['volumeMounts'], [{'name': 'scripts', 'mountPath': '/trusted'}])
+        self.assertIn('0bd5c397f068b7e9eed784ce48afcd0abf4eeb4ae3b5a11c53aaa04939415f5c', initializer['command'][-1])
         rule = self.resources['alert_rules']['spec']['groups'][0]['rules'][1]
         self.assertIn('kube_cronjob_spec_suspend{namespace="joyride",cronjob="joyride-backup"} == 0', rule['expr'])
         self.assertIn('unless on(namespace,cronjob)', rule['expr'])

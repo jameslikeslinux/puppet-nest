@@ -20,12 +20,61 @@ import time
 import uuid
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from evidence_key import directory, inspect, manifest
-from installed_test_producer import canonical, require, write_private
 
 FILES = ("signing.key", "public.json", "complete.json")
 DESTINATION = Path("/nest/backup/joyride-evidence")
 LIMIT = 65536
+
+
+class CustodyError(Exception):
+    """Fixed infrastructure custody failure; no application imports."""
+
+
+def require(value):
+    if not value:
+        raise CustodyError("evidence_custody_failed")
+
+
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False, allow_nan=False).encode("utf-8")
+
+
+def directory(path):
+    path = Path(path)
+    require(path.is_absolute())
+    for part in [*reversed(path.parents), path]:
+        meta = part.lstat()
+        require(stat.S_ISDIR(meta.st_mode) and not stat.S_ISLNK(meta.st_mode))
+        require(meta.st_uid in (0, os.geteuid()) and not meta.st_mode & 0o022)
+    meta = path.lstat()
+    require(meta.st_uid == os.geteuid() and stat.S_IMODE(meta.st_mode) == 0o700)
+    return path
+
+
+def manifest(key):
+    public = key.public_key().public_bytes_raw()
+    return {"schema": 1, "kind": "joyride-installed-test-public-key-v1",
+            "algorithm": "Ed25519", "public_key": public.hex(),
+            "fingerprint": "sha256:" + hashlib.sha256(public).hexdigest()}
+
+
+def inspect(path):
+    path = directory(path)
+    key = read_private(path / "signing.key", 64)
+    require(len(key) == 32)
+    expected = manifest(Ed25519PrivateKey.from_private_bytes(key))
+    require(read_private(path / "public.json", 1024) == canonical(expected) + b"\n")
+    require(read_private(path / "complete.json", 1024) == canonical({
+        "schema": 1, "kind": "joyride-installed-test-key-complete-v1",
+        "fingerprint": expected["fingerprint"]}) + b"\n")
+    return expected
+
+
+def write_private(path, value):
+    data = canonical(value) + b"\n"
+    require(len(data) <= 16384)
+    write_bytes(path, data)
 
 
 def read_private(path, limit=LIMIT):
