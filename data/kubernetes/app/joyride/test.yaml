@@ -6,7 +6,7 @@ fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
 # Personal application protected-main release with versioned operational entrypoints.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1b29a9876731c51e7c8fde8699fab6ab551612e8c5d3c803ab2e7de803b27c8d
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:848ad926a1f1aacc3db75513b1e592d22a69a09e3d7981e6d2fafcc39174de23
 affinity: {}
 tolerations: []
 resources:
