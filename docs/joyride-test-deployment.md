@@ -1,5 +1,15 @@
 # Joyride private TEST deployment
 
+## Allowlisted sign-in email
+
+TEST enables SMTP sign-in email using the existing encrypted runtime credentials.
+`TEST_MAIL_ALLOWLIST` is exactly `joy@joyfullee.me,joyfulskater@gmail.com`.
+This supersedes historical routine-mail-off notes below for TEST only;
+production mail and membership remain dormant. Use the normal private
+`https://joyride-test.eyrie/sign-in` flow. A request accepted by the application
+is distinct from successful SMTP submission, and neither proves mailbox receipt.
+Never consume a recipient's sign-in link or seed an owner session to verify mail.
+
 Joyride uses the ordinary Eyrie application boundary: personal application CI
 builds an image, and Nest pins an immutable image and supplies managed runtime
 credentials, storage, PostgreSQL, TLS, private access, backups and monitoring.
