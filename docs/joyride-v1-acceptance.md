@@ -29,10 +29,13 @@ proposal, provision live keys or infer production activation authority.
 This section supersedes current-disposition claims in the historical ledger below.
 It does not erase failed runs or turn synthetic identities into real members.
 
-- Nest MR 388 passed all required exact-head pipeline 10930 jobs, merged, and
-  ordinary Puppet plus private TEST Bolt deployment succeeded. Helm revision 31
-  serves immutable application digest
-  `sha256:a466eb849a3a024e76771a0fb7c76eb1cb8abc940630f58427a7d3aeeb59621a`.
+- Nest MR 389 passed every required exact-head pipeline 10944 job, merged as
+  `5c2fb2532601298b29c69aeaf0f7e6c44c540722`, and ordinary Puppet plus private
+  TEST Bolt deployment succeeded. Helm revision 32 installed the corrected
+  adapter; independent source hash matches. Luna's original queued operation
+  subsequently completed on immutable application digest
+  `sha256:75a4cd98528495c851e698fe98c00eae99e238d17ddad5ee562b205d594fdd86`.
+  All four application containers and four initializers match that artifact.
 - Managed, checksum-bound private package intake installed one supplied available
   route and 19 member photo placements over 18 originals. Installed source hashes
   match. Original GPX and stripped photo derivatives remain private; no new public
@@ -58,14 +61,25 @@ It does not erase failed runs or turn synthetic identities into real members.
   pipeline 10940 and merged as `5c2e3e145a7a531277982f26c8dfef4f16240d05`.
   Merged-head pipeline 10942 passed after a registry-token HTTP 503 caused build
   44126 to fail and the single same-source retry 44129 passed. Preserve both
-  outcomes. Terminal preview and actual browser portal checks remain open:
+  outcomes. Luna's two branch CI preview attempts reported
+  `preview_observation_failed` / `not_requested`; they are not passed and their
+  precise pre-admission cause is not proven by that bounded receipt alone.
+  Her existing narrow Tailscale backchannel supplied the successful alternative.
   Luna's verified branch deployment `32b10e1a-bf1c-4eaa-a6d5-1a8e88996001`
-  is queued, not claimed, because the Nest adapter's initializer allowlist omitted
-  the two managed private-intake containers. The minimal correction retains the
-  exact workload shape and updates all application initializer images together;
-  it does not bypass the queue or change privileges. Application MR 19 fixes the demonstrated
+  now reports `succeeded` on the original identity after the Nest correction;
+  no replacement request or manual application deployment bypassed that queue.
+  Its earlier stall was the exact-shape allowlist omitting the private-intake
+  initializers, independently reproduced against the actual workload. Unknown
+  and duplicate initializers remain refused. Application MR 19 fixes the demonstrated
   native cache/manifest publication failures; exact-head pipeline 10936 and
   merged-head cold/warm pipelines 10938/10939 passed.
+- Actual supplied frontend portal navigation now passes: active-member portal
+  visible, JOIN hidden, button reaches the real sandbox `billing.stripe.com`
+  page. This temporarily gave the previously canceled synthetic checkout fixture
+  active entitlement, then restored its original canceled status and removed the
+  exact session. It is real portal navigation, not a new active subscription or
+  payment claim. Member map/photo/GPX checks passed again on Luna's artifact;
+  repeated intake reports unchanged with all original private data preserved.
 - Managed SMTP sender/receipt, regional basemap, backup/isolated restore and
   monitoring have distinct prior verified milestones. Routine mail remains off;
   synthetic browser login is not new email-verification delivery evidence.
