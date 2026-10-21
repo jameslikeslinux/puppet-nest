@@ -3,7 +3,7 @@
 # generated separately by CloudNativePG. Never place tokens in public app data.
 class nest::service::joyride (
   Optional[Sensitive[Hash[String, String]]] $runtime_secrets       = undef,
-  Optional[Sensitive[String]]              $registry_dockerconfig = undef,
+  Optional[Sensitive[String]]               $registry_dockerconfig = undef,
 ) {
   # Only the verified TEST recipe exists. A distinct production contract and
   # owner-approved rollout must be implemented before this boundary is widened.
