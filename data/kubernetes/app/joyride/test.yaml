@@ -93,6 +93,45 @@ resources:
           - name: tmp
             emptyDir:
               sizeLimit: 1Mi
+  stripe_listener_policy:
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: joyride-test-stripe-listener
+      namespace: test
+    spec:
+      podSelector:
+        matchLabels:
+          app: joyride-test-stripe-listener
+      policyTypes: [Ingress, Egress]
+      ingress: []
+      egress:
+      - to:
+        - podSelector:
+            matchLabels:
+              app: joyride-test
+        ports:
+        - protocol: TCP
+          port: 8000
+      - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+        ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+      - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16]
+        ports:
+        - protocol: TCP
+          port: 443
   # Existing self-service TEST path. No signing, custody or production authority.
   scripts:
     apiVersion: v1
@@ -714,6 +753,13 @@ resources:
       policyTypes:
       - Ingress
       ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: joyride-test-stripe-listener
+        ports:
+        - protocol: TCP
+          port: 8000
       - from:
         - podSelector:
             matchLabels:
