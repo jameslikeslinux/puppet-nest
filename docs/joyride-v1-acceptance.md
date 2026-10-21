@@ -2,6 +2,13 @@
 
 Canonical program: Agent Request ^1981, task `t_befb85e8`.
 This is the current Nest integration requirements/checklist, not launch approval.
+Joy's latest reduced scope also removes the bespoke signing/evidence/custody
+and custom promotion framework. Historical receipts and chronology below are
+retained as evidence, not current acceptance prerequisites. Use normal personal
+application CI, reviewed pinned images and ordinary Nest deployment. Cleanup
+must remove unused live resources as well as source; source deletion alone is
+not completion. Preserve the public informational site, private TEST, ordinary
+security, managed credentials, data, backups and rollback. Stripe remains off.
 Joy's photos-only steering recorded on 2026-10-19 supersedes the original
 photo/video deliverable and every earlier real-scout-video pending item. The
 original request and chronological reports remain historical evidence, not a

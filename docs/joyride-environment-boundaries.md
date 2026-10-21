@@ -205,27 +205,16 @@ production rollback additionally requires prior successful production history.
 Atomic approval consumption and idempotency races have disposable PostgreSQL CI
 evidence, not live production acceptance. No real Joy receipt was signed/imported.
 
-Production admission deliberately returns `trusted_test_evidence_required` without
-a valid parent-issued Ed25519 installed-TEST receipt. The consumer and immutable
-evidence model are installed. Nest-owned collection/signing source now exists
-and real unsigned live collection passed; managed signer deployment, trust-root
-provisioning and production import are not implemented. See
-[`joyride-installed-test-producer.md`](joyride-installed-test-producer.md).
-The exact wire contract is in the application's
-`docs/installed-test-evidence.md`. The signer must bind real installation identity,
-all six ordered checks and bounded observation/expiry, never CI alone.
-No signing key or public trust root is configured in TEST. Installed negative
-checks verified that TEST rejects proof import before opening the receipt file,
-cannot supply production evidence, and rejects empty proof. No evidence, owner
-approval or production row was created. These are fail-closed TEST observations,
-not a positive trusted producer/import/production-admission canary.
-
-A CI receipt, locally inserted TEST deployment row, agent-authored evidence label
-or synthetic HMAC signature cannot replace it or Joy's actual exact-action
-approval. The existing TEST importer/controller must not acquire production
-authority. Distinct trusted proof import, Joy provenance/import isolation and
-production controller/topology remain engineering prerequisites before activation;
-do not enable delivery or widen the compile guard to work around their absence.
+Historical production admission returned `trusted_test_evidence_required` without
+a parent-issued Ed25519 installed-TEST receipt. Joy has since withdrawn that
+framework. Nest collection, custody, supervisor source and their dedicated CI
+fixtures have been removed; do not deploy them or restore the private signing
+scope. This historical section is not the current delivery contract.
+The application-side consumer and its old contract remain cleanup work, not a
+reason to deploy a signer or collect another receipt. Normal exact-head checks,
+reviewed immutable images and explicit owner authorization for production remain
+the delivery boundaries. Keep the TEST-only compile guard closed and the public
+informational site unchanged while removing superseded consumers.
 
 ### Dormant public gateway candidate
 
