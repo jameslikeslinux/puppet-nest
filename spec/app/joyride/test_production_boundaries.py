@@ -35,9 +35,10 @@ class ProductionBoundaries(unittest.TestCase):
 
         self.assertEqual(self.resources['restore'], {})
 
-    def test_immutable_same_artifact_and_inert_deployments(self):
+    def test_immutable_artifacts_and_inert_deployments(self):
         test = yaml.safe_load((ROOT / 'data/kubernetes/app/joyride/test.yaml').read_text())
-        self.assertEqual(self.candidate['joyride_image'], test['joyride_image'])
+        # TEST advances independently; a backend update must not promote production.
+        self.assertRegex(test['joyride_image'], r'@sha256:[0-9a-f]{64}$')
         self.assertRegex(self.candidate['joyride_image'], r'@sha256:[0-9a-f]{64}$')
         self.assertEqual(len(self.deployments), 3)
         for deployment in self.deployments:
