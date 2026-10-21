@@ -88,6 +88,16 @@ try:
         engine._call("browsingContext.close", {"context": extra["context"], "promptUnload": False})
     emit("disposable-first-run-setup", closed_fixture_tabs=len(initial) - 1)
     root = engine.acquire("owner")
+    # Firefox's singleton protocol limit is deterministic, not a graphical
+    # hang. The supported resident route must keep working after this refused
+    # independent session.new. Never end the existing classic session.
+    import websockets.sync.client
+    with websockets.sync.client.connect("ws://127.0.0.1:9222/session", open_timeout=5, close_timeout=2, proxy=None) as competing:
+        competing.send(json.dumps({"id": 1, "method": "session.new", "params": {"capabilities": {"alwaysMatch": {}}}}))
+        refusal = json.loads(competing.recv(timeout=10))
+        assert refusal.get("type") == "error" and "Maximum number of active sessions" in refusal.get("message", "")
+    assert engine.acquire("owner")["context"] == root["context"]
+    emit("singleton-session-reproduction", independent_session_refused=True, resident_session_retained=True)
     engine.dispatch("navigate", {"scope": "owner", "url": url + "/login"})
     root_extra = engine._call("browsingContext.create", {"type": "tab", "referenceContext": root["context"], "background": True})["context"]
     engine._call("browsingContext.navigate", {"context": root_extra, "url": url + "/owner-second", "wait": "complete"})

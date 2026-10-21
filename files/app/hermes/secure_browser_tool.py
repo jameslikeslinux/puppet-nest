@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import contextlib
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -38,6 +39,15 @@ BRIDGE_TIMEOUT = int(os.environ.get("SECURE_BROWSER_UI_TIMEOUT", "60"))
 MAX_RESULT_BYTES = 8_000_000
 CONTROLLER_STATE_DIR = Path(os.environ.get("SECURE_BROWSER_CONTROLLER_STATE_DIR", Path.home() / ".local/state/nest-firefox-controller"))
 WORKFLOW_RE = re.compile(r"[^A-Za-z0-9_.:@/-]+")
+CONTROL_ERRORS = {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN",
+                  "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_OUTCOME_UNCERTAIN"}
+
+
+class FirefoxControlError(RuntimeError):
+    def __init__(self, result):
+        super().__init__(str(result.get("message") or "Firefox control unavailable")[:1000])
+        self.code = result["error"]
+        self.outcome = result.get("outcome") if result.get("outcome") in {"not_started", "uncertain"} else "uncertain"
 
 
 def _session_env(key: str) -> str:
@@ -111,6 +121,15 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
     except urllib.error.HTTPError as exc:
         # Status alone is safe and distinguishes busy refusal from routing or
         # authentication failure. Never return provider bodies or retry input.
+        if exc.code == 409:
+            # Only a bounded, recognized bridge refusal proves non-delivery.
+            try:
+                refusal = json.loads(exc.read(4097))
+                if refusal.get("error") == "FIREFOX_BUSY" and refusal.get("outcome") == "not_started":
+                    raise FirefoxControlError({"error": "FIREFOX_BUSY", "outcome": "not_started",
+                                               "message": "shared Firefox endpoint busy; no operation started"}) from exc
+            except (ValueError, AttributeError):
+                pass
         raise RuntimeError(f"Firefox endpoint HTTP {exc.code}; outcome may be uncertain; retain the action key") from exc
     except (OSError, urllib.error.URLError, ValueError) as exc:
         # Do not relay URLs, headers, credentials or provider response bodies.
@@ -124,6 +143,8 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
     if not isinstance(parsed, dict):
         raise RuntimeError("Firefox endpoint response was not an object")
     if parsed.get("status") == "error":
+        if parsed.get("error") in CONTROL_ERRORS:
+            raise FirefoxControlError(parsed)
         raise RuntimeError(str(parsed.get("message") or "Firefox endpoint operation failed")[:1000])
     if CONTROL_MODE == "firefox-windows-v3" and str(parsed.get("owner_window_url", "")).startswith("/_nest/bridge/window/#"):
         parsed["owner_window_url"] = PUBLIC_URL.rstrip("/") + parsed["owner_window_url"]
@@ -151,7 +172,8 @@ def _controller_lock():
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
-                    raise RuntimeError("shared Firefox controller is busy; no operation started")
+                    raise FirefoxControlError({"error": "FIREFOX_BUSY", "outcome": "not_started",
+                                               "message": "shared Firefox controller is busy; no operation started"})
                 time.sleep(0.05)
         try:
             yield
@@ -170,7 +192,8 @@ def _safe_call(operation: str, callback: Any) -> str:
         return _json({
             "operation": operation,
             "status": "error",
-            "error": "FIREFOX_UI_CONTROL_FAILED",
+            "error": exc.code if isinstance(exc, FirefoxControlError) else "FIREFOX_UI_CONTROL_FAILED",
+            "outcome": exc.outcome if isinstance(exc, FirefoxControlError) else "uncertain",
             "message": str(exc)[:1000],
             "protocol": CONTROL_MODE,
         })
@@ -220,7 +243,10 @@ def secure_browser_status_tool(args: dict[str, Any], **_kw: Any) -> str:
                 "bidi": live_v2, "cdp": False, "dom": live_v2,
             },
             "public_browser_url": PUBLIC_URL,
-            "authorization_boundary": "Joy's direction to Star for the workflow; no per-click, checkout, or purchase approval ceremony",
+            "control_transport": "authenticated HTTPS bridge",
+            "protocol_session_owner": "resident Firefox bridge" if CONTROL_MODE == "firefox-windows-v3" else "bounded legacy bridge worker",
+            "adapter_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            "authorization_boundary": "Joy-directed workflow; login, credentials and security challenges remain owner-only",
             "sensitive_state_boundary": "Secrets remain in Firefox/Bitwarden and must not be passed as tool text or exposed from profile storage",
             "compatibility": {
                 "version": CONTROL_MODE,

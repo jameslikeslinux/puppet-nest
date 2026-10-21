@@ -278,3 +278,195 @@ def test_adapter_scope_is_authoritative_not_workflow_or_payload(tmp_path, monkey
     with pytest.raises(RuntimeError, match="authoritative"):
         module._bridge("snapshot", {})
     assert len(seen) == 1
+
+
+def test_status_does_not_allocate_a_window(engine):
+    controller, native = engine
+    result = controller.dispatch("status", {"scope": A})
+    assert result["scope_state"] == "unallocated"
+    assert result["protocol"] == "firefox-windows-v3"
+    assert controller.state["windows"] == {}
+    assert native.created == 0
+
+
+def test_returned_creation_identity_survives_failed_read_and_resume(engine, monkeypatch):
+    controller, native = engine
+    controller.acquire("owner")
+    original = controller._tree
+    def tree():
+        if native.created:
+            raise OSError("read failed after creation response")
+        return original()
+    monkeypatch.setattr(controller, "_tree", tree)
+    with pytest.raises(OSError):
+        controller.acquire(A)
+    saved = json.loads(controller.path.read_text())["windows"][A]
+    assert saved["state"] == "creating" and saved["context"] == "context-1"
+    controller.state["controller"] = {"state": "ready", "pid": 123, "generation": "same", "epoch": controller.epoch}
+    controller._save()
+    monkeypatch.setattr(windows, "process_generation", lambda pid: "same")
+    resumed = windows.Windows(controller.path, connect=lambda: native)
+    assert resumed.acquire(A)["context"] == "context-1"
+    assert native.created == 1
+
+
+def test_unknown_creation_is_explicitly_uncertain_and_never_replayed(engine):
+    controller, native = engine
+    native.fail_create = True
+    with pytest.raises(windows.ControlError) as failed:
+        controller.acquire(A)
+    assert failed.value.outcome == "uncertain"
+    with pytest.raises(windows.ControlError) as refused:
+        controller.acquire(A)
+    assert refused.value.code == "FIREFOX_CREATION_UNCERTAIN"
+    assert native.created == 1
+
+
+def test_owner_and_worker_lock_wait_is_bounded(engine):
+    controller, _ = engine
+    class Busy:
+        def acquire(self, *, timeout):
+            assert timeout == 5
+            return False
+        def release(self):
+            raise AssertionError("unowned lock release")
+    controller.lock = Busy()
+    with pytest.raises(windows.ControlError) as refused:
+        with controller.operation():
+            raise AssertionError("operation started")
+    assert refused.value.code == "FIREFOX_BUSY"
+    assert refused.value.outcome == "not_started"
+
+
+def test_observer_never_creates_or_ends_resident_session(monkeypatch):
+    import contextlib
+    import threading
+    import time
+    # The connector is private; inject only its transport, not its ownership logic.
+    import types
+    sent = []
+    class Socket:
+        closed = 0
+        def send(self, raw):
+            self.message = json.loads(raw)
+            sent.append(self.message["method"])
+        def recv(self, **kw):
+            return json.dumps({"id": self.message["id"], "result": {}})
+        def close(self):
+            self.closed += 1
+    sock = Socket()
+    source = ROOT / "files/app/hermes/secure_browser_local_bidi.py"
+    # Executable AST isolates optional websocket dependency in CI's minimal image.
+    import ast
+    tree = ast.parse(source.read_text())
+    body: list[ast.stmt] = [node for node in tree.body if isinstance(node, (ast.ClassDef, ast.FunctionDef))]
+    namespace = {"contextlib": contextlib, "json": json, "os": __import__("os"), "threading": threading,
+                 "time": time, "Any": object,
+                 "websockets": types.SimpleNamespace(sync=types.SimpleNamespace(client=types.SimpleNamespace(connect=lambda *a, **kw: sock)))}
+    exec(compile(ast.Module(body=body, type_ignores=[]), str(source), "exec"), namespace)
+    monkeypatch.setenv("FIREFOX_CONTROL_PROTOCOL", "firefox-windows-v3")
+    with pytest.raises(RuntimeError, match="RESIDENT_SESSION_REQUIRED"):
+        namespace["CdpSession"]()
+    assert sent == []
+    browser = namespace["CdpSession"](websocket_url="ws://127.0.0.1:9222/session/owned")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        list(pool.map(lambda _: browser._bidi("browsingContext.getTree"), range(20)))
+    browser.close()
+    browser.close()
+    assert sent == ["browsingContext.getTree"] * 20
+    assert sock.closed == 1
+    with pytest.raises(RuntimeError, match="closed"):
+        browser._bidi("browsingContext.getTree")
+
+
+def test_source_only_puppet_refresh_restores_adapter_and_support():
+    import re
+    manifest = (ROOT / "manifests/app/hermes/install.pp").read_text()
+    for leaf in ["secure_browser_tool", "secure_browser_oauth_tool", "secure_browser_local_bidi", "secure_browser_bidi", "secure_browser_legacy_support", "firefox_ui_bridge"]:
+        matched = re.search(r'file \{ "\$\{source_dir\}/tools/' + leaf + r'\.py":(.*?)\n  }', manifest, re.S)
+        assert matched is not None, leaf
+        resource = matched.group(1)
+        assert "'hermes_source'" in resource, leaf
+        assert "Vcsrepo[$source_dir]" in resource, leaf
+
+
+@pytest.mark.parametrize("failure", [TimeoutError, KeyboardInterrupt])
+def test_failed_native_call_closes_observer_without_replay(engine, failure, monkeypatch):
+    controller, native = engine
+    controller.acquire(A)
+    called = []
+    closed = []
+    def fail(method, params):
+        called.append(method)
+        raise failure("synthetic transport interruption")
+    monkeypatch.setattr(native, "_bidi", fail)
+    monkeypatch.setattr(native, "close", lambda: closed.append(True), raising=False)
+    expected = KeyboardInterrupt if failure is KeyboardInterrupt else windows.ControlError
+    with pytest.raises(expected):
+        controller._call("input.performActions", {"context": "context-1"})
+    assert called == ["input.performActions"]
+    assert closed == [True]
+    assert controller.broken
+
+
+def test_adapter_preserves_busy_vs_uncertain_without_replay(tmp_path, monkeypatch):
+    import io
+    import urllib.error
+    from test_secure_browser_firefox_ui import load_tool
+    module, _ = load_tool()
+    module.CONTROL_MODE = "firefox-windows-v3"
+    module.BRIDGE_TOKEN_FILE = tmp_path / "token"
+    module.BRIDGE_TOKEN_FILE.write_text("synthetic-test-credential-only")
+    module.CONTROLLER_STATE_DIR = tmp_path / "locks"
+    module._session_env = lambda key: ""
+    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_alpha")
+    monkeypatch.setenv("HERMES_KANBAN_BOARD", "agent-requests")
+    calls = []
+    outcome = {"status": "error", "error": "FIREFOX_BUSY", "outcome": "not_started"}
+    def send(*args, **kwargs):
+        calls.append(True)
+        raise urllib.error.HTTPError("https://fixture.invalid/", 409, "busy", {}, io.BytesIO(json.dumps(outcome).encode()))
+    monkeypatch.setattr("urllib.request.OpenerDirector.open", send)
+    result = json.loads(module.secure_browser_page_snapshot_tool({}))
+    assert result["error"] == "FIREFOX_BUSY" and result["outcome"] == "not_started"
+    outcome.clear()  # Unrecognized proxy error proves nothing about delivery.
+    result = json.loads(module.secure_browser_page_snapshot_tool({}))
+    assert result["outcome"] == "uncertain"
+    assert len(calls) == 2
+
+
+def test_legacy_clients_cannot_acquire_resident_protocol(monkeypatch):
+    import ast
+    import os
+    source = ROOT / "files/app/hermes/secure_browser_legacy_support.py"
+    tree = ast.parse(source.read_text())
+    classes = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name in {"CdpBridge", "CdpSession"}]
+    namespace = {"os": os, "Any": object, "_free_port": lambda: 1234, "CDP_ENDPOINT_URL": "", "subprocess": __import__("subprocess")}
+    exec(compile(ast.Module(body=classes, type_ignores=[]), str(source), "exec", dont_inherit=True), namespace)
+    monkeypatch.setenv("SECURE_BROWSER_CONTROL_MODE", "firefox-windows-v3")
+    with pytest.raises(RuntimeError, match="RESIDENT_SESSION_REQUIRED"):
+        namespace["CdpBridge"]().__enter__()
+    with pytest.raises(RuntimeError, match="RESIDENT_SESSION_REQUIRED"):
+        namespace["CdpSession"]("bidi+ws://127.0.0.1:9222/session")
+
+
+def test_delivered_input_with_lost_response_is_not_replayed(engine, monkeypatch):
+    controller, _ = engine
+    record = controller.acquire(A)
+    monkeypatch.setitem(sys.modules, "secure_browser_local_bidi", SimpleNamespace(
+        CdpSession=SimpleNamespace(_bidi_value=lambda value: {"protected": False, "x": 10, "y": 20})))
+    monkeypatch.setattr(controller, "_function", lambda *args: {"value": [("node", {"sharedId": "element"})]})
+    monkeypatch.setattr(controller, "_summary", lambda cid: {"url": "https://same.example/"})
+    sent = []
+    def pointer(*args):
+        sent.append(True)
+        raise TimeoutError("input delivered but response lost")
+    monkeypatch.setattr(controller, "_pointer", pointer)
+    payload = {"scope": A, "action_key": "one-send-only", "selector": "#send"}
+    with pytest.raises(TimeoutError):
+        controller._input("click", payload, record, {})
+    repeat = controller._input("click", payload, record, {})
+    assert repeat["status"] == "delivery_uncertain"
+    assert repeat["delivery"]["replay_blocked"] is True
+    assert repeat["delivery"]["input_sent"] is False
+    assert sent == [True]

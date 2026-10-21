@@ -230,7 +230,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_oauth_tool.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_oauth_tool.py',
-    tag     => 'hermes_firefox_bridge',
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -239,13 +239,16 @@ class nest::app::hermes::install {
 
   file { "${source_dir}/tools/oauth_browser_tool.py":
     ensure  => absent,
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     require => Vcsrepo[$source_dir],
   }
 
   file { "${source_dir}/tools/secure_browser_tool.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_tool.py',
-    tag     => 'hermes_firefox_bridge',
+    # A source-only checkout overwrites this tracked fork file too. Restore
+    # the adapter in that same transaction, not at the next full Puppet run.
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -269,7 +272,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/firefox_ui_bridge.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/firefox-browser/firefox-ui-bridge.py',
-    tag     => 'hermes_firefox_bridge',
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -279,7 +282,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_local_bidi.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_local_bidi.py',
-    tag     => 'hermes_firefox_bridge',
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -289,7 +292,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_bidi.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_bidi.py',
-    tag     => 'hermes_firefox_bridge',
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -299,6 +302,7 @@ class nest::app::hermes::install {
   file { "${source_dir}/tools/secure_browser_legacy_support.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_legacy_support.py',
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
@@ -307,6 +311,7 @@ class nest::app::hermes::install {
 
   file { "${source_dir}/tools/shopping_browser_tool.py":
     ensure  => absent,
+    tag     => ['hermes_firefox_bridge', 'hermes_source'],
     require => Vcsrepo[$source_dir],
   }
 
