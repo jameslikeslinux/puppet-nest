@@ -103,7 +103,11 @@ class ControllerTests(unittest.TestCase):
         client = FixtureClient()
         # Independent workload shape: deriving this from INITIALIZERS hid the
         # regression when managed private intake added its two init containers.
-        names = ("migrate", "basemap", "curated-fetch", "curated-import")
+        names = ("migrate", "provision-owner", "basemap", "curated-fetch", "curated-import")
+        containers = ("web", "internal-web", "ops", "trusted-test", "worker")
+        client.deployment["spec"]["template"]["spec"]["containers"] = [
+            {"name": name, "image": OLD} for name in containers
+        ]
         client.deployment["spec"]["template"]["spec"]["initContainers"] = [
             {"name": name, "image": OLD} for name in names
         ]

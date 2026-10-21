@@ -1,5 +1,40 @@
 # Joyride private TEST deployment
 
+## Owner dashboard and fast releases
+
+The TEST baseline is application MR 24, exact-head pipeline 11006, image
+`sha256:2c3c39e8a955692ead7a70eac4aedae9c8e4d702309e8f77ea56d0ca075f3021`.
+Internal `.eyrie` ingress and the existing private backchannel use the separate
+`joyride.internal_wsgi:application` listener on port 8003. Public WSGI remains on
+8000 without owner routes. Owner access requires normal verified email sign-in;
+the serial `provision-owner` initializer follows migrations and creates no session.
+`OWNER_EMAIL` is server-managed, not a browser-supplied identity.
+
+For frontend/private-content-only changes, use the existing private TEST channel:
+`GET /ops/releases`, `POST /ops/releases/frontend` and `POST /ops/releases/content`.
+These replace image CI as the routine frontend/content iteration path; image CI
+and the delivery adapter below remain for backend/dependency/legal changes.
+Upload the raw gzip archive with `Content-Type: application/octet-stream`,
+`X-Release-Sha256`, `X-Previous-Sha256`, `X-Release-Version` and `X-Source-Head`.
+The proxy accepts only those exact methods/targets, at most 32 MiB compressed,
+with 120-second upload/upstream and Gunicorn timeouts. The application additionally
+bounds unpacked data to 64 MiB and validates compare-and-swap and archive contents.
+HTTP 200 with `state=succeeded` is committed activation, not an enqueued operation.
+Existing bearer ops callers require `release` scope; delivery credentials do not
+gain release authority. No Kubernetes credential or new publisher is introduced.
+
+Both web listeners retain read-only data. Only the scoped ops processes get a
+writable `/data/private` subpath for curated trees and `/data/private/releases`.
+The existing backup scanner/archive recursively captures all of `/data/private`,
+including retained release archives; its pinned implementation remains unchanged.
+Both curated import dry-run and apply use `--initialize-only`, retaining an active
+revision across image restarts. Rollback uses the same endpoint with a retained
+archive and current SHA. Never delete editorial data/history to force startup.
+
+Production remains guarded and dormant. Allowlisted SMTP and sandbox billing
+remain unchanged. Deployment readiness, anonymous admin denial and baseline release
+status do not replace Joy mailbox/sign-in or Luna release/rollback acceptance.
+
 ## Allowlisted sign-in email
 
 TEST enables SMTP sign-in email using the existing encrypted runtime credentials.

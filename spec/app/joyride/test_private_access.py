@@ -32,17 +32,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
 http.server.ThreadingHTTPServer(('0.0.0.0', 8000), Handler).serve_forever()
 '''
 CLIENT = '''
-import base64, json, socket, ssl, sys
+import base64, http.client, json, socket, ssl, sys
 target, path, host, sni, extra, method = sys.argv[1:]
 try:
     context = ssl.create_default_context(cafile='/tls/tls.crt')
     with socket.create_connection((target,8443),timeout=5) as raw:
         with context.wrap_socket(raw,server_hostname=sni) as sock:
             sock.sendall((method+' '+path+' HTTP/1.1\\r\\nHost: '+host+'\\r\\nConnection: close\\r\\n'+extra+'\\r\\n').encode())
-            data=b''
-            while chunk := sock.recv(65536):
-                data += chunk
-    print(json.dumps({'status':int(data.split(b' ')[1]), 'data':base64.b64encode(data).decode()}))
+            response = http.client.HTTPResponse(sock)
+            response.begin()
+            data = response.read()
+            status = response.status
+    print(json.dumps({'status':status, 'data':base64.b64encode(data).decode()}))
 except ssl.SSLError:
     print(json.dumps({'ssl_error':True}))
 '''
@@ -65,7 +66,7 @@ class PrivateAccess(unittest.TestCase):
         cls.upstream = cls.container + "-upstream"
         cls.network = cls.container + "-network"
         config = (ROOT / "files/app/joyride/test-access-nginx.conf").read_text()
-        for name, port in (("web", 8000), ("trusted-test", 8002)):
+        for name, port in (("internal-web", 8003), ("trusted-test", 8002)):
             config = config.replace(f"joyride-test-{name}.test.svc.cluster.local:{port}", f"{cls.upstream}:8000")
         (cls.path / "nginx.conf").write_text(config)
         run("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=joyride-test.eyrie", "-addext", "subjectAltName=DNS:joyride-test.eyrie", "-keyout", str(cls.path / "tls.key"), "-out", str(cls.path / "tls.crt"))
@@ -143,10 +144,33 @@ class PrivateAccess(unittest.TestCase):
     def test_private_controller_is_absent(self):
         self.assertEqual(self.request(path="/delivery/queue")[0], 404)
 
-    def test_roster_and_admin_are_absent(self):
-        for path in ("/ops/roster", "/admin/", "/ops/arbitrary"):
+    def test_roster_and_arbitrary_ops_are_absent(self):
+        for path in ("/ops/roster", "/ops/arbitrary"):
             with self.subTest(path=path):
                 self.assertEqual(self.request(path=path)[0], 404)
+
+    def test_admin_reaches_internal_application_authorization(self):
+        self.assertEqual(self.request(path="/admin")[0], 200)
+
+    def test_release_routes_are_exact_and_preserve_only_release_headers(self):
+        self.assertEqual(self.request(path="/ops/releases")[0], 200)
+        self.assertEqual(self.request(path="/ops/releases", method="POST")[0], 405)
+        for kind in ("frontend", "content"):
+            path = "/ops/releases/" + kind
+            self.assertEqual(self.request(path=path)[0], 405)
+            status, data = self.request(path=path, method="POST", extra=(
+                "Content-Type: application/octet-stream\r\nX-Release-Sha256: fixture-sha\r\n"
+                "X-Previous-Sha256: fixture-previous\r\nX-Release-Version: fixture-version\r\n"
+                "X-Source-Head: fixture-head\r\nAuthorization: fixture-secret\r\n"
+                "X-Joyride-Trusted-Test: forged\r\n"))
+            self.assertEqual(status, 200)
+            for value in (b"fixture-sha", b"fixture-previous", b"fixture-version", b"fixture-head"):
+                self.assertIn(value, data)
+            self.assertNotIn(b"fixture-secret", data)
+            self.assertNotIn(b"forged", data)
+            for suffix in ("?x=1", "/", "/extra"):
+                self.assertEqual(self.request(path=path + suffix, method="POST")[0], 404)
+            self.assertEqual(self.request(path=path, method="POST", extra="Content-Length: 33554433\r\n")[0], 413)
 
     def test_isolated_status_is_token_free_and_strips_caller_identity(self):
         self.assertEqual(self.request(path="/ops/status")[0], 200)
