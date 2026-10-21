@@ -475,7 +475,9 @@ kubecm::deploy::resources_key: 'resources'
 kubecm::deploy::values_key: 'values'
 kubecm::deploy::patches_key: 'patches'
 
-puppet::agent_server_hostname: 'puppet.nest'
+# New agents use OpenVox. Legacy console/alternate identities retain explicit
+# host overrides until their own identity migration; keep the old CA available.
+puppet::agent_server_hostname: 'puppet.eyrie'
 puppet::environment: 'main'
 puppet::runinterval: 21600
 puppet::agent_additional_settings:
