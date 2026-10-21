@@ -56,14 +56,6 @@ class nest::base::containers {
     enable => true,
   }
 
-  # Keep the primary user's existing range stable. Additional engine identities
-  # receive disjoint ranges and no access to the operator's rootless storage.
-  $rootless_users = ([$nest::user] + $nest::rootless_users).unique
-  $subuidgid_content = $rootless_users.map |$index, $user| {
-    $subuidgid = 65536 * $index + 100000
-    "${user}:${subuidgid}:65536\n"
-  }.join
-
   file { [
     '/etc/subuid',
     '/etc/subgid',
@@ -71,7 +63,7 @@ class nest::base::containers {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-    content => $subuidgid_content,
+    content => "${nest::user}:100000:65536\n",
     require => Class['nest::base::users'], # overwrite generated entries
   }
 

@@ -31,9 +31,6 @@ hierarchy:
       - "private/kubernetes/common.yaml"
       - "kubernetes/common.yaml"
 
-  - name: 'Joyride Isolated CI'
-    path: "private/joyride/%{nest::service::joyride_ci::scope}.yaml"
-
   # Relating to specific instances
   - name: 'Hosts'
     paths:

@@ -32,7 +32,7 @@ and the open regional basemap.
 
 Luna has their own GitLab identity and project access, ordinary project CI and the
 existing narrow TEST deployment/backchannel. They do not need a Talon ticket for
-routine frontend updates. The project-specific rootless runner builds both image
+routine frontend updates. The project-specific ordinary Owl runner builds both image
 architectures. The small importer/adapter checks exact source/CI/image/workload
 identity and reports terminal TEST results. It is not a production approval system.
 The discarded signing/custody/supervisor framework and unused dedicated credential
