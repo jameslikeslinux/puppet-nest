@@ -32,6 +32,10 @@ class CiBoundaryTests(unittest.TestCase):
         self.assertIn('InaccessiblePaths=-/etc/eyaml -/etc/puppetlabs/bolt', service)
         self.assertIn('-/etc/joyride-ci', service)
         self.assertIn('-/var/lib/joyride-evidence', service)
+        self.assertIn('TemporaryFileSystem=/run/systemd:ro\n', service)
+        self.assertIn('BindReadOnlyPaths=-/run/systemd/resolve\n', service)
+        self.assertIn('-/run/user', service)
+        self.assertNotIn('-/run/systemd ', service)
 
     def test_manager_custody_is_outside_engine_and_scope_is_explicit(self):
         source = (ROOT / 'manifests/service/joyride_ci.pp').read_text()

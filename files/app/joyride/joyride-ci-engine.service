@@ -21,6 +21,10 @@ RestartSec=5
 PrivateTmp=yes
 ProtectHome=yes
 ProtectSystem=strict
+# Netavark must start DNS in this service, not a nonexistent user manager.
+# Omit the sd_booted marker; retain only systemd-resolved's resolver files.
+TemporaryFileSystem=/run/systemd:ro
+BindReadOnlyPaths=-/run/systemd/resolve
 InaccessiblePaths=-/etc/eyaml -/etc/puppetlabs/bolt -/etc/puppetlabs/puppet -/etc/joyride-ci -/etc/gemrc -/srv/gitlab-runner -/var/lib/joyride-evidence -/run/podman -/run/user
 ReadWritePaths=/var/lib/joyride-ci /run/joyride-ci
 # newuidmap/newgidmap must be allowed to establish the subordinate namespace.
