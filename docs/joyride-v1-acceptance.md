@@ -5,8 +5,10 @@ This is the current Nest integration requirements/checklist, not launch approval
 Joy's latest reduced scope also removes the bespoke signing/evidence/custody
 and custom promotion framework. Historical receipts and chronology below are
 retained as evidence, not current acceptance prerequisites. Use normal personal
-application CI, reviewed pinned images and ordinary Nest deployment. Cleanup
-must remove unused live resources as well as source; source deletion alone is
+application CI, reviewed pinned images and ordinary Nest deployment. Luna's
+self-service TEST update path remains required: retain the existing bounded
+TEST adapter and ordinary CI artifact checks, not the withdrawn signing stack.
+Cleanup must remove unused live resources as well as source; source deletion alone is
 not completion. Preserve the public informational site, private TEST, ordinary
 security, managed credentials, data, backups and rollback. Stripe remains off.
 Joy's photos-only steering recorded on 2026-10-19 supersedes the original
@@ -92,8 +94,9 @@ then verify changed behavior against the exact resulting TEST artifact.
    endpoint. Rendering and terms/editorial approval remain explicit gates.
 5. Use ordinary application CI and reviewed immutable Nest image pins, then
    deploy through `nest::eyrie::deploy_joyride_test` and verify live behavior.
-   The custom importer/controller is retired, not an acceptance prerequisite.
-   Luna's ordinary independent update path still requires live verification.
+   Luna's existing narrow preview/backchannel path is retained for self-service
+   TEST updates. It has no signing, custody, supervisor or production authority.
+   Her independent benign update and terminal result still require verification.
    Keep all production, payment, mail and publication gates intact.
 
 ## Continuity and operational safety
