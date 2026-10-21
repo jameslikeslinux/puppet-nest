@@ -13,221 +13,6 @@ resources:
   backup: {}
   restore: {}
   nest_registry_auths: {}
-  scripts:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: '%{nest::kubernetes::service}-scripts'
-      namespace: '%{nest::kubernetes::namespace}'
-    binaryData:
-      import_artifacts.py: '%{nest::service::joyride::artifact_import_base64}'
-      test_delivery_controller.py: '%{nest::service::joyride::test_delivery_base64}'
-  delivery_journal:
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: joyride-test-delivery-journal
-      namespace: test
-    # The controller owns data.active; omit data from the Helm baseline.
-  delivery_account:
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: joyride-test-delivery
-      namespace: test
-    automountServiceAccountToken: false
-  delivery_role:
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: Role
-    metadata:
-      name: joyride-test-delivery
-      namespace: test
-    rules:
-    - apiGroups: [apps]
-      resources: [deployments]
-      resourceNames: [joyride-test]
-      verbs: [get, patch]
-    - apiGroups: ['']
-      resources: [configmaps]
-      resourceNames: [joyride-test-delivery-journal]
-      verbs: [get, update]
-  delivery_binding:
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
-    metadata:
-      name: joyride-test-delivery
-      namespace: test
-    subjects:
-    - kind: ServiceAccount
-      name: joyride-test-delivery
-      namespace: test
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: Role
-      name: joyride-test-delivery
-  delivery_controller:
-    apiVersion: batch/v1
-    kind: CronJob
-    metadata:
-      name: joyride-test-delivery
-      namespace: test
-    spec:
-      schedule: '* * * * *'
-      concurrencyPolicy: Forbid
-      successfulJobsHistoryLimit: 1
-      failedJobsHistoryLimit: 2
-      startingDeadlineSeconds: 60
-      jobTemplate:
-        spec:
-          backoffLimit: 0
-          activeDeadlineSeconds: 660
-          template:
-            metadata:
-              labels:
-                app: joyride-test-delivery
-            spec:
-              serviceAccountName: joyride-test-delivery
-              automountServiceAccountToken: true
-              restartPolicy: Never
-              securityContext:
-                fsGroup: 10001
-                seccompProfile:
-                  type: RuntimeDefault
-              imagePullSecrets:
-              - name: joyride-test-pull
-              containers:
-              - name: controller
-                # Trusted interpreter pin never follows candidate releases.
-                image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:51cb54756ada6586cd40c2295789bcb261b11c8b6e5917086d29ba1aec7dda32
-                command: [python, /platform/test_delivery_controller.py]
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  readOnlyRootFilesystem: true
-                  runAsNonRoot: true
-                  runAsUser: 10001
-                  runAsGroup: 10001
-                  capabilities:
-                    drop: [ALL]
-                env:
-                - name: RUNTIME_ENV
-                  value: test
-                - name: PYTHONDONTWRITEBYTECODE
-                  value: '1'
-                resources:
-                  requests:
-                    cpu: 25m
-                    memory: 48Mi
-                  limits:
-                    memory: 128Mi
-                volumeMounts:
-                - name: scripts
-                  mountPath: /platform
-                  readOnly: true
-                - name: credential
-                  mountPath: /delivery-secret
-                  readOnly: true
-              volumes:
-              - name: scripts
-                configMap:
-                  name: joyride-test-scripts
-                  items:
-                  - key: test_delivery_controller.py
-                    path: test_delivery_controller.py
-              - name: credential
-                secret:
-                  secretName: joyride-test-runtime
-                  items:
-                  - key: DELIVERY_TOKEN
-                    path: DELIVERY_TOKEN
-  artifact_verifier:
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: '%{nest::kubernetes::service}-artifact-verifier'
-      namespace: '%{nest::kubernetes::namespace}'
-    type: Opaque
-    data:
-      GITLAB_READ_API_TOKEN: '%{nest::service::joyride::verifier_token_base64}'
-  artifact_import:
-    apiVersion: batch/v1
-    kind: CronJob
-    metadata:
-      name: '%{nest::kubernetes::service}-artifact-import'
-      namespace: '%{nest::kubernetes::namespace}'
-    spec:
-      schedule: '*/5 * * * *'
-      concurrencyPolicy: Forbid
-      successfulJobsHistoryLimit: 1
-      failedJobsHistoryLimit: 2
-      startingDeadlineSeconds: 120
-      jobTemplate:
-        spec:
-          backoffLimit: 1
-          activeDeadlineSeconds: 240
-          template:
-            metadata:
-              labels:
-                app: '%{nest::kubernetes::service}-artifact-import'
-            spec:
-              automountServiceAccountToken: false
-              restartPolicy: Never
-              securityContext:
-                fsGroup: 10001
-                seccompProfile:
-                  type: RuntimeDefault
-              imagePullSecrets:
-              - name: '%{nest::kubernetes::service}-pull'
-              containers:
-              - name: importer
-                image: '%{lookup(''joyride_image'')}'
-                command: [python, /platform/import_artifacts.py]
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  readOnlyRootFilesystem: true
-                  runAsNonRoot: true
-                  runAsUser: 10001
-                  runAsGroup: 10001
-                  capabilities:
-                    drop: [ALL]
-                env:
-                - name: RUNTIME_ENV
-                  value: '%{lookup(''runtime_environment'')}'
-                - name: DATABASE_URL
-                  valueFrom:
-                    secretKeyRef:
-                      name: '%{nest::kubernetes::service}-cnpg-app'
-                      key: uri
-                - name: DJANGO_SECRET_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: '%{nest::kubernetes::service}-runtime'
-                      key: DJANGO_SECRET_KEY
-                - name: GITLAB_READ_API_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: '%{nest::kubernetes::service}-artifact-verifier'
-                      key: GITLAB_READ_API_TOKEN
-                - name: TMPDIR
-                  value: /tmp
-                resources:
-                  requests:
-                    cpu: 50m
-                    memory: 128Mi
-                  limits:
-                    memory: 256Mi
-                volumeMounts:
-                - name: scripts
-                  mountPath: /platform
-                  readOnly: true
-                - name: tmp
-                  mountPath: /tmp
-              volumes:
-              - name: scripts
-                configMap:
-                  name: '%{nest::kubernetes::service}-scripts'
-              - name: tmp
-                emptyDir:
-                  sizeLimit: 64Mi
   runtime:
     apiVersion: v1
     kind: Secret
@@ -238,7 +23,7 @@ resources:
     data:
       DJANGO_SECRET_KEY: '%{nest::service::joyride::django_secret_key_base64}'
       OPS_TOKEN: '%{nest::service::joyride::ops_token_base64}'
-      DELIVERY_TOKEN: '%{nest::service::joyride::delivery_token_base64}'
+
       WMATA_API_KEY: '%{nest::service::joyride::wmata_api_key_base64}'
       EMAIL_HOST_USER: '%{nest::service::joyride::email_host_user_base64}'
       EMAIL_HOST_PASSWORD: '%{nest::service::joyride::email_host_password_base64}'
@@ -343,6 +128,8 @@ resources:
               value: '0'
             - name: STRIPE_MODE
               value: disabled
+            - name: OPS_SCOPES
+              value: status,diagnostics,member:read
             - name: TEST_MAIL_ALLOWLIST
               value: ''
             envFrom:
@@ -606,13 +393,6 @@ resources:
                 name: '%{nest::kubernetes::service}-ops'
                 port:
                   number: 8001
-          - path: /delivery/
-            pathType: Prefix
-            backend:
-              service:
-                name: '%{nest::kubernetes::service}-ops'
-                port:
-                  number: 8001
           - path: /
             pathType: Prefix
             backend:
@@ -640,15 +420,6 @@ resources:
         ports:
         - protocol: TCP
           port: 8000
-      - from:
-        - podSelector:
-            matchLabels:
-              app: joyride-test-delivery
-        ports:
-        - protocol: TCP
-          port: 8000
-        - protocol: TCP
-          port: 8001
       - from:
         - podSelector:
             matchLabels:

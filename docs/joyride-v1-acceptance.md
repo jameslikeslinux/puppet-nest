@@ -90,8 +90,10 @@ then verify changed behavior against the exact resulting TEST artifact.
 4. Consume Luna's actual markup using the delivered escaped server-rendered WMATA
    seam, without inventing display copy/design or introducing a Transit Data
    endpoint. Rendering and terms/editorial approval remain explicit gates.
-5. Import only exact CI-verified immutable artifacts through the existing TEST
-   importer/controller and verify live behavior, selected digest and cleanup.
+5. Use ordinary application CI and reviewed immutable Nest image pins, then
+   deploy through `nest::eyrie::deploy_joyride_test` and verify live behavior.
+   The custom importer/controller is retired, not an acceptance prerequisite.
+   Luna's ordinary independent update path still requires live verification.
    Keep all production, payment, mail and publication gates intact.
 
 ## Continuity and operational safety

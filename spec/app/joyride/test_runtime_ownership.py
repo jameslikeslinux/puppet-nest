@@ -21,6 +21,18 @@ class RuntimeOwnership(unittest.TestCase):
         self.assertRegex(data['joyride_operations_image'],
                          r'^registry.gitlab.joyfullee.me/joy/joyride/app@sha256:[0-9a-f]{64}$')
 
+    def test_no_custom_delivery_or_import_authority(self):
+        data = yaml.safe_load((ROOT / 'data/kubernetes/app/joyride/test.yaml').read_text())
+        resources = data['resources']
+        for name in ('scripts', 'delivery_journal', 'delivery_account', 'delivery_role',
+                     'delivery_binding', 'delivery_controller', 'artifact_verifier', 'artifact_import'):
+            self.assertNotIn(name, resources)
+        self.assertFalse(any(r.get('kind') in ('Role', 'RoleBinding', 'ServiceAccount')
+                             for r in resources.values()))
+        self.assertNotIn('DELIVERY_TOKEN', resources['runtime']['data'])
+        self.assertRegex(data['joyride_image'], r'@sha256:[0-9a-f]{64}$')
+        self.assertFalse(resources['app']['spec']['template']['spec']['automountServiceAccountToken'])
+
     def test_backup_admission_has_no_authority_and_helper_is_read_only(self):
         for path in ('data/kubernetes/service/joyride-test.yaml',
                      'data/kubernetes/app/joyride/joyride.yaml'):

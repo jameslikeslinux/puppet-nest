@@ -110,7 +110,7 @@ and both initializers, preserving exact workload/journal fences.
 Fixture checks (local fixtures are not live network/application acceptance):
 
     python3 spec/app/joyride/test_private_access.py
-    python3 spec/app/joyride/test_delivery_controller.py
+
     sudo unshare --net nft --check --file files/tailscale/luna-gitlab.nft
 
 ## Rollback and remaining work

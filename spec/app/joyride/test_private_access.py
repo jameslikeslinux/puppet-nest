@@ -160,8 +160,8 @@ class PrivateAccess(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(self.request(path=path)[0], 404)
         self.assertEqual(self.request(path="/ops/status", method="POST")[0], 405)
-        self.assertEqual(self.request(path="/ops/deploy")[0], 405)
-        self.assertEqual(self.request(path="/ops/deploy", method="POST")[0], 200)
+        self.assertEqual(self.request(path="/ops/deploy")[0], 410)
+        self.assertEqual(self.request(path="/ops/deploy", method="POST")[0], 410)
 
     def test_forwarded_headers_are_replaced(self):
         status, data = self.request(extra="Forwarded: host=other.invalid\r\nX-Forwarded-Proto: http\r\nX-Forwarded-Host: other.invalid\r\nX-Forwarded-For: 1.2.3.4\r\n")
