@@ -153,6 +153,49 @@ and the unchanged `zfs mount -al` command. An already active mount service need
 not restart, and this sequence must not restart it to manufacture boot evidence.
 A daemon reload and parsed service readback do not prove a real reboot test.
 
+## Full Hermes backup publication
+
+The existing `nest::app::hermes::backup` plan accepts `stage_dir` (default
+`/var/tmp/nest-hermes-backup`) and `preserve_existing` (default `false`). The
+uploaded helper requires `--stage-dir` for capture; direct helper callers must
+add it. Prune and legacy-cleanup interfaces are unchanged. A bounded capture
+that must retain every existing generation uses `preserve_existing=true`.
+
+Capture and native temporary files live in a private unique local directory.
+The helper rejects final-storage staging paths and unknown/network filesystem
+types. It verifies full CRC and required shared/profile members locally before
+copying verified bytes to a unique hidden final-storage transfer file. SHA256
+readback, fsync and no-clobber hard-link publication precede atomic metadata;
+the exact receipt is reopened before success or retention. Hidden transfer
+files are publication traffic, not working generations. An interruption can
+leave a transfer or an archive without metadata: neither is a completed
+generation, and the same checkpoint is refused rather than overwritten or
+recaptured. Inspect those exact artifacts; do not delete prior good backups.
+
+Hermes MR !86 coordinates native full capture with cron retention/removal
+using the actual stores' native/enclosing full-root backup locks. Contended
+retention defers until the next save; explicit removal returns failure without
+deleting output. This is coordinated live capture, not a simultaneous snapshot
+of every mutable file. Existing full-root filters and WAL-safe SQLite semantics
+remain native Hermes responsibilities. Publication tests are not proof that
+the native fix is installed or that a live backup capture succeeded.
+
+Private ZIPs and JSON metadata stay mode 0600 in the private final directory;
+never attach backup payloads or credentials as task evidence. Rollback retains
+the previous complete generation and helper. Do not restore live state merely
+to validate publication. Old complete metadata without a digest remains
+readable; new receipts bind SHA256 as well as byte/member counts.
+
+Owl's managed native source pin includes merge `099106edc1c799693fa92fb4f3965ee45b4f953a`.
+The `hermes_source` tag selects the existing source checkout and exact-pin
+verification only: no package reinstall, UI build or service restart. This
+source-only delivery is appropriate here because the capture patch changes no
+dependencies and the existing install is editable. It is not a substitute for
+the normal installer on a new host. Existing gateway/cron processes must still
+reload through the normal service lifecycle before their loaded retention code
+is covered. Verify those process transitions before the bounded real capture;
+do not infer loaded-code identity from a new on-disk checkout alone.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive

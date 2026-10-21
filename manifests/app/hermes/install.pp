@@ -105,6 +105,7 @@ class nest::app::hermes::install {
     provider => git,
     source   => $git_url,
     revision => $git_revision,
+    tag      => 'hermes_source',
     require  => [
       File[$install_dir],
       Class['nest::base::git'],
@@ -115,6 +116,7 @@ class nest::app::hermes::install {
 
   if $git_commit {
     exec { 'verify_hermes_source_ref_pin':
+      tag     => 'hermes_source',
       command => "/bin/sh -c 'echo Hermes source HEAD must match pinned commit ${git_commit} on ref ${git_ref} >&2; exit 1'",
       unless  => "/bin/sh -c 'test \"$(/usr/sbin/git -C ${source_dir} rev-parse HEAD)\" = ${git_commit} && /usr/sbin/git -C ${source_dir} merge-base --is-ancestor ${git_commit} origin/${git_ref}'",
       require => Vcsrepo[$source_dir],

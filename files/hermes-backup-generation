@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -85,8 +87,59 @@ def _atomic_json(path: Path, payload: dict[str, object]) -> None:
             output.flush()
             os.fsync(output.fileno())
         os.replace(temporary, path)
+        _sync_directory(path.parent)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+def _sync_directory(path: Path) -> None:
+    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as source:
+        for block in iter(lambda: source.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _local_stage(path: Path, backup_dir: Path) -> Path:
+    path = path.resolve()
+    final_root = Path('/nest/backup').resolve()
+    if path == backup_dir or backup_dir in path.parents or path == final_root or final_root in path.parents:
+        raise ValueError('stage directory must be local and outside final backup storage')
+    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # Check bind mounts too: path spelling alone does not prove local storage.
+    filesystem = subprocess.run(
+        ['findmnt', '--noheadings', '--output', 'FSTYPE', '--target', str(path)],
+        check=True, capture_output=True, text=True,
+    ).stdout.strip()
+    if filesystem not in {'zfs', 'ext4', 'xfs', 'btrfs', 'tmpfs', 'overlay'}:
+        raise ValueError(f'stage directory must use a known local filesystem, got {filesystem!r}')
+    return path
+
+
+def _publish_archive(staged: Path, archive: Path, expected_sha256: str) -> None:
+    # Only verified bytes are transferred to final storage, never capture scratch.
+    # Link publishes without replacing an existing checkpoint, metadata is last.
+    fd, name = tempfile.mkstemp(prefix=f'.{archive.name}.', suffix='.transfer', dir=archive.parent)
+    transfer = Path(name)
+    try:
+        with os.fdopen(fd, 'wb') as destination, staged.open('rb') as source:
+            shutil.copyfileobj(source, destination, 1024 * 1024)
+            destination.flush()
+            os.fsync(destination.fileno())
+        if _sha256(transfer) != expected_sha256:
+            raise RuntimeError('final archive transfer digest mismatch')
+        os.link(transfer, archive)
+        _sync_directory(archive.parent)
+    finally:
+        transfer.unlink(missing_ok=True)
 
 
 def _generation_archives(backup_dir: Path) -> list[Path]:
@@ -137,6 +190,8 @@ def _read_completed_metadata(archive: Path, checkpoint: str) -> dict[str, object
 
 
 def create_generation(args: argparse.Namespace) -> dict[str, object]:
+    if args.retain < 1:
+        raise ValueError('retain must be at least 1')
     backup_dir = args.backup_dir.resolve()
     backup_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(backup_dir, 0o700)
@@ -150,18 +205,27 @@ def create_generation(args: argparse.Namespace) -> dict[str, object]:
         completed = _read_completed_metadata(archive, checkpoint)
         if completed is not None:
             _verify_archive(archive, tuple(args.required_profile))
+            if completed.get('sha256') and _sha256(archive) != completed['sha256']:
+                raise RuntimeError('completed generation digest mismatch')
             return {"action": "reused", **completed}
         if archive.exists() or _metadata_for(archive).exists():
             raise RuntimeError(
                 f"refusing to replace incomplete generation artifacts for {checkpoint}: {archive}"
             )
 
-        subprocess.run(
-            [str(args.hermes_bin), "backup", "--output", str(archive)],
-            check=True,
-        )
-        os.chmod(archive, 0o600)
-        verification = _verify_archive(archive, tuple(args.required_profile))
+        stage_dir = _local_stage(args.stage_dir, backup_dir)
+        with tempfile.TemporaryDirectory(prefix='hermes-generation-', dir=stage_dir) as temporary:
+            staged = Path(temporary) / archive.name
+            subprocess.run(
+                [str(args.hermes_bin), "backup", "--output", str(staged)],
+                check=True,
+                stdout=sys.stderr,
+                env={**os.environ, 'TMPDIR': temporary},
+            )
+            os.chmod(staged, 0o600)
+            verification = _verify_archive(staged, tuple(args.required_profile), full_crc=True)
+            digest = _sha256(staged)
+            _publish_archive(staged, archive, digest)
         metadata: dict[str, object] = {
             "archive": archive.name,
             "bytes": verification["bytes"],
@@ -172,10 +236,13 @@ def create_generation(args: argparse.Namespace) -> dict[str, object]:
             "required_profiles": verification["required_profiles"],
             "required_shared": verification["required_shared"],
             "verified": True,
-            "verified_by": "native Hermes staged CRC test and atomic publish",
+            "sha256": digest,
+            "verified_by": "local full CRC, SHA256 transfer readback and atomic publication",
         }
         _atomic_json(_metadata_for(archive), metadata)
-        removed = _prune(backup_dir, args.retain, protect=archive)
+        if _read_completed_metadata(archive, checkpoint) != metadata:
+            raise RuntimeError('published generation receipt readback mismatch')
+        removed = [] if args.no_prune else _prune(backup_dir, args.retain, protect=archive)
         return {"action": "created", **metadata, "pruned": removed}
 
 
@@ -259,6 +326,8 @@ def parser() -> argparse.ArgumentParser:
     common(backup)
     backup.add_argument("--checkpoint")
     backup.add_argument("--hermes-bin", type=Path, required=True)
+    backup.add_argument("--stage-dir", type=Path, required=True)
+    backup.add_argument("--no-prune", action='store_true')
     backup.add_argument("--retain", type=int, default=24)
     backup.set_defaults(handler=create_generation)
 
