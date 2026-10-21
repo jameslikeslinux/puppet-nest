@@ -62,8 +62,14 @@ Production remains dormant and guarded; this is not a production HA claim.
 
 ## Owner dashboard and fast releases
 
-The TEST baseline is application MR 24, exact-head pipeline 11006, image
-`sha256:2c3c39e8a955692ead7a70eac4aedae9c8e4d702309e8f77ea56d0ca075f3021`.
+The TEST baseline is application MR 26, exact-head pipeline 11070, source
+`071088d5a9b9d0eb8fa9c2056c364eb42e896568`, image
+`sha256:9f4726538e1dfec511e3f2410ceff155b600f58bdcf5643cef9a4bb296242a1b`.
+It includes the seasonal read-only owner dashboard and MR 25's optional
+manifest-bound root favicon. Frontend/content releases remain independent of
+this backend pin. The previous managed image is
+`sha256:60333d9908ceeaf0c87c84f40d8b136bd5b12453d7ccbb3577cc3914046a9d4d`;
+read the actual installed image again before any rollback.
 Internal `.eyrie` ingress and the existing private backchannel use the separate
 `joyride.internal_wsgi:application` listener on port 8003. Public WSGI remains on
 8000 without owner routes. Owner access requires normal verified email sign-in;
