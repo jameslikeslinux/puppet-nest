@@ -57,7 +57,6 @@ class nest (
   Optional[String]                  $opensbi_tag         = undef,
   Array[String]                     $raspberrypi_config  = [],
   Array[String]                     $reset_filter_rules  = [],
-  Array[String]                     $rootless_users      = [],
   Optional[String]                  $soc                 = undef,
   Optional[String]                  $srv_zpool           = $facts['rpool'],
   Hash[String, Nest::Kconfig]       $uboot_config        = {},

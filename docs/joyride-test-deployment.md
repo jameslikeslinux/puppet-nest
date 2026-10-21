@@ -103,8 +103,10 @@ Current cleanup inventory (readback before this rollout):
   private Tailscale listener, ordinary health/backup/restore and the small TEST
   importer/adapter needed by Luna's self-service. The public informational site
   is RETIRED under the independent 2026-10-21 retirement request.
-- Kept: ordinary project runner 127 and its unprivileged engine, the concrete
-  consumer for Luna's check/build/publish/preview without host-root/eyaml access.
+- Kept: project runner 127, now an ordinary instance of Owl's shared manager,
+  for Luna's check/build/publish/preview. It has host-root Podman engine authority,
+  but no directly injected eyaml/Bolt/Puppetcore credentials. See
+  `joyride-ci.md` for the trust model and cutover procedure.
   All pipeline 10866 jobs ran on it, including terminal preview. Project 83 now
   disables shared and group runners; independent readback lists only runner 127.
   Shared Nest runners are unchanged. Dedicated unused credential scope revocation
