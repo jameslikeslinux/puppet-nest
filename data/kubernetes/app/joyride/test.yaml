@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Owner dashboard and bounded fast releases; app MR 24, exact-head pipeline 11006.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:2c3c39e8a955692ead7a70eac4aedae9c8e4d702309e8f77ea56d0ca075f3021
+# Optional active-release root favicon; app MR 25, main pipeline 11062.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:60333d9908ceeaf0c87c84f40d8b136bd5b12453d7ccbb3577cc3914046a9d4d
 affinity: {}
 tolerations: []
 resources:
