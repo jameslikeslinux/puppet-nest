@@ -1,5 +1,65 @@
 # Joyride private TEST deployment
 
+## Compatible image rollout availability
+
+TEST uses one steady-state pod plus at most one surge pod: `RollingUpdate`,
+`maxUnavailable: 0`, `maxSurge: 1`, and `minReadySeconds: 10`. Both the managed
+KubeCM baseline and the named-workload adapter preserve this contract. The
+adapter refuses Recreate, percentage/default budgets and widened surge before
+claiming work; it still patches only images and its delivery annotation using
+UID/resource-version tests. An old ready pod cannot satisfy terminal success
+while the replacement remains unready. A failed replacement stays failed; no
+automatic schema/image rollback or deletion of the prior serving pod is added.
+
+The two web readiness probes fetch `/sign-in`, which resolves the active frontend
+through PostgreSQL and checks the manifest-bound bytes. This is stronger than
+the DB-only `/health/ready`; it neither signs in nor sends email. Initializers
+finish before any app listener starts. Startup probes allow two minutes for
+listeners to start without premature liveness restarts. The replacement must
+remain ready for ten seconds before the old pod is voluntarily removed.
+
+All four Gunicorn listeners have a 15-second preStop endpoint-withdrawal window,
+a 125-second graceful worker timeout and a 150-second pod grace budget. The ops
+upload request timeout remains 120 seconds. This bounds draining, not an unlimited
+connection-lifetime promise. Requests longer than the configured budgets, client
+disconnects, node loss and external proxy failures remain outside that guarantee.
+
+Overlap safety was checked against the installed favicon backend, not the older
+bootstrap checkout. PostgreSQL sessions and the same managed Django secret are
+shared; there is no pod-local session affinity requirement. Frontend activation
+uses a shared CephFS publication lock, immutable checksum trees and a transactional
+ActiveRelease pointer. Each reader resolves that pointer and serves verified
+bytes. Curated content has its own shared import lock and installs its immutable
+tree before committing catalog changes. Startup `--initialize-only` retains the
+active curated revision; owner provisioning uses unique-email `get_or_create`
+without altering verification, billing or waiver records. Basemap bootstrap uses
+the already installed immutable files and does not reset an active promotion.
+Missing/corrupt shared bootstrap data is a repair boundary, not permission to
+delete data or race a fresh bootstrap across versions.
+
+Workers claim rows with transactional `select_for_update(skip_locked=True)` and
+lease fencing; maintenance/transit schedules use database locks and dedupe keys.
+Overlap does not add a second independent schedule. This remains an at-least-once
+worker: termination after an external side effect can leave work to its existing
+ten-minute lease recovery. RollingUpdate is not an exactly-once email/payment
+guarantee. No mail, payment, member or waiver canary is required for this rollout.
+
+Only backward-compatible schema changes may use this ordinary path. Review all
+new migrations for compatibility with the still-serving old code, lock duration
+and rollback constraints before admitting the image. The existing migrate init
+is retained; Kubernetes does not make destructive migrations safe. Use an
+explicit expand/contract sequence or a separately planned, owner-approved
+maintenance procedure for incompatible changes. Never conceal such maintenance
+inside every routine release or automatically reverse a schema on timeout.
+
+One surge adds 450 millicores and 896 MiB of requested memory (up to 3584 MiB of
+container memory limits), plus its 1 GiB scratch-volume bound. The observed Kite
+capacity admitted this small budget; insufficient scheduling capacity must leave
+the old healthy pod serving, not relax maxUnavailable. Terminating pods can briefly
+coexist with the serving/surge budget while they drain. This removes planned image
+replacement gaps, not single-node, single-database, storage or ingress failures.
+Production remains dormant and guarded; this is not a production HA claim.
+
 ## Owner dashboard and fast releases
 
 The TEST baseline is application MR 24, exact-head pipeline 11006, image

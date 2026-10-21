@@ -24,7 +24,8 @@ def deployment():
     return {
         "metadata": {"uid": "fixture-uid", "resourceVersion": "1", "generation": 1},
         "spec": {
-            "replicas": 1, "strategy": {"type": "Recreate"},
+            "replicas": 1, "minReadySeconds": 10,
+            "strategy": {"type": "RollingUpdate", "rollingUpdate": {"maxUnavailable": 0, "maxSurge": 1}},
             "template": {
                 "metadata": {"labels": {"app": "joyride-test"}},
                 "spec": {
@@ -91,6 +92,36 @@ class FixtureClient:
 
 
 class ControllerTests(unittest.TestCase):
+    def test_unsafe_rollout_strategy_refused_before_claim(self):
+        for strategy in (
+            {"type": "Recreate"},
+            {"type": "RollingUpdate", "rollingUpdate": {"maxUnavailable": 1, "maxSurge": 1}},
+            {"type": "RollingUpdate", "rollingUpdate": {"maxUnavailable": "0%", "maxSurge": "100%"}},
+            {"type": "RollingUpdate", "rollingUpdate": {"maxUnavailable": 0, "maxSurge": 2}},
+        ):
+            with self.subTest(strategy=strategy):
+                client = FixtureClient()
+                client.deployment["spec"]["strategy"] = strategy
+                with self.assertRaisesRegex(controller.DeliveryError, "unexpected_workload_strategy"):
+                    controller.run(client)
+                self.assertEqual(client.state, "queued")
+                self.assertEqual(client.patches, 0)
+                self.assertIsNone(client.journal)
+
+    def test_old_ready_replica_cannot_mask_unready_surge(self):
+        client = FixtureClient()
+        client.crash_after_patch = True
+        with self.assertRaises(RuntimeError):
+            controller.run(client, clock=lambda: 0)
+        client.deployment["status"].update(replicas=2, unavailableReplicas=1)
+        self.assertFalse(controller.complete(client.deployment, client.journal))
+        times = iter([10, 10, 601])
+        with self.assertRaisesRegex(controller.DeliveryError, "rollout_deadline"):
+            controller.run(client, clock=lambda: next(times), pause=lambda _: None)
+        self.assertEqual(client.state, "failed")
+        self.assertEqual(client.patches, 1)
+        self.assertEqual(client.deployment["status"]["availableReplicas"], 1)
+
     def test_full_claim_patch_observe_probe_callback(self):
         client = FixtureClient()
         self.assertEqual(controller.run(client, clock=lambda: 0), "succeeded")
