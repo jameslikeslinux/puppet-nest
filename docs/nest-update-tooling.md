@@ -224,7 +224,14 @@ the previous complete generation and helper. Do not restore live state merely
 to validate publication. Old complete metadata without a digest remains
 readable; new receipts bind SHA256 as well as byte/member counts.
 
-Owl's managed native source pin includes merge `099106edc1c799693fa92fb4f3965ee45b4f953a`.
+Hermes MR !87 extends that coordination to process-result retention and native
+checkpoint removal. Its deterministic concurrent capture regression failed on
+the accepted base; required exact-head pipeline 11106 passed on source
+`39748cbe20a9b792d79729f7d79a6eec31f9d4a0`. This closes a distinct observed
+process-result deletion path, not just the earlier cron-output retention path.
+Genuinely missing selected files still fail capture rather than being omitted.
+
+Owl's managed native source pin includes merge `24f541e4e0a022a76d9e3913968ec59db29cc73d`.
 The `hermes_source` tag selects the existing source checkout and exact-pin
 verification only: no package reinstall, UI build or service restart. This
 source-only delivery is appropriate here because the capture patch changes no
