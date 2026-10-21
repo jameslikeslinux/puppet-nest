@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Luna's approved r6 WMATA release, terminal TEST delivery and member checks verified.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:a4ad5a79bfaef70ad3edbd3ef5b466dbd05a3c25a1dc3ba057a6274dab0e3987
+# Owner dashboard and bounded fast releases; app MR 24, exact-head pipeline 11006.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:2c3c39e8a955692ead7a70eac4aedae9c8e4d702309e8f77ea56d0ca075f3021
 affinity: {}
 tolerations: []
 resources:
@@ -452,6 +452,10 @@ resources:
               value: /data/tmp
             - name: PRIVATE_ROOT
               value: /data/private
+            - name: RELEASE_ROOT
+              value: /data/private/releases
+            - name: OWNER_EMAIL
+              value: joy@joyfullee.me
             - name: PUBLIC_ROOT
               value: /data/public
             - name: MAP_ROOT
@@ -469,7 +473,7 @@ resources:
             - name: STRIPE_PRICE_ID
               value: price_1USr7ARxm5b9CJTLAsfCS7RO
             - name: OPS_SCOPES
-              value: status,diagnostics,deploy:test,member:read
+              value: status,diagnostics,deploy:test,member:read,release
             - name: TEST_MAIL_ALLOWLIST
               value: joy@joyfullee.me,joyfulskater@gmail.com
             envFrom:
@@ -491,6 +495,17 @@ resources:
             - manage.py
             - migrate
             - --noinput
+          - name: provision-owner
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            command: [python, manage.py, provision_owner]
+            volumeMounts:
+            - name: tmp
+              mountPath: /data/tmp
           - name: basemap
             image: '%{lookup(''joyride_image'')}'
             securityContext: *id001
@@ -562,8 +577,8 @@ resources:
             - |
               import subprocess
               command = ['python', 'manage.py', 'import_curated_private', '--archive', '/curated-input/package.tar.gz', '--sha256', '20384840af7e1a0fdd095a701359b772842e4e510f521dcfd07024f6a9a0c88b']
-              subprocess.run(command + ['--dry-run'], check=True)
-              subprocess.run(command, check=True)
+              subprocess.run(command + ['--initialize-only', '--dry-run'], check=True)
+              subprocess.run(command + ['--initialize-only'], check=True)
             volumeMounts:
             - name: curated-input
               mountPath: /curated-input
@@ -613,8 +628,10 @@ resources:
                   value: '%{lookup(''fqdn'')}'
               initialDelaySeconds: 10
               periodSeconds: 15
-          - name: ops
+          # Only internal ingress/private backchannel can reach this listener.
+          - name: internal-web
             image: '%{lookup(''joyride_image'')}'
+            command: [gunicorn, 'joyride.internal_wsgi:application', --bind, '0.0.0.0:8003', --workers, '2']
             securityContext: *id001
             env: *id002
             envFrom:
@@ -632,9 +649,54 @@ resources:
                 memory: 192Mi
               limits:
                 memory: 768Mi
+            ports:
+            - name: internal-web
+              containerPort: 8003
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 8003
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 8003
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              initialDelaySeconds: 10
+              periodSeconds: 15
+          - name: ops
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: data
+              mountPath: /data/private
+              subPath: private
+            - name: tmp
+              mountPath: /data/tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
             command:
             - gunicorn
             - joyride.ops_wsgi:application
+            - --timeout
+            - '120'
             - --bind
             - 0.0.0.0:8001
             - --workers
@@ -663,6 +725,9 @@ resources:
             - name: data
               mountPath: /data
               readOnly: true
+            - name: data
+              mountPath: /data/private
+              subPath: private
             - name: tmp
               mountPath: /data/tmp
             resources:
@@ -674,6 +739,8 @@ resources:
             command:
             - gunicorn
             - joyride.trusted_test_wsgi:application
+            - --timeout
+            - '120'
             - --bind
             - 0.0.0.0:8002
             - --workers
@@ -758,6 +825,19 @@ resources:
       - name: http
         port: 8001
         targetPort: 8001
+  internal_web:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: '%{nest::kubernetes::service}-internal-web'
+      namespace: '%{nest::kubernetes::namespace}'
+    spec:
+      selector:
+        app: '%{nest::kubernetes::service}'
+      ports:
+      - name: http
+        port: 8003
+        targetPort: 8003
   trusted_test:
     apiVersion: v1
     kind: Service
@@ -811,9 +891,9 @@ resources:
             pathType: Prefix
             backend:
               service:
-                name: '%{nest::kubernetes::service}-web'
+                name: '%{nest::kubernetes::service}-internal-web'
                 port:
-                  number: 8000
+                  number: 8003
   policy:
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
@@ -856,7 +936,7 @@ resources:
               app: joyride-test-access
         ports:
         - protocol: TCP
-          port: 8000
+          port: 8003
         - protocol: TCP
           port: 8002
       - from:
@@ -868,7 +948,7 @@ resources:
               app.kubernetes.io/component: envoy
         ports:
         - protocol: TCP
-          port: 8000
+          port: 8003
         - protocol: TCP
           port: 8001
   test_access_config:
@@ -1001,7 +1081,7 @@ resources:
               app: '%{nest::kubernetes::service}'
         ports:
         - protocol: TCP
-          port: 8000
+          port: 8003
         - protocol: TCP
           port: 8002
       - to:

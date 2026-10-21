@@ -19,8 +19,8 @@ from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_ope
 
 REPOSITORY = "registry.gitlab.joyfullee.me/joy/joyride/app"
 IMAGE = re.compile(re.escape(REPOSITORY) + r"@sha256:[0-9a-f]{64}\Z")
-CONTAINERS = {"web", "ops", "worker", "trusted-test"}
-INITIALIZERS = {"migrate", "basemap", "curated-fetch", "curated-import"}
+CONTAINERS = {"web", "internal-web", "ops", "worker", "trusted-test"}
+INITIALIZERS = {"migrate", "provision-owner", "basemap", "curated-fetch", "curated-import"}
 ANNOTATION = "joyride.nest/delivery-id"
 
 
