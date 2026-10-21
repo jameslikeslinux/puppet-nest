@@ -46,8 +46,51 @@ quota/accounting. Admission remains explicitly unknown: successful observation
 is not permission to reset, proof that promotion fits, or permission to remove
 quotas, reserves, or rollback data. Shared `/boot` remains an execution side
 effect. Use the CLI's `docs/reset.md` for schema 1 and process/native exit rules.
-Transactions, finalize, and release-aware fleet modes are later implementation
-slices, not commands to infer from the audit's proposed examples.
+The transaction source slice below is merged but not yet packaged/installed.
+Finalize and release-aware fleet modes remain later implementation slices, not
+commands to infer from the audit's proposed examples.
+
+## Persisted preparation source contract
+
+CLI MR !9 merged source `f13f50936671f8e04d0c5b25da0f9ec6aa2f42a1`
+as `6c3e7f3dc7692d5d1c9713c8f35e2e43bb2843ed`. Required pipeline 11029
+passed. Its complete library aggregate SHA256 is
+`2ef34733c3a40349a3c75353677fe153e5a22ab29cba88e788b0534100595587`
+over 26 library files. The currently selected package above still contains the
+earlier checked-reset slice; a merged source contract is not installed support.
+
+After immutable packaging and provisioning, the source supports preparation
+with `--transaction ID --release sha256:DIGEST --root-generation PATH`, exact
+`--resume-transaction ID`, and read-only `nest reset status ID --format=json`
+and `nest reset report ID --format=json`. Consult CLI
+`docs/reset-transactions.md` for the schema and complete validation contract.
+Only interrupted root sync is replayable after identity/mount checks; ambiguous
+backup, mount, kernel, unmount or activation stops for inspection. Prepared is
+not booted, accepted, or finalized. These are not authorization to execute reset.
+
+Before transaction mode can be used, `/var/lib/nest/updates` must be an exact
+root-owned mode-0700 mount of a dedicated writable host-local ZFS filesystem
+outside ROOT. Its pool must carry `org.nest:host-id` matching the stable machine
+ID. Both A and B must mount that same dataset after their private `/var` and
+before update clients. Do not provision per-BE state or use a network fallback.
+The reset filter excludes the entire state subtree from both copy and deletion,
+including legacy reset. That protection alone does not provision shared storage.
+
+The source currently requires one canonical local read-only versioned ZFS root
+generation, with no descendants/submounts and `org.nest:release=sha256:DIGEST`.
+The publisher must preserve its identity and never make it writable or recycle
+it. Mutable `/nest/hosts/HOST` and network-host aliases are refused; there is no
+automatic source transfer or fallback. Generation publication, capacity admission,
+shared mount provisioning, package installation, and actual A/B boot continuity
+are still integration work, not proven by this source merge. Avoid blanket raw
+replication or extra capacity rehearsals to satisfy the source contract.
+
+Report export is sanitized stdout, not a remotely usable artifact path. Bolt
+must explicitly copy it to the supervisor filesystem, atomically publish it,
+reopen it, validate schema/ID/release/phase rows, and retain it before completion.
+No historical receipt is recreated by replaying production. This slice does not
+implement reboot, postboot acceptance, abandonment, or finalize; do not infer
+those transitions from `success: true` on a preparation report.
 
 ## Fail-closed ZFS startup
 
