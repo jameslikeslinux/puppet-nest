@@ -21,12 +21,22 @@ backup/restore and monitoring milestones have engineering evidence. Overall v1
 acceptance is still open. Production configuration remains dormant and guarded;
 there is no production deployment or public launch approval.
 
-Joy's 2026-10-20 steering defers real Stripe account/credential/provider acceptance
-until a later explicit activation phase. It is not a blocker or a passed test.
-Current delivery requires truthful disabled/no-op billing, graceful Luna-authored
-frontend handling and installed non-payment TEST verification without entitlement
-bypasses. The current acceptance ledger and later activation checklist are in
-`joyride-v1-acceptance.md`; historical Stripe pending lists below are superseded.
+Joy's later 2026-10-21 authorization enables sandbox billing in private TEST only,
+superseding the temporary no-Stripe phase. Encrypted recoverable sandbox material,
+the exact approved TEST Price and an outbound official CLI webhook listener are
+installed. Actual hosted sandbox payment/decline/abandonment and subscription
+reconciliation have separate provider-correlated evidence; they are not live
+payment, email delivery or human legal-assent evidence. Routine mail and all full
+production activation gates remain closed. See the latest section of
+`joyride-v1-acceptance.md`; older Stripe deferral/pending lists are historical.
+
+The installed checksum-bound private intake now supplies one available curated
+route and 19 member photo placements. Run 12006 verifies its supplied desktop and
+phone member map, elevation, self-hosted painted basemap, GPX and photo lightboxes
+with cleaned synthetic identity/entitlement/waiver fixtures. The portal frontend
+fix and WMATA display remain explicit pending acceptance items, not implied by
+those passing checks. Current deployment mechanics and cleanup inventory are in
+`joyride-test-deployment.md`.
 
 ## Historical discovery and integration notes
 

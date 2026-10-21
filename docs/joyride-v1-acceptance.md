@@ -10,16 +10,72 @@ self-service TEST update path remains required: retain the existing bounded
 TEST adapter and ordinary CI artifact checks, not the withdrawn signing stack.
 Cleanup must remove unused live resources as well as source; source deletion alone is
 not completion. Preserve the public informational site, private TEST, ordinary
-security, managed credentials, data, backups and rollback. Stripe remains off.
+security, managed credentials, data, backups and rollback. Production billing
+remains off; the later explicit sandbox authorization below applies only to TEST.
 Joy's photos-only steering recorded on 2026-10-19 supersedes the original
 photo/video deliverable and every earlier real-scout-video pending item. The
 original request and chronological reports remain historical evidence, not a
 reason to require footage. Commonplace is input-only; do not alter its CI/hooks.
 
-Joy's 2026-10-20 no-Stripe steering also supersedes the original current-phase
-provider acceptance requirement. LLC/account setup, credentials and REAL Stripe
-sandbox acceptance are DEFERRED, not passed and not blockers to this phase.
-Do not repeat the withdrawn Stripe setup proposal or schedule automatic enablement.
+Joy's later 2026-10-21 authorization supersedes the temporary no-Stripe phase
+for private TEST only. Recoverable encrypted sandbox keys and the approved TEST
+Price are now provisioned, and TEST billing is enabled. The official outbound
+Stripe CLI supplies the private webhook transport; this is not a public registered
+endpoint or production-delivery proof. Do not repeat the withdrawn account setup
+proposal, provision live keys or infer production activation authority.
+
+## Latest installed acceptance, 2026-10-21
+
+This section supersedes current-disposition claims in the historical ledger below.
+It does not erase failed runs or turn synthetic identities into real members.
+
+- Nest MR 388 passed all required exact-head pipeline 10930 jobs, merged, and
+  ordinary Puppet plus private TEST Bolt deployment succeeded. Helm revision 31
+  serves immutable application digest
+  `sha256:a466eb849a3a024e76771a0fb7c76eb1cb8abc940630f58427a7d3aeeb59621a`.
+- Managed, checksum-bound private package intake installed one supplied available
+  route and 19 member photo placements over 18 originals. Installed source hashes
+  match. Original GPX and stripped photo derivatives remain private; no new public
+  assets, video, invented coordinates or elevation were introduced.
+- Run 11983 verifies zero/mismatched waiver denial across all 21 private
+  route/GPX/photo boundaries, exact-waiver serving, canceled/anonymous denial,
+  absent public/original photo URLs and EXIF-free derivatives. Its rollback-only
+  synthetic member and waiver were removed; supplied data was preserved.
+- Run 12006 verifies the actual installed supplied member UI on desktop and phone:
+  all 19 photos load, first/last lightboxes work, route line/elevation render, GPX
+  returns 200, and self-hosted PMTiles return 206 with painted geometry. There are
+  no page exceptions, external requests or horizontal overflow. Synthetic login,
+  entitlement and exact waiver fixtures were removed. This is not email delivery,
+  actual payment or human legal assent.
+- Run 11965 exercised real hosted sandbox Checkout success, generic decline,
+  abandonment and return-alone denial. Luna independently matched provider
+  objects. Genuine signed events reached verified ingestion and completed worker
+  reconciliation; subscription update/cancellation reconciled. The successful
+  synthetic subscription is now canceled. A locally signed duplicate replay
+  proves application deduplication only, not a genuine provider retry.
+- Luna's independent ordinary CI TEST forward and scoped rollback passed in
+  pipeline 10895. The minimal portal-visibility frontend MR 17 passed exact-source
+  pipeline 10940 and merged as `5c2e3e145a7a531277982f26c8dfef4f16240d05`.
+  Merged-head pipeline 10942 passed after a registry-token HTTP 503 caused build
+  44126 to fail and the single same-source retry 44129 passed. Preserve both
+  outcomes. Terminal preview and actual browser portal checks remain open:
+  Luna's verified branch deployment `32b10e1a-bf1c-4eaa-a6d5-1a8e88996001`
+  is queued, not claimed, because the Nest adapter's initializer allowlist omitted
+  the two managed private-intake containers. The minimal correction retains the
+  exact workload shape and updates all application initializer images together;
+  it does not bypass the queue or change privileges. Application MR 19 fixes the demonstrated
+  native cache/manifest publication failures; exact-head pipeline 10936 and
+  merged-head cold/warm pipelines 10938/10939 passed.
+- Managed SMTP sender/receipt, regional basemap, backup/isolated restore and
+  monitoring have distinct prior verified milestones. Routine mail remains off;
+  synthetic browser login is not new email-verification delivery evidence.
+- WMATA's backend cache/recovery is verified, but Luna's member-display draft is
+  inactive pending the existing frontend/editorial boundary. No Transit Data API
+  or raw incident feed is authorized.
+- The public informational homepage and canonical www redirect remain healthy.
+  Full membership production, live payments, signup, routine communications and
+  additional business-content publication remain separately gated. Overall
+  kickstart acceptance is not yet complete.
 
 ## Ownership and unchanged requirements
 
