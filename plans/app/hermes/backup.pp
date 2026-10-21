@@ -6,6 +6,8 @@
 plan nest::app::hermes::backup (
   TargetSpec           $target               = 'owl',
   String[1]            $backup_dir           = '/nest/backup/hermes',
+  String[1]            $stage_dir            = '/var/tmp/nest-hermes-backup',
+  Boolean              $preserve_existing    = false,
   Boolean              $quick                = false,
   Boolean              $prune_only           = false,
   Boolean              $cleanup_legacy       = false,
@@ -92,12 +94,17 @@ plan nest::app::hermes::backup (
       undef   => [],
       default => ['--checkpoint', $checkpoint],
     }
+    $retention_args = $preserve_existing ? {
+      true    => ['--no-prune'],
+      default => [],
+    }
     $helper_args = [
       $helper, 'backup',
       '--backup-dir', $backup_dir,
       '--hermes-bin', '/opt/hermes-agent/venv/bin/hermes',
+      '--stage-dir', $stage_dir,
       '--retain', String($retain),
-    ] + $required_profile_args + $checkpoint_args
+    ] + $required_profile_args + $checkpoint_args + $retention_args
     $description = 'Create or reuse Hermes full-home backup generation'
   }
 

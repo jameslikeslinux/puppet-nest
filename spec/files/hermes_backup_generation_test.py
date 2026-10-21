@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 import json
+import hashlib
+import importlib.machinery
+import importlib.util
 import os
 from pathlib import Path
 import stat
@@ -11,6 +14,7 @@ import tempfile
 import textwrap
 from typing import cast
 import unittest
+from unittest import mock
 import zipfile
 
 
@@ -19,6 +23,11 @@ sys.dont_write_bytecode = True
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HELPER = REPO_ROOT / "files" / "hermes-backup-generation"
 PROFILES = ("talon", "star", "beryl", "quill")
+loader = importlib.machinery.SourceFileLoader('hermes_generation', str(HELPER))
+spec = importlib.util.spec_from_loader(loader.name, loader)
+assert spec is not None
+generation = importlib.util.module_from_spec(spec)
+loader.exec_module(generation)
 
 
 class HermesBackupGenerationTest(unittest.TestCase):
@@ -41,6 +50,9 @@ class HermesBackupGenerationTest(unittest.TestCase):
                 if args[0] != "backup" or args[1] != "--output":
                     raise SystemExit(2)
                 output = Path(args[2])
+                if not output.is_relative_to(Path(os.environ['TMPDIR'])):
+                    raise SystemExit('capture output must be inside local native scratch')
+                print('native progress belongs on stderr, not the JSON receipt')
                 with Path(os.environ["HERMES_TEST_CALL_LOG"]).open("a") as log:
                     log.write("backup\\n")
                 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -70,20 +82,114 @@ class HermesBackupGenerationTest(unittest.TestCase):
         )
         return json.loads(result.stdout)
 
-    def backup(self, checkpoint: str, retain: int = 24) -> dict[str, object]:
+    def backup(self, checkpoint: str, retain: int = 24, *extra: str) -> dict[str, object]:
         return self.run_helper(
             "backup",
             "--backup-dir",
             str(self.backup_dir),
             "--hermes-bin",
             str(self.fake_hermes),
+            "--stage-dir",
+            str(self.root / 'stage'),
             "--checkpoint",
             checkpoint,
             "--retain",
             str(retain),
+            *extra,
         )
 
+    def test_capture_is_local_and_final_receipt_matches_bytes(self) -> None:
+        result = self.backup('local-capture')
+        archive = self.backup_dir / str(result['archive'])
+        self.assertEqual(result['sha256'], hashlib.sha256(archive.read_bytes()).hexdigest())
+        receipt = json.loads(archive.with_suffix('.json').read_text())
+        self.assertEqual(receipt['sha256'], result['sha256'])
+        self.assertEqual(stat.S_IMODE(archive.with_suffix('.json').stat().st_mode), 0o600)
+        self.assertEqual(list((self.root / 'stage').iterdir()), [])
+        self.assertEqual(list(self.backup_dir.glob('*.transfer')), [])
+
+    def test_failed_capture_keeps_previous_generation_and_publishes_nothing(self) -> None:
+        first = self.backup('prior')
+        self.fake_hermes.write_text(f'#!{sys.executable}\nimport sys\nsys.exit(9)\n')
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.backup('failed')
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        self.assertFalse((self.backup_dir / 'hermes-home-failed.zip').exists())
+        self.assertFalse((self.backup_dir / 'hermes-home-failed.json').exists())
+        self.assertEqual(list((self.root / 'stage').iterdir()), [])
+
+    def test_final_storage_cannot_be_capture_scratch(self) -> None:
+        with self.assertRaises(ValueError):
+            generation._local_stage(self.backup_dir / 'stage', self.backup_dir)
+        with mock.patch.object(generation.subprocess, 'run', return_value=mock.Mock(stdout='nfs4\n')):
+            with self.assertRaises(ValueError):
+                generation._local_stage(self.root / 'network-stage', self.backup_dir)
+
+    def test_transfer_failure_and_collision_never_overwrite_final(self) -> None:
+        staged = self.root / 'staged.zip'
+        staged.write_bytes(b'new verified archive')
+        self.backup_dir.mkdir()
+        final = self.backup_dir / 'hermes-home-collision.zip'
+        final.write_bytes(b'prior archive')
+        digest = generation._sha256(staged)
+        with self.assertRaises(FileExistsError):
+            generation._publish_archive(staged, final, digest)
+        self.assertEqual(final.read_bytes(), b'prior archive')
+        final.unlink()
+        with mock.patch.object(generation.shutil, 'copyfileobj', side_effect=OSError('injected ENOSPC')):
+            with self.assertRaises(OSError):
+                generation._publish_archive(staged, final, digest)
+        self.assertFalse(final.exists())
+        self.assertEqual(list(self.backup_dir.iterdir()), [])
+
+    def test_metadata_failure_is_not_reused_or_pruned(self) -> None:
+        self.backup('prior')
+        args = generation.parser().parse_args([
+            'backup', '--backup-dir', str(self.backup_dir), '--stage-dir', str(self.root / 'stage'),
+            '--hermes-bin', str(self.fake_hermes), '--checkpoint', 'no-receipt', '--retain', '1',
+        ])
+        args.required_profile = list(PROFILES)
+        with mock.patch.dict(os.environ, self.environment), mock.patch.object(
+            generation, '_atomic_json', side_effect=OSError('injected receipt failure'),
+        ):
+            with self.assertRaises(OSError):
+                generation.create_generation(args)
+        self.assertTrue((self.backup_dir / 'hermes-home-prior.zip').exists())
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.backup('no-receipt')
+        self.assertEqual(self.call_log.read_text(), 'backup\nbackup\n')
+
+    def test_no_prune_preserves_all_prior_generations(self) -> None:
+        self.backup('prior')
+        result = self.backup('preserved', 1, '--no-prune')
+        self.assertEqual(result['pruned'], [])
+        self.assertEqual(len(list(self.backup_dir.glob('*.zip'))), 2)
+
+    def test_incomplete_archive_is_never_published(self) -> None:
+        self.fake_hermes.write_text(textwrap.dedent(f'''\
+            #!{sys.executable}
+            import sys, zipfile
+            with zipfile.ZipFile(sys.argv[3], 'w') as archive:
+                archive.writestr('config.yaml', 'incomplete')
+        '''))
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.backup('incomplete')
+        self.assertFalse(list(self.backup_dir.glob('*.zip')))
+        self.assertFalse(list(self.backup_dir.glob('*.json')))
+
+    def test_same_size_corruption_is_not_reused(self) -> None:
+        result = self.backup('corrupt')
+        archive = self.backup_dir / str(result['archive'])
+        payload = bytearray(archive.read_bytes())
+        # Change payload bytes but leave the central directory and length intact.
+        payload[50] ^= 1
+        archive.write_bytes(payload)
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.backup('corrupt')
+        self.assertEqual(self.call_log.read_text(), 'backup\n')
+
     def test_four_profile_callers_create_one_restorable_full_home_generation(self) -> None:
+        # Exercise real independent publishers contending on the generation flock.
         with ThreadPoolExecutor(max_workers=len(PROFILES)) as executor:
             results = list(executor.map(lambda _profile: self.backup("rollout-326eb96b"), PROFILES))
 
