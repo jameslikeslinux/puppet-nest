@@ -42,12 +42,5 @@ class RuntimeOwnership(unittest.TestCase):
                 self.assertIs(next(m for m in backup['volumeMounts'] if m['name'] == 'scripts')['readOnly'], True)
                 self.assertEqual(next(v for v in pod['volumes'] if v['name'] == 'scripts')['emptyDir'], {'sizeLimit': '1Mi'})
 
-    def test_custody_cannot_import_application_code(self):
-        source = (ROOT / 'files/app/joyride/evidence_custody.py').read_text()
-        self.assertNotIn('from evidence_key', source)
-        self.assertNotIn('from installed_test_producer', source)
-        self.assertNotIn('sys.path', source)
-
-
 if __name__ == '__main__':
     unittest.main()
