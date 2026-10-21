@@ -42,7 +42,7 @@ resources:
               type: RuntimeDefault
           containers:
           - name: listener
-            image: stripe/stripe-cli@sha256:df1c6500b472a8a5d0f7bf7659784324433265cdc8e97a7b7f18cc89b226c0ed
+            image: docker.io/stripe/stripe-cli@sha256:df1c6500b472a8a5d0f7bf7659784324433265cdc8e97a7b7f18cc89b226c0ed
             command: [/bin/sh, -ec]
             args:
             - |
