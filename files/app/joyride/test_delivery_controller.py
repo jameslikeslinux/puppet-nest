@@ -231,7 +231,13 @@ def run(client, clock=time.time, pause=time.sleep):
             return "idle"
         validate_item(item)
         deployment = client.get_deployment()
-        if deployment["spec"].get("replicas") != 1 or deployment["spec"].get("strategy", {}).get("type") != "Recreate":
+        strategy = deployment["spec"].get("strategy", {})
+        if (
+            deployment["spec"].get("replicas") != 1
+            or strategy.get("type") != "RollingUpdate"
+            or strategy.get("rollingUpdate") != {"maxUnavailable": 0, "maxSurge": 1}
+            or deployment["spec"].get("minReadySeconds") != 10
+        ):
             raise DeliveryError("unexpected_workload_strategy")
         operation = {
             "id": item["id"], "image": item["image"], "environment": "test",

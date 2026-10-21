@@ -414,15 +414,22 @@ resources:
     spec:
       replicas: 1
       strategy:
-        type: Recreate
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 0
+          maxSurge: 1
       selector:
         matchLabels:
           app: '%{nest::kubernetes::service}'
+      minReadySeconds: 10
+      progressDeadlineSeconds: 600
       template:
         metadata:
           labels:
             app: '%{nest::kubernetes::service}'
         spec:
+          # Endpoint withdrawal precedes TERM; retain time for 120-second uploads.
+          terminationGracePeriodSeconds: 150
           automountServiceAccountToken: false
           securityContext:
             fsGroup: 10001
@@ -590,6 +597,11 @@ resources:
           containers:
           - name: web
             image: '%{lookup(''joyride_image'')}'
+            command: [gunicorn, 'joyride.wsgi:application', --bind, '0.0.0.0:8000', --workers, '2', --timeout, '60', --graceful-timeout, '125']
+            lifecycle: &http_drain
+              preStop:
+                exec:
+                  command: [python, -c, 'import time; time.sleep(15)']
             securityContext: *id001
             env: *id002
             envFrom:
@@ -610,9 +622,19 @@ resources:
             ports:
             - name: web
               containerPort: 8000
+            startupProbe:
+              httpGet:
+                path: /health/live
+                port: 8000
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              periodSeconds: 2
+              failureThreshold: 60
             readinessProbe:
               httpGet:
-                path: /health/ready
+                # Resolve the active DB-backed frontend and verify its bytes.
+                path: /sign-in
                 port: 8000
                 httpHeaders:
                 - name: Host
@@ -631,7 +653,8 @@ resources:
           # Only internal ingress/private backchannel can reach this listener.
           - name: internal-web
             image: '%{lookup(''joyride_image'')}'
-            command: [gunicorn, 'joyride.internal_wsgi:application', --bind, '0.0.0.0:8003', --workers, '2']
+            command: [gunicorn, 'joyride.internal_wsgi:application', --bind, '0.0.0.0:8003', --workers, '2', --timeout, '60', --graceful-timeout, '125']
+            lifecycle: *http_drain
             securityContext: *id001
             env: *id002
             envFrom:
@@ -652,9 +675,18 @@ resources:
             ports:
             - name: internal-web
               containerPort: 8003
+            startupProbe:
+              httpGet:
+                path: /health/live
+                port: 8003
+                httpHeaders:
+                - name: Host
+                  value: '%{lookup(''fqdn'')}'
+              periodSeconds: 2
+              failureThreshold: 60
             readinessProbe:
               httpGet:
-                path: /health/ready
+                path: /sign-in
                 port: 8003
                 httpHeaders:
                 - name: Host
@@ -672,6 +704,7 @@ resources:
               periodSeconds: 15
           - name: ops
             image: '%{lookup(''joyride_image'')}'
+            lifecycle: *http_drain
             securityContext: *id001
             env: *id002
             envFrom:
@@ -697,6 +730,8 @@ resources:
             - joyride.ops_wsgi:application
             - --timeout
             - '120'
+            - --graceful-timeout
+            - '125'
             - --bind
             - 0.0.0.0:8001
             - --workers
@@ -704,6 +739,11 @@ resources:
             ports:
             - name: ops
               containerPort: 8001
+            startupProbe:
+              tcpSocket:
+                port: 8001
+              periodSeconds: 2
+              failureThreshold: 60
             readinessProbe:
               tcpSocket:
                 port: 8001
@@ -716,6 +756,7 @@ resources:
               periodSeconds: 15
           - name: trusted-test
             image: '%{lookup(''joyride_image'')}'
+            lifecycle: *http_drain
             securityContext: *id001
             env: *id002
             envFrom:
@@ -741,6 +782,8 @@ resources:
             - joyride.trusted_test_wsgi:application
             - --timeout
             - '120'
+            - --graceful-timeout
+            - '125'
             - --bind
             - 0.0.0.0:8002
             - --workers
@@ -748,6 +791,11 @@ resources:
             ports:
             - name: trusted-test
               containerPort: 8002
+            startupProbe:
+              tcpSocket:
+                port: 8002
+              periodSeconds: 2
+              failureThreshold: 60
             readinessProbe:
               tcpSocket:
                 port: 8002

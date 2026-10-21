@@ -7,6 +7,27 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class RuntimeOwnership(unittest.TestCase):
+    def test_test_rollout_keeps_serving_version_until_application_ready(self):
+        data = yaml.safe_load((ROOT / 'data/kubernetes/app/joyride/test.yaml').read_text())
+        deployment = data['resources']['app']['spec']
+        self.assertEqual(deployment['replicas'], 1)
+        self.assertEqual(deployment['strategy'], {
+            'type': 'RollingUpdate', 'rollingUpdate': {'maxUnavailable': 0, 'maxSurge': 1},
+        })
+        self.assertEqual(deployment['minReadySeconds'], 10)
+        pod = deployment['template']['spec']
+        self.assertEqual(pod['terminationGracePeriodSeconds'], 150)
+        containers = {row['name']: row for row in pod['containers']}
+        for name in ('web', 'internal-web'):
+            self.assertEqual(containers[name]['readinessProbe']['httpGet']['path'], '/sign-in')
+        for name in ('web', 'internal-web', 'ops', 'trusted-test'):
+            row = containers[name]
+            self.assertEqual(row['startupProbe']['failureThreshold'], 60)
+            self.assertEqual(row['lifecycle']['preStop']['exec']['command'],
+                             ['python', '-c', 'import time; time.sleep(15)'])
+            self.assertIn('--graceful-timeout', row['command'])
+            self.assertEqual(row['command'][row['command'].index('--graceful-timeout') + 1], '125')
+
     def test_nest_ci_has_no_application_release(self):
         ci = yaml.safe_load((ROOT / '.gitlab-ci.yml').read_text())
         self.assertFalse(any(name.startswith('Publish Joyride') for name in ci))
