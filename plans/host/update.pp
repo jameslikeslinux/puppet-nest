@@ -16,11 +16,9 @@ plan nest::host::update (
     $verb = 'update'
   }
 
-  $results = run_command("nest ${verb}", $targets, "${verb.capitalize} the operating system", _catch_errors => true)
-
-  # One-time workaround for rsync failure due to image building changes
-  # XXX Remove after Jan 2025
-  run_command("nest ${verb} --resume", $results.error_set.targets, "Resume ${verb} after error")
+  # Fail the plan on any preparation error. Never replay an ambiguous reset
+  # with legacy --resume, or allow a failed target into the reboot phase.
+  run_command("nest ${verb}", $targets, "${verb.capitalize} the operating system")
 
   if $reboot {
     run_plan('nest::host::reboot', $targets, _description => 'Reboot the system')

@@ -196,6 +196,22 @@ reload through the normal service lifecycle before their loaded retention code
 is covered. Verify those process transitions before the bounded real capture;
 do not infer loaded-code identity from a new on-disk checkout alone.
 
+## Legacy host update safety floor
+
+The existing `nest::host::update` plan still defaults to `reboot=false`.
+Preparation failure now aborts the plan before any reboot or post-reboot Puppet
+phase. The expired unconditional `--resume` workaround is removed: a failed or
+ambiguous reset is never automatically replayed. In a mixed-result invocation,
+even successfully prepared hosts stay unrebooted; inspect their receipts before
+continuing. Successful preparation does not grant new reboot authority.
+
+This conservative compatibility floor is not the completed transaction-aware
+wave scheduler. Release policy, explicit per-host phase modes, reboot continuity,
+failure-domain admission and acceptance/report collection remain integration
+work. Do not call the legacy plan to test those proposed interfaces. Its plan
+regressions execute the actual Puppet plan with Bolt's mock executor and mock
+subplans, never real reset or reboot commands.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive
