@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Protected-main release with bounded, TEST-only supplied private package intake.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:a466eb849a3a024e76771a0fb7c76eb1cb8abc940630f58427a7d3aeeb59621a
+# Luna's exact-CI r5 release, terminal TEST delivery and browser acceptance verified.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:75a4cd98528495c851e698fe98c00eae99e238d17ddad5ee562b205d594fdd86
 affinity: {}
 tolerations: []
 resources:

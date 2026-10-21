@@ -33,9 +33,12 @@ production activation gates remain closed. See the latest section of
 The installed checksum-bound private intake now supplies one available curated
 route and 19 member photo placements. Run 12006 verifies its supplied desktop and
 phone member map, elevation, self-hosted painted basemap, GPX and photo lightboxes
-with cleaned synthetic identity/entitlement/waiver fixtures. The portal frontend
-fix and WMATA display remain explicit pending acceptance items, not implied by
-those passing checks. Current deployment mechanics and cleanup inventory are in
+with cleaned synthetic identity/entitlement/waiver fixtures. Luna's portal fix
+now passes actual sandbox portal navigation after her original queued backchannel
+delivery completed. Canceled fixture status and its temporary session were
+restored/removed. WMATA display remains inactive pending the exact preserved
+draft's editorial/terms decision; it is not implied by those passing checks.
+Current deployment mechanics and cleanup inventory are in
 `joyride-test-deployment.md`.
 
 ## Historical discovery and integration notes
