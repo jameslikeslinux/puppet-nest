@@ -21,15 +21,26 @@ class RuntimeOwnership(unittest.TestCase):
         self.assertRegex(data['joyride_operations_image'],
                          r'^registry.gitlab.joyfullee.me/joy/joyride/app@sha256:[0-9a-f]{64}$')
 
-    def test_no_custom_delivery_or_import_authority(self):
+    def test_self_service_delivery_has_only_exact_test_workload_authority(self):
         data = yaml.safe_load((ROOT / 'data/kubernetes/app/joyride/test.yaml').read_text())
         resources = data['resources']
-        for name in ('scripts', 'delivery_journal', 'delivery_account', 'delivery_role',
-                     'delivery_binding', 'delivery_controller', 'artifact_verifier', 'artifact_import'):
-            self.assertNotIn(name, resources)
-        self.assertFalse(any(r.get('kind') in ('Role', 'RoleBinding', 'ServiceAccount')
-                             for r in resources.values()))
-        self.assertNotIn('DELIVERY_TOKEN', resources['runtime']['data'])
+        self.assertEqual(resources['delivery_role']['rules'], [
+            {'apiGroups': ['apps'], 'resources': ['deployments'],
+             'resourceNames': ['joyride-test'], 'verbs': ['get', 'patch']},
+            {'apiGroups': [''], 'resources': ['configmaps'],
+             'resourceNames': ['joyride-test-delivery-journal'], 'verbs': ['get', 'update']},
+        ])
+        self.assertEqual(resources['delivery_role']['metadata']['namespace'], 'test')
+        self.assertNotIn('data', resources['delivery_journal'])
+        controller = resources['delivery_controller']['spec']
+        self.assertEqual(controller['concurrencyPolicy'], 'Forbid')
+        pod = controller['jobTemplate']['spec']['template']['spec']
+        self.assertEqual(pod['serviceAccountName'], 'joyride-test-delivery')
+        self.assertNotIn('envFrom', pod['containers'][0])
+        self.assertFalse(resources['artifact_import']['spec']['jobTemplate']['spec']
+                         ['template']['spec']['automountServiceAccountToken'])
+        self.assertEqual(set(resources['scripts']['binaryData']),
+                         {'import_artifacts.py', 'test_delivery_controller.py'})
         self.assertRegex(data['joyride_image'], r'@sha256:[0-9a-f]{64}$')
         self.assertFalse(resources['app']['spec']['template']['spec']['automountServiceAccountToken'])
 

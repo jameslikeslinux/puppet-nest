@@ -62,7 +62,7 @@ production authority are absent on the dedicated listener. An HTTP 202 is queue
 acceptance, not succeeded delivery.
 
 Only the exact private-access pod selector may connect to port 8002. Neither
-shared ingress nor the delivery controller is allowed that port; their existing
+shared ingress nor the TEST deployment adapter is allowed that port; their
 8000/8001 access remains unchanged. The ordinary ops Service still requires its
 existing bearer credentials; the public listener exposes no ops routes. Other
 cluster pods and direct PodIP/Service calls must fail network admission. Inspect
@@ -73,8 +73,9 @@ The immutable baseline application must include the trusted entry point. Older
 artifacts predating application MR 3 cannot be used as successful rollback
 candidates with this workload shape. Reverting the architecture requires an
 explicit reviewed Nest rollback, disabling private ops routing first, not an
-authentication bypass. The controller validates all four named app containers
-and both initializers, preserving exact workload/journal fences.
+authentication bypass. The TEST adapter validates all four named app containers
+and both initializers, preserving exact workload identity and interruption recovery. This ordinary
+self-service path does not require signed installed evidence or owner receipts.
 
 ## Managed deployment and acceptance
 
