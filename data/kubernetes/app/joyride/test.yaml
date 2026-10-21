@@ -13,6 +13,86 @@ resources:
   backup: {}
   restore: {}
   nest_registry_auths: {}
+  # Outbound official sandbox listener; no public TEST gateway or new RBAC.
+  stripe_listener:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: joyride-test-stripe-listener
+      namespace: test
+    spec:
+      replicas: 1
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: joyride-test-stripe-listener
+      template:
+        metadata:
+          labels:
+            app: joyride-test-stripe-listener
+        spec:
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: listener
+            image: stripe/stripe-cli@sha256:df1c6500b472a8a5d0f7bf7659784324433265cdc8e97a7b7f18cc89b226c0ed
+            command: [/bin/sh, -ec]
+            args:
+            - |
+              case "$STRIPE_API_KEY" in sk_test_*) ;; *) exit 1 ;; esac
+              case "$EXPECTED_WEBHOOK_SECRET" in whsec_?*) ;; *) exit 1 ;; esac
+              actual="$(/bin/stripe listen --skip-update --device-name joyride-private-test --print-secret 2>/dev/null)"
+              [ "$actual" = "$EXPECTED_WEBHOOK_SECRET" ] || exit 1
+              unset actual EXPECTED_WEBHOOK_SECRET
+              # Startup prints a signing secret; never send raw CLI output to logs.
+              exec /bin/stripe listen --skip-update --device-name joyride-private-test \
+                --events-from '@self' \
+                --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed \
+                --headers 'Host:joyride-test.eyrie' \
+                --forward-to http://joyride-test-web.test.svc.cluster.local:8000/stripe/webhook \
+                >/dev/null 2>&1
+            env:
+            - name: STRIPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-test-runtime
+                  key: STRIPE_SECRET_KEY
+            - name: EXPECTED_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: joyride-test-runtime
+                  key: STRIPE_WEBHOOK_SECRET
+            - name: STRIPE_CLI_TELEMETRY_OPTOUT
+              value: '1'
+            - name: STRIPE_NO_AUTO_UPDATE
+              value: '1'
+            - name: HOME
+              value: /tmp
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Mi
   # Existing self-service TEST path. No signing, custody or production authority.
   scripts:
     apiVersion: v1
