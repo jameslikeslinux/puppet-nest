@@ -243,6 +243,9 @@ resources:
       WMATA_API_KEY: '%{nest::service::joyride::wmata_api_key_base64}'
       EMAIL_HOST_USER: '%{nest::service::joyride::email_host_user_base64}'
       EMAIL_HOST_PASSWORD: '%{nest::service::joyride::email_host_password_base64}'
+      STRIPE_SECRET_KEY: '%{nest::service::joyride::stripe_secret_key_base64}'
+      STRIPE_PUBLISHABLE_KEY: '%{nest::service::joyride::stripe_publishable_key_base64}'
+      STRIPE_WEBHOOK_SECRET: '%{nest::service::joyride::stripe_webhook_secret_base64}'
   pull:
     apiVersion: v1
     kind: Secret
@@ -344,6 +347,8 @@ resources:
               value: '0'
             - name: STRIPE_MODE
               value: disabled
+            - name: STRIPE_PRICE_ID
+              value: price_1USr7ARxm5b9CJTLAsfCS7RO
             - name: OPS_SCOPES
               value: status,diagnostics,deploy:test,member:read
             - name: TEST_MAIL_ALLOWLIST
