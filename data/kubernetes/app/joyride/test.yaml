@@ -465,7 +465,7 @@ resources:
             - name: MAIL_ENABLED
               value: '0'
             - name: STRIPE_MODE
-              value: disabled
+              value: test
             - name: STRIPE_PRICE_ID
               value: price_1USr7ARxm5b9CJTLAsfCS7RO
             - name: OPS_SCOPES

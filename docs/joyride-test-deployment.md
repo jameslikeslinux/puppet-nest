@@ -124,6 +124,16 @@ until transport verification; process readiness is not provider acceptance.
 Forwarding targets the internal web Service with the exact allowed Host header,
 not an unreachable public registration. This does not prove production delivery.
 
+The corrected official listener is installed in TEST at Helm revision 28. Its
+actual process has passed the managed signing-secret parity gate, and its narrow
+network path reaches the web Service with the required Host header. The exact
+application workload was restarted to consume the encrypted signing secret;
+independent running-settings readback confirms its presence without exposing it.
+The TEST override now enables sandbox billing with the already approved TEST
+price. Production remains disabled and routine mail remains off. Genuine signed
+provider delivery, payment outcomes and waiver/member unlock still require live
+acceptance after this setting is deployed; listener readiness is not that proof.
+
 Luna's updated independent canary and rollback have now passed. Her comment-only
 source b530be153c8292701365676133e80a9097ab6765 passed pipeline 10895, including
 terminal preview 43899, entirely on runner 127. Independently read application
