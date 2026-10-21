@@ -1206,7 +1206,8 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
                 raise ValueError("action_key is already bound to another workflow or operation")
             verified = prior.get("delivery_state") == "delivered" and (operation == "click" or prior.get("visible_value_confirmed") is True)
             return {"operation": operation, "status": "already_delivered" if verified else "delivery_uncertain",
-                    "action_key": action_key, "delivery": {"input_sent": False, "state": "replayed" if verified else "uncertain_replay_blocked"},
+                    "action_key": action_key, "delivery": {"input_sent": False, "state": "replayed" if verified else "uncertain_replay_blocked",
+                                                           "confirmation": prior.get("confirmation")},
                     "readback": _readback()}
         _select_workflow_tab(record)
         _assert_selector_precondition(payload)
@@ -1225,29 +1226,43 @@ def command_selector_action(payload: dict[str, Any]) -> dict[str, Any]:
                 _native_type(command, element, text, mode=mode)
             readback = _readback()
             confirmed = operation == "click"
+            confirmation = None
             if operation == "type":
                 # DOM success alone is insufficient, as is an unrelated AX
                 # field. Require the guarded native element to be active and
                 # agree exactly with the private visible AX observation.
                 observed = _observe_focused_field()
                 selected = _selected_tab(snapshot) or {}
-                confirmed = bool(expected_value is not None and observed
-                                 and observed["value"] == expected_value
-                                 and observed["tab_identity"] == selected.get("tab_identity"))
+                # Persist only fixed check names and booleans, never draft
+                # contents, selectors, URLs or AX exception messages. None
+                # means a check was unavailable/not reached, not a mismatch.
+                confirmation = {
+                    "route": "native_element", "mode": mode,
+                    "expectation_available": expected_value is not None,
+                    "ax_observed": observed is not None,
+                    "ax_value_matches": observed["value"] == expected_value if observed and expected_value is not None else None,
+                    "tab_identity_matches": observed["tab_identity"] == selected.get("tab_identity") if observed else None,
+                    "native_active_matches": None, "native_value_matches": None,
+                }
+                confirmed = bool(confirmation["expectation_available"] and confirmation["ax_observed"]
+                                 and confirmation["ax_value_matches"] and confirmation["tab_identity_matches"])
                 if confirmed:
                     active = command("GET", "/element/active")
                     value = command("GET", f"/element/{element}/property/value")
-                    confirmed = bool(active and active.get("element-6066-11e4-a52e-4f735466cecf") == element
-                                     and value == expected_value)
+                    confirmation["native_active_matches"] = bool(active and active.get("element-6066-11e4-a52e-4f735466cecf") == element)
+                    confirmation["native_value_matches"] = value == expected_value
+                    confirmed = confirmation["native_active_matches"] and confirmation["native_value_matches"]
             state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
             if operation == "type":
                 state["action_keys"][action_key]["visible_value_confirmed"] = confirmed
+                state["action_keys"][action_key]["confirmation"] = confirmation
             _save_state(state)
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
         return {"operation": operation, "status": "delivered" if confirmed else "delivery_uncertain", "action_key": action_key,
                 "delivery": {"state": "delivered" if confirmed else "delivery_uncertain", "input_sent": True,
-                             "visible_value_confirmed": confirmed if operation == "type" else None, "via": "native_element"},
+                             "visible_value_confirmed": confirmed if operation == "type" else None, "via": "native_element",
+                             "confirmation": confirmation},
                 "typed_chars": len(text) if operation == "type" and confirmed else None, "readback": readback}
 
 
@@ -1422,12 +1437,21 @@ def _observe_focused_field() -> dict[str, Any] | None:
         return None
 
 
-def _confirm_typed_input(before: dict[str, Any] | None, text: str, *, mode: str = "insert") -> bool:
+def _confirm_typed_input(before: dict[str, Any] | None, text: str, *, mode: str = "insert",
+                         diagnostics: dict[str, Any] | None = None) -> bool:
     after = _observe_focused_field()
-    if not before or not after or any(before[key] != after[key] for key in ("identity", "tab_identity")):
-        return False
-    expected = text if mode == "replace" else before["value"][:before["caret"]] + text + before["value"][before["caret"]:]
-    return after["value"] == expected
+    expected = (text if mode == "replace" else before["value"][:before["caret"]] + text + before["value"][before["caret"]:]) if before else None
+    checks = {
+        "route": "accessibility", "mode": mode,
+        "before_observed": before is not None, "after_observed": after is not None,
+        "field_identity_matches": before["identity"] == after["identity"] if before and after else None,
+        "tab_identity_matches": before["tab_identity"] == after["tab_identity"] if before and after else None,
+        "value_matches": after["value"] == expected if before and after else None,
+    }
+    if diagnostics is not None:
+        diagnostics.update(checks)
+    return bool(checks["before_observed"] and checks["after_observed"] and checks["field_identity_matches"]
+                and checks["tab_identity_matches"] and checks["value_matches"])
 
 
 def command_type(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1457,7 +1481,8 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
             verified = delivery_state == "delivered" and delivered.get("visible_value_confirmed") is True
             return {"operation": "type", "status": "already_delivered" if verified else "delivery_uncertain",
                     "action_key": action_key, "typed_chars": 0, "text_redacted": True,
-                    "delivery": {"state": "replayed" if verified else "uncertain_replay_blocked", "input_sent": False},
+                    "delivery": {"state": "replayed" if verified else "uncertain_replay_blocked", "input_sent": False,
+                                 "confirmation": delivered.get("confirmation")},
                     "readback": _readback()}
         _select_workflow_tab(record)
         _assert_selector_precondition(payload)
@@ -1487,15 +1512,17 @@ def command_type(payload: dict[str, Any]) -> dict[str, Any]:
                 before = None
         _type_public_text(text)
         readback = _readback()
-        confirmed = _confirm_typed_input(before, text)
+        confirmation = {}
+        confirmed = _confirm_typed_input(before, text, diagnostics=confirmation)
         state["action_keys"][action_key]["delivery_state"] = "delivered" if confirmed else "delivery_uncertain"
         state["action_keys"][action_key]["visible_value_confirmed"] = confirmed
+        state["action_keys"][action_key]["confirmation"] = confirmation
         _save_state(state)
         record["tab_name"] = readback["selected_tab"] or record["tab_name"]
         record["locator"] = readback.get("selected_locator") or record["locator"]
     return {"operation": "type", "status": "delivered" if confirmed else "delivery_uncertain",
             "typed_chars": len(text) if confirmed else 0, "dispatched_chars": len(text), "text_redacted": True,
-            "delivery": {"input_sent": True, "visible_value_confirmed": confirmed},
+            "delivery": {"input_sent": True, "visible_value_confirmed": confirmed, "confirmation": confirmation},
             "action_key": action_key, "readback": readback}
 
 
