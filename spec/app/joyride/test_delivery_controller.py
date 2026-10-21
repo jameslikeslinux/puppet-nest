@@ -99,6 +99,32 @@ class ControllerTests(unittest.TestCase):
         self.assertIsNone(client.journal)
         self.assertEqual(set(controller.images(client.deployment).values()), {NEW})
 
+    def test_current_curated_workload_updates_all_application_initializers(self):
+        client = FixtureClient()
+        # Independent workload shape: deriving this from INITIALIZERS hid the
+        # regression when managed private intake added its two init containers.
+        names = ("migrate", "basemap", "curated-fetch", "curated-import")
+        client.deployment["spec"]["template"]["spec"]["initContainers"] = [
+            {"name": name, "image": OLD} for name in names
+        ]
+        self.assertEqual(controller.run(client, clock=lambda: 0), "succeeded")
+        actual = client.deployment["spec"]["template"]["spec"]["initContainers"]
+        self.assertEqual({row["name"]: row["image"] for row in actual}, dict.fromkeys(names, NEW))
+        self.assertEqual(client.state, "succeeded")
+
+    def test_unknown_or_duplicate_initializer_refused_before_claim(self):
+        for name in ("unmanaged-init", "curated-import"):
+            with self.subTest(name=name):
+                client = FixtureClient()
+                client.deployment["spec"]["template"]["spec"]["initContainers"].append(
+                    {"name": name, "image": OLD}
+                )
+                with self.assertRaisesRegex(controller.DeliveryError, "unexpected_workload_shape"):
+                    controller.run(client)
+                self.assertEqual(client.state, "queued")
+                self.assertEqual(client.patches, 0)
+                self.assertIsNone(client.journal)
+
     def test_idle_and_production_are_never_claimed(self):
         client = FixtureClient()
         client.queue[0]["environment"] = "production"

@@ -33,6 +33,15 @@ frontend. A ready Deployment alone is not application acceptance. Keep the
 previous image digest available for an explicit reviewed rollback; assess
 schema compatibility before rolling application code back.
 
+The adapter's exact initializer allowlist includes `migrate`, `basemap`,
+`curated-fetch` and `curated-import`, all from the same selected application
+digest. Unknown or duplicate initializers remain refused before claim. Adding
+private intake without updating that allowlist caused Luna's queued r5 operation
+to fail before claim with `unexpected_workload_shape`; readiness and passing CI
+did not prove delivery. Preserve that queued identity and all failed receipts
+while installing the correction, then verify its actual terminal outcome. Do not
+delete the operation, weaken workload-shape validation or deploy around it.
+
 The supplied frontend, database/PVC, private listener, backup and monitoring
 contracts remain unchanged. Only the adapter receives exact named-workload patch
 authority; this change adds no Kubernetes credential to app containers or CI.
