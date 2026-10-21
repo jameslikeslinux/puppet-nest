@@ -258,6 +258,7 @@ nest::app::hermes::instances:
       SECURE_BROWSER_OPERATOR_URL: 'https://browser.eyrie'
       SECURE_BROWSER_CONTROL_MODE: 'firefox-windows-v3'
       SECURE_BROWSER_UI_BRIDGE: '/opt/nest/firefox/bin/firefox-ui-bridge.py'
+      AGENT_REQUEST_BROWSER_WINDOW_LIFECYCLE_ENABLED: '1'
     voice_auto_tts: true
     stt_enabled: true
     stt_provider: 'voice-speech'
@@ -401,6 +402,7 @@ nest::app::hermes::instances:
       SECURE_BROWSER_OPERATOR_URL: 'https://browser.eyrie'
       SECURE_BROWSER_CONTROL_MODE: 'firefox-windows-v3'
       SECURE_BROWSER_UI_BRIDGE: '/opt/nest/firefox/bin/firefox-ui-bridge.py'
+      AGENT_REQUEST_BROWSER_WINDOW_LIFECYCLE_ENABLED: '1'
       GITLAB_HOST: 'gitlab.joyfullee.me'
       GITLAB_URL: 'https://gitlab.joyfullee.me'
       GIT_SSH_COMMAND: 'ssh -F /home/joy/.hermes/profiles/star/.ssh/config -o ControlMaster=no -o ControlPath=none'
