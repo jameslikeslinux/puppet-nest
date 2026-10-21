@@ -167,6 +167,26 @@ describe 'nest' do
 
         it { is_expected.to contain_nest__lib__systemd_reload('zfs').with_tag('nest_cli_safety') }
 
+        it { is_expected.not_to contain_service('nest-update-state') }
+
+        context 'with shared update state enabled' do
+          let(:params) { { update_state: true } }
+
+          it do
+            is_expected.to contain_service('nest-update-state')
+              .with(ensure: 'running', enable: true)
+              .that_requires('File[/usr/local/sbin/nest-update-state]')
+              .that_requires('Nest::Lib::Systemd_reload[nest-update-state]')
+              .that_requires('Package[app-admin/nest-cli]')
+          end
+
+          context 'building an offline host root' do
+            let(:facts) { facts.merge(build: 'stage3', is_container: true, systemd: false) }
+
+            it { is_expected.to contain_service('nest-update-state').with(ensure: nil, enable: true) }
+          end
+        end
+
         context 'with networkd-managed host links' do
           let(:facts) { facts.merge(profile: { variant: 'server' }) }
 

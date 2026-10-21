@@ -36,6 +36,7 @@ stages:
     PYTHONDONTWRITEBYTECODE: '1'
   script:
     - 'python3 spec/tasks/retain_update_report_test.py'
+    - 'python3 spec/files/nest_update_state_test.py'
 
 'Joyride private access':
   extends: .all-branch-ci

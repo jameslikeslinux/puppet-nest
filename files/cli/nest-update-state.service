@@ -1,0 +1,16 @@
+[Unit]
+Description=Nest host-local update transaction state
+Requires=zfs-mount.service
+After=zfs-mount.service
+RequiresMountsFor=/var/lib
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/nest-update-state
+RemainAfterExit=yes
+UMask=0077
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
