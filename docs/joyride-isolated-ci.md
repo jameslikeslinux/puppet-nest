@@ -78,4 +78,5 @@ Pause runner 127 and let active work finish before stopping its manager/engine.
 Keep its encrypted identity and storage for diagnosis. Do not restore broad
 application CI authority as an automatic fallback; diagnose the failed job and
 use a separately reviewed application execution rollback if necessary. Existing
-informational and TEST artifacts need not be rolled out for a runner change.
+TEST artifacts need not be rolled out for a runner change. The one-time
+informational publisher is retired and must not be restored by CI changes.

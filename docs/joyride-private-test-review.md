@@ -4,12 +4,13 @@ Canonical program: ^1981 / `t_befb85e8`.
 
 This review describes the reduced photos-only v1 and the separately authorized
 sandbox billing phase. It is not approval to launch full membership in production.
-The existing public informational site has its own prior publication approval.
+The one-time public informational site is RETIRED under Joy's 2026-10-21
+instruction; its earlier publication approval no longer applies.
 
 ## Where to review
 
 - Private application TEST: https://joyride-test.eyrie
-- Public informational site: https://joyridedc.com
+- Public informational site: RETIRED; not a review surface or future launch path.
 - Application source: https://gitlab.joyfullee.me/joy/joyride
 - Infrastructure source: https://gitlab.joyfullee.me/nest/config
 - Frontend delivery: Luna, with Joy retaining editorial and business decisions.

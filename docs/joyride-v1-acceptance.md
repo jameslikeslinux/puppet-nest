@@ -9,7 +9,8 @@ application CI, reviewed pinned images and ordinary Nest deployment. Luna's
 self-service TEST update path remains required: retain the existing bounded
 TEST adapter and ordinary CI artifact checks, not the withdrawn signing stack.
 Cleanup must remove unused live resources as well as source; source deletion alone is
-not completion. Preserve the public informational site, private TEST, ordinary
+not completion. The public informational site is RETIRED as of 2026-10-21.
+Preserve private TEST, ordinary
 security, managed credentials, data, backups and rollback. Production billing
 remains off; the later explicit sandbox authorization below applies only to TEST.
 Joy's photos-only steering recorded on 2026-10-19 supersedes the original
@@ -102,7 +103,8 @@ It does not erase failed runs or turn synthetic identities into real members.
   absent template/feed exposure and actual cache state classification. Real cache
   refresh remains healthy. Synthetic fixtures and sessions were removed; no Transit
   Data, credentials, payment, mail or legal assent were exported or created.
-- The public informational homepage and canonical www redirect remain healthy.
+- The one-time public informational homepage and redirect are RETIRED; future
+  launch uses a separately approved real-app architecture, not this projection.
   Full membership production, live payments, signup, routine communications and
   additional business-content publication remain separately gated. Current-scope
   private TEST application acceptance is verified; production readiness is not.

@@ -5,7 +5,6 @@ puppet::agent_server_hostname: 'puppet.eyrie'
 nest::classes:
   - 'nest::service::gateway'
   - 'nest::service::reverse_proxy'
-  - 'nest::service::joyride_gateway'
 
 nest::packages:
   - 'app-crypt/certbot'
@@ -20,9 +19,6 @@ nest::reset_filter_rules:
 
 nest::service::apache::manage_firewall: true
 nest::service::gateway::http: true
-
-# Bounded informational publication; supervised apex/www certificate is issued.
-nest::service::joyride_gateway::tls_enabled: true
 
 nest::service::gateway::port_forwards:
   git:

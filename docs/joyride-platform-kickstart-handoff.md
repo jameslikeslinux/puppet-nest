@@ -1,9 +1,10 @@
 # Joyride platform kickstart: engineering handoff
 
-Joy's 2026-10-20 informational-publication authorization supersedes the blanket
-public-homepage hold below, but not membership, checkout, payments or messaging
-gates. See `joyride-informational-publication.md` for the bounded recipe and
-actual verification status. Full-platform production remains dormant.
+The one-time public informational site is RETIRED by Joy's 2026-10-21 instruction,
+superseding its earlier publication authorization. Its special deployment and
+publisher are removed, not part of the future real-app launch path. See
+`joyride-informational-publication.md` for the minimal historical disposition.
+Full-platform production remains dormant; private TEST remains independent.
 
 ## Current v1 contract and acceptance
 
