@@ -160,9 +160,12 @@ describe 'nest' do
         it do
           is_expected.to contain_file('/etc/systemd/system/zfs-mount.service.d/10-activate-be.conf')
             .with_content("[Service]\nExecStartPre=/usr/bin/nest beadm activate\n")
+            .with_tag('nest_cli_safety')
             .that_requires('Package[app-admin/nest-cli]')
             .that_notifies('Nest::Lib::Systemd_reload[zfs]')
         end
+
+        it { is_expected.to contain_nest__lib__systemd_reload('zfs').with_tag('nest_cli_safety') }
 
         context 'with networkd-managed host links' do
           let(:facts) { facts.merge(profile: { variant: 'server' }) }

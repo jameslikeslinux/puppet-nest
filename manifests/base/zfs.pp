@@ -47,13 +47,16 @@ class nest::base::zfs {
       '/etc/systemd/system/zfs-mount.service.d/10-activate-be.conf':
         content => $zfs_mount_activate_be_override,
         require => Package['app-admin/nest-cli'],
+        tag     => 'nest_cli_safety',
       ;
 
       '/etc/systemd/system/zfs-mount.service.d/10-load-key.conf':
         content => $zfs_mount_load_key_override,
       ;
     }
-    ~> nest::lib::systemd_reload { 'zfs': }
+    ~> nest::lib::systemd_reload { 'zfs':
+      tag => 'nest_cli_safety',
+    }
 
     # On systems without ZFS root, the zfs module doesn't get loaded by dracut
     file { '/etc/modules-load.d/zfs.conf':
