@@ -48,7 +48,7 @@ esac
 case "${FIREFOX_CONTROL_PROTOCOL:-firefox-ui-v1}" in
   firefox-ui-v1) bidi_args= ;;
   # geckodriver connects to this existing Firefox over loopback Marionette.
-  firefox-bidi-ui-v2) bidi_args='--remote-debugging-port=9222 --marionette' ;;
+  firefox-bidi-ui-v2|firefox-windows-v3) bidi_args='--remote-debugging-port=9222 --marionette' ;;
   *) printf '%s\n' 'Unknown Firefox control protocol' >&2; exit 64 ;;
 esac
 
@@ -57,6 +57,7 @@ xmonad_pid=
 firefox_pid=
 dbus_pid=
 bridge_pid=
+driver_pid=
 
 if [ ! -f "$HOME/.vnc/self.pem" ]; then
   openssl req \
@@ -78,7 +79,7 @@ cleanup() {
     kill "$firefox_pid" 2>/dev/null || true
     wait "$firefox_pid" 2>/dev/null || true
   fi
-  for pid in "$bridge_pid" "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid"; do
+  for pid in "$bridge_pid" "$driver_pid" "$xmonad_pid" "$kasmvnc_pid" "$dbus_pid"; do
     [ -z "$pid" ] || kill "$pid" 2>/dev/null || true
   done
 }
@@ -147,6 +148,14 @@ firefox \
   $APP_ARGS \
   "$@" &
 firefox_pid=$!
+
+# One native session for the same Firefox, surviving bridge observer reconnects.
+# Neither driver nor native listeners are routed by the Kubernetes Service.
+if [ "${FIREFOX_CONTROL_PROTOCOL:-}" = firefox-windows-v3 ]; then
+  geckodriver --host 127.0.0.1 --port 4444 --connect-existing --marionette-port 2828 \
+    >/dev/null 2>&1 &
+  driver_pid=$!
+fi
 
 # Controller disconnects and bridge failures never restart Firefox. Isolated
 # smoke tests without a credential do not start this guarded service listener.
