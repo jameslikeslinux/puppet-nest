@@ -46,9 +46,9 @@ quota/accounting. Admission remains explicitly unknown: successful observation
 is not permission to reset, proof that promotion fits, or permission to remove
 quotas, reserves, or rollback data. Shared `/boot` remains an execution side
 effect. Use the CLI's `docs/reset.md` for schema 1 and process/native exit rules.
-The transaction source slice below is merged but not yet packaged/installed.
-Finalize and release-aware fleet modes remain later implementation slices, not
-commands to infer from the audit's proposed examples.
+The lifecycle package selected below supersedes this first checked-reset slice.
+Release-aware fleet modes remain later integration work, not commands to infer
+from the audit's proposed examples.
 
 ## Persisted preparation source contract
 
@@ -56,8 +56,8 @@ CLI MR !9 merged source `f13f50936671f8e04d0c5b25da0f9ec6aa2f42a1`
 as `6c3e7f3dc7692d5d1c9713c8f35e2e43bb2843ed`. Required pipeline 11029
 passed. Its complete library aggregate SHA256 is
 `2ef34733c3a40349a3c75353677fe153e5a22ab29cba88e788b0534100595587`
-over 26 library files. The currently selected package above still contains the
-earlier checked-reset slice; a merged source contract is not installed support.
+over 26 library files. This preparation slice is included in the lifecycle
+package below; a merged source contract is not installed support.
 
 After immutable packaging and provisioning, the source supports preparation
 with `--transaction ID --release sha256:DIGEST --root-generation PATH`, exact
@@ -88,9 +88,33 @@ replication or extra capacity rehearsals to satisfy the source contract.
 Report export is sanitized stdout, not a remotely usable artifact path. Bolt
 must explicitly copy it to the supervisor filesystem, atomically publish it,
 reopen it, validate schema/ID/release/phase rows, and retain it before completion.
-No historical receipt is recreated by replaying production. This slice does not
-implement reboot, postboot acceptance, abandonment, or finalize; do not infer
-those transitions from `success: true` on a preparation report.
+No historical receipt is recreated by replaying production. Preparation alone
+does not prove boot, acceptance or finalize; do not infer those transitions from
+`success: true` on a preparation report.
+
+## Lifecycle package and compatibility
+
+CLI MR !10 merged as `84f95665bc46519fb27d1f670a5d28b0d515321c` after required
+exact-head pipeline 11036 passed. Overlay MR !5 packages that merge as
+`=app-admin/nest-cli-0.9.0_p20261021-r1::nest`, selected by `nest::base::cli`.
+Its complete 28-library-file aggregate SHA256 is
+`85ba2dddc1289e3b4ab2fbea1fda628e41491f5a9b88bbea778cd1dde7228d79`.
+Required overlay pipeline 11039 and merged-main pipeline 11040 passed. A new
+package selection still requires managed installation and installed file-map
+readback; CI is not live host acceptance.
+
+This revision includes explicit bound postboot acceptance and safe finalize.
+Use its installed `docs/reset-lifecycle.md` contract, not proposed audit flags.
+The collector, shared-state mount and immutable generation are prerequisites;
+installing the package does not provision them or authorize a reset. A supplied
+acceptance document must reflect real collected gates, not operator assertions
+invented to move a transaction forward. Finalize retains ambiguous/external
+origins and does not claim snapshot retirement or physical reclamation.
+
+Retain `0.9.0_p20261021` as the activation-safe code rollback. Earlier versions
+cannot interpret lifecycle receipts: do not downgrade to bypass a failed
+transaction, erase state/locks, or replay a legacy reset. The new immutable
+revision must not receive the historical exact-version activation patch.
 
 ## Fail-closed ZFS startup
 
