@@ -40,8 +40,11 @@ The adapter's nonsecret journal preserves interrupted-operation identity. Its
 separate delivery credential cannot perform member or production operations.
 
 Application MR 13 removes signed production receipt consumers and the unused
-evidence publisher. Its merged-main pipeline 10841 passed check/build/smoke and
-published the reviewed multiarchitecture image pinned here. Production delivery
+evidence publisher. MR 14 moves ordinary application CI to project runner 127.
+Its merged-main pipeline 10866 passed check/build/smoke and published the reviewed
+multiarchitecture image pinned here, installed on TEST generation 24 by preview.
+The dormant production candidate pin stays aligned but its compile guard and zero
+replicas remain unchanged; this does not activate production. Production delivery
 is unconditionally denied, including with legacy enable variables. Historical
 database records remain for non-destructive upgrades, not new admission.
 
@@ -57,25 +60,29 @@ Luna already independently deployed a benign revision through pipeline 10829,
 preview retry 43584. Its first preview hit the registration race. The operator's
 later rollback was not Luna rollback acceptance. The changed waiting/terminal
 contract and Luna's rollback still need live verification after this deployment.
+Pipeline 10866 first preview 43738 failed observation during the replacement
+rollout. Retry 43759 used the same idempotency key and deployment identity and
+returned terminal success. Uninterrupted polling is not proven: the application
+client still needs bounded transient-observation handling. Preserve both receipts.
+Use the verified actual pre-preview artifact for rollback, not the older delivery
+row's previous_digest: managed deployments and that history can differ.
 
 Current cleanup inventory (readback before this rollout):
 
 - Removed from Nest source: signing/custody/supervisor collection and admission
   framework. Owl reports its supervisor inactive with no loaded supervisor unit;
   the checked evidence state/configuration directories are absent.
-- Removed from application source: signing consumer/tools/publisher and custom
-  production admission in MR 13. The older installed TEST image still contains
-  that code until this reviewed image is deployed. Preserve historical audit rows.
+- Removed from application source and installed TEST: signing consumer/tools/
+  publisher and custom production admission in MR 13. Preserve historical audit rows.
 - Kept: DB/media, TLS, encrypted runtime/provider/pull/read-only verifier secrets,
   private Tailscale listener, ordinary health/backup/restore and the small TEST
   importer/adapter needed by Luna's self-service. Public informational stays put.
-- Remaining: runner execution cleanup. Project 83 still has broad shared/group
-  runners enabled and ordinary jobs select Owl. Dedicated runner 127 and its
-  rootless account/engine/manager remain installed; this is not accepted cleanup.
-  Do not destroy the working path before its minimal replacement is exercised,
-  or retain signing machinery to justify those resources. No host-root/eyaml
-  authority is acceptable for application CI. Dedicated unused credential scope
-  revocation still needs exact consumer checks; never remove useful app secrets.
+- Kept: ordinary project runner 127 and its unprivileged engine, the concrete
+  consumer for Luna's check/build/publish/preview without host-root/eyaml access.
+  All pipeline 10866 jobs ran on it, including terminal preview. Project 83 now
+  disables shared and group runners; independent readback lists only runner 127.
+  Shared Nest runners are unchanged. Dedicated unused credential scope revocation
+  still needs exact consumer checks; never remove useful app secrets.
 
 Before managed activation, inspect pending/running deployment counts and existing
 journal state. Do not replay old operations. After deployment, verify exact RBAC,
@@ -84,7 +91,10 @@ storage, backups and monitoring. Preserve historical outcomes and app data.
 Production promotion/rollback remains an explicit reviewed same-artifact operator
 operation with Joy's publication/activation gates, not another signing service.
 
-This is TEST only. Stripe and routine mail remain disabled. Production member
-platform activation, payments, member communications and content publication
-retain their separate owner gates. The existing approved public informational
-site and www redirect must not be redeployed for this cleanup.
+This is TEST only. Joy has authorized sandbox billing using the exact TEST price
+price_1USr7ARxm5b9CJTLAsfCS7RO. Runtime billing remains disabled until encrypted
+provisioning, the exact webhook transport and application/frontend integration
+are verified; this pin reconciliation does not enable it. Routine mail stays off.
+Production member platform activation, payments, member communications and content
+publication retain their separate owner gates. The existing approved public
+informational site and www redirect must not be redeployed for this cleanup.
