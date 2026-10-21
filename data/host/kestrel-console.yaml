@@ -1,3 +1,6 @@
 ---
+# Intentionally excluded from the host rollout; retain its existing CA endpoint.
+puppet::agent_server_hostname: 'puppet.nest'
+
 nest::classes:
   - 'nest::tool::minicom'
