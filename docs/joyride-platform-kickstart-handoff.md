@@ -17,9 +17,11 @@ exposure and verifying the resulting immutable artifact through TEST delivery.
 Do not delete originals or revive completed implementation children.
 
 Private TEST is deployed and its populated browser, map, protected photo/GPX,
-backup/restore and monitoring milestones have engineering evidence. Overall v1
-acceptance is still open. Production configuration remains dormant and guarded;
-there is no production deployment or public launch approval.
+backup/restore and monitoring milestones have engineering evidence. Current-scope
+private TEST acceptance now includes Joy's approved WMATA member display; see
+[`joyride-private-test-review.md`](joyride-private-test-review.md). Production
+configuration remains dormant and guarded; there is no full-platform production
+deployment or public membership launch approval.
 
 Joy's later 2026-10-21 authorization enables sandbox billing in private TEST only,
 superseding the temporary no-Stripe phase. Encrypted recoverable sandbox material,
@@ -36,8 +38,13 @@ phone member map, elevation, self-hosted painted basemap, GPX and photo lightbox
 with cleaned synthetic identity/entitlement/waiver fixtures. Luna's portal fix
 now passes actual sandbox portal navigation after her original queued backchannel
 delivery completed. Canceled fixture status and its temporary session were
-restored/removed. WMATA display remains inactive pending the exact preserved
-draft's editorial/terms decision; it is not implied by those passing checks.
+restored/removed. Joy's subsequent direct WMATA approval is resolved against Luna's
+actual revised source, not the older draft. Application MR 20 passed required
+pipeline 10964 jobs, Luna's scoped TEST delivery succeeded, and run 12096 verifies
+installed member display/cache/auth boundaries plus actual desktop/phone rendering.
+Optional CI preview failed before admission; the successful backchannel result is
+separate. No Transit Data API, public feed, production or communication authority
+is implied by those passing checks.
 Current deployment mechanics and cleanup inventory are in
 `joyride-test-deployment.md`.
 

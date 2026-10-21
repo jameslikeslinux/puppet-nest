@@ -83,13 +83,31 @@ It does not erase failed runs or turn synthetic identities into real members.
 - Managed SMTP sender/receipt, regional basemap, backup/isolated restore and
   monitoring have distinct prior verified milestones. Routine mail remains off;
   synthetic browser login is not new email-verification delivery evidence.
-- WMATA's backend cache/recovery is verified, but Luna's member-display draft is
-  inactive pending the existing frontend/editorial boundary. No Transit Data API
-  or raw incident feed is authorized.
+- Joy directly approved the WMATA display; Luna identified exact approved source
+  `eb2a32f79996474b11e51f8db1c406ff9b86bc42`. Application MR 20 integrates that
+  fragment byte-for-byte at `82f806d9296b98d8ec46d7eb82903679b67fd857`; all 35
+  release hashes match. Required pipeline 10964 check/build/smoke passed. Optional
+  preview 44241 failed before admission (`preview_observation_failed` /
+  `not_requested`), not a passed preview. Luna's existing scoped backchannel
+  operation `698d9f39-d2bc-4b0a-a75d-3e809797f3ce` independently reports
+  `succeeded` on immutable image
+  `sha256:a4ad5a79bfaef70ad3edbd3ef5b466dbd05a3c25a1dc3ba057a6274dab0e3987`.
+  MR 20 merged as `14c28f8a4c76e6fe0084704ffef80ec22d224838`, with identical
+  source tree and merge CI deliberately skipped to avoid unrelated public release.
+- Run 12096 verifies actual installed WMATA member display on desktop and phone:
+  colored line chips, attribution/timestamps, no external/browser-transit requests,
+  no page errors or overflow, private no-store responses and retained route/photos.
+  Installed rollback-only probes verify six fragment states, escaping, stale
+  labeling, missing/wrong-waiver and anonymous/unverified/canceled/expired denial,
+  absent template/feed exposure and actual cache state classification. Real cache
+  refresh remains healthy. Synthetic fixtures and sessions were removed; no Transit
+  Data, credentials, payment, mail or legal assent were exported or created.
 - The public informational homepage and canonical www redirect remain healthy.
   Full membership production, live payments, signup, routine communications and
-  additional business-content publication remain separately gated. Overall
-  kickstart acceptance is not yet complete.
+  additional business-content publication remain separately gated. Current-scope
+  private TEST application acceptance is verified; production readiness is not.
+  See [`joyride-private-test-review.md`](joyride-private-test-review.md) for the
+  comprehensive review, explicit limitations and historical-versus-current evidence.
 
 ## Ownership and unchanged requirements
 
@@ -134,7 +152,7 @@ then verify changed behavior against the exact resulting TEST artifact.
 | Luna Git/CI/backchannel | Prior milestone verified | Run 11733 actual independent Tailscale status/diagnostics/deploy success; preserve narrow trust and credentials. No new access request for closed canaries. |
 | Managed SMTP identity/receipt | Approved bounded test verified | Preserve previous sender/receipt evidence; routine mail and member communications remain disabled/gated. |
 | WMATA worker/cache/recovery | Prior milestone verified | Runs 11759 and 11768 managed upstream and disposable failure/backoff/recovery; metadata-only receipts. |
-| WMATA member display | OPEN, draft preserved and inactive | Luna's draft at `3fc625ebdf080eca453f4f566834d9c3f3d20661` passed synthetic rendering/escaping checks. MR 6 deliberately omits its marker, fragment and CSS; no unapproved wording is served. Luna owns markup and Joy/Luna retain editorial/terms approval. No Transit Data JSON/API, raw feed export or incident-bearing handoff. |
+| WMATA member display | Verified on private TEST, Joy-approved and Luna-authored | MR 20 / pipeline 10964 / operation `698d9f39-d2bc-4b0a-a75d-3e809797f3ce`; run 12096 installed-state/auth and actual desktop/phone checks pass. Exact approved fragment from `eb2a32f79996474b11e51f8db1c406ff9b86bc42`, not the older draft. No Transit Data JSON/API, raw feed export or incident-bearing handoff. Optional CI preview failed pre-admission; scoped backchannel delivery succeeded. |
 | Disabled/no-op billing | Backend/worker and Luna frontend verified on private TEST | Application MR 7/run 11814 preserve the disabled API/worker protections. Application MR 8/run 11835 verify Luna's graceful UI on desktop/phone, zero billing POSTs and installed auth/CSRF/waiver/private-access boundaries. Factual wording remains Luna-drafted, not publication approval. |
 | Real Stripe sandbox/provider acceptance | DEFERRED by Joy | LLC/account setup, selected account/product/Price ID, secure credentials and actual checkout/portal/signed-webhook/reconciliation proof belong to later explicit activation. Not passed and not a blocker to the no-Stripe phase. No live payments. |
 | Backup/isolated restore and monitoring | TEST milestone and transport repair verified | Runs 11767/11768 protection and alerts; run 11808 populated photo restore; run 11809 repaired managed capture, completion readback and exact-generation isolated restore with independent cleanup/live continuity. That managed generation was empty of members, not a populated photo drill. |
