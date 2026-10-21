@@ -213,51 +213,17 @@ scope. This historical section is not the current delivery contract.
 The application-side consumer and its old contract remain cleanup work, not a
 reason to deploy a signer or collect another receipt. Normal exact-head checks,
 reviewed immutable images and explicit owner authorization for production remain
-the delivery boundaries. Keep the TEST-only compile guard closed and the public
-informational site unchanged while removing superseded consumers.
+the delivery boundaries. Keep the TEST-only compile guard closed. The one-time
+public informational site is RETIRED under Joy's 2026-10-21 instruction.
 
-### Dormant public gateway candidate
+### Public informational architecture retired
 
-`nest::service::joyride_gateway` and
-`files/app/joyride/production-gateway-apache.conf` prepare Apache configuration
-using the existing gateway's IPv4/IPv6 addresses and Apache resource conventions.
-Neither gateway host data nor any active class includes it. Adding source does
-not create DNS, request a certificate, change a firewall, reload Apache or expose
-the application. Do not include the class before separately approved activation.
-The existing gateway's host map and global `StrictHostCheck` are unchanged.
-
-The candidate requires a supervised certificate at the existing Let's Encrypt
-path covering BOTH apex and `www`. HTTP provides only the restricted ACME webroot
-exception and a fixed apex HTTPS redirect. HTTPS `www` also redirects to the
-fixed apex, retaining path/query. Exact Host/SNI checks reject mismatches and
-unconfigured hosts. The only proxy destination is `https://joyride.eyrie/`,
-with mandatory trusted chain, peer-name and expiry verification against the
-system CA bundle. It cannot address the private ops Service or ports 8001/8002.
-Normalized ops/admin/delivery prefixes are denied before proxying; encoded
-slashes remain disabled. Public session/CSRF/Origin/Range headers survive, but
-caller forwarding and TEST/Tailscale identity headers are removed and HTTPS
-metadata is fixed. It does not grant a member entitlement or approve content.
-Access logging is disabled per vhost to avoid member login query/cookie capture;
-error verbosity is critical-only. Application monitoring remains separate.
-
-`test_production_gateway.py` exercises real digest-pinned Apache with an isolated
-synthetic TLS origin and client. It verifies apex/HTTP redirects, path/query,
-Host/SNI rejection, normalized private-path denial, session/CSRF/range propagation,
-spoofed-header removal and rejection of both a trusted wrong-name certificate
-and a correct-name untrusted certificate. Double-encoded paths remain encoded,
-not twice-decoded into privileged paths. Only fixture addresses/ports and
-certificates differ. These fixtures do NOT establish live gateway TLS, Gentoo
-Apache module parity, DNS, Kubernetes/origin policy or application acceptance.
-
-Before approved activation: verify exact certificate SANs/chain/expiry and origin
-TLS from the inventory-backed gateway path; render/validate the full Apache
-configuration alongside existing vhosts; inspect additive network policies and
-upstream listener selection; then apply through normal reviewed Puppet/Bolt.
-Require actual apex/`www` TLS, member/CSRF/range behavior, negative public
-ops/admin/delivery and Host probes, non-public TEST, and existing-service continuity.
-Do not obtain certificates, change DNS, include this class or run that apply as
-part of dormant source preparation. No production wrapper or compile-guard
-widening is introduced.
+Joy retired the one-time Stripe-verification site on 2026-10-21. Its static
+projection, publisher, deploy wrapper and dedicated Apache gateway are removed,
+not dormant production building blocks. See `joyride-informational-publication.md`
+for the historical disposition and the cleanup receipt for live verification.
+Future launch must design and approve routing for the real membership application
+independently; the former informational topology is not a launch dependency.
 
 A future reviewed implementation must establish all of the following before
 widening the compile guard:
@@ -271,8 +237,8 @@ widening the compile guard:
 - An independently private, normally TLS-verified and authenticated ops/admin
   path for Joy over VPN/Tailscale. No TEST token-free port 8002, TEST access VIP,
   controller/RBAC/journal or implicit trust of LAN/cluster/forwarded headers.
-- Prepared but inactive apex gateway `https://joyridedc.com` and canonical
-  `www` redirect, preserving existing host checks and other gateway services.
+- A newly reviewed public gateway for the real application, preserving exact
+  Host/SNI checks and other gateway services without reviving the retired site.
   Public admin/ops/delivery requests must have no privileged upstream.
 - Promotion and rollback of the exact tested immutable artifact, with explicit
   owner approval provenance. The existing controller is TEST-only; renaming it
