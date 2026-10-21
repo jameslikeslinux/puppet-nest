@@ -29,6 +29,8 @@ P /boot/**
 - /srv/
 P /var/lib/bluetooth/**
 P /var/lib/misc/dnsmasq.leases
+# Shared host transaction state must never be copied or deleted by legacy reset.
+- /var/lib/nest/updates/***
 P /var/log/**
 P /var/tmp/**
 
