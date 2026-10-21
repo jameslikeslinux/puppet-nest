@@ -1,8 +1,9 @@
 # Joyride project execution boundary
 
 Joyride is a personal application in `joy/joyride` (project 83), not a Nest
-application release pipeline. Nest owns only this runner's host configuration,
-managed credential selection and the independent evidence custody boundary.
+application release pipeline. Nest owns only this runner's host configuration
+and managed credential selection. The former signing/supervisor framework is
+withdrawn; this runner is ordinary application CI, not evidence custody.
 
 ## Managed installation
 
@@ -20,6 +21,12 @@ state, custody, and the rootful/operator sockets are explicitly inaccessible in
 the engine's mount namespace, even when a directory is otherwise world-readable.
 It requires setuid newuidmap/newgidmap for subordinate mappings;
 NoNewPrivileges is intentionally not used on that service.
+Netavark 1.17.1 selects `systemd-run --user` when `/run/systemd/system`
+exists, even though this system service has no user manager. Present an empty,
+read-only `/run/systemd` inside the engine's mount namespace so aardvark runs
+directly under the service, binding back only `/run/systemd/resolve` read-only
+for the host resolver. Do not
+expose a user bus or remove existing administrative path denials to fix DNS.
 The rootless API is full authority as this unprivileged identity, not a
 read-only socket. This is not a claim of VM-level or hostile-kernel isolation.
 
@@ -44,7 +51,7 @@ Runner 127 is project-only, locked to project 83, tagged `joyride-ci`, untagged
 jobs disabled and initially paused. Installation alone does not isolate the
 application while broad instance/group runners remain enabled for project 83.
 
-Before activating the evidence supervisor:
+Before accepting the application CI cutover:
 
 1. Verify exact-head/main infrastructure CI and managed host convergence.
 2. Verify rootless account, disjoint subordinate mappings, actual engine UID,
@@ -57,19 +64,18 @@ Before activating the evidence supervisor:
 5. Disable shared and group runners for project 83, read back that state, prove
    actual build/release/preview jobs use runner 127, and verify Luna's narrow
    TEST deployment continuity. Leave Nest runners 125/126 unchanged.
-6. Only then install/admit the independent supervisor and exercise its separate
-   collection/signature/import contracts. Production membership remains gated.
+6. Preserve ordinary TEST preview/status/rollback operations. Do not reinstall
+   the withdrawn signing/supervisor framework. Production membership remains gated.
 
 A paused runner, a matching tag, nonprivileged executor flag, container file
 mode or synthetic token-verification manager entry is not execution proof.
-The signed evidence generation and rollback credentials must not be rotated or
-deleted as incidental cleanup.
+Retain working application and rollback credentials; remove obsolete signing
+credentials only after exact consumer checks through managed-secret workflows.
 
 ## Rollback
 
 Pause runner 127 and let active work finish before stopping its manager/engine.
 Keep its encrypted identity and storage for diagnosis. Do not restore broad
-application CI authority while signing custody is installed. If broader runners
-must be restored, first make custody unavailable and verify that boundary,
-then use a separately reviewed application execution rollback. Existing
+application CI authority as an automatic fallback; diagnose the failed job and
+use a separately reviewed application execution rollback if necessary. Existing
 informational and TEST artifacts need not be rolled out for a runner change.
