@@ -72,8 +72,15 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None) -> dict[str, Any]:
-    if CONTROL_MODE not in {"firefox-ui-v1", "firefox-bidi-ui-v2"}:
+    if CONTROL_MODE not in {"firefox-ui-v1", "firefox-bidi-ui-v2", "firefox-windows-v3"}:
         raise RuntimeError(f"unsupported secure browser control mode: {CONTROL_MODE}")
+    if CONTROL_MODE == "firefox-windows-v3":
+        # Dispatcher/session context, never model workflow_id or tool task_id.
+        task = _session_env("HERMES_KANBAN_TASK") or os.environ.get("HERMES_KANBAN_TASK", "")
+        board = _session_env("HERMES_KANBAN_BOARD") or os.environ.get("HERMES_KANBAN_BOARD", "")
+        if task and (not re.fullmatch(r"t_[A-Za-z0-9_-]+", task) or not re.fullmatch(r"[A-Za-z0-9_.-]+", board)):
+            raise RuntimeError("authoritative Kanban window scope unavailable")
+        payload = {**payload, "scope": f"kanban:{board}:{task}" if task else "owner"}
     endpoint = urllib.parse.urlsplit(PUBLIC_URL)
     if (endpoint.scheme != "https" or not endpoint.hostname or endpoint.username or endpoint.password
             or endpoint.query or endpoint.fragment or endpoint.path not in {"", "/"}):
@@ -118,11 +125,13 @@ def _bridge(command: str, payload: dict[str, Any], *, timeout: int | None = None
         raise RuntimeError("Firefox endpoint response was not an object")
     if parsed.get("status") == "error":
         raise RuntimeError(str(parsed.get("message") or "Firefox endpoint operation failed")[:1000])
+    if CONTROL_MODE == "firefox-windows-v3" and str(parsed.get("owner_window_url", "")).startswith("/_nest/bridge/window/#"):
+        parsed["owner_window_url"] = PUBLIC_URL.rstrip("/") + parsed["owner_window_url"]
     return parsed
 
 
 def _check_secure_browser() -> bool:
-    return CONTROL_MODE in {"firefox-ui-v1", "firefox-bidi-ui-v2"} and bool(PUBLIC_URL)
+    return CONTROL_MODE in {"firefox-ui-v1", "firefox-bidi-ui-v2", "firefox-windows-v3"} and bool(PUBLIC_URL)
 
 
 @contextlib.contextmanager
@@ -200,12 +209,12 @@ def secure_browser_status_tool(args: dict[str, Any], **_kw: Any) -> str:
     def run() -> dict[str, Any]:
         bridge_status = _bridge("status", {})
         live_v2 = False
-        if CONTROL_MODE == "firefox-bidi-ui-v2" and bridge_status.get("launch_protocol") == CONTROL_MODE:
+        if CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"} and bridge_status.get("launch_protocol") == CONTROL_MODE:
             live_v2 = bool(bridge_status.get("bidi_available"))
         return {
             **bridge_status,
             "protocol": CONTROL_MODE,
-            "control_mode_matches_browser": (live_v2 and bool(bridge_status.get("native_element_available")) if CONTROL_MODE == "firefox-bidi-ui-v2" else bridge_status.get("launch_protocol") == CONTROL_MODE),
+            "control_mode_matches_browser": (live_v2 and bool(bridge_status.get("native_element_available")) if CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"} else bridge_status.get("launch_protocol") == CONTROL_MODE),
             "instrumentation": {
                 "webdriver": bool(bridge_status.get("native_element_available")), "marionette": bool(bridge_status.get("native_element_available")),
                 "bidi": live_v2, "cdp": False, "dom": live_v2,
@@ -217,7 +226,7 @@ def secure_browser_status_tool(args: dict[str, Any], **_kw: Any) -> str:
                 "version": CONTROL_MODE,
                 "dom_selectors": live_v2 and bool(bridge_status.get("native_element_available")),
                 "javascript_query": False,
-                "accessibility_locators": True,
+                "accessibility_locators": CONTROL_MODE != "firefox-windows-v3",
                 "coordinate_input": True,
             },
         }
@@ -250,7 +259,7 @@ def secure_browser_current_page_summary_tool(args: dict[str, Any], **_kw: Any) -
         return {
             "operation": "current_page_summary",
             "status": "ok",
-            "protocol": "firefox-ui-v1",
+            "protocol": CONTROL_MODE,
             "title": snapshot.get("title", ""),
             "url": snapshot.get("url", ""),
             "tab_count": snapshot.get("tab_count", 0),
@@ -319,7 +328,7 @@ def secure_browser_owner_review_capture_tool(args: dict[str, Any], **_kw: Any) -
 
 
 def secure_browser_query_tool(args: dict[str, Any], **_kw: Any) -> str:
-    if CONTROL_MODE == "firefox-bidi-ui-v2":
+    if CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"}:
         def run() -> dict[str, Any]:
             return _bridge("query", {"expression": str(args.get("expression") or ""), "cursor": args.get("cursor")})
         return _safe_call("query", run)
@@ -340,15 +349,15 @@ def secure_browser_visual_evidence_tool(args: dict[str, Any], **_kw: Any) -> str
     return _safe_call("visual_evidence", lambda: {
         **_save_screenshot(_bridge("screenshot", {})),
         "operation": "visual_evidence",
-        "capture_mode": "visible Firefox window through X11",
+        "capture_mode": "bound native window viewport" if CONTROL_MODE == "firefox-windows-v3" else "visible Firefox window through X11",
         "full_page": False,
-        "compatibility_note": "firefox-ui-v1 captures the visible owner-shared desktop; DOM full-document capture and script-derived crops are intentionally unavailable",
+        "compatibility_note": "Window mode captures only its bound rendered page viewport, not native chrome or the global desktop" if CONTROL_MODE == "firefox-windows-v3" else "firefox-ui-v1 captures the visible owner-shared desktop; DOM full-document capture and script-derived crops are intentionally unavailable",
     })
 
 
 def secure_browser_click_tool(args: dict[str, Any], task_id: str | None = None, **_kw: Any) -> str:
     def run() -> dict[str, Any]:
-        if CONTROL_MODE == "firefox-bidi-ui-v2" and args.get("selector"):
+        if CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"} and args.get("selector"):
             # A selector can resolve to a purchase or destructive control on
             # any site. Require the UI bridge's durable action journal before
             # resolving or delivering that click; never guess intent from CSS.
@@ -392,9 +401,9 @@ def secure_browser_type_tool(args: dict[str, Any], task_id: str | None = None, *
         mode = str(args.get("mode", "insert"))
         if mode not in {"insert", "replace"}:
             raise ValueError("typing mode must be insert or replace")
-        if mode == "replace" and not (CONTROL_MODE == "firefox-bidi-ui-v2" and args.get("selector")):
+        if mode == "replace" and not (CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"} and args.get("selector")):
             raise ValueError("explicit replacement requires a guarded v2 selector; coordinate and locator typing only insert")
-        if CONTROL_MODE == "firefox-bidi-ui-v2" and args.get("selector"):
+        if CONTROL_MODE in {"firefox-bidi-ui-v2", "firefox-windows-v3"} and args.get("selector"):
             # Input events may themselves trigger page actions (including
             # auto-submit). Journal selector-backed typing just like clicks.
             action_key = str(args.get("action_key") or args.get("idempotency_key") or "").strip()

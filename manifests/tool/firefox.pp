@@ -103,6 +103,15 @@ class nest::tool::firefox (
     require => File['/opt/nest/firefox/bin'],
   }
 
+  ['firefox_windows.py', 'window-viewer.html', 'window-viewer.js'].each |String $asset| {
+    file { "/opt/nest/firefox/bin/${asset}":
+      ensure  => file,
+      mode    => '0644',
+      source  => "puppet:///modules/nest/firefox-browser/${asset}",
+      require => File['/opt/nest/firefox/bin'],
+    }
+  }
+
   file { '/opt/nest/firefox/bin/secure_browser_local_bidi.py':
     ensure  => file,
     mode    => '0644',
