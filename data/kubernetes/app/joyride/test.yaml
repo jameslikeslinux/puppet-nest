@@ -463,7 +463,7 @@ resources:
             - name: PUBLIC_ORIGIN
               value: https://%{lookup('fqdn')}
             - name: MAIL_ENABLED
-              value: '0'
+              value: '1'
             - name: STRIPE_MODE
               value: test
             - name: STRIPE_PRICE_ID
@@ -471,7 +471,7 @@ resources:
             - name: OPS_SCOPES
               value: status,diagnostics,deploy:test,member:read
             - name: TEST_MAIL_ALLOWLIST
-              value: ''
+              value: joy@joyfullee.me,joyfulskater@gmail.com
             envFrom:
             - secretRef:
                 name: '%{nest::kubernetes::service}-runtime'
