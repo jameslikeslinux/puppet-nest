@@ -143,3 +143,27 @@ then her scoped rollback 579c6106-332a-4812-80b2-08e0dd930ca3 succeeded on the
 reviewed c5786b2b baseline. Actual Kubernetes images again match that baseline.
 Historical preview failures remain failures, not overwritten successes. No
 production, billing or routine-mail authority was added by this canary.
+
+## Supplied private route and photos
+
+Application MR 18 adds TEST-only `import_curated_private`. The TEST pod fetches
+only the supplied project 83 generic package `joyride-curated-private`, version
+`2026-10-18-r1`, with exact size and SHA256 verification before writing its private
+ephemeral input volume. Redirects are refused so the existing read-only GitLab
+credential cannot follow another host. Only the fetch init mounts that credential;
+web, ops and worker containers never mount the package input or reader secret.
+
+After migration and basemap initialization, the intake init first validates with
+`--dry-run`, then applies through the transactional/idempotent application command.
+One supplied route (`ride-001-cathedral-climb`) and 19 member photo placements over
+18 originals are installed under the existing private PVC. Other candidate tracks
+stay unavailable. Original GPX and actual scout/profile are distinct supplied
+inputs; no invented elevation or video. Member derivatives strip EXIF and remain
+private. No public source content is published by this operation.
+
+Startup fails closed on fetch, archive, source or existing editorial/file drift.
+Do not delete a conflicting private tree or DB rows to force startup: inspect the
+application's `docs/private-curated-intake.md`, retain the prior image and reconcile
+the exact conflict. A rollback retains all private data and database history.
+The dormant production candidate pin stays aligned, but has no intake init and
+remains guarded, zero-replica and unapplied. This is not production authorization.

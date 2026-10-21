@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Protected-main release enforcing exact current-waiver private member access.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:2a4841870cb6995a4c66ef333bbaa5f73baabeeb52f814e923b1af7f5544a51e
+# Protected-main release with bounded, TEST-only supplied private package intake.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:a466eb849a3a024e76771a0fb7c76eb1cb8abc940630f58427a7d3aeeb59621a
 affinity: {}
 tolerations: []
 resources:
@@ -507,6 +507,71 @@ resources:
             - name: pull
               mountPath: /pull
               readOnly: true
+          # Download only the reviewed immutable private package. This init alone
+          # sees the existing read-only GitLab credential; no new token or RBAC.
+          - name: curated-fetch
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+            command: [python, -B, -c]
+            args:
+            - |
+              import hashlib, os, pathlib, urllib.request
+              class NoRedirect(urllib.request.HTTPRedirectHandler):
+                  def redirect_request(self, *args, **kwargs):
+                      raise ValueError('redirect_denied')
+              try:
+                  token = pathlib.Path('/package-reader/GITLAB_READ_API_TOKEN').read_text().strip()
+                  url = 'https://gitlab.joyfullee.me/api/v4/projects/83/packages/generic/joyride-curated-private/2026-10-18-r1/joyride-curated-private-2026-10-18-r1.tar.gz'
+                  request = urllib.request.Request(url, headers={'PRIVATE-TOKEN': token})
+                  with urllib.request.build_opener(NoRedirect).open(request, timeout=60) as response:
+                      raw = response.read(9864457)
+                  if len(raw) != 9864456 or hashlib.sha256(raw).hexdigest() != '20384840af7e1a0fdd095a701359b772842e4e510f521dcfd07024f6a9a0c88b':
+                      raise ValueError('package_mismatch')
+                  os.umask(0o077)
+                  pathlib.Path('/curated-input/package.tar.gz').write_bytes(raw)
+              except Exception:
+                  raise SystemExit('curated_private_fetch_failed') from None
+              print('curated private package checksum verified')
+            volumeMounts:
+            - name: curated-input
+              mountPath: /curated-input
+            - name: package-reader
+              mountPath: /package-reader
+              readOnly: true
+          - name: curated-import
+            image: '%{lookup(''joyride_image'')}'
+            securityContext: *id001
+            env: *id002
+            envFrom:
+            - secretRef:
+                name: '%{nest::kubernetes::service}-runtime'
+            resources:
+              requests:
+                cpu: 100m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
+            command: [python, -B, -c]
+            args:
+            - |
+              import subprocess
+              command = ['python', 'manage.py', 'import_curated_private', '--archive', '/curated-input/package.tar.gz', '--sha256', '20384840af7e1a0fdd095a701359b772842e4e510f521dcfd07024f6a9a0c88b']
+              subprocess.run(command + ['--dry-run'], check=True)
+              subprocess.run(command, check=True)
+            volumeMounts:
+            - name: curated-input
+              mountPath: /curated-input
+              readOnly: true
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /data/tmp
           containers:
           - name: web
             image: '%{lookup(''joyride_image'')}'
@@ -649,6 +714,15 @@ resources:
             - manage.py
             - worker
           volumes:
+          - name: curated-input
+            emptyDir:
+              sizeLimit: 16Mi
+          - name: package-reader
+            secret:
+              secretName: '%{nest::kubernetes::service}-artifact-verifier'
+              items:
+              - key: GITLAB_READ_API_TOKEN
+                path: GITLAB_READ_API_TOKEN
           - name: pull
             secret:
               secretName: '%{nest::kubernetes::service}-pull'
