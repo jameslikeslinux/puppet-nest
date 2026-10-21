@@ -21,8 +21,20 @@ These commands require the new package, not merely a version string of 0.9.0.
 The complete library manifest for this source has aggregate SHA256
 `6937c534d1b62b20f3059149e7f064c6c559c3aaab6a0902251576274fa9756a`.
 Compare the complete reported file map as well as the aggregate. This is content
-identity, not a signature. Packaging and live installed checks remain pending
-until their receipts appear in the implementation matrix.
+identity, not a signature. Overlay MR !4 packages that exact merge as
+`=app-admin/nest-cli-0.9.0_p20261021::nest`; `nest::base::cli` selects the exact
+version rather than a mutable latest package. Packaging CI exercised a real
+Gentoo build and compared all 23 library files. Live installed checks remain
+pending until their receipts appear in the implementation matrix.
+
+The `nest_cli_package` tag selects only the CLI package definition and its
+ordinary package policy resources. Sync the configured Nest overlay before
+applying this tag; do not replace the overlay checkout by hand. Use the existing
+inventory-backed Puppet plan, then reopen `nest version --format=json` and
+`nest reset --plan --format=json`. No reset execution, mount-service restart,
+or reboot is needed to install or observe this package. Keep the previous
+activation-safe package/binpkg available; the old 0.9.0 archive alone is not a
+safe rollback unless its existing exact-version activation patch is retained.
 
 Human output remains the default. JSON execution output does not make an
 executing reset read-only. Legacy `--resume` only skips backup; it is not a

@@ -1,6 +1,8 @@
 class nest::base::cli {
   nest::lib::package { 'app-admin/nest-cli':
-    ensure => latest,
+    # Immutable checked-reset source; retain the activation-safe rollback floor.
+    ensure => '0.9.0_p20261021',
+    tag    => 'nest_cli_package',
   }
 
   file {
