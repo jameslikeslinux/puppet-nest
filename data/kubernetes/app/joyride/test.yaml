@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Luna's exact-CI r5 release, terminal TEST delivery and browser acceptance verified.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:75a4cd98528495c851e698fe98c00eae99e238d17ddad5ee562b205d594fdd86
+# Luna's approved r6 WMATA release, terminal TEST delivery and member checks verified.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:a4ad5a79bfaef70ad3edbd3ef5b466dbd05a3c25a1dc3ba057a6274dab0e3987
 affinity: {}
 tolerations: []
 resources:
