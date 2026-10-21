@@ -454,6 +454,7 @@ class nest::app::hermes::service {
   if $nest::app::hermes::moving_ticket_enabled {
     file { "${systemd_user_dir}/hermes-agent-request-moving-tickets.service":
       ensure  => file,
+      tag     => 'hermes_agent_request_watchdog_runtime',
       mode    => '0644',
       owner   => $nest::user,
       group   => $nest::user,
@@ -465,8 +466,10 @@ class nest::app::hermes::service {
 
         [Service]
         Type=oneshot
+        EnvironmentFile=-${hermes_home_dir}/profiles/${gitlab_mr_note_poller_profile}/systemd.env
         Environment=HERMES_HOME=${hermes_home_dir}
         Environment=AGENT_REQUEST_KANBAN_BOARD=${nest::app::hermes::agent_request_kanban_board}
+        Environment=GITLAB_URL=${nest::app::hermes::gitlab_url}
         ExecStart=${install_dir}/bin/agent-request-reconcile-moving-tickets --board ${nest::app::hermes::agent_request_kanban_board} --apply
         WorkingDirectory=/home/${nest::user}
         StandardOutput=journal
