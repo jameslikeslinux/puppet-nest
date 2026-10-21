@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
+import threading
 import time
 from typing import Any
 
@@ -13,7 +15,10 @@ class CdpSession:
     protocol = "bidi"
 
     def __init__(self, *, websocket_url: str | None = None):
+        if websocket_url is None and os.environ.get('FIREFOX_CONTROL_PROTOCOL') == 'firefox-windows-v3':
+            raise RuntimeError('FIREFOX_RESIDENT_SESSION_REQUIRED: attach the bridge-owned session; session.new is disabled')
         self.next_id = 0
+        self.lock = threading.RLock()
         self.owns_session = websocket_url is None
         self.ws = websockets.sync.client.connect(
             websocket_url or "ws://127.0.0.1:9222/session", open_timeout=5, close_timeout=2,
@@ -22,11 +27,17 @@ class CdpSession:
         try:
             if self.owns_session:
                 self._bidi("session.new", {"capabilities": {"alwaysMatch": {}}})
-        except Exception:
+        except BaseException:
             self.ws.close()
             raise
 
     def _bidi(self, method: str, params: dict | None = None) -> dict:
+        with self.lock:
+            return self._exchange(method, params)
+
+    def _exchange(self, method: str, params: dict | None = None) -> dict:
+        if self.ws is None:
+            raise RuntimeError("private Firefox observer is closed")
         self.next_id += 1
         self.ws.send(json.dumps({"id": self.next_id, "method": method, "params": params or {}}))
         deadline = time.monotonic() + 10
@@ -54,10 +65,16 @@ class CdpSession:
 
     def close(self):
         # End the controller session, never the Firefox process or its tabs.
-        if self.owns_session:
-            with contextlib.suppress(Exception):
-                self._bidi("session.end")
-        self.ws.close()
+        with self.lock:
+            if self.ws is None:
+                return
+            try:
+                if self.owns_session:
+                    with contextlib.suppress(Exception):
+                        self._bidi("session.end")
+            finally:
+                self.ws.close()
+                self.ws = None
 
 
 def _with_browser(callback):

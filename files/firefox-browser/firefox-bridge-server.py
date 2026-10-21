@@ -148,7 +148,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("window capability required")
             capability = auth[7:]
             body = json.loads(self.rfile.read(size))
-            with windows.lock:
+            with windows.operation():
                 scope = windows.viewer_scope(capability)
                 if body == {"command": "screenshot"}:
                     result = windows.dispatch("screenshot", {"scope": scope})
@@ -191,14 +191,15 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except BlockingIOError:
-                return self.reply(409, {"status": "error", "message": "shared Firefox endpoint busy; no operation started"})
+                return self.reply(409, {"status": "error", "error": "FIREFOX_BUSY", "outcome": "not_started", "message": "shared Firefox endpoint busy; no operation started"})
             # Child retains this lock even if the HTTP server is refreshed.
             # Only the bridge worker is bounded; Firefox is never terminated.
             budget = min(len(str(payload.get("text") or payload.get("url") or "")), 4096) // 5
             try:
                 windows = getattr(self.server, "windows", None)
                 if windows is not None:
-                    result = windows.lifecycle(payload) if command == "window_lifecycle" else windows.dispatch(command, payload)
+                    with windows.operation():
+                        result = windows.lifecycle(payload) if command == "window_lifecycle" else windows.dispatch(command, payload)
                 else:
                     proc = subprocess.run(
                         [sys.executable, str(Path(__file__).resolve()), "--worker"],
@@ -212,8 +213,11 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("invalid worker response")
                 if len(json.dumps(result).encode()) > MAX_RESPONSE:
                     raise ValueError("bounded window response exceeded")
-            except Exception:
-                result = {"status": "error", "message": "bounded Firefox operation failed or timed out; delivery may be uncertain; retain the action key"}
+            except Exception as exc:
+                if getattr(exc, "code", None) in {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN"}:
+                    result = {"status": "error", "error": getattr(exc, "code"), "outcome": getattr(exc, "outcome"), "message": str(exc)}
+                else:
+                    result = {"status": "error", "error": "FIREFOX_OUTCOME_UNCERTAIN", "outcome": "uncertain", "message": "bounded Firefox operation failed or timed out; read back; retain the action key; do not replay"}
         result["elapsed_ms"] = int((time.monotonic() - started) * 1000)
         self.reply(200, result)
 

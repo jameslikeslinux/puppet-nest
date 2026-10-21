@@ -1088,6 +1088,9 @@ define nest::lib::hermes (
 
     exec { "restart_hermes_gateway_${profile}":
       command     => "/bin/sh -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) ${install_dir}/bin/hermes-systemd-user-refresh hermes-gateway@${profile}.service 300'",
+      # The selected overlay and its importing processes must converge in
+      # the same tagged transaction, including source-only checkout updates.
+      tag         => ['hermes_firefox_bridge', 'hermes_source'],
       refreshonly => true,
       onlyif      => '/usr/bin/test -d /run/systemd/system',
       user        => $user,
@@ -1143,6 +1146,7 @@ define nest::lib::hermes (
 
     exec { "restart_hermes_dashboard_${profile}":
       command     => "/bin/sh -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user try-reload-or-restart hermes-dashboard@${profile}.service'",
+      tag         => ['hermes_firefox_bridge', 'hermes_source'],
       refreshonly => true,
       onlyif      => '/usr/bin/test -d /run/systemd/system',
       user        => $user,

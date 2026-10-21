@@ -4596,6 +4596,8 @@ class CdpBridge:
         self.cdp_url = CDP_ENDPOINT_URL
 
     def __enter__(self) -> str:
+        if os.environ.get('SECURE_BROWSER_CONTROL_MODE') == 'firefox-windows-v3':
+            raise RuntimeError('FIREFOX_RESIDENT_SESSION_REQUIRED: use the HTTPS window bridge; legacy protocol acquisition is disabled')
         _enforce_backend_identity()
         if self.cdp_url:
             self._wait_for_endpoint(self.cdp_url, "secure browser CDP endpoint")
@@ -4652,6 +4654,8 @@ class CdpBridge:
 
 class CdpSession:
     def __init__(self, websocket_url: str, cdp_url: str | None = None) -> None:
+        if os.environ.get('SECURE_BROWSER_CONTROL_MODE') == 'firefox-windows-v3':
+            raise RuntimeError('FIREFOX_RESIDENT_SESSION_REQUIRED: a window is not a separate protocol session')
         self.next_id = 1
         self.cdp_url = cdp_url
         self.protocol = "bidi" if websocket_url.startswith("bidi+") else "cdp"

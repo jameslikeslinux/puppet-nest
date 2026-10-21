@@ -27,6 +27,32 @@ def test_only_one_resident_process_owns_the_registry(tmp_path):
     second.close()
 
 
+def test_dead_controller_process_releases_exclusive_lease(tmp_path):
+    import subprocess
+    import sys
+    source = ROOT / "files/firefox-browser/firefox-bridge-server.py"
+    spec = importlib.util.spec_from_file_location("dead_controller_endpoint", source)
+    endpoint = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(endpoint)
+    path = tmp_path / "controller.lock"
+    child = subprocess.Popen([sys.executable, "-c",
+        "import fcntl,sys; h=open(sys.argv[1],'a+'); fcntl.flock(h,fcntl.LOCK_EX); print('leased',flush=True); sys.stdin.read()", str(path)],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    try:
+        assert child.stdout.readline().strip() == "leased"
+        with pytest.raises(RuntimeError, match="already owns"):
+            endpoint.controller_lease(path)
+        child.kill()
+        child.wait(timeout=5)
+        recovered = endpoint.controller_lease(path)
+        recovered.close()
+    finally:
+        child.kill() if child.poll() is None else None
+        child.wait(timeout=5)
+        child.stdin.close()
+        child.stdout.close()
+
+
 def test_owner_viewer_origin_capability_and_exact_scope(tmp_path):
     spec = importlib.util.spec_from_file_location("window_endpoint", ROOT / "files/firefox-browser/firefox-bridge-server.py")
     endpoint = importlib.util.module_from_spec(spec)

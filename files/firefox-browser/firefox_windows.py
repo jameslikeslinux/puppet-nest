@@ -7,6 +7,7 @@ preserves existing windows; observer reconnects retain the exact native session.
 from __future__ import annotations
 
 import hashlib
+import contextlib
 import http.client
 import importlib.util
 import json
@@ -20,6 +21,14 @@ from urllib.parse import urlsplit
 
 SCOPE = re.compile(r"kanban:[A-Za-z0-9_.-]+:t_[A-Za-z0-9_-]+\Z")
 TERMINAL = {"completed", "cancelled", "denied", "superseded"}
+
+
+class ControlError(RuntimeError):
+    """Fixed public errors; never include native exceptions or page data."""
+    def __init__(self, code, message, outcome="not_started"):
+        super().__init__(message)
+        self.code = code
+        self.outcome = outcome
 
 # Fixed source only. Selectors and text are JSON arguments, never source.
 ELEMENT = """(selector, inputX, inputY) => {
@@ -110,6 +119,16 @@ class Windows:
         except (OSError, ValueError, KeyError, IndexError):
             return False
 
+    @contextlib.contextmanager
+    def operation(self):
+        # Covers owner-viewer and API clients alike; nested dispatch is reentrant.
+        if not self.lock.acquire(timeout=5):
+            raise ControlError("FIREFOX_BUSY", "resident controller busy; no operation started")
+        try:
+            yield
+        finally:
+            self.lock.release()
+
     def _connect(self):
         from secure_browser_local_bidi import CdpSession
         controller = self.state.get("controller")
@@ -163,12 +182,12 @@ class Windows:
             self.browser = None
             self.broken = False  # Reconnect identity, never replay the failed call.
         if self.broken or self.orphaned:
-            raise RuntimeError("window controller identity lost; preserved windows require explicit recovery; no replacement created")
+            raise ControlError("FIREFOX_IDENTITY_LOST", "window controller identity lost; preserved windows require explicit recovery; no replacement created")
         try:
             if self.browser is None:
                 self.browser = self.connect()
             return self.browser._bidi(method, params or {})
-        except Exception as exc:
+        except BaseException as exc:
             # Never reconnect/retry a possibly delivered native operation.
             self.broken = True
             if self.browser is not None:
@@ -176,7 +195,9 @@ class Windows:
                     self.browser.close()
                 except Exception:
                     pass
-            raise RuntimeError("native window operation failed; preserve action key and window; no automatic retry") from exc
+            if not isinstance(exc, Exception):
+                raise
+            raise ControlError("FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "native window operation failed; preserve action key and window; read back before further input; no automatic retry", "uncertain") from exc
 
     def _tree(self):
         return self._call("browsingContext.getTree")["contexts"]
@@ -223,6 +244,8 @@ class Windows:
         with self.lock:
             old = self.state["windows"].get(scope)
             if old:
+                if old.get("state") == "creating":
+                    return self._finish_creation(old)
                 self._resolve(old)
                 return old
             if self.broken or self.orphaned:
@@ -243,19 +266,41 @@ class Windows:
                     self.acquire("owner")
                 if sum(r.get("state") != "closed" for r in self.state["windows"].values()) >= 12:
                     raise RuntimeError("owned window budget reached; no replacement created")
-                record = {"state": "creating", "epoch": self.epoch}
+                record = {"state": "creating", "epoch": self.epoch,
+                          "prior_windows": sorted({c["clientWindow"] for c in tree if c.get("clientWindow")})}
                 self.state["windows"][scope] = record
                 self._save()
                 created = self._call("browsingContext.create", {"type": "window", "background": True})["context"]
-                candidates = [c for c in self._tree() if c["context"] == created]
-                if len(candidates) != 1 or not candidates[0].get("clientWindow") or any(c.get("clientWindow") == candidates[0]["clientWindow"] for c in tree):
-                    raise RuntimeError("new top-level window identity unconfirmed; no replacement permitted")
-                context = candidates[0]
+                # Persist the returned native identity before any further read.
+                # A failed read can then reconcile this exact creation, never
+                # repeat create or infer ownership from URLs or titles.
+                record["context"] = created
+                self._save()
+                return self._finish_creation(record)
             record = {"state": "open", "epoch": self.epoch, "context": context["context"],
                       "window": context["clientWindow"], "viewer": secrets.token_urlsafe(32), "owner": scope == "owner"}
             self.state["windows"][scope] = record
             self._save()
             return record
+
+    def _finish_creation(self, record):
+        if not record.get("context") or record.get("epoch") != self.epoch or "prior_windows" not in record:
+            raise ControlError("FIREFOX_CREATION_UNCERTAIN", "window creation has no retained native identity; preserve windows; explicit recovery required", "uncertain")
+        deadline = time.monotonic() + 2
+        while True:
+            candidates = [c for c in self._tree() if c["context"] == record["context"]]
+            if len(candidates) == 1 and candidates[0].get("clientWindow"):
+                window = candidates[0]["clientWindow"]
+                if window in record["prior_windows"]:
+                    break
+                record.update(state="open", window=window, viewer=secrets.token_urlsafe(32), owner=False)
+                record.pop("prior_windows")
+                self._save()
+                return record
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(.05)
+        raise ControlError("FIREFOX_CREATION_UNCERTAIN", "retained window creation is not yet proven; no replacement or replay permitted", "uncertain")
 
     def lifecycle(self, payload):
         scope = valid_scope(payload.get("scope"))
@@ -338,6 +383,16 @@ class Windows:
     def dispatch(self, command, payload):
         scope = valid_scope(payload.get("scope"))
         with self.lock:
+            if command in {"status", "diagnostics"}:
+                # Observation must not create a window (or orphan a scope).
+                self._tree()
+                return {"status": "ok", "scope": scope, "protocol": "firefox-windows-v3",
+                        "launch_protocol": "firefox-windows-v3", "bidi_available": True, "native_element_available": True,
+                        "browser_generation": self.epoch,
+                        "window_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        "scope_state": self.state["windows"].get(scope, {}).get("state", "unallocated"),
+                        "session_contract": "one bridge-owned classic session; serialized commands; reconnect observer only",
+                        "recovery": "same-generation observer reconnect; unknown creation or generation loss requires explicit recovery; never session.end"}
             record = self.acquire(scope)
             context = self._resolve(record)
             cid = context["context"]
@@ -351,10 +406,6 @@ class Windows:
                 # release is intentionally NOT terminal. Blocked/waiting scopes
                 # and their owner URL survive worker exit and lease expiration.
                 return {**common, "retained": True, "lifecycle": "canonical terminal hook only"}
-            if command in {"status", "diagnostics"}:
-                return {**common, "launch_protocol": "firefox-windows-v3", "bidi_available": True, "native_element_available": True,
-                        "known_limits": ["page viewport only; native browser/extension/security chrome is not in the viewer",
-                                         "browser/driver session loss preserves windows and refuses replacement; observer reconnect retains exact session IDs"]}
             if command == "navigate":
                 url = payload.get("url", "")
                 parsed = urlsplit(url)
