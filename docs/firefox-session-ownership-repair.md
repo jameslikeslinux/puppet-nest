@@ -105,6 +105,23 @@ real typing/replacement, native screenshots, queries, observer reconstruction,
 owner preservation and exact terminal closure. This is a deterministic protocol
 reproduction, not a long graphical-hang soak.
 
+The source-managed Bolt build and publish succeeded. The exact remote digest
+was pulled back successfully:
+`sha256:e86c476ae331d559f5cd2f2db6d16740e1ce4c5a645164f9e2b778bbc198adcb`.
+Its native canary passed, including the competing-session refusal, concurrent
+window creation, unchanged owner focus, typing/replacement without sends,
+distinct screenshot pixels, repeated observer reconnection and terminal
+close/readback. The initial disposable run failed because its exec environment
+lacked `DISPLAY`; rerunning in a fresh disposable container with `DISPLAY=:1`
+passed. This did not touch production state. Local focused fixtures passed,
+as did all ten compatibility scripts, Node viewer checks and `pdk validate`.
+Five selected new regressions failed against the unchanged baseline.
+
+Baked controller SHA256:
+`50c878d88eb1c28e0a9528b8ab8bb0e3bfe23b85e1cc9b189a54f08d3cb4a6e6`.
+Baked endpoint SHA256:
+`4799848a97affeba6af40b0bacc85d6f2a9c2d051296252ee2b4987a98b935a7`.
+
 Build publication alone does not activate production. Managed activation must
 retain the profile PVC and account for owner interruption and unresolved native
 identities. The normal deployment is Recreate; never restart the whole browser
