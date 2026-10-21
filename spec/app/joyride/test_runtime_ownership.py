@@ -44,6 +44,15 @@ class RuntimeOwnership(unittest.TestCase):
         self.assertRegex(data['joyride_image'], r'@sha256:[0-9a-f]{64}$')
         self.assertFalse(resources['app']['spec']['template']['spec']['automountServiceAccountToken'])
 
+    def test_ordinary_ci_deploy_scope_is_test_only(self):
+        data = yaml.safe_load((ROOT / 'data/kubernetes/app/joyride/test.yaml').read_text())
+        containers = data['resources']['app']['spec']['template']['spec']['containers']
+        for container in containers:
+            scopes = next(env['value'] for env in container['env'] if env['name'] == 'OPS_SCOPES').split(',')
+            self.assertIn('deploy:test', scopes)
+            self.assertNotIn('deploy:production', scopes)
+            self.assertNotIn('deploy', scopes)
+
     def test_backup_admission_has_no_authority_and_helper_is_read_only(self):
         for path in ('data/kubernetes/service/joyride-test.yaml',
                      'data/kubernetes/app/joyride/joyride.yaml'):

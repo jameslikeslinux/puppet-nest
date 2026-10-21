@@ -345,7 +345,7 @@ resources:
             - name: STRIPE_MODE
               value: disabled
             - name: OPS_SCOPES
-              value: status,diagnostics,deploy,member:read
+              value: status,diagnostics,deploy:test,member:read
             - name: TEST_MAIL_ALLOWLIST
               value: ''
             envFrom:
