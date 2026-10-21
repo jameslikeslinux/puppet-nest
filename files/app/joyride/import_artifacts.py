@@ -21,18 +21,17 @@ def get(token, path):
 
 
 def recent_pipelines(token):
-    rows = get(token, "/pipelines?status=success&order_by=id&sort=desc&per_page=5")
+    rows = get(token, "/pipelines?order_by=id&sort=desc&per_page=5")
     if not isinstance(rows, list) or len(rows) > 5:
         raise ValueError("invalid pipeline list")
     for row in reversed(rows):
         if (
             type(row.get("id")) is not int
             or row["id"] < 1
-            or row.get("status") != "success"
             or row.get("project_id") != 83
         ):
             raise ValueError("invalid pipeline identity")
-    return [row["id"] for row in reversed(rows)]
+    return [row["id"] for row in reversed(rows) if row.get("status") in ("success", "running")]
 
 
 def verified_evidence(token, pipeline_id):
@@ -41,7 +40,6 @@ def verified_evidence(token, pipeline_id):
     if (
         pipeline.get("id") != pipeline_id
         or pipeline.get("project_id") != 83
-        or pipeline.get("status") != "success"
         or pipeline.get("web_url") != pipeline_url
         or not re.fullmatch(r"[a-f0-9]{40}", pipeline.get("sha", ""))
     ):
@@ -54,6 +52,23 @@ def verified_evidence(token, pipeline_id):
         for name in ("check", "build", "smoke")
     ):
         raise ValueError("required exact-head jobs missing")
+    # An optional preview waits for this independent registration. Do not wait
+    # for that preview to finish before admitting its already tested artifact.
+    preview_only = (
+        pipeline.get("status") == "running"
+        and any(j["name"] == "preview" for j in jobs)
+        and all(
+            j["status"] == "success"
+            or (
+                j["name"] == "preview"
+                and j.get("allow_failure") is True
+                and j["status"] in ("running", "pending", "preparing", "waiting_for_resource")
+            )
+            for j in jobs
+        )
+    )
+    if pipeline.get("status") != "success" and not preview_only:
+        raise ValueError("pipeline has not passed except an active optional preview")
     build = next(j for j in jobs if j["name"] == "build" and j["status"] == "success")
     artifact = get(token, f"/jobs/{build['id']}/artifacts/image.json")
     if (

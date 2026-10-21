@@ -5,4 +5,4 @@
 include:
 - nest::service::joyride
 # Independently reviewed application operational entrypoints; never candidate tags.
-joyride_operations_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:fd794c3de03d6b4a3bab3bb6250c7ba92edc0084ba95562d512d84bd22daacd1
+joyride_operations_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:1b29a9876731c51e7c8fde8699fab6ab551612e8c5d3c803ab2e7de803b27c8d

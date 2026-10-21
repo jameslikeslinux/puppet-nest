@@ -33,16 +33,49 @@ frontend. A ready Deployment alone is not application acceptance. Keep the
 previous image digest available for an explicit reviewed rollback; assess
 schema compatibility before rolling application code back.
 
-The current pin, supplied frontend, database/PVC, private listener, backup and
-monitoring remain unchanged. Only the adapter receives exact named-workload patch
+The supplied frontend, database/PVC, private listener, backup and monitoring
+contracts remain unchanged. Only the adapter receives exact named-workload patch
 authority; this change adds no Kubernetes credential to app containers or CI.
 The adapter's nonsecret journal preserves interrupted-operation identity. Its
 separate delivery credential cannot perform member or production operations.
 
-Application-side signed production receipts and unused evidence publishers still
-need removal in the personal repository. Retain ordinary TEST artifact checks,
-queue status and idempotency. Luna's current self-service acceptance remains
-unfinished until Luna herself performs a benign update and verifies its result.
+Application MR 13 removes signed production receipt consumers and the unused
+evidence publisher. Its merged-main pipeline 10841 passed check/build/smoke and
+published the reviewed multiarchitecture image pinned here. Production delivery
+is unconditionally denied, including with legacy enable variables. Historical
+database records remain for non-destructive upgrades, not new admission.
+
+The importer also discovers running pipelines, but admits one only when required
+check/build/smoke and every other job succeeded and the sole pending work is the
+optional preview. This prevents registration waiting on that preview's completion.
+All exact project/source/pipeline/digest and architecture checks remain. Preview
+waits boundedly for registration and then the terminal controller result; inspect
+its retained `test-deployment.json`, not just the pipeline badge or HTTP 202.
+See the personal application's `docs/delivery-status-contract.md`.
+
+Luna already independently deployed a benign revision through pipeline 10829,
+preview retry 43584. Its first preview hit the registration race. The operator's
+later rollback was not Luna rollback acceptance. The changed waiting/terminal
+contract and Luna's rollback still need live verification after this deployment.
+
+Current cleanup inventory (readback before this rollout):
+
+- Removed from Nest source: signing/custody/supervisor collection and admission
+  framework. Owl reports its supervisor inactive with no loaded supervisor unit;
+  the checked evidence state/configuration directories are absent.
+- Removed from application source: signing consumer/tools/publisher and custom
+  production admission in MR 13. The older installed TEST image still contains
+  that code until this reviewed image is deployed. Preserve historical audit rows.
+- Kept: DB/media, TLS, encrypted runtime/provider/pull/read-only verifier secrets,
+  private Tailscale listener, ordinary health/backup/restore and the small TEST
+  importer/adapter needed by Luna's self-service. Public informational stays put.
+- Remaining: runner execution cleanup. Project 83 still has broad shared/group
+  runners enabled and ordinary jobs select Owl. Dedicated runner 127 and its
+  rootless account/engine/manager remain installed; this is not accepted cleanup.
+  Do not destroy the working path before its minimal replacement is exercised,
+  or retain signing machinery to justify those resources. No host-root/eyaml
+  authority is acceptable for application CI. Dedicated unused credential scope
+  revocation still needs exact consumer checks; never remove useful app secrets.
 
 Before managed activation, inspect pending/running deployment counts and existing
 journal state. Do not replay old operations. After deployment, verify exact RBAC,

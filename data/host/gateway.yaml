@@ -1,4 +1,7 @@
 ---
+# Gateway's retained staged identity uses the new Puppet CA.
+puppet::agent_server_hostname: 'puppet.eyrie'
+
 nest::classes:
   - 'nest::service::gateway'
   - 'nest::service::reverse_proxy'
