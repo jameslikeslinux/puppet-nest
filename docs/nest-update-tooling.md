@@ -196,6 +196,52 @@ reload through the normal service lifecycle before their loaded retention code
 is covered. Verify those process transitions before the bounded real capture;
 do not infer loaded-code identity from a new on-disk checkout alone.
 
+## Durable report export to the supervisor
+
+`nest::host::update_report` reads one existing native transaction and passes its
+sanitized JSON stdout to `nest::retain_update_report` on Bolt's `localhost`.
+It never prepares, resumes, accepts, finalizes, resets or reboots a host. Supply
+the exact expected transaction, release digest and host hostname; the inventory
+alias alone is not an accepted hostname assertion. Missing shared state, missing
+receipt or failed transport stops collection, not a reason to recreate a cycle.
+
+Create a canonical output directory on persistent supervisor storage first.
+With the existing Nest container wrapper, `localhost` is the short-lived Bolt
+container: use `/modules/nest/rollout-evidence/ROUND` backed by the caller's
+project `rollout-evidence/ROUND` directory. An arbitrary container `/tmp` path is
+not durable outside that container. The task intentionally refuses missing or
+symlinked directories. This plan does not create an artifact service or infer
+that a remote path exists on the notification host.
+
+The retained JSON is schema 1, kind `nest_update_retained_report`, with explicit
+`cli_schema` 1 or 2. It projects bounded known host, source, state, identity,
+policy and ordered native phase/command-exit fields from the CLI export. Unknown
+fields, raw command output, environment, exception text and full acceptance
+payloads are not copied. It checks expected host/transaction/release bindings,
+pool and current/target tree associations, phase order, completeness and outcome
+flags. Missing data or a failed command cannot become a prepared outcome.
+The CLI's accepted/finalized flags are labeled `cli_accepted` and
+`cli_finalized`; `acceptance_independently_verified` remains false. Retaining
+the CLI assertion does not validate collector gate artifacts or prove a reboot.
+
+Each observation has a content-addressed filename, preserving previous pending,
+failed and successful reports instead of overwriting the only prior receipt.
+Publication writes/fsyncs a unique temporary file, publishes with a no-clobber
+hard link, fsyncs the directory, reopens exact bytes and parses the retained
+report. Identical concurrent copies are idempotent; conflicting existing bytes
+fail without replacement. The returned receipt includes exact path, SHA256,
+byte and phase counts, host, transaction, release and readback status. Only this
+allowlisted projection is mode 0644; private native receipts remain on the host.
+
+Before completing the enclosing workflow, reopen the corresponding caller-side
+path, verify the returned digest and bindings, and retain that real file through
+the existing task artifact API. This plan proves the producer-to-supervisor
+boundary, not the subsequent notification-host copy or terminal transition.
+Do not list an ephemeral container path as a Kanban deliverable. Report retention
+has no automatic pruning; retain failed evidence and handle future retention
+under release policy. Rollback disables this collection plan without altering
+the native host transaction or its retained reports.
+
 ## Legacy host update safety floor
 
 The existing `nest::host::update` plan still defaults to `reboot=false`.
