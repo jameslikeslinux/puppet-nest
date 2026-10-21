@@ -30,19 +30,19 @@ class ImportTests(unittest.TestCase):
     def response(self, rows):
         return contextlib.closing(io.BytesIO(json.dumps(rows).encode()))
 
-    def test_recent_successful_project_pipelines_oldest_first(self):
-        rows = [dict(id=n, project_id=83, status="success") for n in (12, 11)]
+    def test_recent_candidates_include_running_preview_oldest_first(self):
+        rows = [dict(id=n, project_id=83, status=status) for n, status in
+                ((14, "failed"), (13, "pending"), (12, "running"), (11, "success"))]
         with patch.object(importer, "urlopen", return_value=self.response(rows)) as opened:
             self.assertEqual(importer.recent_pipelines("fixture-token"), [11, 12])
         request = opened.call_args.args[0]
-        self.assertIn("status=success", request.full_url)
+        self.assertNotIn("status=success", request.full_url)
         self.assertEqual(request.headers["Private-token"], "fixture-token")
 
     def test_invalid_pipeline_identity_fails_closed(self):
         for row in (
             dict(id=True, project_id=83, status="success"),
             dict(id=1, project_id=82, status="success"),
-            dict(id=1, project_id=83, status="running"),
         ):
             with self.subTest(row=row), patch.object(importer, "urlopen", return_value=self.response([row])):
                 with self.assertRaises(ValueError):
@@ -69,6 +69,26 @@ class ImportTests(unittest.TestCase):
     def test_missing_readback_is_failure(self):
         with contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(importer.import_pipelines([1], lambda _: False, lambda _: None), 1)
+
+    def test_only_optional_preview_can_remain_active(self):
+        for status in ("running", "pending", "preparing", "waiting_for_resource"):
+            pipeline, jobs, artifact = self.evidence()
+            pipeline["status"] = "running"
+            jobs.append(dict(id=4, name="preview", status=status, allow_failure=True))
+            with self.subTest(status=status), patch.object(importer, "get", side_effect=[pipeline, jobs, artifact]):
+                self.assertEqual(importer.verified_evidence("fixture-token", 12)["digest"], artifact["digest"])
+
+    def test_failed_required_or_unrelated_work_cannot_use_preview_exception(self):
+        for name, status, optional in (("preview", "failed", True), ("preview", "running", False),
+                                       ("other", "running", True), ("check", "failed", False)):
+            pipeline, jobs, artifact = self.evidence()
+            pipeline["status"] = "running"
+            jobs.append(dict(id=4, name=name, status=status, allow_failure=optional))
+            with self.subTest(name=name, status=status, optional=optional), patch.object(
+                importer, "get", side_effect=[pipeline, jobs, artifact]
+            ):
+                with self.assertRaises(ValueError):
+                    importer.verified_evidence("fixture-token", 12)
 
     def test_legacy_architecture_is_not_eligible(self):
         pipeline, jobs, artifact = self.evidence()
