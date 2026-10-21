@@ -34,6 +34,8 @@ class Fixture(BaseHTTPRequestHandler):
         body = (f'<title>Fixture {self.path}</title><body style="background:{color}">'
                 f'<h1>{"Signed in" if logged_in else "Guest"}</h1>'
                 '<textarea id="draft" autofocus></textarea><input id="password" type="password">'
+                '<script>window.sends=0;document.querySelector("#draft").addEventListener("keydown",e=>{'
+                'if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();window.sends++}})</script>'
                 '<button onclick="document.querySelector(\'h1\').textContent=\'Clicked\'">Click</button>'
                 '<p>Subtotal $12.00</p><p>Tax $2.00</p><p>Total $14.00</p>'
                 f'<pre id="long" style="width:300px;white-space:pre-wrap">{long_text}</pre></body>').encode()
@@ -104,17 +106,23 @@ try:
     for scope in scopes:
         engine.dispatch("navigate", {"scope": scope, "url": url + "/alpha"})
     for index, scope in enumerate(scopes):
-        key = "alpha" if index == 0 else "beta"
+        key = "alpha\nsecond line" if index == 0 else "beta"
         emit("fixture-target-geometry", scope=scope, observation=engine._evaluate(bindings[index]["context"],
             "(()=>{const e=document.querySelector('#draft'),r=e.getBoundingClientRect();return {width:innerWidth,height:innerHeight,visibility:document.visibilityState,rect:{x:r.x,y:r.y,w:r.width,h:r.height},hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.localName||null}})()"))
         result = engine.dispatch("selector_action", {"scope": scope, "operation": "type", "selector": "#draft", "mode": "replace", "text": key, "action_key": "canary-" + key})
         emit("typing", scope=scope, status=result["status"], confirmation=result["delivery"])
         assert result["status"] == "input_readback_confirmed"
+        assert engine._evaluate(bindings[index]["context"], "window.sends") == 0
         again = engine.dispatch("selector_action", {"scope": scope, "operation": "type", "selector": "#draft", "mode": "replace", "text": key, "action_key": "canary-" + key})
         assert again["delivery"]["input_sent"] is False
+    inserted = engine.dispatch("selector_action", {"scope": scopes[0], "operation": "type", "selector": "#draft",
+        "text": "\nthird line", "action_key": "canary-multiline-insert"})
+    assert inserted["status"] == "input_readback_confirmed"
+    assert engine._evaluate(bindings[0]["context"], "window.sends") == 0
+    emit("multiline-entry-replacement", confirmed=True, send_count=0)
     assert engine._evaluate(root["context"], 'document.querySelector("#draft").value') == ""
     values = [engine._evaluate(b["context"], 'document.querySelector("#draft").value') for b in bindings]
-    assert values == ["alpha", "beta"]
+    assert values == ["alpha\nsecond line\nthird line", "beta"]
     emit("duplicate-url-input-isolation", confirmed=True, root_empty=True, focus_unchanged=before == focus())
     # Distinct pixel fixtures prove context screenshots are not global capture.
     for index, scope in enumerate(scopes):
@@ -178,12 +186,30 @@ try:
         assert engine._evaluate(bindings[1]["context"], "document.querySelector('#password').value===''") is True
         image = Image.open(io.BytesIO(base64.b64decode(owner({"command": "screenshot"})["png_base64"]))).convert("RGB")
         assert image.getpixel((image.width-20, image.height-20)) == (238, 17, 17)
+        assert owner({"command": "input", "payload": {"kind": "scroll", "x": 20, "y": 100, "deltaX": 0, "deltaY": 500}})["status"] == "ok"
+        deadline = time.monotonic() + 2
+        while engine._evaluate(bindings[0]["context"], "scrollY") == 0 and time.monotonic() < deadline:
+            time.sleep(.1)
+        assert engine._evaluate(bindings[0]["context"], "scrollY") > 0
+        assert engine._evaluate(bindings[1]["context"], "scrollY") == 0
+        emit("owner-scroll", scoped=True, other_unchanged=True)
         emit("owner-viewer-http", bound_pixels=True, scoped_owner_input=True, protected_agent_input_refused=True, focus_unchanged=before == focus())
+        viewer.bridge_token = "synthetic-canary-token"
+        terminal = {"scope": scopes[0], "action": "close", "terminal_event_id": 1, "terminal_status": "completed"}
+        for flag in ["closed", "already_closed"]:
+            request = urllib.request.Request(f"http://127.0.0.1:{viewer.server_port}/_nest/bridge/v1",
+                data=json.dumps({"command": "window_lifecycle", "payload": terminal}).encode(),
+                headers={"Content-Type": "application/json", "Authorization": "Bearer " + viewer.bridge_token})
+            with urllib.request.urlopen(request, timeout=10) as response:
+                receipt = json.load(response)
+            assert receipt["status"] == "ok" and receipt[flag] is True
+            assert all(receipt[k] == v for k, v in terminal.items())
+            assert type(receipt["terminal_event_id"]) is int
+        emit("broker-wire-acknowledgement", exact_terminal_identity=True, closed_then_already_closed=True)
     finally:
         viewer.shutdown()
         viewer.server_close()
     close = {"scope": scopes[0], "action": "close", "terminal_event_id": 1, "terminal_status": "completed"}
-    assert engine.lifecycle(close)["closed"] is True
     assert engine.lifecycle(close)["already_closed"] is True
     assert len(engine._tree()) == 3
     assert any(c["context"] == root_extra for c in engine._tree())

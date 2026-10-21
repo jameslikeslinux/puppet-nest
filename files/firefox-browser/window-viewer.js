@@ -62,6 +62,15 @@ canvas.addEventListener('keydown', event => {
     event.preventDefault(); input({kind: 'key', key: event.key});
   }
 });
+canvas.addEventListener('wheel', event => {
+  event.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const factor = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.height : 1;
+  const bounded = value => Math.max(-2000, Math.min(2000, Math.round(value * factor)));
+  input({kind: 'scroll', x: Math.round((event.clientX - rect.left) * canvas.width / rect.width),
+    y: Math.round((event.clientY - rect.top) * canvas.height / rect.height),
+    deltaX: bounded(event.deltaX), deltaY: bounded(event.deltaY)});
+}, {passive: false});
 document.getElementById('refresh').addEventListener('click', refresh);
 refresh();
 setInterval(refresh, 2000);

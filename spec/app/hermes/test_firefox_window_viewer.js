@@ -34,6 +34,11 @@ async function run(failInput = false) {
   if (!failInput) {
     assert.equal(input.map(request => request.body.payload.key).join(''), 'abcdefghij');
     assert.equal(vm.runInContext('pending', sandbox), 0);
+    listeners.wheel({clientX: 100, clientY: 200, deltaMode: 1, deltaX: 0, deltaY: 300, preventDefault() {}});
+    await vm.runInContext('inputs', sandbox);
+    const wheel = requests.filter(request => request.body.payload?.kind === 'scroll');
+    assert.equal(wheel.length, 1);
+    assert.deepEqual(wheel[0].body.payload, {kind: 'scroll', x: 100, y: 200, deltaX: 0, deltaY: 2000});
   } else {
     assert.equal(input.length, 1);  // No automatic replay or later buffered input.
     assert.equal(vm.runInContext('inputFailed', sandbox), true);

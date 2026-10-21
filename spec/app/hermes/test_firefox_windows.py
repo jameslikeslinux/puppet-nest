@@ -4,6 +4,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -140,6 +141,35 @@ def test_private_session_endpoint_is_literal_and_loopback_only():
             windows.validate_session_endpoint(session, endpoint)
 
 
+def test_public_newline_is_shift_enter_not_submit(engine, monkeypatch):
+    controller, _ = engine
+    calls = []
+    monkeypatch.setattr(controller, "_call", lambda method, payload: calls.append((method, payload)))
+    controller._text_character("bound-context", "\n")
+    assert calls == [("input.performActions", {"context": "bound-context", "actions": [{
+        "type": "key", "id": "window-keyboard", "actions": [
+            {"type": "keyDown", "value": "\ue008"},
+            {"type": "keyDown", "value": "\ue007"},
+            {"type": "keyUp", "value": "\ue007"},
+            {"type": "keyUp", "value": "\ue008"},
+        ]}]})]
+
+
+@pytest.mark.parametrize("text,multiline", [("first\nsecond", False), ("first\tsecond", True), ("first\rsecond", True), ("\ue007", True)])
+def test_invalid_public_control_input_is_rejected_before_action(engine, monkeypatch, text, multiline):
+    controller, native = engine
+    record = controller.acquire(A)
+    monkeypatch.setitem(sys.modules, "secure_browser_local_bidi", SimpleNamespace(
+        CdpSession=SimpleNamespace(_bidi_value=lambda value: {
+            "protected": False, "editable": True, "multiline": multiline})))
+    monkeypatch.setattr(controller, "_function", lambda *args: {"value": [("node", {"sharedId": "element"})]})
+    monkeypatch.setattr(controller, "_summary", lambda cid: {"url": "https://same.example/"})
+    with pytest.raises(ValueError, match="multiline|control characters"):
+        controller._input("type", {"scope": A, "action_key": "invalid-control", "selector": "#draft", "text": text}, record, {})
+    assert controller.state["actions"] == {}
+    assert not any(method == "input.performActions" for method, _ in native.calls)
+
+
 def test_foreign_context_moved_into_window_is_preserved(engine):
     controller, native = engine
     record = controller.acquire(A)
@@ -178,6 +208,23 @@ def test_viewer_capability_has_only_its_own_scope(engine):
     controller.lifecycle(close())
     with pytest.raises(ValueError):
         controller.viewer_scope(a["viewer"])
+
+
+def test_owner_scroll_targets_only_capability_window(engine, monkeypatch):
+    controller, _ = engine
+    record = controller.acquire(A)
+    controller.acquire(B)
+    calls = []
+    monkeypatch.setattr(controller, "_call", lambda method, payload: calls.append((method, payload)))
+    monkeypatch.setattr(controller, "_resolve", lambda record: {})
+    payload = {"kind": "scroll", "x": 20, "y": 40, "deltaX": 0, "deltaY": 500}
+    assert controller.owner_input(record["viewer"], payload)["status"] == "ok"
+    assert len(calls) == 1 and calls[0][1]["context"] == record["context"]
+    assert calls[0][1]["actions"][0]["actions"][0]["deltaY"] == 500
+    for value in [True, float("nan"), 2001, "500"]:
+        with pytest.raises(ValueError):
+            controller.owner_input(record["viewer"], {**payload, "deltaY": value})
+    assert len(calls) == 1
 
 
 def test_same_session_resume_preserves_exact_native_identity(engine, monkeypatch):

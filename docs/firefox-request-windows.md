@@ -60,7 +60,13 @@ modifying the old journal. In particular,
 `joyride-run11909-luna-test-rollback-type` remains unreplayed and uncertain.
 
 Ordinary typing and explicit replacement use native key events with bounded
-page event-loop yields. Returned confirmation distinguishes exact native field
+page event-loop yields. Continued entry preserves an already active field's
+caret/selection rather than clicking its center again. Multiline editable fields
+accept newline text using Shift+Enter; single-line fields, other control
+characters and native special-key payloads remain refused. Shift+Enter is a
+multiline gesture, not a universal guarantee about an application's key handler;
+the original client must still verify its composer without authorizing Send.
+Returned confirmation distinguishes exact native field
 value/active-state/geometry readback from independent screenshot-text agreement:
 `input_readback_confirmed` does not assert that screenshot text was matched.
 The field value itself is not persisted in the action journal. The viewer queues

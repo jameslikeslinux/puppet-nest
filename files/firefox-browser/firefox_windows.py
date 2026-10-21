@@ -36,6 +36,7 @@ ELEMENT = """(selector, inputX, inputY) => {
  const protectedField=e.matches('input[type=password],input[type=hidden],input[type=file]')||
  /password|passcode|verification|one.time|security.code|cvv|cvc|card.number|account.number|routing.number|secret|token|recovery.code/i.test(hint);
  return {node:e, protected:protectedField, editable:(e.matches('input,textarea')||e.isContentEditable)&&!e.readOnly,
+ multiline:e.matches('textarea')||e.isContentEditable,
  x,y};
 }"""
 FIELD = """(e) => ({active:document.activeElement===e,value:e.isContentEditable?e.innerText:e.value,
@@ -324,6 +325,16 @@ class Windows:
         self._call("input.performActions", {"context": context, "actions": [{"type": "key", "id": "window-keyboard",
                     "actions": [action for character in text for action in ({"type": "keyDown", "value": character}, {"type": "keyUp", "value": character})]}]})
 
+    def _text_character(self, context, character):
+        if character == "\n":
+            # Public multiline text is not a Send action. Use the ordinary
+            # multiline gesture, never an unmodified Enter or a Tab focus move.
+            self._call("input.performActions", {"context": context, "actions": [{"type": "key", "id": "window-keyboard", "actions": [
+                {"type": "keyDown", "value": "\ue008"}, {"type": "keyDown", "value": "\ue007"},
+                {"type": "keyUp", "value": "\ue007"}, {"type": "keyUp", "value": "\ue008"}]}]})
+        else:
+            self._keys(context, character)
+
     def dispatch(self, command, payload):
         scope = valid_scope(payload.get("scope"))
         with self.lock:
@@ -495,12 +506,18 @@ class Windows:
         mode = payload.get("mode", "insert")
         if mode not in {"insert", "replace"} or (operation == "type" and (not isinstance(text, str) or not 1 <= len(text) <= 4096 or not details.get("editable"))):
             raise ValueError("bounded public editable text and valid mode required")
-        if operation == "type" and any(ord(c) < 32 or 0xe000 <= ord(c) <= 0xf8ff for c in text):
+        if operation == "type" and any((ord(c) < 32 and c != "\n") or 0xe000 <= ord(c) <= 0xf8ff for c in text):
             raise ValueError("control characters and native special keys cannot be passed as public text")
+        if operation == "type" and "\n" in text and not details.get("multiline"):
+            raise ValueError("multiline public text requires a multiline editable target")
+        focused = CdpSession._bidi_value(self._function(cid, FIELD, [element])) if operation == "type" else {}
         self._resolve(record)
         self.state["actions"][key] = {"scope": payload["scope"], "digest": digest, "state": "started"}
         self._save()
-        self._pointer(cid, details["x"], details["y"])
+        # A click in an already active textarea moves its caret/selection.
+        # Ordinary continued entry must preserve it, not insert at the center.
+        if not focused.get("active"):
+            self._pointer(cid, details["x"], details["y"])
         confirmed = operation == "click"
         if operation == "type":
             before = CdpSession._bidi_value(self._function(cid, FIELD, [element]))
@@ -518,7 +535,7 @@ class Windows:
                     {"type": "keyDown", "value": "\ue009"}, {"type": "keyDown", "value": "a"},
                     {"type": "keyUp", "value": "a"}, {"type": "keyUp", "value": "\ue009"}]}]})
             for character in text:
-                self._keys(cid, character)
+                self._text_character(cid, character)
                 self._evaluate(cid, "new Promise(resolve=>setTimeout(()=>resolve(true),100))")
             after = CdpSession._bidi_value(self._function(cid, FIELD, [element]))
             confirmed = expected is not None and after.get("value") == expected and after.get("active") and after.get("visible")
@@ -549,6 +566,13 @@ class Windows:
             context = record["context"]
             if payload.get("kind") == "pointer" and set(payload) == {"kind", "x", "y"}:
                 self._pointer(context, payload["x"], payload["y"])
+            elif payload.get("kind") == "scroll" and set(payload) == {"kind", "x", "y", "deltaX", "deltaY"}:
+                if any(type(payload[k]) is not int or not 0 <= payload[k] <= 8192 for k in ["x", "y"]):
+                    raise ValueError("bounded owner viewport coordinates required")
+                if any(type(payload[k]) is not int or not -2000 <= payload[k] <= 2000 for k in ["deltaX", "deltaY"]):
+                    raise ValueError("bounded owner scroll required")
+                self._call("input.performActions", {"context": context, "actions": [{"type": "wheel", "id": "window-wheel", "actions": [{
+                    "type": "scroll", "x": payload["x"], "y": payload["y"], "deltaX": payload["deltaX"], "deltaY": payload["deltaY"], "duration": 100}]}]})
             elif payload.get("kind") == "key" and set(payload) == {"kind", "key"}:
                 key = payload["key"]
                 special = {"Enter": "\ue007", "Backspace": "\ue003", "Tab": "\ue004", "Escape": "\ue00c", "ArrowLeft": "\ue012", "ArrowRight": "\ue014", "ArrowUp": "\ue013", "ArrowDown": "\ue015", "Delete": "\ue017"}
