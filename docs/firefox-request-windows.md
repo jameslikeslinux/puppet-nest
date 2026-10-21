@@ -1,9 +1,12 @@
 # Same-session request windows: implementation candidate
 
-This is an opt-in implementation, not a completed production rollout. The
-production mode remains `firefox-bidi-ui-v2`. Neither the browser workload nor
-Hermes host mode is switched by this revision. The existing owner session,
-uncertain drafts, and unrelated windows must not be reset to activate it.
+This is a prepared cutover, not a completed production rollout. The live
+production mode remains `firefox-bidi-ui-v2` until the managed deployment is
+explicitly authorized and applied. Source now pins the verified candidate image
+and stages `firefox-windows-v3` for the browser and Owl's Talon/Star adapters.
+Do not merge/apply this cutover without fresh exact session-interruption
+authority. The existing owner session, uncertain drafts, and unrelated windows
+must not be reset to activate it.
 
 ## Boundary
 
@@ -131,7 +134,12 @@ Then build/pin the source-managed image and host adapter, perform normal merge
 and managed deploy/apply, obtain the usual fresh exact cutover authorization if
 the singleton Recreate rollout will interrupt the owner session, and verify the
 installed source hashes and broker close acknowledgement before enabling its
-outbox. Prove a working owner URL and bounded original-client Luna behavior
+outbox. The managed image at source `3c112c8b7f3cc39e79276cb9bbef3ba9479d2a96`
+passed the baked native canary, including multiline replacement/continued entry,
+owner wheel isolation and exact HTTP close/replay receipts. Source pins its
+verified remote digest:
+`sha256:bb02076454cd67ef67178121483334e294758984c0a1b2aca0f8762eec84451c`.
+Prove a working owner URL and bounded original-client Luna behavior
 without replaying the retained uncertain draft, duplicating a chat, or waiting
 for the whole Joyride application program. Historical-tab uncertainty remains
 preserved; no prolonged hang reproduction or historical-tab acceptance ceremony
