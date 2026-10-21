@@ -388,6 +388,12 @@ def test_source_only_puppet_refresh_restores_adapter_and_support():
         resource = matched.group(1)
         assert "'hermes_source'" in resource, leaf
         assert "Vcsrepo[$source_dir]" in resource, leaf
+    services = (ROOT / "manifests/lib/hermes.pp").read_text()
+    for service in ["gateway", "dashboard"]:
+        matched = re.search(r'exec \{ "restart_hermes_' + service + r'_\$\{profile\}":(.*?)refreshonly', services, re.S)
+        assert matched is not None
+        assert "'hermes_source'" in matched.group(1)
+        assert "'hermes_firefox_bridge'" in matched.group(1)
 
 
 @pytest.mark.parametrize("failure", [TimeoutError, KeyboardInterrupt])

@@ -23,6 +23,13 @@ removals, retaining their ordering after the checkout. This explains how a
 source-only update can reintroduce the incompatible client. The exact historical
 command that performed this checkout was not captured by this investigation.
 
+The existing subscribed gateway/dashboard refresh resources also carry these
+tags, so an overlay change refreshes importing services in the same managed
+transaction. This uses the existing serialized/debounced service-refresh helper,
+not forced reclaim of independent healthy Agent Request workers. A running one-shot worker
+that already imported the old module remains old until that process exits;
+fresh installed-process checks are distinguished from its cached tool results.
+
 Pattern Kit's workbench is a separate pod with its own loopback Firefox and
 `firefox-bidi-ui-v2`. Its source `session.new` is not evidence that it accesses
 the production secure-browser listener. It is not changed by this repair.
