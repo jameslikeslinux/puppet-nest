@@ -62,8 +62,14 @@ later rollback was not Luna rollback acceptance. The changed waiting/terminal
 contract and Luna's rollback still need live verification after this deployment.
 Pipeline 10866 first preview 43738 failed observation during the replacement
 rollout. Retry 43759 used the same idempotency key and deployment identity and
-returned terminal success. Uninterrupted polling is not proven: the application
-client still needs bounded transient-observation handling. Preserve both receipts.
+returned terminal success. Preserve both historical receipts. Application MR 15
+adds bounded transport and gateway retries without changing identity or deadlines;
+authorization, malformed responses and terminal failures remain fail-closed.
+Merged-main pipeline 10892 passed every job on runner 127, including preview
+43885, and independently reached terminal TEST success on the baseline pinned
+here. Billing remains disabled and routine mail off. Checkout binding and
+authoritative reconciliation hardening passed application tests; actual sandbox
+payment, waiver and member-access acceptance are still original-owner work.
 Use the verified actual pre-preview artifact for rollback, not the older delivery
 row's previous_digest: managed deployments and that history can differ.
 
