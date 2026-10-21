@@ -24,6 +24,24 @@ class nest::service::joyride (
   $wmata_api_key_base64          = base64('encode', $runtime_secrets.unwrap['WMATA_API_KEY']).chomp
   $email_host_user_base64        = base64('encode', $runtime_secrets.unwrap['EMAIL_HOST_USER']).chomp
   $email_host_password_base64    = base64('encode', $runtime_secrets.unwrap['EMAIL_HOST_PASSWORD']).chomp
+  # Optional while billing is disabled. Never admit live credentials to TEST.
+  $stripe_keys = {
+    'STRIPE_SECRET_KEY'      => '',
+    'STRIPE_PUBLISHABLE_KEY' => '',
+    'STRIPE_WEBHOOK_SECRET'  => '',
+  } + $runtime_secrets.unwrap
+  $stripe_secret_key             = $stripe_keys['STRIPE_SECRET_KEY']
+  $stripe_publishable_key        = $stripe_keys['STRIPE_PUBLISHABLE_KEY']
+  $stripe_webhook_secret         = $stripe_keys['STRIPE_WEBHOOK_SECRET']
+  if $stripe_secret_key != '' and $stripe_secret_key !~ /^sk_test_/ {
+    fail('Joyride TEST refuses non-sandbox Stripe secret keys')
+  }
+  if $stripe_publishable_key != '' and $stripe_publishable_key !~ /^pk_test_/ {
+    fail('Joyride TEST refuses non-sandbox Stripe publishable keys')
+  }
+  $stripe_secret_key_base64      = base64('encode', $stripe_secret_key).chomp
+  $stripe_publishable_key_base64 = base64('encode', $stripe_publishable_key).chomp
+  $stripe_webhook_secret_base64  = base64('encode', $stripe_webhook_secret).chomp
   $registry_dockerconfig_base64  = base64('encode', $registry_dockerconfig.unwrap).chomp
   $verifier_token_base64         = base64('encode', $artifact_verifier_token.unwrap).chomp
   $artifact_import_base64        = base64('encode', file('nest/app/joyride/import_artifacts.py'))

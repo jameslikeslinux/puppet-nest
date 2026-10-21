@@ -82,7 +82,9 @@ Current cleanup inventory (readback before this rollout):
   All pipeline 10866 jobs ran on it, including terminal preview. Project 83 now
   disables shared and group runners; independent readback lists only runner 127.
   Shared Nest runners are unchanged. Dedicated unused credential scope revocation
-  still needs exact consumer checks; never remove useful app secrets.
+  completed in private MR 13 after source/live consumer checks: only the two
+  dedicated evidence registry readers were revoked. Necessary application,
+  provider, pull, verifier, delivery and runner credentials remain.
 
 Before managed activation, inspect pending/running deployment counts and existing
 journal state. Do not replay old operations. After deployment, verify exact RBAC,
@@ -95,6 +97,14 @@ This is TEST only. Joy has authorized sandbox billing using the exact TEST price
 price_1USr7ARxm5b9CJTLAsfCS7RO. Runtime billing remains disabled until encrypted
 provisioning, the exact webhook transport and application/frontend integration
 are verified; this pin reconciliation does not enable it. Routine mail stays off.
+Private MR 13 supplies the recoverable encrypted sandbox key pair. The TEST
+runtime Secret now projects the existing STRIPE_SECRET_KEY and
+STRIPE_PUBLISHABLE_KEY contract, rejecting non-sandbox prefixes. The optional
+STRIPE_WEBHOOK_SECRET remains empty until real provider registration or an
+official Stripe CLI listener supplies it. Never invent a signing secret or
+register the unreachable private .eyrie URL. Stripe documents its outbound CLI
+listener as an option for private testing without a public gateway; that is not
+proof of registered public-endpoint delivery or production readiness.
 Production member platform activation, payments, member communications and content
 publication retain their separate owner gates. The existing approved public
 informational site and www redirect must not be redeployed for this cleanup.
