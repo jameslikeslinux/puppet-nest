@@ -24,7 +24,7 @@ class nest::base::zfs {
 
     $zfs_mount_activate_be_override = @(EOF)
       [Service]
-      ExecStartPre=-/usr/bin/nest beadm activate
+      ExecStartPre=/usr/bin/nest beadm activate
       | EOF
 
     $zfs_mount_load_key_override = @(EOF)
@@ -46,6 +46,7 @@ class nest::base::zfs {
 
       '/etc/systemd/system/zfs-mount.service.d/10-activate-be.conf':
         content => $zfs_mount_activate_be_override,
+        require => Package['app-admin/nest-cli'],
       ;
 
       '/etc/systemd/system/zfs-mount.service.d/10-load-key.conf':
