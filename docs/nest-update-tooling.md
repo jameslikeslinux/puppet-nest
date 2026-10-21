@@ -94,6 +94,44 @@ does not prove boot, acceptance or finalize; do not infer those transitions from
 
 ## Lifecycle package and compatibility
 
+### Host-local shared transaction state
+
+`nest::update_state` is an explicit host opt-in, initially selected only for
+Owl. The default is false, including excluded consoles. The `nest_update_state`
+tag delivers the helper and enabled `nest-update-state.service`. Offline host
+builds install/enable the unit but never provision storage. On a real host the
+oneshot runs after `zfs-mount.service` and the selected root's `/var/lib` mount.
+It creates only `PARENT/nest-updates`, where the unique current ZFS root is
+`PARENT/ROOT/A` or `PARENT/ROOT/B`, and mounts it at `/var/lib/nest/updates`.
+The dataset is outside ROOT, writable, `canmount=noauto`, root-owned mode 0700.
+The unit is the explicit mount owner; ordinary `zfs mount -al` cannot race it
+ahead of private `/var`. No stop or restart unmounts the state.
+
+The helper binds the root pool and dataset to the stable machine identity using
+`org.nest:host-id`. Existing mismatched bindings, alien datasets/mounts, unsafe
+ancestors, stacked roots, submounts or populated unmounted state paths refuse
+without hiding or moving receipts. It never adopts arbitrary existing datasets,
+relaxes quotas/reserves, changes boot selection, unmounts, deletes or replays a
+transaction. Its private provisioning lock is separate from the CLI transaction
+lock and never unlinked. An interrupted empty owned creation may converge on
+retry; unsafe populated or mounted permissions require inspection, not repair.
+Root-pool placement asserts host-local storage; it is not an independent proof
+of the physical block transport or exclusive pool ownership.
+
+`sudo /usr/local/sbin/nest-update-state --check` reads state without creating
+directories or locks. A successful check confirms provisioning, not a prepared
+transaction. The CLI still refuses a missing immutable generation. Before the
+first A/B exercise, both the accepted root generation and retained rollback
+must contain the managed unit/helper and enabled boot ordering, or their
+boot-time continuity must be provided through an explicitly reviewed path.
+Installing this unit on the running BE alone is not proof of that continuity.
+No inactive BE is mounted or modified merely to manufacture test evidence.
+
+Rollback disables future clients/host opt-in but retains the dataset, binding,
+receipts and installed mount unit until any unresolved lifecycle is resolved.
+Removing the Hiera opt-in deliberately does not destroy or unmount shared state.
+Real A/B mount continuity remains a separately authorized canary requirement.
+
 CLI MR !10 merged as `84f95665bc46519fb27d1f670a5d28b0d515321c` after required
 exact-head pipeline 11036 passed. Overlay MR !5 packages that merge as
 `=app-admin/nest-cli-0.9.0_p20261021-r1::nest`, selected by `nest::base::cli`.

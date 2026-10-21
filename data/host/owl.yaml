@@ -12,6 +12,7 @@ nest::classes:
 nest::bird_role: worker
 nest::distcc_server: true
 nest::dvorak: true
+nest::update_state: true
 # Preserve controller connectivity and the native worker runtime across resets.
 # Puppet owns runtime upgrades; an older image must not replace the dispatcher
 # which resumes the rollout. The venv uses the image's supported Python 3.13.

@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Provision only the dedicated host-local reset receipt filesystem; never reset a BE."""
+
+import argparse
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+
+
+STATE = Path('/var/lib/nest/updates')
+OWNER = 'org.nest:host-id'
+
+
+def run(*args):
+    return subprocess.run(args, check=True, text=True, capture_output=True, timeout=30).stdout.strip()
+
+
+def secure_directory(path, mode=None):
+    info = path.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise RuntimeError('Unsafe state directory or ancestor')
+    if path.resolve() != path or (mode is not None and stat.S_IMODE(info.st_mode) != mode):
+        raise RuntimeError('Noncanonical state directory or wrong mode')
+
+
+def mount_rows():
+    return json.loads(run('/bin/findmnt', '--json', '--list', '--output', 'SOURCE,TARGET,FSTYPE,OPTIONS'))['filesystems']
+
+
+def topology(rows):
+    roots = [row for row in rows if row['target'] == '/']
+    if len(roots) != 1 or roots[0]['fstype'] != 'zfs':
+        raise RuntimeError('One local ZFS root is required')
+    source = roots[0]['source']
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_.:-]+)*/ROOT/[AB]', source):
+        raise RuntimeError('Unsupported root layout; expected parent/ROOT/A or B')
+    parent = source.rsplit('/ROOT/', 1)[0]
+    if 'ROOT' in parent.split('/'):
+        raise RuntimeError('Shared state cannot be below ROOT')
+    return parent.split('/')[0], parent + '/nest-updates'
+
+
+def properties(dataset):
+    # Query the parent recursively so an absent child is distinguishable from a
+    # failed ZFS command. Never interpret command failure as permission to create.
+    parent = dataset.rsplit('/', 1)[0]
+    output = run('/sbin/zfs', 'get', '-H', '-p', '-r', '-d', '1', '-o', 'name,property,value',
+                 'type,mountpoint,canmount,readonly,' + OWNER, parent)
+    return {row[1]: row[2] for line in output.splitlines()
+            if len(row := line.split('\t')) == 3 and row[0] == dataset}
+
+
+def inspect():
+    machine = Path('/etc/machine-id').read_text().strip()
+    if not re.fullmatch(r'[0-9a-f]{32}', machine):
+        raise RuntimeError('Invalid stable machine identity')
+    rows = mount_rows()
+    pool, dataset = topology(rows)
+    binding = run('/sbin/zpool', 'get', '-H', '-o', 'value', OWNER, pool)
+    if binding not in ('-', machine):
+        raise RuntimeError('Pool is bound to another host; refusing rebinding')
+    props = properties(dataset)
+    expected = {'type': 'filesystem', 'mountpoint': str(STATE), 'canmount': 'noauto',
+                'readonly': 'off', OWNER: machine}
+    if props and props != expected:
+        raise RuntimeError('Existing dataset does not match the managed state contract')
+    mounts = [row for row in rows if row['target'] == str(STATE)]
+    for row in rows:
+        if row['target'].startswith(str(STATE) + '/'):
+            raise RuntimeError('Unexpected submount under transaction state')
+        if row['source'] == dataset and row['target'] != str(STATE):
+            raise RuntimeError('State dataset is mounted elsewhere')
+    if mounts and (len(mounts) != 1 or not props or mounts[0]['source'] != dataset or
+                   mounts[0]['fstype'] != 'zfs' or 'rw' not in mounts[0]['options'].split(',')):
+        raise RuntimeError('Unexpected or read-only state mount')
+    for path in (Path('/'), Path('/var'), Path('/var/lib')):
+        secure_directory(path)
+    if STATE.parent.exists() or STATE.parent.is_symlink():
+        secure_directory(STATE.parent)
+    if STATE.exists() or STATE.is_symlink():
+        secure_directory(STATE)
+        if not mounts and any(STATE.iterdir()):
+            raise RuntimeError('Refusing to hide existing per-BE state')
+        if mounts:
+            secure_directory(STATE, 0o700)
+    ready = bool(mounts and binding == machine)
+    return machine, pool, dataset, props, ready
+
+
+def ensure():
+    machine, pool, dataset, props, ready = inspect()
+    if ready:
+        return dataset
+    # All existing storage and path checks precede the first change. Never set a
+    # quota, reserve, boot property, destroy, move a receipt or unmount anything.
+    if not props:
+        run('/sbin/zfs', 'create', '-u', '-o', 'mountpoint=' + str(STATE),
+            '-o', 'canmount=noauto', '-o', 'readonly=off', '-o', OWNER + '=' + machine, dataset)
+    if run('/sbin/zpool', 'get', '-H', '-o', 'value', OWNER, pool) == '-':
+        run('/sbin/zpool', 'set', OWNER + '=' + machine, pool)
+    STATE.parent.mkdir(mode=0o755, exist_ok=True)
+    secure_directory(STATE.parent)
+    STATE.mkdir(mode=0o700, exist_ok=True)
+    secure_directory(STATE)
+    if not any(row['target'] == str(STATE) for row in mount_rows()):
+        if any(STATE.iterdir()):
+            raise RuntimeError('State appeared before mount; refusing to hide it')
+        run('/sbin/zfs', 'mount', dataset)
+        # A new or interrupted empty managed dataset may have ZFS default mode.
+        # Never chmod a populated dataset or its receipts to bypass validation.
+        if any(STATE.iterdir()):
+            secure_directory(STATE, 0o700)
+        else:
+            secure_directory(STATE)
+            STATE.chmod(0o700)
+    if not inspect()[-1]:
+        raise RuntimeError('Shared-state provisioning did not converge')
+    return dataset
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='Read-only: verify without creating directories or locks')
+    args = parser.parse_args()
+    if os.geteuid() != 0:
+        raise RuntimeError('Root execution required')
+    if args.check:
+        _, _, dataset, _, ready = inspect()
+        if not ready:
+            raise RuntimeError('Shared state is not provisioned and mounted')
+    else:
+        fd = os.open('/run/lock/nest-update-state.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'w') as lock:
+            info = os.fstat(lock.fileno())
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_nlink != 1 or stat.S_IMODE(info.st_mode) != 0o600:
+                raise RuntimeError('Unsafe provisioning lock')
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            dataset = ensure()
+    print(json.dumps({'schema': 1, 'kind': 'nest_update_state', 'dataset': dataset,
+                      'path': str(STATE), 'ready': True, 'read_only': args.check}))
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError, KeyError) as error:
+        # Commands may contain machine identity; do not expose their output/args.
+        print(json.dumps({'schema': 1, 'kind': 'nest_update_state', 'ready': False,
+                          'error': str(error) if isinstance(error, RuntimeError) else type(error).__name__}))
+        raise SystemExit(1)

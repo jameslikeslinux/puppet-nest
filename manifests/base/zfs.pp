@@ -2,6 +2,10 @@ class nest::base::zfs {
   tag 'boot'
   tag 'kernel'
 
+  if $nest::update_state and !$nest::zfs {
+    fail('Shared update state requires ZFS')
+  }
+
   if $nest::zfs {
     if $nest::zfs == 'fork' {
       $zfs_env = {
@@ -56,6 +60,48 @@ class nest::base::zfs {
     }
     ~> nest::lib::systemd_reload { 'zfs':
       tag => 'nest_cli_safety',
+    }
+
+    if $nest::update_state {
+      file { '/usr/local/sbin/nest-update-state':
+        mode   => '0755',
+        owner  => 'root',
+        group  => 'root',
+        source => 'puppet:///modules/nest/nest-update-state',
+        tag    => 'nest_update_state',
+      }
+
+      file { '/etc/systemd/system/nest-update-state.service':
+        mode   => '0644',
+        owner  => 'root',
+        group  => 'root',
+        source => 'puppet:///modules/nest/cli/nest-update-state.service',
+        notify => Nest::Lib::Systemd_reload['nest-update-state'],
+        tag    => 'nest_update_state',
+      }
+
+      nest::lib::systemd_reload { 'nest-update-state':
+        tag => 'nest_update_state',
+      }
+
+      # Do not restart on helper changes or unmount on stop. Both BEs must
+      # receive this unit through ordinary managed configuration before use.
+      $update_state_service_ensure = ($facts['build'] or $facts['is_container']) ? {
+        true    => undef,
+        default => running,
+      }
+
+      service { 'nest-update-state':
+        ensure  => $update_state_service_ensure,
+        enable  => true,
+        require => [
+          File['/usr/local/sbin/nest-update-state'],
+          File['/etc/systemd/system/nest-update-state.service'],
+          Nest::Lib::Systemd_reload['nest-update-state'],
+          Package['app-admin/nest-cli'],
+        ],
+        tag     => 'nest_update_state',
+      }
     }
 
     # On systems without ZFS root, the zfs module doesn't get loaded by dracut
