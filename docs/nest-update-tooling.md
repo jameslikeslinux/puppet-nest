@@ -375,6 +375,17 @@ interfaces are unchanged. Rollback stops passing the new optional arguments
 while retaining exact accepted base digests; do not rebuild an old release from
 mutable tags and call it the same release.
 
+## Plain candidate release manifest
+
+`scripts/nest-release-manifest.py` validates independently frozen inputs,
+explicit CPU/platform/variant/host selections, normal/debug output pairs,
+executor/producer identities and consumer decisions. Its default is read-only;
+optional content-addressed retention reopens exact bytes without changing a
+release pointer. See [the implemented record contract](nest-release-manifest.md).
+This is not a registry/ZFS verifier, a live release or a wired build DAG.
+Stage producers, immutable generation publication and alias promotion remain
+integration work. Fixture-only command tests must not be reported as live builds.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive
