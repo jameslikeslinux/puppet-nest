@@ -18,6 +18,8 @@ class nest::app::hermes::install {
   $web_revision_file        = "${install_dir}/.installed-web-revision"
   $npm_dir                 = "${install_dir}/npm"
   $npm_command             = "/usr/bin/node ${npm_dir}/node_modules/npm/bin/npm-cli.js"
+  $build_state             = "${venv_python} ${install_dir}/bin/hermes-build-state"
+  $npm_cli                 = "${npm_dir}/node_modules/npm/bin/npm-cli.js"
 
   # Hermes supports Python 3.11-3.13, independently of Gentoo's default.
   package { 'dev-lang/python:3.13':
@@ -227,6 +229,15 @@ class nest::app::hermes::install {
     require => File["${install_dir}/bin"],
   }
 
+  file { "${install_dir}/bin/manage-glab-config":
+    ensure  => file,
+    source  => 'puppet:///modules/nest/app/hermes/manage-glab-config.py',
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    require => File["${install_dir}/bin"],
+  }
+
   file { "${source_dir}/tools/secure_browser_oauth_tool.py":
     ensure  => file,
     source  => 'puppet:///modules/nest/app/hermes/secure_browser_oauth_tool.py',
@@ -334,10 +345,21 @@ class nest::app::hermes::install {
     require     => [Class['nodejs'], File[$npm_dir]],
   }
 
+  file { "${install_dir}/bin/hermes-build-state":
+    ensure  => file,
+    source  => 'puppet:///modules/nest/app/hermes/hermes-build-state.py',
+    mode    => '0755',
+    owner   => 'root',
+    group   => 'root',
+    require => File["${install_dir}/bin"],
+  }
+
+  # Relevant workspace inputs and output bytes, not UI copy or minified
+  # identifiers, establish whether the last successful build is still valid.
   exec { 'build_hermes_tui':
-    command     => "${npm_command} ci --silent --no-fund --no-audit --progress=false && ${npm_command} run build && git -C ${source_dir} rev-parse HEAD > ${tui_revision_file}",
+    command     => "${npm_command} ci --silent --no-fund --no-audit --progress=false && ${npm_command} run build && ${build_state} record ${source_dir} tui ${tui_revision_file}.json ${npm_cli} && git -C ${source_dir} rev-parse HEAD > ${tui_revision_file}",
     cwd         => "${source_dir}/ui-tui",
-    unless      => "test \"$(git -C ${source_dir} rev-parse HEAD)\" = \"$(cat ${tui_revision_file} 2>/dev/null)\" && test -f ${source_dir}/ui-tui/dist/entry.js && test -d ${source_dir}/ui-tui/node_modules && /bin/grep -q 'RICH_OPEN_RE' ${source_dir}/ui-tui/dist/entry.js && /bin/grep -q 'NO_BANNER_LOGO' ${source_dir}/ui-tui/dist/entry.js",
+    unless      => "${build_state} check ${source_dir} tui ${tui_revision_file}.json ${npm_cli}",
     environment => [
       'HOME=/root',
       'NPM_CONFIG_CACHE=/root/.npm',
@@ -347,6 +369,8 @@ class nest::app::hermes::install {
     require     => [
       Vcsrepo[$source_dir],
       Exec['install_hermes_npm'],
+      File["${install_dir}/bin/hermes-build-state"],
+      Python::Pyvenv[$venv_dir],
     ],
   }
 
@@ -495,14 +519,19 @@ class nest::app::hermes::install {
     }
 
     exec { 'build_hermes_dashboard_web':
-      command => "${npm_command} install --silent && ${npm_command} run build && git -C ${source_dir} rev-parse HEAD > ${web_revision_file}",
-      unless  => "test \"$(git -C ${source_dir} rev-parse HEAD)\" = \"$(cat ${web_revision_file} 2>/dev/null)\" && test -f ${source_dir}/hermes_cli/web_dist/index.html && /bin/grep -q 'Awaiting human review' ${source_dir}/hermes_cli/web_dist/assets/*.js",
+      # Both workspaces consume the root lockfile. Do not rewrite a shared
+      # build input with npm install after recording the TUI build state.
+      command => "${npm_command} ci --silent --no-fund --no-audit --progress=false && ${npm_command} run build && ${build_state} record ${source_dir} web ${web_revision_file}.json ${npm_cli} && git -C ${source_dir} rev-parse HEAD > ${web_revision_file}",
+      unless  => "${build_state} check ${source_dir} web ${web_revision_file}.json ${npm_cli}",
       cwd     => "${source_dir}/web",
       path    => ['/bin', '/usr/bin', '/usr/sbin'],
       require => [
         Class['nodejs'],
         Vcsrepo[$source_dir],
         Exec['install_hermes_npm'],
+        Exec['build_hermes_tui'],
+        File["${install_dir}/bin/hermes-build-state"],
+        Python::Pyvenv[$venv_dir],
       ],
     }
   }
