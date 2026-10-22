@@ -105,12 +105,12 @@ def expectations(value: Any):
             and value["kind"] == "nest_release_expectations", "expectations: unsupported schema/kind")
     match(value["release"], TOKEN, "release")
     sources = value["sources"]
-    require(type(sources) is dict and 3 <= len(sources) <= 128, "sources: invalid inventory")
+    require(type(sources) is dict and 4 <= len(sources) <= 128, "sources: invalid inventory")
     for project, sha in sources.items():
         match(project, PROJECT, "source project")
         match(sha, SHA, "source SHA")
-    require({"nest/config", "nest/overlay", "nest/gentoo/portage"} <= set(sources),
-            "sources: missing config, overlay or Portage")
+    require({"nest/config", "nest/overlay", "nest/gentoo/portage", "nest/gentoo/haskell"} <= set(sources),
+            "sources: missing config, overlay, Portage or Haskell")
     fields(value["executor"], "source image", "executor")
     require(value["executor"]["source"] == sources["nest/config"], "executor: stale config source")
     match(value["executor"]["image"], IMAGE, "executor image")

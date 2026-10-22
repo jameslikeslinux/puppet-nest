@@ -54,8 +54,11 @@ The top-level fields are exactly:
 - `release`: lowercase name, starting with an alphanumeric character, followed
   by alphanumeric, dot, underscore or hyphen; maximum 128 characters.
 - `sources`: map of exact `nest/...` project paths to lowercase 40-hex Git SHAs.
-  Config, overlay and Gentoo Portage are mandatory. Each selected producer's
-  project must also be present. Branch names, tags and short SHAs are not pins.
+  Config, overlay, Gentoo Portage and `nest/gentoo/haskell` are mandatory. Each
+  selected producer's project must also be present. Branch names, tags and short
+  SHAs are not pins. Earlier schema-1 expectation records that omitted Haskell
+  are now rejected: retain those historical records, but do not silently add a
+  current Haskell tip and call their original input closure complete.
 - `executor`: exactly `source` and `image`. Source must equal `sources` entry
   `nest/config`. Image must be a repository-qualified OCI `@sha256:` reference
   with 64 lowercase hexadecimal digits. It records expected executor identity,

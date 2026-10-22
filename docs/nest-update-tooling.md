@@ -496,11 +496,11 @@ The JSON helper receipt records the three consumed SHAs; it is not a signature
 or full build attestation. Repository volumes are build inputs, not image layers
 promised in the published output. Distfiles/binpkg policy, upstream fetches and
 other unpinned sources remain distinct reproducibility limits. The release
-record and real CI producers must still bind this complete selection, exact
-executor/config/module identity and resulting digests; the current manifest
-contract does not yet account for Haskell. Stage 0/3 consumption, producer records,
-versioned host roots, promotion and the repository DAG remain unfinished. No
-actual OS build or candidate publication was run for these fixtures.
+record now requires the Haskell source as well as Portage/overlay/config. Real
+CI producers must still bind this complete selection, exact executor/config/module
+identity and resulting digests. Producer records, versioned host roots, promotion
+and the repository DAG remain unfinished. No actual OS build or candidate
+publication was run for these fixtures.
 
 Pipeline 11125's three architecture builds and executor publication succeeded
 at `3ee96818c546104061c8cf39029337931d4adc39`. The amd64 member
@@ -510,6 +510,48 @@ publisher bytes matched the accepted source. That previous executor contains
 candidate publication, not the new frozen-input interface until its own merged
 publication is verified. Rollback stops passing `repo_revisions`; do not call a
 mutable-source rebuild the same frozen release or erase earlier build receipts.
+
+## Stage 0/3 frozen repository consumption
+
+The existing Stage 0 and Stage 3 plans also accept the same complete optional
+`repo_revisions` hash, using the shared helper described above. Frozen mode
+requires `build=true`, `init=true` and a repository-qualified exact base digest:
+Stage 0 uses `from_image`; Stage 3 uses `stage2_image`. All repository/base checks
+run before container or volume removal. Partial pins, mutable bases, existing
+containers and deploy-only calls refuse without entering the build.
+
+Each frozen build recreates only its named `CONTAINER-frozen-repos` volume and
+mounts it at `/var/db/repos:nocopy`. Stage 0 no longer uses its legacy repository
+cache in this mode; Stage 3 hides inherited image repositories rather than
+modifying them in place. Preparation runs before configuration bootstrap. Both
+plans skip mutable repository sync and check exact detached clean sources after
+profile/configuration and again before output publication. Fetch or drift errors
+stop the native plan; they do not trigger implicit retry or cache repair.
+
+Stage 0's frozen path currently supports the existing Git-capable Nest base
+workflow, not raw Gentoo bootstrap. The legacy `gentoo` image-name branch refuses
+in frozen mode before removal, rather than attempting a floating Git install or
+`emerge --sync`. This preserves the old nonfrozen Gentoo bootstrap path unchanged.
+The image name is not proof of installed tools: a selected base without the
+required Git/Python runtime fails normally; it does not fetch a replacement base.
+Stage 0 still derives debug symbols from the same build, not a separately consumed
+debug base. No candidate-only output interface is added to Stage 0 here; its
+ordinary `deploy=true` still updates mutable CPU tags.
+
+Stage 3's private identity source, remote Puppet environment and rsync destination
+are unchanged. Repository pins do not freeze a remote Puppet catalog, verify a
+firmware family, or make `/nest/hosts/HOST` immutable. Its ordinary deploy path
+still publishes via the existing rsync operation; do not invoke it to test this
+interface or label it versioned generation publication. No host reset/reboot,
+identity migration or source transfer is performed by the frozen-input helper.
+
+Actual-plan mock regressions cover prerequisite refusal before exact destructive
+commands, no sync, isolated volume arguments, two checks, fetch failure, catalog
+drift and the legacy path. They are not full package/catalog/OS builds. Together
+with mandatory Haskell metadata this completes another R06 input component, not
+the real CI producer/DAG, resource verification, immutable roots or promotion.
+Rollback stops supplying `repo_revisions`; retained historic manifests without
+Haskell remain historical incomplete-input records, not newly accepted releases.
 
 ## Operational authority and rollback
 
