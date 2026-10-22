@@ -10,8 +10,8 @@ cert_issuer: eyrie-ca
 cert_issuer_kind: ClusterIssuer
 ingress_class: contour-compute
 node_role: compute
-image: registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:e86c476ae331d559f5cd2f2db6d16740e1ce4c5a645164f9e2b778bbc198adcb
-image_revision: 'ac1113a6aa094830acaf99bf53e9473e1592f22e'
+image: registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:1f5335471cd08b7c54260cf9da7c3b477914fa95ca4688c56548373ec34c5cf4
+image_revision: '3265998926ab56d1e1da444a78218637220fcbb2'
 launch_url: ''
 app_args: ''
 control_protocol: firefox-windows-v3
