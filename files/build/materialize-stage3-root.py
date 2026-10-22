@@ -61,9 +61,11 @@ def volume(container):
     return row, path
 
 
-def copy(source, destination):
+def copy(source, destination, layer=False):
     command(['rsync', '--archive', '--acls', '--hard-links', '--xattrs', '--numeric-ids',
-             '--modify-window=-1', '--one-file-system', '--', str(source) + '/', str(destination) + '/'])
+             '--modify-window=-1', '--one-file-system',
+             *(['--exclude=/var/db/repos/*'] if layer else []),
+             '--', str(source) + '/', str(destination) + '/'])
 
 
 def no_submounts(path):
@@ -128,16 +130,19 @@ def materialize(container, path, guid, receipts):
             require(entry.is_dir() and not entry.is_symlink())
         source_digest = ROOT.content_digest(source)
         repos_digest = ROOT.content_digest(repositories)
+        assembled_digest = ROOT.content_digest(source, repositories=repositories)
         require(inspect(container) == before and volume(container)[0] == source_volume)
         exclusive_volume(container, before['Id'])
-        copy(source, target)
-        require(ROOT.content_digest(target) == source_digest)
-        # The mounted volume replaces the image's hidden repository directory.
-        # Require it empty rather than silently mixing stale image repositories.
+        # Preserve the mountpoint but do not copy its hidden image payload.
+        # The complete volume replaces that subtree, just as in the build.
+        # No source mutation, target deletion or generic exclusion is allowed.
+        copy(source, target, layer=True)
         require(not os.listdir(target / 'var/db/repos'))
         copy(repositories, target / 'var/db/repos')
         require(ROOT.content_digest(target / 'var/db/repos') == repos_digest)
+        require(ROOT.content_digest(target) == assembled_digest)
         require(ROOT.content_digest(source) == source_digest and ROOT.content_digest(repositories) == repos_digest)
+        require(ROOT.content_digest(source, repositories=repositories) == assembled_digest)
         require(inspect(container) == before and volume(container)[0] == source_volume)
         exclusive_volume(container, before['Id'])
         no_submounts(source)
@@ -150,6 +155,7 @@ def materialize(container, path, guid, receipts):
         sealed = PUB.filesystem(target, 'on', guid)
         require(sealed == destination[:4] + ['on'])
         digest = ROOT.content_digest(target)
+        require(digest == assembled_digest)
         require(PUB.filesystem(target, 'on', guid) == sealed)
         result = {'schema': 1, 'kind': 'nest_stage3_materialized_root', 'container': before['Id'],
                   'path': str(target), 'dataset_guid': guid, 'content_digest': digest}

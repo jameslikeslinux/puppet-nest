@@ -65,7 +65,7 @@ def metadata(info):
             info.st_mtime_ns, info.st_ctime_ns, info.st_dev, info.st_ino, info.st_nlink, info.st_rdev]
 
 
-def content_digest(root):
+def content_digest(root, repositories=None):
     """Hash exact bytes and restore-relevant metadata, never emit per-file hashes.
 
     The versioned publication is private: its root contains host key material.
@@ -74,14 +74,26 @@ def content_digest(root):
     digest = hashlib.sha256(b'nest-stage3-root-v1\0')
     links = {}
     device = root.lstat().st_dev
+    if repositories is not None:
+        # Model exactly the frozen build's repository mount, not arbitrary
+        # exclusions. The ordinary sealed-root admission never supplies this.
+        require(root.resolve(strict=True) == root and repositories.resolve(strict=True) == repositories)
+        require(root != repositories and root not in repositories.parents and repositories not in root.parents)
+        for relative in ['var', 'var/db', 'var/db/repos']:
+            entry = root / relative
+            require(entry.is_dir() and not entry.is_symlink())
+        require(repositories.is_dir() and not repositories.is_symlink())
 
     def frame(value):
         digest.update(len(value).to_bytes(8, 'big'))
         digest.update(value)
 
-    def visit(path, relative):
+    def visit(path, relative, expected_device):
+        if repositories is not None and relative == './var/db/repos':
+            path = repositories
+            expected_device = repositories.lstat().st_dev
         before = path.lstat()
-        require(before.st_dev == device)
+        require(before.st_dev == expected_device)
         mode = before.st_mode
         require(stat.S_ISDIR(mode) or stat.S_ISREG(mode) or stat.S_ISLNK(mode)
                 or stat.S_ISCHR(mode) or stat.S_ISBLK(mode) or stat.S_ISFIFO(mode))
@@ -94,7 +106,7 @@ def content_digest(root):
             frame(os.getxattr(path, name, follow_symlinks=False))
         if stat.S_ISDIR(mode):
             for name in sorted(os.listdir(path), key=os.fsencode):
-                visit(path / name, relative + '/' + name)
+                visit(path / name, relative + '/' + name, expected_device)
         elif stat.S_ISLNK(mode):
             frame(os.fsencode(os.readlink(path)))
         elif stat.S_ISREG(mode):
@@ -123,7 +135,7 @@ def content_digest(root):
                     os.close(descriptor)
         require(metadata(path.lstat()) == metadata(before))
 
-    visit(root, '.')
+    visit(root, '.', device)
     return 'sha256:' + digest.hexdigest()
 
 
