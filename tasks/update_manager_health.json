@@ -1,0 +1,6 @@
+{
+  "description": "Read bounded system failures and every actual operational systemd user manager without clearing failures or recording update acceptance",
+  "input_method": "stdin",
+  "supports_noop": true,
+  "parameters": {}
+}
