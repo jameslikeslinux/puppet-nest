@@ -25,7 +25,8 @@ def image(n):
 
 
 def fixture():
-    sources = {"nest/config": "a" * 40, "nest/overlay": "b" * 40, "nest/gentoo/portage": "c" * 40}
+    sources = {"nest/config": "a" * 40, "nest/overlay": "b" * 40, "nest/gentoo/portage": "c" * 40,
+               "nest/gentoo/haskell": "d" * 40}
     expected = {"schema": 1, "kind": "nest_release_expectations", "release": "fixture-only",
                 "sources": sources, "executor": {"source": sources["nest/config"], "image": image(1)},
                 "members": [], "consumers": []}
@@ -124,6 +125,16 @@ class ReleaseManifestTest(unittest.TestCase):
         self.expected, self.candidate = fixture()
         self.candidate["outputs"][2]["executor"]["image"] = image(999)
         with self.assertRaisesRegex(release.Invalid, "stale executor"):
+            self.validate()
+
+    def test_haskell_is_required_and_changes_invalidate_the_frozen_selection(self):
+        del self.expected["sources"]["nest/gentoo/haskell"]
+        self.reseal()
+        with self.assertRaisesRegex(release.Invalid, "missing.*Haskell"):
+            self.validate()
+        self.expected, self.candidate = fixture()
+        self.expected["sources"]["nest/gentoo/haskell"] = "e" * 40
+        with self.assertRaisesRegex(release.Invalid, "changed inputs/matrix"):
             self.validate()
 
     def test_producer_source_project_and_numeric_ids(self):

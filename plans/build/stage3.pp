@@ -18,6 +18,7 @@
 # @param profile Switch to this profile
 # @param qemu_user_targets CPU architectures to emulate
 # @param rsync_private_key_var Environment variable for rsync private key
+# @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync
 # @param stage2_image Exact Stage2 image reference; defaults to platform/variant tag
 plan nest::build::stage3 (
   String            $container,
@@ -37,8 +38,24 @@ plan nest::build::stage3 (
   Optional[String]  $profile               = undef,
   Array[String]     $qemu_user_targets     = lookup('nest::build::qemu_user_targets', default_value => []),
   String            $rsync_private_key_var = 'NEST_RSYNC_PRIVATE_KEY',
+  Optional[Hash]    $repo_revisions        = undef,
   Optional[String]  $stage2_image          = undef,
 ) {
+  if $repo_revisions != undef {
+    assert_type(Struct[{
+      'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
+      'nest'    => Pattern[/\A[0-9a-f]{40}\z/],
+      'haskell' => Pattern[/\A[0-9a-f]{40}\z/],
+    }], $repo_revisions)
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $stage2_image)
+    unless $build and $init {
+      fail('Frozen Stage 3 repositories require build, init and an exact Stage 2 base')
+    }
+    $repos_volume_arg = "--volume=${container}-frozen-repos:/var/db/repos:nocopy"
+    $repo_args = [$repo_revisions['gentoo'], $repo_revisions['nest'], $repo_revisions['haskell']]
+  } else {
+    $repos_volume_arg = ''
+  }
   $ssh_auth_sock = system::env('SSH_AUTH_SOCK')
   $target = Target.new(name => $hostname, uri => "podman://${container}")
   $base_image = $stage2_image ? {
@@ -48,6 +65,9 @@ plan nest::build::stage3 (
 
   if $init {
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
+    if $repo_revisions != undef {
+      run_command("podman volume rm -f ${container}-frozen-repos", 'localhost', 'Remove previous isolated build repositories')
+    }
 
     if !empty($ssh_auth_sock) and run_command("test -S ${ssh_auth_sock}", 'localhost', 'Check SSH_AUTH_SOCK', '_catch_errors' => true).ok {
       $ssh_auth_sock_volume = "--volume=${ssh_auth_sock}:${ssh_auth_sock}:ro"
@@ -64,6 +84,7 @@ plan nest::build::stage3 (
       --pull=always \
       --volume=/falcon:/falcon \
       --volume=/nest:/nest \
+      ${repos_volume_arg} \
       ${ssh_auth_sock_volume} \
       ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       ${base_image.shellquote} \
@@ -76,6 +97,9 @@ plan nest::build::stage3 (
   if $build {
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['prepare'] + $repo_args)
+    }
     apply_prep($target)
 
     # Preserve and restore host identity info
@@ -140,7 +164,9 @@ plan nest::build::stage3 (
       }
     }.nest::print_report
 
-    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    if $repo_revisions == undef {
+      run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    }
 
     if $profile {
       run_command("eselect profile set nest:${profile}", $target, "Switch to profile ${profile}")
@@ -157,6 +183,9 @@ plan nest::build::stage3 (
     run_command("sh -c 'echo profile > /.apply_tags'", $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet apply settings')
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     # Make the system consistent with the profile
     run_command('emerge --info', $target, 'Show Portage configuration')
@@ -174,6 +203,9 @@ plan nest::build::stage3 (
     run_command("sh -c ${puppet_script.shellquote}", $target, 'Configure the host image', '_env_vars' => {
       'FACTER_build' => 'stage3',
     })
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }

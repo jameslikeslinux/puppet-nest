@@ -15,6 +15,7 @@
 # @param registry_username Username for registry
 # @param registry_password Password for registry
 # @param registry_password_var Environment variable for registry password
+# @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync; Nest bases only
 plan nest::build::stage0 (
   String           $container,
   String           $cpu,
@@ -29,9 +30,26 @@ plan nest::build::stage0 (
   Optional[String] $registry_username     = lookup('nest::build::registry_username', default_value => undef),
   Optional[String] $registry_password     = lookup('nest::build::registry_password', default_value => undef),
   String           $registry_password_var = 'NEST_REGISTRY_PASSWORD',
+  Optional[Hash]   $repo_revisions        = undef,
 ) {
   $debug_volume = "${container}-debug"
-  $repos_volume = "${container}-repos" # cached between builds
+  if $repo_revisions != undef {
+    assert_type(Struct[{
+      'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
+      'nest'    => Pattern[/\A[0-9a-f]{40}\z/],
+      'haskell' => Pattern[/\A[0-9a-f]{40}\z/],
+    }], $repo_revisions)
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image)
+    unless $build and $init and $from_image !~ /gentoo/ {
+      fail('Frozen Stage 0 repositories require build, init and an exact existing Nest base; Gentoo bootstrap is not supported')
+    }
+    $repos_volume = "${container}-frozen-repos"
+    $repos_volume_options = ':nocopy'
+    $repo_args = [$repo_revisions['gentoo'], $repo_revisions['nest'], $repo_revisions['haskell']]
+  } else {
+    $repos_volume = "${container}-repos" # cached between legacy builds only
+    $repos_volume_options = ''
+  }
   $target = Target.new(name => $container, uri => "podman://${container}")
   $qemu_args = $qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')
 
@@ -55,6 +73,9 @@ plan nest::build::stage0 (
   if $init {
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
+    if $repo_revisions != undef {
+      run_command("podman volume rm -f ${repos_volume}", 'localhost', 'Remove previous isolated build repositories')
+    }
 
     # Use Nest DNS like the config image/CI runners, not Podman's public fallback.
     # Note: initial LANG applies to all downstream containers
@@ -67,9 +88,9 @@ plan nest::build::stage0 (
       --pull=always \
       --volume=/nest:/nest \
       --volume=${debug_volume}:/usr/lib/debug \
-      --volume=${repos_volume}:/var/db/repos \
+      --volume=${repos_volume}:/var/db/repos${repos_volume_options} \
       ${qemu_args} \
-      ${from_image} \
+      ${from_image.shellquote} \
       sleep infinity
       | CREATE
 
@@ -89,7 +110,9 @@ plan nest::build::stage0 (
     }
 
     # Prepare the base image for OpenVox
-    if $from_image =~ /gentoo/ {
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['prepare'] + $repo_args)
+    } elsif $from_image =~ /gentoo/ {
       run_command('sed -i "s@^sync-uri =.*@sync-uri = rsync://rsync.us.gentoo.org/gentoo-portage/@" /usr/share/portage/config/repos.conf', $target, 'Use Gentoo US rsync mirror')
       run_command('rm -rf /var/db/repos/gentoo/.git', $target, 'Prepare Gentoo repo for rsync')
       run_command('emerge --sync', $target, 'Sync Portage tree')
@@ -126,6 +149,10 @@ plan nest::build::stage0 (
       include nest
     }.nest::print_report
 
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
+
     # Rebuild the image with our profile
     run_command("eselect profile set nest:${cpu}/server", $target, 'Set profile')
     run_command('emerge --info', $target, 'Show Portage configuration')
@@ -155,6 +182,10 @@ plan nest::build::stage0 (
     # provider after cleanup, before either normal or debug image is published.
     # Providers must remain dependency-owned, not accumulate new world roots.
     run_script('nest/build/stage0-runtime.rb', $target, 'Check post-depclean Stage 1 runtime', arguments => ['--dependency-owned-providers', '--provider-dependencies'], _timeout => 120)
+
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
