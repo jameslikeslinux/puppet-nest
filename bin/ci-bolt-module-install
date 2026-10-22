@@ -89,32 +89,33 @@ module_diagnostics() {
 }
 
 on_error() {
-  local status=$?
+  local exit_code=$1
 
-  log_section "bolt module install failed with status ${status}"
+  log_section "bolt module install failed with status ${exit_code}"
   network_diagnostics
   module_diagnostics
-
-  return "$status"
 }
 
 main() {
   cd "$BOLT_PROJECT"
 
-  log_section 'SSH agent setup'
-  eval "$(ssh-agent -s)"
-  trap 'ssh-agent -k >/dev/null 2>&1 || true' EXIT
-  ssh-add "$NEST_CI_SSH_KEY"
-
   network_diagnostics
 
-  trap on_error ERR
   log_section 'Installing Bolt project modules'
-  bolt module install --log-level debug
-  trap - ERR
-
-  log_section 'Installed modules'
-  find "$BOLT_PROJECT/.modules" -maxdepth 2 -mindepth 1 -type d | sort
+  if bolt module install --log-level debug; then
+    log_section 'Installed modules'
+    find "$BOLT_PROJECT/.modules" -maxdepth 2 -mindepth 1 -type d | sort
+  else
+    local exit_code=$?
+    on_error "$exit_code" || true
+    exit "$exit_code"
+  fi
 }
+
+log_section 'SSH agent setup'
+eval "$(ssh-agent -s)"
+# Keep cleanup at script scope and explicitly exit after module failure.
+trap 'ssh-agent -k >/dev/null 2>&1 || true' EXIT
+ssh-add "$NEST_CI_SSH_KEY"
 
 main "$@"
