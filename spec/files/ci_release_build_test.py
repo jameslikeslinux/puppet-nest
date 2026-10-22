@@ -26,9 +26,9 @@ if os.environ.get('FAIL_BUILD'):
 if os.environ.get('CHANGE_MODULE'):
     (pathlib.Path(os.environ['EXECUTOR']) / '.modules/stdlib/data').write_text('changed')
 stage = sys.argv[3].split('::')[-1]
-repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool', 'bolt') else '')
+repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool', 'bolt', 'agent') else '')
 row = ({'normal': repo + '@sha256:' + 'c' * 64, 'debug': repo + '/debug@sha256:' + 'd' * 64}
-       if stage not in ('stage2', 'tool', 'bolt') else {'image': repo + '@sha256:' + 'c' * 64})
+       if stage not in ('stage2', 'tool', 'bolt', 'agent') else {'image': repo + '@sha256:' + 'c' * 64})
 if stage == 'stage3':
     row = {'root': {'path': p['hostroot'], 'dataset_guid': '456', 'content_digest': 'sha256:' + 'c' * 64}}
     bad = os.environ.get('BAD_ROOT')
@@ -253,6 +253,47 @@ class CandidateBuildTest(unittest.TestCase):
             self.assertEqual(self.cli().returncode, 1)
         self.assertEqual(self.calls(), [])
 
+    def test_agent_candidate_preserves_wrapper_mode_and_retained_digest(self):
+        for mode in ("fresh", "refresh"):
+            self.select("tool", mode, "agent")
+            self.expected["members"][0]["cpu"] = "zen5"
+            self.output = self.root / ("agent-" + mode)
+            self.output.mkdir()
+            result = self.cli()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            call = self.calls()[-1]
+            self.assertEqual(call["args"][2], "nest::build::agent")
+            params = call["params"]
+            self.assertEqual(params["cpu"], "zen5")
+            self.assertEqual(params["refresh"], mode == "refresh")
+            self.assertEqual(params["from_image"], self.expected["members"][0]["bases"]["image"])
+            for key in ("tag", "tool", "base_variant", "registry_password"):
+                self.assertNotIn(key, params)
+            row = json.loads((self.output / "fixture-member.json").read_text())
+            self.assertEqual(row["output"]["artifacts"], {"image": "registry.example/nest/tools/agent@sha256:" + "c" * 64})
+            MANIFEST["validate"](self.expected, {"schema": 1, "kind": "nest_release_candidate",
+                                              "release": self.expected["release"],
+                                              "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]})
+
+    def test_agent_wrong_cpu_variant_and_failed_output_never_replays(self):
+        self.select("tool", tool="agent")
+        for cpu, variant in (("haswell", "server"), ("zen5", "workstation")):
+            self.expected["members"][0].update(cpu=cpu, variant=variant)
+            self.assertEqual(self.cli().returncode, 1)
+        self.assertEqual(self.calls(), [])
+        self.expected["members"][0].update(cpu="zen5", variant="server")
+        for index, env in enumerate([{"FAIL_BUILD": "1"}] +
+                                    [{"BAD_OUTPUT": bad} for bad in ("partial", "mutable", "wrong_repo", "same")]):
+            self.output = self.root / ("agent-fault-" + str(index))
+            self.output.mkdir()
+            result = self.cli(**env)
+            self.assertEqual(result.returncode, 1, env)
+            self.assertFalse((self.output / "fixture-member.json").exists())
+            self.assertNotIn("private-secret", result.stderr)
+            count = len(self.calls())
+            self.assertEqual(self.cli().returncode, 1)
+            self.assertEqual(len(self.calls()), count)
+
     def test_openbolt_failed_or_invalid_publication_never_retains_or_replays_result(self):
         self.select("tool", tool="bolt")
         for index, env in enumerate([{"FAIL_BUILD": "1"}] +
@@ -273,7 +314,7 @@ class CandidateBuildTest(unittest.TestCase):
         self.expected["members"][0]["variant"] = "workstation"
         self.assertEqual(self.cli().returncode, 1)
         self.expected["members"][0]["variant"] = "server"
-        for tool in ("pdk", "agent", "firefox", "camofox", "r10k", "whisper.cpp"):
+        for tool in ("pdk", "firefox", "camofox", "r10k", "whisper.cpp"):
             project = "nest/tools/" + tool
             member = self.expected["members"][0]
             member["project"] = project

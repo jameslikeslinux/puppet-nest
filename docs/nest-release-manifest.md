@@ -604,7 +604,7 @@ The full frozen expectations file selects one `rebuild` member. Stage 0 currentl
 supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
 bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
 normal/debug base distinctions, CPU/platform/variant and all three repository
-pins. The direct llama.cpp and specialized OpenBolt paths are supported below; other
+pins. The direct llama.cpp and specialized OpenBolt/Agent paths are supported below; other
 tools refuse instead of bypassing their specialized wrappers. Stage 3 supports only explicit fresh initialization and requires the
 additional local placement contract below; refresh refuses. Candidate/container names derive from positive CI pipeline/job
 IDs, so one member must run per CI job. No arbitrary plan parameter overrides
@@ -723,7 +723,7 @@ project repository, with no variant suffix; the adapter exclusively retains
 and reopens the ordinary member result. Its reservations still prevent replay
 after failure or success. This adds no new schema or arbitrary plan override.
 
-PDK, Agent, Firefox and Camofox still refuse in this adapter: their
+PDK, Firefox and Camofox still refuse in this adapter: their
 existing wrapper smoke tests and image changes must be preserved during their
 separate integration. Do not call the generic path to bypass them. Other known
 consumers still need explicit reuse/defer/retire decisions. The llama.cpp
@@ -767,11 +767,45 @@ publication are unchanged.
 to this specialized wrapper, never to `nest::build::tool` as a direct producer.
 It validates the same source/executor/module identities before/after execution
 and retains/reopens the ordinary one-image member result. A changed/unsupported
-CPU or variant refuses before Bolt. The OpenBolt repository consumer, exact
-artifact acquisition and native bootstrap/DAG edge remain separate source work;
+CPU or variant refuses before Bolt. The OpenBolt repository consumer and exact
+artifact acquisition are source-delivered in MR !2, merge
+`c99438ae93727612d702a94abd2170fc20017b7e`. The native bootstrap/DAG edge remains separate source work;
 no real OpenBolt/OS build, alias promotion or host action was exercised here.
 Actual-plan mocks cover smoke/publication refusal and legacy compatibility;
 disposable Git/module fixtures plus fake Bolt cover all CPU/mode dispatches.
+
+### Specialized Agent runtime candidates
+
+`nest::build::agent` accepts optional `from_image`, `repo_revisions` and
+`candidate`. Candidate mode requires build/init/deploy, a digest base, complete
+isolated repository pins, no tag override, a remote registry and the actual
+supported CPU `zen5`. Both frozen fresh and refresh modes are supported.
+It builds through the existing generic tool plan without publishing, then runs
+the existing terminal-shell, `glab --version` and `git --version` smoke commands.
+Frozen repositories are checked again after smoke, followed by a checked stop.
+Only then is `candidate-TOKEN` committed with the existing `CMD=/bin/zsh` and
+published through the shared native publisher. Its returned image must be the
+exact `nest/tools/agent@sha256:DIGEST`; no `latest` or CPU alias is advanced.
+
+Candidate registry username/password parameters refuse, and candidate defaults
+do not inherit Hiera credentials. Existing runner/Podman authentication remains
+required and is not proven by fixtures. With candidate mode absent, legacy
+`latest` defaults, explicit tags, smoke and ordinary publication are unchanged.
+The adapter binds `stage=tool`, `project=nest/tools/agent`, `variant=server`,
+`cpu=zen5` to this specialized wrapper. It checks the same actual source,
+executor/module identities before and after execution and retains/reopens the
+ordinary one-image member result, with exclusive reservations preventing replay.
+Unsupported CPU/variant, failed smoke, repository drift, failed stop/commit/push
+or wrong digest cannot produce accepted completion. Partially built/published
+resources remain unselected for diagnosis; no automatic deletion or replay occurs.
+
+Actual-plan tests exercise all smoke failures, post-smoke drift, stop/commit/push
+failures, digest rejection and legacy defaults/explicit tags. Disposable Git/module
+fixtures and fake Bolt exercise both modes and failed retained outputs. No real
+Agent/tool/OS build, registry authentication/publication, host change or Hermes
+runtime change is exercised. The distinct Agent repository CI consumer and native
+bootstrap/DAG integration remain unfinished. Stop passing candidate options to
+roll back source behavior; preserve exact prior digests and receipts.
 
 ## Isolated verification
 
