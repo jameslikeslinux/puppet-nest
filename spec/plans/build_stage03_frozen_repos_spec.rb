@@ -133,6 +133,8 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect(executor).not_to receive(:run_command).with(anything, %r{puppet.*agent}, anything, anything)
     expect_script('nest/build/freeze-repos.py').be_called_times(3)
     expect_script('nest/build/check-stage3-paths.py').with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256]).be_called_times(3)
+    expect_script('nest/build/check-stage3-paths.py')
+      .with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256, '--install']).with_targets('fixture-host')
     expect_command(catalog_check).with_targets('localhost').be_called_times(3)
     expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host')).ok?).to be(true)
   end
@@ -180,5 +182,20 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect_command(catalog_check).not_be_called
     expect_script('nest/build/check-stage3-paths.py').not_be_called
     expect(run_plan('nest::build::stage3', options(3).merge('puppet_environment' => 'fixture-env')).ok?).to be(true)
+  end
+
+  it 'stops before identity apply or package build after stable capture failure' do
+    allow_any_command
+    allow_apply_prep
+    expect_script('nest/build/freeze-repos.py')
+    expect_script('nest/build/check-stage3-paths.py').with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256])
+    expect_script('nest/build/check-stage3-paths.py')
+      .with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256, '--install'])
+      .error_with('msg' => 'Identity changed during capture', 'kind' => 'fixture/identity')
+    expect(executor).not_to receive(:apply)
+    expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
+    expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
+    params = options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host', 'deploy' => true)
+    expect(run_plan('nest::build::stage3', params).ok?).to be(false)
   end
 end

@@ -126,6 +126,12 @@ plan nest::build::stage3 (
     }
     apply_prep($target)
 
+    if $catalog_inputs != undef {
+      # One process admits a stable private capture and installs those exact
+      # bytes in this disposable container. Puppet must not reopen the live tree.
+      run_script('nest/build/check-stage3-paths.py', $target, arguments => [$identityroot, $hostroot, $hostname, $identity_ca_sha256, '--install'])
+    }
+
     # Preserve and restore host identity info
     apply($target, '_description' => 'Set up host identity info') {
       if $catalog_inputs == undef {
@@ -165,17 +171,16 @@ plan nest::build::stage3 (
             before => File['/etc/puppetlabs/puppet/ssl'],
           ;
         }
-      }
-
-      file { '/etc/machine-id':
-        source => "${identityroot}/etc/machine-id",
-      }
-      ->
-      # Puppet Agent will correct permissions on these files
-      file { '/etc/puppetlabs/puppet/ssl':
-        ensure  => directory,
-        source  => "${identityroot}/etc/puppetlabs/puppet/ssl",
-        recurse => true,
+        file { '/etc/machine-id':
+          source => "${identityroot}/etc/machine-id",
+        }
+        ->
+        # Puppet Agent will correct permissions on these files
+        file { '/etc/puppetlabs/puppet/ssl':
+          ensure  => directory,
+          source  => "${identityroot}/etc/puppetlabs/puppet/ssl",
+          recurse => true,
+        }
       }
 
       if $cluster {
