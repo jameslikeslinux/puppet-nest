@@ -444,7 +444,7 @@ CPU tuning, installed kernel/firmware, source freeze or actual boot compatibilit
 The current build recipes still sync Portage/overlay; candidate mode must not be
 labeled a frozen release producer until that separate input work is integrated.
 Producer/executor identities, member selection and these output references must
-still be assembled and retained by the real stage CI lanes. Stage 0/tools,
+still be assembled and retained by the real stage CI lanes. Tools,
 versioned Stage 3/local generations, the real DAG and reviewed promotion/rollback
 remain unfinished. No new build, candidate push or alias promotion was launched
 to test this interface; verification uses real Bash/fake Podman and actual Bolt
@@ -535,8 +535,8 @@ in frozen mode before removal, rather than attempting a floating Git install or
 The image name is not proof of installed tools: a selected base without the
 required Git/Python runtime fails normally; it does not fetch a replacement base.
 Stage 0 still derives debug symbols from the same build, not a separately consumed
-debug base. No candidate-only output interface is added to Stage 0 here; its
-ordinary `deploy=true` still updates mutable CPU tags.
+debug base. Its ordinary `deploy=true` still updates mutable CPU tags unless the
+explicit candidate interface described below is selected.
 
 Stage 3's private identity source, remote Puppet environment and rsync destination
 are unchanged. Repository pins do not freeze a remote Puppet catalog, verify a
@@ -552,6 +552,48 @@ with mandatory Haskell metadata this completes another R06 input component, not
 the real CI producer/DAG, resource verification, immutable roots or promotion.
 Rollback stops supplying `repo_revisions`; retained historic manifests without
 Haskell remain historical incomplete-input records, not newly accepted releases.
+
+## Stage 0 candidate output references
+
+Stage 0 now accepts the same optional `candidate=TOKEN` as Stage 1/2. It requires
+`build=true`, `init=true`, `deploy=true`, a remote registry and a repository-qualified
+exact `from_image` digest. A raw Gentoo bootstrap base refuses in this opt-in path;
+the existing separate noncandidate bootstrap remains unchanged. Invalid inputs
+refuse before registry login, container removal or volume commands.
+
+Only `nest/stage0:candidate-TOKEN` and `nest/stage0/debug:candidate-TOKEN` are
+committed/pushed; ordinary CPU aliases and aggregate indexes are untouched.
+Use unique pipeline/job/CPU tokens. As for Stage 1, the return value is a map of
+`normal` and `debug` exact remote digest references, only after both publications
+and manifest/config readbacks succeed. Partial publication fails without returning
+a successful pair; equal normal/debug digests also refuse. The shared publisher's
+existing failure and owned-cleanup behavior applies unchanged.
+
+Stage 0 consumes only `from_image`: its debug output is derived from that build's
+debug volume, not a second consumed base image. The plain release expectations
+therefore use `bases: {image: REFERENCE}` for Stage 0, and still require both
+output references. Only Stage 1 expectations use a normal/debug input pair. Old
+experimental Stage 0 pair-shaped expectations refuse instead of silently
+dropping an asserted input. Retain them as historical metadata, not real release
+evidence; recreate the independently selected expectations before a new build.
+
+Supply complete `repo_revisions` as well for a source-frozen candidate. Candidate
+mode alone does not freeze repository sync or prove executor identity. Actual CI
+producer records, complete input/resource verification, Stage 3 catalog/generations,
+the multi-project DAG and explicit promotion/rollback remain required. No OS build,
+candidate push or alias promotion was performed to test this path. Actual-plan
+mock fixtures exercise early refusal, candidate tags, partial push failure,
+distinct output pairs and unchanged legacy CPU publication. Rollback stops passing
+`candidate`; retain exact output digests and never rebuild merely to recover a
+missing receipt.
+
+Executor pipeline 11131 succeeded at
+`e6b41cab4ff5496e3cae9c52693c31aa1b64bcf2`. Its amd64 member
+`registry.eyrie/nest/config/main@sha256:6830ce237b78d1542370573454240770a1517a6ce626fa69ef83df7d82f4783c`
+was opened through inventory-backed Bolt without host mounts/network access inside
+the container. Git HEAD and four source-file hashes matched accepted main. This
+verifies the preceding frozen-input executor, not this new candidate interface
+until its own publication is verified, and is not an OS-stage or boot acceptance.
 
 ## Operational authority and rollback
 

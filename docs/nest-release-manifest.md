@@ -77,11 +77,18 @@ Each member has exactly these fields:
 | `platform` | Required token for Stage 2/3; null otherwise |
 | `host` | Required token for Stage 3; null otherwise |
 | `mode` | Explicit `fresh` or `refresh`, not inferred from the base name |
-| `bases` | Stage 0/1: exact `normal` and `debug` image pins; others: exact `image` pin |
+| `bases` | Stage 1: exact `normal` and `debug` image pins; all others, including Stage 0: exact `image` pin |
 | `compatibility` | Stage 2/3: exact `kernel`, `modules_abi`, `firmware`, `bootloader` strings; otherwise empty object |
 | `identity_root` | Stage 3: canonical absolute private identity input directory; otherwise null |
 
 Selection tuples `(stage, project, cpu, platform, variant, host)` must be unique.
+Stage 0 consumes one base and derives both normal/debug outputs from the same
+build. Only Stage 1 consumes a base pair. Earlier experimental schema-1 records
+with a Stage 0 base pair are rejected rather than silently discarding a claimed
+input. Recreate expectations from the actual selected base and bind the new
+canonical digest; retain old records as historical metadata, not accepted builds.
+Both stages still require distinct normal/debug output references.
+
 Stage 3's publication root is `/nest/releases/RELEASE/hosts/HOST`, distinct from
 its private identity tree; equal, ancestor and descendant overlap all refuse.
 This is the versioned publication destination, not the transaction CLI's required

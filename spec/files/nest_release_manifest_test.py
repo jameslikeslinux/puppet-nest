@@ -37,7 +37,7 @@ def fixture():
         member = {"id": stage, "stage": stage, "project": project, "cpu": "haswell", "variant": "server",
                   "platform": "wellsburg" if stage in ("stage2", "stage3") else None,
                   "host": "fixture-host" if stage == "stage3" else None, "mode": "fresh",
-                  "bases": {"normal": image(2), "debug": image(3)} if stage in ("stage0", "stage1") else {"image": image(4)},
+                  "bases": {"normal": image(2), "debug": image(3)} if stage == "stage1" else {"image": image(4)},
                   "compatibility": {"kernel": "fixture-kernel", "modules_abi": "fixture-abi", "firmware": "efi", "bootloader": "systemd-boot"}
                   if stage in ("stage2", "stage3") else {},
                   "identity_root": "/private/identities/fixture-host" if stage == "stage3" else None}
@@ -98,6 +98,21 @@ class ReleaseManifestTest(unittest.TestCase):
                     artifacts["debug"] = artifacts["normal"]
                 with self.assertRaises(release.Invalid):
                     self.validate()
+
+    def test_stage0_consumes_one_base_but_still_requires_two_outputs(self):
+        member = self.expected["members"][0]
+        self.assertEqual(set(member["bases"]), {"image"})
+        self.validate()
+        member["bases"] = {"normal": image(2), "debug": image(3)}
+        self.candidate["outputs"][0]["member"] = copy.deepcopy(member)
+        self.reseal()
+        with self.assertRaisesRegex(release.Invalid, "member bases"):
+            self.validate()
+        for field in ("normal", "debug"):
+            self.expected, self.candidate = fixture()
+            del self.candidate["outputs"][0]["artifacts"][field]
+            with self.assertRaisesRegex(release.Invalid, "output artifacts"):
+                self.validate()
 
     def test_mutable_tags_and_malformed_refs_rejected(self):
         for ref in ("registry.example/nest/image:latest", image(1) + "\n", image(1).replace("sha256", "sha512"),
