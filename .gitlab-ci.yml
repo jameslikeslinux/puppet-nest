@@ -179,6 +179,7 @@ stages:
   variables:
     GIT_SSH_COMMAND: 'ssh -o HostName=ssh.gitlab.eyrie. -o HostKeyAlias=gitlab.joyfullee.me'
   script:
+    - 'export BOLT_PROJECT="$CI_PROJECT_DIR"'
     - 'bolt module install'
     - 'bolt plan run nest::puppet::deploy backend=kubernetes environment="$CI_COMMIT_BRANCH"'
   rules:
