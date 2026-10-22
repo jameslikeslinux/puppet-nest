@@ -156,11 +156,11 @@ revision must not receive the historical exact-version activation patch.
 
 ### Capacity-gated immutable revision
 
-`nest::base::cli` now selects `=app-admin/nest-cli-0.9.0_p20261021-r2::nest`
-from overlay MR !6, merge `2c649392f5cc4270d4292f697b1ffe765cc29569`.
-It packages CLI MR !11, merge `a85bbf68a5030b306cd793afdbc1ed3dd7f0e0ee`.
+`nest::base::cli` now selects `=app-admin/nest-cli-0.9.0_p20261021-r3::nest`
+from overlay MR !7, merge `41608b752f9d3ea424453b4d48994ab85b3344be`.
+It packages CLI MR !12, merge `fe6271c03d683a0fc8b2c60f9f9b12922580aaf4`.
 The complete 30-library-file aggregate SHA256 is
-`48fe283c865c620e3391dcceb6aecd5975eddc6a636d58fb9255bfc3fe78a505`.
+`eeb70b70847c697a5d624d4672ffc7cec08b7d1150839e9e5eb9ab2738022564`.
 Read back the installed plan's full source identity, not just its version;
 the Ruby version string does not distinguish these immutable revisions.
 
@@ -171,8 +171,13 @@ installed `reset-capacity.md` and policy schema. The packaged
 Ordinary `nest reset --plan --format=json` remains read-only and does not
 itself establish transactional admission or allocate a generation.
 
-Native capacity admission deliberately refuses unsupported layouts, including
-finite quota/refquota, reservations, ZVOLs and ambiguous clone dependencies.
+Native accounting contract 2 inventories the complete pool, including unrelated
+swap/fscache volumes, constrained siblings and retained sibling clones. Only the
+exact affected filesystem ancestry and reciprocal clone dependencies enter the
+logical transfer closure; whole-pool physical gates still include all usage.
+Finite affected quota/refquota, affected reservations/volumes and ambiguous clone
+dependencies remain unsupported and fail closed. Unrelated constraints are not
+permission to relax affected limits or omit physical consumption.
 Physical free/slop/reserve, logical availability, source apparent bytes and
 promotion bounds are distinct. Do not relax limits or delete rollback to make
 admission pass. A real host may correctly remain unsupported after installation.
@@ -183,6 +188,8 @@ Keep prior immutable packages and receipts. An unresolved capacity-gated
 transaction cannot be downgraded to the prior lifecycle revision or retrofitted
 with a different policy to bypass refusal. Historical accepted/finalized reports
 remain readable; their existence does not prove a new capacity admission.
+Historical accounting-contract-1 preparations remain exportable, but r3 refuses
+to resume their mutations. Do not rewrite old receipts to the new contract.
 
 ## Fail-closed ZFS startup
 
