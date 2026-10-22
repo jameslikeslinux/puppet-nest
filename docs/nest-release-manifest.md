@@ -114,6 +114,52 @@ The independently reviewed expectation producer must include those additional
 consumers and any required release scope. A self-selected smaller matrix cannot
 prove full fleet/consumer closure.
 
+## Config CI input publication
+
+An opt-in config pipeline with `RELEASE_INPUTS=true` and a GitLab file-type
+variable `RELEASE_EXPECTATIONS_FILE` publishes an independently reviewed complete
+expectations document. Select the exact config commit already named by both
+`sources["nest/config"]` and `executor.source`. The executing job's checked-out
+HEAD and tracked cleanliness must match that source. Pipeline/job IDs and the
+config project identity are required; conflicting build/executor/candidate modes
+refuse. No source, base, consumer decision or missing matrix row is selected for
+the caller, and no branch tip is silently resolved into a pin.
+
+The `Freeze release inputs` job runs
+`python3 scripts/nest-release-inputs.py --expectations "$RELEASE_EXPECTATIONS_FILE"`.
+It validates the existing complete schema, canonicalizes JSON, and exclusively
+creates `release-inputs/expectations.json` and `release-inputs/receipt.json`.
+Files and directory are fsynced and exact bytes reopened before job success.
+An existing directory or symlink refuses without overwriting earlier output.
+GitLab retains these two files only on success; a partially failed job is never
+an accepted input producer. The receipt binds source/pipeline/job and the raw
+SHA256 of the actual retained expectations bytes. Consumer variable
+`RELEASE_INPUT_SHA256` uses that bare lowercase hex digest; the embedded
+`expectations_digest` includes the `sha256:` prefix. Canonical publication makes
+their hex payloads equal, unlike an arbitrary pretty-printed input file.
+
+Every nonempty `RELEASE_INPUTS` value suppresses config executor builds and both
+deployment jobs before their usual rules, even an invalid value or conflicting
+`EXECUTOR_ONLY`/`BUILD`. The input script accepts only the exact value `true`.
+Ordinary test jobs still run; neither real OS builds nor downstream triggers are
+launched by this path. Without the flag, ordinary config CI behavior is unchanged.
+This is a non-building input publication path, not release promotion authority.
+
+Supply only sanitized expectations. Valid free-text reason/compatibility fields
+are not secret scrubbers. The producer does not log the document or native Git
+diagnostics, fetch repositories, validate registry resources, build an executor,
+or prove that the selected executor exists. Download and independently verify
+the exact successful input job artifact and executor architecture job before
+using them; never use latest-success artifacts. Since the config SHA is shared,
+a new producer source first needs its ordinary accepted executor publication;
+do not pair an old executor with a new config source merely to skip that boundary.
+
+The Stage 0 source lane implements candidate artifact acquisition but remains
+unpublished while that project's MR feature is disabled. Stage 1/2 wiring,
+multi-project trigger/needs integration, assembly and resource admission remain
+unfinished. Rollback disables this opt-in invocation and retains prior artifacts;
+it does not rewrite historical input receipts or alter any release alias.
+
 ## Candidate schema 1
 
 The candidate has exactly `schema` (integer 1), `kind`
