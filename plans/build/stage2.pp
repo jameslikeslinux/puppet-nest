@@ -20,6 +20,7 @@
 # @param registry_username Username for registry
 # @param registry_password Password for registry
 # @param registry_password_var Environment variable for registry password
+# @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync
 plan nest::build::stage2 (
   String            $container,
   String            $platform,
@@ -39,6 +40,7 @@ plan nest::build::stage2 (
   Optional[String]  $registry_username     = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password     = lookup('nest::build::registry_password', default_value => undef),
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
+  Optional[Hash]    $repo_revisions        = undef,
 ) {
   $target = Target.new(name => $container, uri => "podman://${container}")
   if $candidate != undef {
@@ -52,6 +54,21 @@ plan nest::build::stage2 (
     unless $init {
       fail('Pinned Stage 2 base requires init=true; an existing container has not consumed this input')
     }
+  }
+
+  if $repo_revisions != undef {
+    assert_type(Struct[{
+      'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
+      'nest'    => Pattern[/\A[0-9a-f]{40}\z/],
+      'haskell' => Pattern[/\A[0-9a-f]{40}\z/],
+    }], $repo_revisions)
+    unless $build and $init and $from_image {
+      fail('Frozen Stage 2 repositories require build, init and an exact base')
+    }
+    $repos_volume_arg = "--volume=${container}-frozen-repos:/var/db/repos:nocopy"
+    $repo_args = [$repo_revisions['gentoo'], $repo_revisions['nest'], $repo_revisions['haskell']]
+  } else {
+    $repos_volume_arg = ''
   }
 
   if $cpu == $platform {
@@ -86,6 +103,9 @@ plan nest::build::stage2 (
     $base_image = pick($from_image, $default_image)
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
+    if $repo_revisions != undef {
+      run_command("podman volume rm -f ${container}-frozen-repos", 'localhost', 'Remove previous isolated build repositories')
+    }
 
     $podman_create_cmd = @("CREATE"/L)
       podman create \
@@ -93,6 +113,7 @@ plan nest::build::stage2 (
       --name=${container} \
       --pull=always \
       --volume=/nest:/nest \
+      ${repos_volume_arg} \
       ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
       ${base_image.shellquote} \
       sleep infinity
@@ -105,7 +126,11 @@ plan nest::build::stage2 (
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
     # Profile controls Portage and Puppet configurations
-    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['prepare'] + $repo_args)
+    } else {
+      run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    }
     run_command("eselect profile set nest:${profile}", $target, 'Set profile')
 
     # Set up the build environment
@@ -120,6 +145,9 @@ plan nest::build::stage2 (
     run_command('sh -c "echo profile > /.apply_tags"', $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet tags')
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     # Make the system consistent with the profile
     run_command('emerge --info', $target, 'Show Portage configuration')
@@ -129,6 +157,9 @@ plan nest::build::stage2 (
     # Apply the main configuration
     apply($target, '_description' => 'Configure the stage') { include nest }.nest::print_report
     apply($target, '_description' => 'Check for convergence') { include nest }.nest::print_report
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
