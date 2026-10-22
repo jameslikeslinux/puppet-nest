@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import runpy
@@ -35,6 +36,33 @@ def identity(env, checkout):
     return source
 
 
+def identity_trust(expected, checkout, source):
+    """Select public CA pins from exact config source, never the private input."""
+    members = [row for row in expected["members"] if row["stage"] == "stage3"]
+    if not members:
+        return None
+    # Reading the Git object avoids untracked/ignored policy substitution. The
+    # already checked source and ordinary reviewed GitLab publication are the
+    # trust boundary; this is not cryptographic owner-approval attestation.
+    raw = subprocess.check_output(["git", "-C", str(checkout), "show", source + ":data/release/trust.json"],
+                                  stderr=subprocess.DEVNULL, timeout=30)
+    require(len(raw) <= release["LIMIT"], "trust policy exceeds size limit")
+    policy = json.loads(raw, object_pairs_hook=release["unique_object"], parse_int=release["json_integer"],
+                        parse_constant=lambda _: (_ for _ in ()).throw(ValueError("invalid trust number")))
+    release["fields"](policy, "schema kind hosts", "identity trust policy")
+    require(type(policy["schema"]) is int and policy["schema"] == 1
+            and policy["kind"] == "nest_release_identity_trust", "unsupported identity trust policy")
+    hosts = policy["hosts"]
+    require(type(hosts) is dict and len(hosts) <= 1024, "invalid identity trust inventory")
+    for host, pin in hosts.items():
+        release["match"](host, release["TOKEN"], "trust host")
+        release["match"](pin, r"[0-9a-f]{64}", "trusted public CA pin")
+    for member in members:
+        require(member["host"] in hosts and hosts[member["host"]] == member["identity_ca_sha256"],
+                "Stage 3 identity trust does not match reviewed config policy")
+    return release["canonical"](policy)
+
+
 def publish(input_path, env):
     checkout = Path(env.get("CI_PROJECT_DIR", ""))
     source = identity(env, checkout)
@@ -43,6 +71,7 @@ def publish(input_path, env):
     expected = release["load"](input_path)
     release["expectations"](expected)
     require(expected["sources"]["nest/config"] == source, "expectations use another config source")
+    trust = identity_trust(expected, checkout, source)
     payload = release["canonical"](expected)
     require(len(payload) <= release["LIMIT"], "canonical expectations exceed size limit")
     raw_sha = hashlib.sha256(payload).hexdigest()
@@ -59,6 +88,8 @@ def publish(input_path, env):
     destination = checkout / "release-inputs"
     destination.mkdir(mode=0o700)
     records = {"expectations.json": payload, "receipt.json": release["canonical"](receipt)}
+    if trust is not None:
+        records["trust.json"] = trust
     for name, data in records.items():
         with (destination / name).open("xb") as stream:
             stream.write(data)

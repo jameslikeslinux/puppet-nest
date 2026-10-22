@@ -214,6 +214,6 @@ stages:
     - 'python3 scripts/nest-release-inputs.py --expectations "$RELEASE_EXPECTATIONS_FILE"'
   artifacts:
     when: on_success
-    paths: ['release-inputs/expectations.json', 'release-inputs/receipt.json']
+    paths: ['release-inputs/expectations.json', 'release-inputs/receipt.json', 'release-inputs/trust.json']
   rules:
     - if: '$RELEASE_INPUTS'

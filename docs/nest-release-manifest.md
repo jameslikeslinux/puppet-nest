@@ -175,6 +175,48 @@ resource admission and Stage 3 candidate execution remain unfinished.
 Rollback disables this opt-in invocation and retains prior artifacts;
 it does not rewrite historical input receipts or alter any release alias.
 
+### Source-managed Stage 3 trust selection
+
+For expectations containing Stage 3 members, input publication now reads
+`data/release/trust.json` directly from the exact config Git source object already
+bound by `sources["nest/config"]` and the producer receipt. It does not accept a
+caller-selected policy file, discover a CA in the private identity tree, trust an
+untracked working-copy replacement or resolve a newer policy from main. The
+document has exactly `schema` (integer 1), `kind`
+(`nest_release_identity_trust`) and `hosts`, a map of exact host tokens to reviewed
+bare lowercase SHA256 digests of public CA PEM bytes. Wildcards, malformed pins,
+unknown fields, missing hosts and a member with a different CA pin refuse before
+any artifact directory is reserved. A policy may retain other hosts not selected
+for this release; it does not add those hosts to the release matrix.
+
+The initial source-managed map is deliberately empty. No live CA is enrolled by
+this implementation, and no CA is generated or automatically approved. Populate
+the public host/pin mapping only through the normal reviewed configuration change
+after independent trust selection, then freeze release expectations against that
+accepted config source and its matching executor. Selecting a new policy source
+invalidates the old executor/source pairing; do not retrofit an old input receipt.
+This policy is the public build-identity allowlist, not authorization to change
+live host trust, perform a migration, build an OS release or reboot a host.
+
+A successful Stage 3 input publication additionally retains and reopens canonical
+`release-inputs/trust.json` as an on-success CI artifact. The existing receipt and
+expectations schemas are unchanged: the exact producer/config SHA binds the policy
+source, while the expectations digest binds each selected host and CA pin. Consumers
+must still acquire the exact successful config input job, not accept a submitted
+policy artifact or self-authored receipt as approval. Normal reviewed source/CI
+is the trusted boundary, not a signature, custody service or cryptographic proof
+of owner approval. The manifest validator alone remains metadata-only and does
+not establish that boundary. Non-Stage 3 input publication remains unchanged and
+does not need or emit this policy artifact. An input file cannot bypass the
+separate Stage 3 CI refusal: candidate execution is still disabled.
+
+This closes public CA selection at the input-freeze boundary only. The executing
+Stage 3 adapter must consume those exact admitted inputs and perform private
+generation admission; versioned root publication, release-wide operational policy
+and live compatibility acceptance remain unfinished. Rollback stops opt-in input
+publication and retains earlier artifacts. It never substitutes a mutable policy
+or a newly discovered CA into an already frozen release.
+
 ## Candidate schema 1
 
 The candidate has exactly `schema` (integer 1), `kind`

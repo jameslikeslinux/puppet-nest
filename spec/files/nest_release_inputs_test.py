@@ -65,6 +65,92 @@ class ReleaseInputsTest(unittest.TestCase):
         return subprocess.run([sys.executable, str(SCRIPT), '--expectations', str(self.input)],
                               env=dict(self.env, **env), capture_output=True, text=True)
 
+    def stage3(self, raw=None):
+        self.expected = runpy.run_path(str(ROOT / 'spec/files/nest_release_manifest_test.py'))['fixture']()[0]
+        self.policy = {'schema': 1, 'kind': 'nest_release_identity_trust', 'hosts': {'fixture-host': 'a' * 64}}
+        policy = self.checkout / 'data/release/trust.json'
+        policy.parent.mkdir(parents=True, exist_ok=True)
+        policy.write_text(json.dumps(self.policy) if raw is None else raw)
+        self.git('add', 'data/release/trust.json')
+        self.git('commit', '-m', 'Fixture public trust only')
+        self.sha = self.git('rev-parse', 'HEAD')
+        self.env['CI_COMMIT_SHA'] = self.sha
+        self.expected['sources']['nest/config'] = self.sha
+        self.expected['executor']['source'] = self.sha
+        self.input.write_text(json.dumps(self.expected))
+        return policy
+
+    def test_stage3_uses_source_bound_public_policy_and_retains_exact_readback(self):
+        policy = self.stage3()
+        result = self.cli()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.input.unlink()
+        policy.unlink()
+        retained = self.checkout / 'release-inputs/trust.json'
+        self.assertEqual(retained.read_bytes(), RELEASE['canonical'](self.policy))
+        receipt = json.loads((self.checkout / 'release-inputs/receipt.json').read_bytes())
+        self.assertEqual(receipt['producer']['sha'], self.sha)
+        self.assertNotIn('a' * 64, result.stdout + result.stderr)
+
+    def test_stage3_absent_or_different_host_and_CA_policy_refuse_before_publication(self):
+        for hosts in ({}, {'other-host': 'a' * 64}, {'fixture-host': 'b' * 64}):
+            with self.subTest(hosts=hosts):
+                policy = {'schema': 1, 'kind': 'nest_release_identity_trust', 'hosts': hosts}
+                self.stage3(json.dumps(policy))
+                self.assertNotEqual(self.cli().returncode, 0)
+                self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_stage3_policy_must_exist_at_selected_Git_source(self):
+        policy = self.stage3()
+        self.git('rm', 'data/release/trust.json')
+        self.git('commit', '-m', 'Fixture policy absent')
+        self.sha = self.git('rev-parse', 'HEAD')
+        self.env['CI_COMMIT_SHA'] = self.sha
+        self.expected['sources']['nest/config'] = self.sha
+        self.expected['executor']['source'] = self.sha
+        self.input.write_text(json.dumps(self.expected))
+        # An untracked replacement is not a source-managed approved policy.
+        policy.parent.mkdir(parents=True, exist_ok=True)
+        policy.write_text(json.dumps(self.policy))
+        self.assertNotEqual(self.cli().returncode, 0)
+        self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_stage3_cannot_auto_accept_CA_from_submitted_expectations(self):
+        self.stage3()
+        self.expected['members'][3]['identity_ca_sha256'] = 'b' * 64
+        self.input.write_text(json.dumps(self.expected))
+        self.assertNotEqual(self.cli().returncode, 0)
+        self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_stage3_malformed_or_extended_policies_refuse_safely(self):
+        cases = ['secret-fixture', '{"schema":1,"schema":1}', '{"schema":NaN}', 'x' * (RELEASE['LIMIT'] + 1)]
+        for value in ({'schema': True, 'kind': 'nest_release_identity_trust', 'hosts': {}},
+                      {'schema': 1, 'kind': 'wrong', 'hosts': {}},
+                      {'schema': 1, 'kind': 'nest_release_identity_trust', 'hosts': [], 'extra': True},
+                      {'schema': 1, 'kind': 'nest_release_identity_trust', 'hosts': {'fixture-host': 'a' * 64 + '\n'}},
+                      {'schema': 1, 'kind': 'nest_release_identity_trust', 'hosts': {'*': 'a' * 64}}):
+            cases.append(json.dumps(value))
+        for raw in cases:
+            with self.subTest(raw=raw[:80]):
+                self.stage3(raw)
+                result = self.cli()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn('secret-fixture', result.stderr)
+                self.assertNotIn('Traceback', result.stderr)
+                self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_stage3_trust_artifact_failed_readback_refuses(self):
+        self.stage3()
+        original = Path.read_bytes
+
+        def read(path):
+            return b'changed' if path.name == 'trust.json' else original(path)
+
+        with patch.object(Path, 'read_bytes', read):
+            with self.assertRaises(RELEASE['Invalid']):
+                MODULE['publish'](self.input, self.env)
+        self.assertNotEqual(self.cli().returncode, 0)
+
     def test_canonical_artifacts_reopened_after_producer_exit_and_input_removal(self):
         result = self.cli()
         self.assertEqual(result.returncode, 0, result.stderr)
