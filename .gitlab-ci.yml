@@ -44,6 +44,7 @@ stages:
     - 'python3 spec/files/ci_bolt_module_install_test.py'
     - 'python3 spec/files/ci_executor_identity_test.py'
     - 'python3 spec/files/ci_release_build_test.py'
+    - 'python3 spec/files/nest_release_inputs_test.py'
     - 'python3 spec/files/nest_executor_inputs_test.py'
 
 'Hermes install fixtures':
@@ -135,6 +136,8 @@ stages:
   artifacts:
     paths: ['executor-receipts/']
   rules:
+    - if: '$RELEASE_INPUTS'
+      when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD'
@@ -168,6 +171,8 @@ stages:
   script:
     - 'r10k deploy environment "$CI_COMMIT_BRANCH" --modules --verbose'
   rules:
+    - if: '$RELEASE_INPUTS'
+      when: never
     - if: '$EXECUTOR_ONLY == "true"'
       when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -188,7 +193,23 @@ stages:
     - 'podman manifest push --all "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:latest"'
     - 'podman manifest push --all "$LOCAL_IMAGE" "registry.eyrie/${IMAGE}:latest"'
   rules:
+    - if: '$RELEASE_INPUTS'
+      when: never
     - if: '$EXECUTOR_ONLY == "true" && $BUILD'
       when: never
     - if: '$EXECUTOR_ONLY == "true"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+'Freeze release inputs':
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  stage: 'Build'
+  tags: ['owl']
+  variables:
+    PYTHONDONTWRITEBYTECODE: '1'
+  script:
+    - 'python3 scripts/nest-release-inputs.py --expectations "$RELEASE_EXPECTATIONS_FILE"'
+  artifacts:
+    when: on_success
+    paths: ['release-inputs/expectations.json', 'release-inputs/receipt.json']
+  rules:
+    - if: '$RELEASE_INPUTS'
