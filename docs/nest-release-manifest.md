@@ -6,8 +6,9 @@ exact inputs/member closure and can retain one content-addressed JSON manifest
 in an existing CI artifact directory. It never builds images, queries GitLab or
 a registry, copies a host root, changes an alias, or authorizes rollout.
 
-This is the record component of R06, not completed R06/R07 delivery. Existing
-stage pipelines do not yet emit these records or call this validator. The real
+This is part of R06, not completed R06/R07 delivery. The opt-in producer below
+executes frozen Stage 0/1/2 candidate plans. Existing stage pipelines do not yet
+invoke it or call this validator. The real
 multi-project DAG, registry resource verification, output publication and alias
 compare-and-swap remain separate integration work. `plans/build/manifest.pp`
 still means an OCI multi-architecture index; it is not this release manifest.
@@ -248,10 +249,74 @@ aliases are unchanged. Rollback stops invoking this opt-in validator and retains
 previous manifest/artifact digests; it does not rebuild an old release from main,
 destroy a generation, alter a host, or relax a failed admission gate.
 
+## Frozen Stage candidate producer
+
+`python3 /opt/nest/bin/ci-release-build --expectations FILE --member ID
+--executor-receipt FILE --output-dir ABSOLUTE_DIRECTORY` is an executing build
+entrypoint, not a read-only planning command. Invoke it only in an approved
+Stage CI job using a pinned config executor image. It runs exactly one existing
+`nest::build::stage0`, `stage1` or `stage2` candidate plan through the existing
+cleanup wrapper, passing JSON parameters over stdin. It never calls a host
+update plan or changes ordinary CPU/platform/latest aliases. Candidate image
+publication is a real side effect and requires the build scope's authorization.
+
+The full frozen expectations file selects one `rebuild` member. Stage 0 currently
+supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
+bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
+normal/debug base distinctions, CPU/platform/variant and all three repository
+pins. Stage 3 and tools refuse before execution rather than falling through to
+legacy defaults. Candidate/container names derive from positive CI pipeline/job
+IDs, so one member must run per CI job. No arbitrary plan parameter overrides
+are accepted; existing Hiera resource policy remains in effect.
+
+Before execution, the adapter checks the Stage project's actual Git HEAD and
+tracked cleanliness against `CI_PROJECT_PATH`, `CI_COMMIT_SHA` and the frozen
+source selection. `CI_JOB_IMAGE` must equal the selected exact executor digest.
+The selected schema-2 config member receipt is validated in its original config
+pipeline context; the installed executor's source, Puppetfile and complete
+module inventory are independently recomputed and must equal that receipt and
+the image's retained input record. These checks repeat after execution. CI image
+selection and artifact origin remain trusted GitLab/runner boundaries, not a
+signature or independently queried proof that an untrusted runner used that
+image. Do not accept an arbitrary user-supplied receipt as a trusted CI artifact.
+
+The adapter derives candidate-only publication and complete frozen repository
+arguments from the selection. It relies on existing registry authentication;
+credentials are not command parameters or result fields. Bolt's actual JSON
+return must contain the complete expected digest pair/image in the producer's
+exact registry/project/variant repositories. Partial, mutable, wrong-repository
+or identical normal/debug content refuses. The existing candidate plans perform
+remote digest readback. No success can be produced merely by submitting output
+metadata or by relabeling an old build.
+
+The caller must provide an existing canonical absolute artifact directory. An
+exclusive `.ID.started` reservation is written before any build. A failed,
+interrupted or previously completed attempt cannot execute again in that same
+directory. Use a fresh CI job and private workspace after diagnosis, not deletion
+of the reservation to blindly replay a build. On success, exclusive `ID.json`
+creation, file/directory fsync and exact readback retain a schema-1
+`nest_release_member_result` with release/expectations digest, original executor
+receipt and the complete `output` row for later candidate assembly. Stdout is a
+small member/digest/readback receipt. Raw Bolt stdout/stderr is private temporary
+data and is not published; failure emits a static sanitized diagnostic. This is
+not a resumable OS build engine; GitLab job cancellation and the existing wrapper
+own cleanup, while partial candidate digests remain unselected.
+
+Stage project CI still needs to download trusted exact expectation/executor
+artifacts, select the matching image, invoke this entrypoint, retain `ID.json`
+as an artifact and bind its successful job status downstream. Candidate assembly,
+Stage 2 firmware/ABI resource verification, native multi-project DAG, release
+promotion/rollback and Stage 3 frozen catalog/generation publication remain
+unfinished. A successful adapter fixture or metadata compatibility string is not
+hardware boot or whole-release compatibility proof. Rollback stops invoking the
+opt-in adapter; preserve published candidates and receipts rather than rebuilding
+historic outputs or changing live aliases.
+
 ## Isolated verification
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_manifest_test.py
+PYTHONDONTWRITEBYTECODE=1 python3 spec/files/ci_release_build_test.py
 ```
 
 The suite uses conspicuously fixture-only sources, identities and image refs.
