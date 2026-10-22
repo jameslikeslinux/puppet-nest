@@ -110,15 +110,23 @@ These are disposable source-overlay receipts, not installed production parity.
 
 ## Remaining authoritative follow-through
 
-Hermes' installed `hermes_cli/kanban_db_block_routing.py` routes a non-human
-capability failure to triage with a retry timestamp. Its
-`kanban_db_lifecycle.py::_recover_agent_owned_capability_failure` requires durable
-budget progress before dispatcher recovery; source and installed hashes matched
-for that module. A browser adapter cannot safely change task claims/dependencies
-or decide owner consent. Finite accountable routing must be repaired/tested in
-that authoritative repository, not bypassed with a Nest wrapper or DB write.
-The source phase must preserve exact worker, owner-decision and dependency gates
-and stop unchanged obstacles rather than introducing automatic retry loops.
+Inspection of the actual installed broker identifies the indexed-request ingress
+as `agent_request_broker/block_ingress.py::agent_request_block`, lines 108-118.
+It directly ends non-owner technical waits in triage and writes a retry timestamp,
+without requiring an executable existing-repair resolution. This is the actual
+indexed path; do not mistake generic Hermes block routing for its implementation.
+Hermes' `kanban_db_lifecycle.py::_recover_agent_owned_capability_failure` requires
+durable budget progress before dispatcher recovery; source and installed hashes
+matched for that module. The supporting broker checkout is an older unrelated
+branch, so its absent split module is not evidence that the installed path is
+absent from current authoritative source.
+
+A browser adapter cannot safely change task claims/dependencies or decide owner
+consent. Finite accountable routing must be repaired/tested in an isolated current
+broker source phase, not bypassed with a Nest wrapper or DB write. Preserve exact
+worker, owner-decision and dependency gates and stop unchanged obstacles rather
+than introducing automatic retry loops. Inspect Hermes supporting code read-only;
+only request another genuine source boundary if a proven kernel change is needed.
 
 Then finish exact-head CI/MR, managed image build/pin, host adapter apply/service
 refresh, and actual installed AR-bound workflow checks. The existing deployment
