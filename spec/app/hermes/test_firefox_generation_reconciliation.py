@@ -172,6 +172,8 @@ def test_exact_historical_retirement_preserves_bytes_and_forbids_replay(engine, 
     assert json.loads(archive.read_text())['journals']['state.json'].encode() == original
     assert 'historical' in controller.legacy_keys
     assert 'historical' in windows.Windows(controller.path, connect=lambda: native).legacy_keys
+    with pytest.raises(RuntimeError, match='no replay'):
+        controller._input('type', {'action_key': 'historical'}, {}, {})
     controller.reconcile_generation(grant)
     changed = {**grant, 'retire_unresolved': []}
     with pytest.raises(RuntimeError, match='conflicting'):
@@ -204,3 +206,19 @@ def test_historical_exemption_is_exact_and_never_covers_other_input(engine, monk
     assert native.calls == calls
     assert controller.path.read_bytes() == before
     assert not (controller.path.parent / 'generation-history').exists()
+
+
+def test_driver_startup_read_can_retry_without_native_mutation(engine, monkeypatch):
+    controller, native = lost(engine, monkeypatch)
+    attempts = []
+    def status(method, path):
+        attempts.append((method, path))
+        if len(attempts) == 1:
+            raise ConnectionRefusedError('fixture driver starting')
+        return {'ready': True}
+    monkeypatch.setattr(windows, 'driver_request', status)
+    monkeypatch.setattr(windows.time, 'sleep', lambda delay: None)
+    calls = native.calls.copy()
+    controller.reconcile_generation(grant_for(controller))
+    assert attempts == [('GET', '/status'), ('GET', '/status')]
+    assert native.calls == calls

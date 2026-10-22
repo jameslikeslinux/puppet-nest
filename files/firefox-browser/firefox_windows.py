@@ -182,7 +182,16 @@ class Windows:
             if matched != allowed:
                 raise RuntimeError("historical retirement records missing or changed")
             # Never end an existing native session just to make a new one fit.
-            if driver_request("GET", "/status").get("ready") is not True:
+            deadline = time.monotonic() + 5
+            while True:
+                try:
+                    driver_ready = driver_request("GET", "/status").get("ready")
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise
+                    time.sleep(.1)
+            if driver_ready is not True:
                 raise RuntimeError("native driver already occupied; preserve without session replacement")
             history = self.path.parent / "generation-history"
             history.mkdir(mode=0o700, exist_ok=True)
