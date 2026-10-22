@@ -42,8 +42,15 @@ class Stage3PathsTest(unittest.TestCase):
         # Actual path, type, access and mode checks still run on real local files.
         directory, file_check = CHECK.safe_directory, CHECK.safe_file
         uid, gid = os.getuid(), os.getgid()
+        def fixture_directory(path, owners, groups):
+            # Model a protected outer namespace. CI may place disposable test
+            # storage below world-writable /tmp; that is correctly inadmissible
+            # for production identity, not a reason to weaken the real checker.
+            if path in self.root.parents:
+                return
+            directory(path, owners | {uid}, groups | {gid})
         with mock.patch.object(CHECK, "trusted_owners", return_value=({uid}, {gid})), \
-                mock.patch.object(CHECK, "safe_directory", side_effect=lambda p, u, g: directory(p, u | {uid}, g | {gid})), \
+                mock.patch.object(CHECK, "safe_directory", side_effect=fixture_directory), \
                 mock.patch.object(CHECK, "safe_file", side_effect=lambda p, u, private=False: file_check(p, u | {uid}, private)):
             yield
 
