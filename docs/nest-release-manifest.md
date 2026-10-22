@@ -238,17 +238,27 @@ exec sessions. Its mounts must be the existing `/nest` and `/falcon` host shares
 exactly `CONTAINER-frozen-repos` at `/var/db/repos`, and optional read-only QEMU
 helper binds. Unknown mounts, SSH-agent sockets, volume plugins/options, mismatched
 mount sources and any other container referencing that volume refuse. The stopped
-build must have an empty hidden image-layer `/var/db/repos`, with ordinary real
-directory ancestors; nonempty hidden content refuses rather than being mixed or
-silently deleted. Older images that do not meet this requirement are unsupported
-inputs, not evidence that missing repositories may be ignored.
+build must have ordinary real directory ancestors at `/var/db/repos`. Hidden
+image-layer repositories may be nonempty: the frozen volume replaces that exact
+subtree as it does during the build. The layer copy retains the mountpoint but
+excludes its children, including dotfiles, before copying the complete volume.
+Neither source is deleted or modified; stale hidden repositories are not shipped.
 
 The command mounts the stopped layer locally without starting it. Root and volume
 trees must have safe canonical ancestry, be disjoint and have no submounts,
-including same-device binds. It copies the entire image layer with the existing
-archive/ACL/hardlink/xattr/numeric-ID/nanosecond semantics and compares its complete
-restore-relevant aggregate identity. It then copies the complete repository
-volume and compares that subtree's aggregate. Host shares, emulation binds and
+including same-device binds. It copies the image layer except the exact hidden
+repository children with the existing archive/ACL/hardlink/xattr/numeric-ID/
+nanosecond semantics, then copies the complete repository volume, including its
+directory metadata. A read-only virtual composition of those two original trees
+is hashed with the unchanged `nest-stage3-root-v1` contract: the repository volume
+occupies precisely `./var/db/repos`, with no arbitrary exclusions. The whole
+assembled target must match that aggregate before and after sealing, and the
+repository subtree must also match its own complete aggregate. The original
+complete image layer (including hidden repositories) and volume are independently
+rehashed to reject mutation. Cross-tree hardlinks that cannot survive separate
+copies refuse rather than losing topology unnoticed. Ordinary sealed-root
+admission still hashes just the actual filesystem, with no replacement option
+on its CLI. Host shares, emulation binds and
 Podman's runtime-generated mounts are not release payload; their external content
 is never traversed. Both source aggregates, stopped-container identity, volume
 identity/exclusivity and target filesystem identity are rechecked before sealing.

@@ -160,6 +160,24 @@ class RootTests(unittest.TestCase):
         os.setxattr(path, 'user.fixture', b'only synthetic bytes')
         self.assertNotEqual(first, ROOT.content_digest(self.root))
 
+    def test_repository_composition_rejects_overlap_symlinks_and_missing_mountpoint(self):
+        repositories = self.base / 'repositories'
+        repositories.mkdir()
+        with self.assertRaises(ValueError):
+            ROOT.content_digest(self.root, repositories=repositories)
+        (self.root / 'var/db/repos').mkdir(parents=True)
+        for path in [self.root, self.root / 'var/db/repos', self.base]:
+            with self.subTest(path=path), self.assertRaises(ValueError):
+                ROOT.content_digest(self.root, repositories=path)
+        alias = self.base / 'repository-alias'
+        alias.symlink_to(repositories, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            ROOT.content_digest(self.root, repositories=alias)
+        (self.root / 'var/db/repos').rmdir()
+        (self.root / 'var/db/repos').symlink_to(repositories, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            ROOT.content_digest(self.root, repositories=repositories)
+
     def test_fifo_supported_without_opening_it(self):
         os.mkfifo(self.root / 'fifo')
         self.assertRegex(ROOT.content_digest(self.root), '^sha256:[0-9a-f]{64}$')

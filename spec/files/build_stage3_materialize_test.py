@@ -161,11 +161,64 @@ class MaterializeTests(unittest.TestCase):
         self.assertIn(['podman', 'unmount', self.identity], self.commands)
         self.assertFalse(self.sealed)
 
-    def test_hidden_repositories_refuse_instead_of_mixing_stale_payload(self):
+    def test_hidden_repositories_replaced_without_source_mutation_or_stale_payload(self):
         (self.source / 'var/db/repos/old').write_bytes(b'old hidden repository')
+        (self.source / 'var/db/repos/.hidden').write_bytes(b'hidden old metadata')
+        (self.source / 'var/db/repos/stale').mkdir()
+        (self.source / 'var/db/repos/stale/link').symlink_to('/not/release/payload')
+        original = MAT.ROOT.content_digest(self.source)
+        expected = MAT.ROOT.content_digest(self.source, repositories=self.repos)
+        result = self.run_materialize()
+        self.assertEqual(result['content_digest'], expected)
+        self.assertEqual(MAT.ROOT.content_digest(self.source), original)
+        self.assertEqual(set(os.listdir(self.target / 'var/db/repos')), {'fixture'})
+        self.assertTrue(self.sealed)
+
+    def test_assembled_digest_detects_corruption_outside_repository_subtree(self):
+        calls = 0
+
+        def corrupt(args):
+            nonlocal calls
+            result = self.command(args)
+            if args[0] == 'rsync':
+                calls += 1
+                if calls == 2:
+                    (self.target / 'etc/fixture').write_bytes(b'bad copy')
+            return result
+        with self.assertRaises(ValueError):
+            self.run_materialize(command=corrupt)
+        self.assertFalse(self.sealed)
+        self.assertFalse((self.receipts / 'materialize-123.json').exists())
+
+    def test_repository_directory_metadata_and_hardlinks_are_preserved(self):
+        self.repos.chmod(0o750)
+        os.setxattr(self.repos, 'user.fixture', b'directory metadata')
+        os.link(self.repos / 'fixture', self.repos / 'linked')
+        (self.repos / '.hidden').write_bytes(b'new hidden volume metadata')
+        result = self.run_materialize()
+        self.assertEqual(result['content_digest'], MAT.ROOT.content_digest(self.source, repositories=self.repos))
+        destination = self.target / 'var/db/repos'
+        self.assertEqual(destination.stat().st_mode & 0o777, 0o750)
+        self.assertEqual(os.getxattr(destination, 'user.fixture'), b'directory metadata')
+        self.assertEqual((destination / 'fixture').stat().st_ino, (destination / 'linked').stat().st_ino)
+        self.assertEqual((destination / '.hidden').read_bytes(), b'new hidden volume metadata')
+
+    def test_cross_tree_hardlink_loss_refuses_before_sealing(self):
+        os.link(self.source / 'etc/fixture', self.repos / 'cross-tree-link')
         with self.assertRaises(ValueError):
             self.run_materialize()
         self.assertFalse(self.sealed)
+        self.assertFalse((self.receipts / 'materialize-123.json').exists())
+
+    def test_changed_target_after_sealing_never_emits_receipt(self):
+        def mutate(args):
+            result = self.command(args)
+            if args[:3] == ['zfs', 'set', 'readonly=on']:
+                (self.target / 'etc/fixture').write_bytes(b'changed at seal boundary')
+            return result
+        with self.assertRaises(ValueError):
+            self.run_materialize(command=mutate)
+        self.assertTrue(self.sealed)
         self.assertFalse((self.receipts / 'materialize-123.json').exists())
 
     def test_source_and_volume_mutations_during_copy_refuse(self):
