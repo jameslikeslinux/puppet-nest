@@ -29,8 +29,8 @@ def context():
     return sha, int(pipeline), repo
 
 
-def validate(row, cpu):
-    sha, pipeline, repo = context()
+def validate(row, cpu, expected_context=None):
+    sha, pipeline, repo = context() if expected_context is None else expected_context
     require(type(row) is dict and set(row) == FIELDS)
     require(type(row["schema"]) is int and row["schema"] == 2 and row["kind"] == "nest_config_executor_member")
     require(row["project"] == "nest/config" and row["sha"] == sha)

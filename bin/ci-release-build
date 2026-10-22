@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""Run one frozen Stage 0/1/2 candidate using existing Bolt; retain its result."""
+
+import argparse
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+PROJECT = Path(__file__).resolve().parents[1]
+
+
+def module(name, filename):
+    spec = importlib.util.spec_from_file_location(name, PROJECT / "scripts" / filename)
+    result = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(result)
+    return result
+
+
+release = module("release_manifest", "nest-release-manifest.py")
+inputs = module("executor_inputs", "nest-executor-inputs.py")
+
+
+def require(condition):
+    release.require(condition, "Candidate execution identity or result mismatch")
+
+
+def positive(name):
+    value = os.environ.get(name, "")
+    require(re.fullmatch(r"[1-9][0-9]{0,19}", value) is not None)
+    return int(value)
+
+
+def prepare(expected, member_id, receipt):
+    indexed = release.expectations(expected)
+    require(member_id in indexed)
+    member = indexed[member_id]
+    stage = member["stage"]
+    require(stage in ("stage0", "stage1", "stage2"))
+    require(stage != "stage0" or (member["mode"] == "refresh" and member["variant"] == "server"))
+    decision = next(row["decision"] for row in expected["consumers"] if row["project"] == member["project"])
+    require(decision == "rebuild")
+    # CI's trusted job context binds the producer checkout and selected image.
+    # It is not independent proof of the runner's image-selection implementation.
+    require(os.environ.get("CI_PROJECT_PATH") == member["project"])
+    require(os.environ.get("CI_COMMIT_SHA") == expected["sources"][member["project"]])
+    source = Path(os.environ["CI_PROJECT_DIR"])
+    require(inputs.git(source, "rev-parse", "HEAD") == os.environ["CI_COMMIT_SHA"])
+    require(not inputs.git(source, "status", "--porcelain", "--untracked-files=no"))
+    require(os.environ.get("CI_JOB_IMAGE") == expected["executor"]["image"])
+    pipeline, job = positive("CI_PIPELINE_ID"), positive("CI_JOB_ID")
+    # Validate the accepted config member using its OWN producing CI context.
+    # Reuse its strict schema without replacing the current Stage job context.
+    import runpy
+    identity = runpy.run_path(str(PROJECT / "bin" / "ci-executor-receipt"))
+    require(type(receipt["image"]) is str)
+    config_repo = receipt["image"].split("@", 1)[0]
+    require(type(receipt["pipeline"]) is int and 0 < receipt["pipeline"] < 10 ** 20)
+    identity["validate"](receipt, receipt["cpu"],
+                         (expected["executor"]["source"], receipt["pipeline"], config_repo))
+    require(receipt["image"] == expected["executor"]["image"])
+    observed = inputs.observe(PROJECT, expected["executor"]["source"], receipt["inputs"]["base_image"])
+    require(observed == receipt["inputs"])
+    require(not (PROJECT / ".executor-inputs.json").is_symlink())
+    require((PROJECT / ".executor-inputs.json").read_bytes() == inputs.canonical(observed))
+    registry = os.environ.get("CI_REGISTRY", "")
+    require(re.fullmatch(r"[a-z0-9][a-z0-9.:-]*", registry) is not None)
+    require(os.environ.get("CI_REGISTRY_IMAGE") == registry + "/" + member["project"])
+    token = "p" + str(pipeline) + "-j" + str(job)
+    params = {"container": "nest-candidate-" + token, "cpu": member["cpu"],
+              "candidate": token, "build": True, "init": True, "deploy": True,
+              "registry": registry, "registry_username": None,
+              "repo_revisions": {"gentoo": expected["sources"]["nest/gentoo/portage"],
+                                 "nest": expected["sources"]["nest/overlay"],
+                                 "haskell": expected["sources"]["nest/gentoo/haskell"]}}
+    if stage == "stage1":
+        params.update(variant=member["variant"], refresh=member["mode"] == "refresh",
+                      from_image=member["bases"]["normal"], from_image_debug=member["bases"]["debug"])
+    else:
+        params["from_image"] = member["bases"]["image"]
+        if stage == "stage2":
+            params.update(variant=member["variant"], platform=member["platform"], refresh=member["mode"] == "refresh")
+    return member, params, {"project": member["project"], "sha": os.environ["CI_COMMIT_SHA"], "pipeline": pipeline, "job": job}
+
+
+def execute(expected, member_id, receipt, directory):
+    member, params, producer = prepare(expected, member_id, receipt)
+    directory = Path(directory)
+    require(directory.is_absolute() and directory.resolve() == directory and directory.is_dir())
+    target = directory / (member_id + ".json")
+    # Reserve before any build: a reused output path must never cause a second
+    # destructive container initialization or an overwrite of an accepted result.
+    # A failed/interrupted attempt leaves a reservation; rerun with a fresh CI job.
+    reservation = directory / ("." + member_id + ".started")
+    require(not target.exists() and not target.is_symlink())
+    with reservation.open("xb") as stream:
+        stream.write(release.canonical(producer))
+        stream.flush()
+        os.fsync(stream.fileno())
+    # Bolt prints the plan's returned object in JSON mode (no streaming). Raw
+    # apply reports/errors stay in private local temporary files, never artifacts.
+    with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as error:
+        env = dict(os.environ, BOLT_CLEANUP_CMD="podman stop " + params["container"] + " >&/dev/null")
+        result = subprocess.run([str(PROJECT / "bin" / "bolt-wrapper"), "plan", "run", "nest::build::" + member["stage"],
+                                 "--project", str(PROJECT), "--params", "-", "--format", "json"],
+                                cwd=PROJECT, env=env, input=release.canonical(params), stdout=output, stderr=error, check=False)
+        require(result.returncode == 0)
+        output.seek(0)
+        raw = output.read(release.LIMIT + 1)
+    require(len(raw) <= release.LIMIT)
+    artifacts = json.loads(raw, object_pairs_hook=release.unique_object)
+    repository = os.environ["CI_REGISTRY_IMAGE"]
+    if member["stage"] != "stage0":
+        repository += "/" + member["variant"]
+    keys = {"normal", "debug"} if member["stage"] != "stage2" else {"image"}
+    require(type(artifacts) is dict and set(artifacts) == keys)
+    for key, reference in artifacts.items():
+        prefix = repository + ("/debug" if key == "debug" else "")
+        require(type(reference) is str and re.fullmatch(re.escape(prefix) + r"@sha256:[0-9a-f]{64}", reference) is not None)
+    if "debug" in artifacts:
+        require(artifacts["normal"].split("@")[-1] != artifacts["debug"].split("@")[-1])
+    # Recheck installed source/modules after execution; a build that changed its
+    # own executor cannot emit a frozen-input success record.
+    require(prepare(expected, member_id, receipt)[1:] == (params, producer))
+    row = {"schema": 1, "kind": "nest_release_member_result", "release": expected["release"],
+           "expectations_digest": release.digest(expected), "executor_receipt": receipt,
+           "output": {"member": member, "producer": producer, "executor": expected["executor"], "artifacts": artifacts}}
+    payload = release.canonical(row)
+    with target.open("xb") as stream:
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    require(not target.is_symlink() and target.read_bytes() == payload)
+    return {"member": member_id, "result_digest": release.digest(row), "readback_verified": True}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--expectations", required=True)
+    parser.add_argument("--member", required=True)
+    parser.add_argument("--executor-receipt", required=True)
+    parser.add_argument("--output-dir", required=True)
+    args = parser.parse_args()
+    try:
+        print(json.dumps(execute(release.load(args.expectations), args.member,
+                                 release.load(args.executor_receipt), args.output_dir), sort_keys=True))
+        return 0
+    except (OSError, ValueError, TypeError, KeyError, StopIteration, RecursionError, subprocess.SubprocessError):
+        print("Candidate build failed; no accepted release member emitted", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
