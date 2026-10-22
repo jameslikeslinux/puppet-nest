@@ -51,13 +51,14 @@ class Stage3PathsTest(unittest.TestCase):
             directory(path, owners | {uid}, groups | {gid})
         with mock.patch.object(CHECK, "trusted_owners", return_value=({uid}, {gid})), \
                 mock.patch.object(CHECK, "safe_directory", side_effect=fixture_directory), \
+                mock.patch.object(CHECK, "check_tls"), \
                 mock.patch.object(CHECK, "safe_file", side_effect=lambda p, u, private=False: file_check(p, u | {uid}, private)):
             yield
 
     def check(self, identity=None, output=None, host="fixture-host"):
         with self.fixture_owners():
             CHECK.check(str(self.identity) if identity is None else identity,
-                        str(self.output) if output is None else output, host)
+                        str(self.output) if output is None else output, host, "a" * 64)
 
     def test_valid_preexisting_material_is_read_only(self):
         before = {str(p): (p.lstat(), p.read_bytes() if p.is_file() else None)
@@ -169,7 +170,7 @@ class Stage3PathsTest(unittest.TestCase):
 
     def test_cli_failure_is_sanitized_and_does_not_create_paths(self):
         result = subprocess.run([sys.executable, str(SCRIPT), str(self.root / "secret-source"),
-                                 str(self.output), "fixture-host"], capture_output=True, text=True)
+                                 str(self.output), "fixture-host", "a" * 64], capture_output=True, text=True)
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "Stage 3 identity/path admission failed\n")
