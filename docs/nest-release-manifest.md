@@ -422,20 +422,40 @@ Linux `/proc/self/fd` and Python's memfd/sealing support. No CA, key or cert is
 generated, repaired or renewed by admission. This is not a revocation-status or
 remote TLS endpoint check; no CRL/OCSP fetch or network command is performed.
 
-Frozen identity setup only copies those existing sources into the build root;
-it does not generate a machine-id or create/chmod/chown the private input tree.
-Legacy identity initialization remains available without `catalog_inputs`.
-Missing identities must be provisioned through the separately approved identity
-workflow, not repaired as an incidental candidate build. Admission verifies trust
-relative to the independently supplied CA pin, not the authority of whoever chose
-it. It does not freeze the whole identity tree or protect against a trusted
-root/Puppet writer changing material between checks or before Puppet copies it.
-A stable private capture/binding and release-policy CA selection are still required
-before enabling the Stage 3 candidate adapter. No key hashes or secret bytes are
-added to public release receipts.
+After container initialization and apply preparation, frozen identity setup invokes
+the same checker with `--install` inside the disposable build container. This
+explicit executing mode requires root and Podman's `/run/.containerenv`; the
+default invocation remains read-only. It captures machine-id and the complete SSL
+tree into bounded private process memory (at most 4096 entries and 16 MiB total,
+with the existing 1 MiB per-file limit). A complete metadata inventory before and
+after reading detects changes to device/inode, size, ownership, permissions,
+mtime/ctime or membership, including empty directories. Source admission repeats,
+and the actual captured certificate/key/CA bytes undergo the same cryptographic
+checks. Concurrent source changes fail the build; there is no automatic retry.
+
+Only those captured bytes are staged under a unique mode-0700 directory on the
+container's destination filesystem, with private file creation and admitted final
+ownership/modes. SSL replacement removes stale files from the previous build
+identity; machine-id and SSL bytes are reopened and compared before success.
+Staging is removed on both success and failure. No working copy goes onto shared
+`/nest` or final backup storage. Frozen Puppet identity setup no longer reopens
+the live source. A partial install aborts this disposable build before profile or
+package work; it is not a live-host atomic migration or a resumable repair. It
+must not be invoked in a live service container. Source mutation after capture
+cannot change the bytes being installed; root/Puppet writers and the executor
+remain trusted, and this is not protection against a malicious privileged writer.
+
+This does not generate machine identity, repair or alter the private input tree,
+or renew credentials. Legacy initialization remains available without
+`catalog_inputs`. Missing identities use their separately approved provisioning
+workflow. CA selection must still come from reviewed release trust policy, not
+auto-trust of the same input. Capture is per-build, not a retained immutable
+private-identity generation or binding in a release receipt. Those binding and
+policy interfaces remain required before enabling the Stage 3 candidate adapter.
+No key hashes or secret bytes enter public receipts or diagnostics.
 
 This is an executing build option, not a read-only command. It does not publish a
-versioned root, freeze private host identity bytes, make dynamic external data
+versioned root, retain an immutable private identity reference, make dynamic external data
 reproducible or validate hardware compatibility. Existing rsync publication remains
 legacy behavior: callers must not treat that path as an immutable generation or
 use it for release-candidate success. Stage 3 CI still refuses candidate execution.
@@ -452,6 +472,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_manifest_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/ci_release_build_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_paths_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_trust_test.py
+PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_capture_test.py
 ```
 
 The suite uses conspicuously fixture-only sources, identities and image refs.

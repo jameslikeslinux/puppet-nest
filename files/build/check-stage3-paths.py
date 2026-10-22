@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only admission of existing private Stage 3 identity and output paths."""
+"""Admit private Stage 3 identity; optionally capture/install in a disposable build."""
 
 import argparse
 import fcntl
@@ -8,9 +8,11 @@ import os
 from pathlib import Path
 import pwd
 import re
+import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 
 
 def require(value):
@@ -84,11 +86,15 @@ def openssl(arguments, payload, descriptors=()):
 
 
 def check_tls(ssl, hostname, ca_sha256):
-    require(re.fullmatch(r"[0-9a-f]{64}", ca_sha256) is not None)
     ca = read_material(ssl / "certs/ca.pem")
-    require(hashlib.sha256(ca).hexdigest() == ca_sha256)
     certificate = read_material(ssl / ("certs/" + hostname + ".pem"))
     key = read_material(ssl / ("private_keys/" + hostname + ".pem"))
+    check_tls_bytes(ca, certificate, key, hostname, ca_sha256)
+
+
+def check_tls_bytes(ca, certificate, key, hostname, ca_sha256):
+    require(re.fullmatch(r"[0-9a-f]{64}", ca_sha256) is not None)
+    require(hashlib.sha256(ca).hexdigest() == ca_sha256)
     require(re.fullmatch(rb"-----BEGIN CERTIFICATE-----\s+[A-Za-z0-9+/=\r\n]+-----END CERTIFICATE-----\s*", certificate) is not None)
     require(re.fullmatch(rb"-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY|EC PRIVATE KEY)-----\s+"
                          rb"[A-Za-z0-9+/=\r\n]+-----END \1-----\s*", key) is not None)
@@ -148,15 +154,109 @@ def check(identity_value, output_value, hostname, ca_sha256):
     check_tls(ssl, hostname, ca_sha256)
 
 
+def identity_inventory(identity):
+    # Metadata only, private to this process. Compare the complete set before
+    # and after every read, including directories (add/remove/rename detection).
+    paths = [identity, identity / "etc", identity / "etc/machine-id",
+             identity / "etc/puppetlabs", identity / "etc/puppetlabs/puppet"]
+    ssl = identity / "etc/puppetlabs/puppet/ssl"
+    for directory, directories, files in os.walk(ssl, followlinks=False, onerror=walk_error):
+        paths.append(Path(directory))
+        paths.extend(Path(directory) / name for name in files)
+        require(len(paths) + len(directories) <= 4096)
+    fields = ("st_dev", "st_ino", "st_size", "st_mode", "st_uid", "st_gid", "st_mtime_ns", "st_ctime_ns")
+    result = {}
+    for path in paths:
+        info = path.lstat()
+        require(stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode))
+        result[path.relative_to(identity)] = tuple(getattr(info, f) for f in fields)
+    return result
+
+
+def capture(identity_value, output_value, hostname, ca_sha256):
+    check(identity_value, output_value, hostname, ca_sha256)
+    identity = Path(identity_value)
+    before = identity_inventory(identity)
+    material = {}
+    total = 0
+    for relative, info in before.items():
+        if stat.S_ISREG(info[3]):
+            value = read_material(identity / relative)
+            total += len(value)
+            require(total <= 16 * 1024 * 1024)
+            material[relative] = value
+    check(identity_value, output_value, hostname, ca_sha256)
+    require(before == identity_inventory(identity))
+    # Admission of the actual captured bytes, not a later reopen of the source.
+    machine = material[Path("etc/machine-id")]
+    require(re.fullmatch(rb"[0-9a-f]{32}\n?", machine) is not None and machine.strip() != b"0" * 32)
+    ssl = Path("etc/puppetlabs/puppet/ssl")
+    check_tls_bytes(material[ssl / "certs/ca.pem"], material[ssl / ("certs/" + hostname + ".pem")],
+                    material[ssl / ("private_keys/" + hostname + ".pem")], hostname, ca_sha256)
+    return before, material
+
+
+def install_capture(inventory, material, destination):
+    # Only the disposable build root is a supported destination. Private local
+    # staging is removed on failure too; no secret bytes or digests are reported.
+    etc = destination / "etc"
+    puppet = etc / "puppetlabs/puppet"
+    for path in (etc, etc / "puppetlabs", puppet):
+        safe_directory(path, {0}, {0})
+    for path in (etc / "machine-id", puppet / "ssl"):
+        require(not path.is_symlink())
+    # Stage on the destination filesystem for rename, never on shared /nest or
+    # a separate /run tmpfs. The outer directory stays mode 0700 throughout.
+    with tempfile.TemporaryDirectory(prefix=".nest-stage3-identity-", dir=puppet) as temporary:
+        stage = Path(temporary)
+        for relative, info in inventory.items():
+            path = stage / relative
+            if stat.S_ISDIR(info[3]):
+                path.mkdir(parents=True, exist_ok=True, mode=0o700)
+            else:
+                with path.open("xb") as stream:
+                    os.fchmod(stream.fileno(), 0o600)
+                    stream.write(material[relative])
+                    stream.flush()
+                    os.fsync(stream.fileno())
+        # Restore admitted ownership/modes only after the whole tree is private.
+        for relative, info in reversed(list(inventory.items())):
+            if relative == Path("."):
+                continue
+            path = stage / relative
+            os.chown(path, info[4], info[5])
+            path.chmod(stat.S_IMODE(info[3]))
+        # A failed install aborts this build; it is not a live-host repair or a
+        # resumable identity migration. Preserve no second persistent key tree.
+        if (puppet / "ssl").exists():
+            # OverlayFS may refuse renaming a base-image (lower) directory
+            # even on the same device. This is a disposable build replacement,
+            # not an atomic live migration; removal failure stops publication.
+            shutil.rmtree(puppet / "ssl")
+        os.rename(stage / "etc/puppetlabs/puppet/ssl", puppet / "ssl")
+        os.replace(stage / "etc/machine-id", etc / "machine-id")
+        require((etc / "machine-id").read_bytes() == material[Path("etc/machine-id")])
+        ssl = Path("etc/puppetlabs/puppet/ssl")
+        expected = {p.relative_to(ssl): value for p, value in material.items() if ssl in p.parents}
+        actual = {p.relative_to(puppet / "ssl"): p.read_bytes() for p in (puppet / "ssl").rglob("*") if p.is_file()}
+        require(actual == expected)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("identity_root")
     parser.add_argument("publication_root")
     parser.add_argument("hostname")
     parser.add_argument("ca_sha256", help="Independently approved SHA256 of the public CA PEM bytes")
+    parser.add_argument("--install", action="store_true", help="Capture and install identity inside a disposable Podman build container only")
     args = parser.parse_args()
     try:
-        check(args.identity_root, args.publication_root, args.hostname, args.ca_sha256)
+        if args.install:
+            require(os.geteuid() == 0 and Path("/run/.containerenv").is_file())
+            inventory, material = capture(args.identity_root, args.publication_root, args.hostname, args.ca_sha256)
+            install_capture(inventory, material, Path("/"))
+        else:
+            check(args.identity_root, args.publication_root, args.hostname, args.ca_sha256)
         print("Stage 3 identity/path admission passed")
         return 0
     except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError):
