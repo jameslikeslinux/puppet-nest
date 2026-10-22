@@ -118,3 +118,57 @@ adopted for CI. The root-only pre-retirement archive was created and listed at
 `/srv/puppet/retirement/systemd-and-bolt-before-retirement.tar.gz` (mode 0600),
 containing all five units and the existing Bolt configuration. No private bytes
 were printed.
+
+## Live retirement result
+
+MR !444 merged as `3e58420670fd839311f21ce28a39e85e4ec5beb9` after exact-head
+pipeline 11242 passed all jobs, including 1338 unit examples. Both OpenVox
+namespaces deployed that merge. All discovered Bolt consumers received the new
+configuration: Owl, Falcon, Builder1, Builder2, Builder3, Kestrel, Eagle, Hawk,
+Kite, Osprey and Merlin. Installed files were read back on every target. The
+deployment runner's installed image, mounts and mode 0600 code-deploy key were
+verified. Admission states were restored after its drained reconciliation;
+runner 93 remained paused as before.
+
+Targeted Puppet removed Falcon's two old Apache virtual hosts and Kestrel's two
+DNS aliases. The old PuppetDB's newest receive time remained
+`2026-10-21T00:45:10.036Z`. At `2026-10-22T12:15:29-04:00`, all five named units
+were disabled and stopped. All four containers exited with PID 0, the pod exited,
+and a process/thread scan found no surviving tasks in the retired container
+cgroups. Ports 8140, 8080, 8081 and 8180 had no host listeners. Two units reported
+nonzero shutdown exits; after confirming no surviving tasks, their failed flags
+were reset. Final state for every unit was inactive and disabled.
+
+The datasets and CA/key material remain intact. Root-only container and pod
+metadata are retained alongside the unit/config archive under
+`/srv/puppet/retirement`. Recursive snapshots named `retired-t_73f162d2` preserve
+the complete `data/crypt/srv/puppet` dataset tree after shutdown.
+
+Immediate before-stop attributed memory was 1.153 GB for Puppetserver, 657 MB
+for PuppetDB, 152.2 MB for PostgreSQL and 50.48 MB for Puppetboard: approximately
+2.01 GB combined, reduced to no running legacy container attribution. Whole-host
+available memory independently rose from 22,223,155,200 to 23,972,057,088 bytes
+immediately after stop, a gain of 1,748,901,888 bytes. A later bounded sample was
+23,801,638,912 bytes; unrelated workload/caching changes explain why this is not
+the same measure as the container total.
+
+Post-stop checks passed: production Puppetboard HTTPS 200, PuppetDB status
+`running`, unchanged ready OpenVox pods, inventory-backed transport to Owl and
+both consoles, and ordinary test/prod deployment plus compiler-cache expiry.
+Falcon's targeted convergence applied no changes and did not recreate the old
+services. New production reports were unchanged for Falcon at
+`2026-10-22T16:17:43.322Z` and Owl at `2026-10-22T16:18:15.319Z`. No console full
+catalog, Hermes/desktop service restart, CA revocation or data deletion was used.
+
+The merged pipeline published all tool-image architectures after one transient
+ARM64 Git fetch retry. Its real code-deploy job exposed GitLab Runner's
+world-writable checkout: Bolt requires an explicit `BOLT_PROJECT` there. The
+job now selects the trusted `$CI_PROJECT_DIR`, and that correction was exercised
+with a mode 0777 project, the managed deployment image, private module install,
+and successful test/prod deployment. The correction still requires its own
+exact-head CI and real merged CI-job read-back before final closeout.
+
+Historical Eagle-console, Eagle-gui and `owl.nest` Hiera records, the legacy
+public CA file, retained runtime units and private offline material remain
+rollback/history references, not live management clients. Shared OpenVox
+credential classes, secrets, backups and network access were preserved.

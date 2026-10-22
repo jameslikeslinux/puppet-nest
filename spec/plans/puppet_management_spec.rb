@@ -24,6 +24,7 @@ RSpec.describe 'OpenVox management boundaries' do
 
   it 'uses the ordinary OpenVox code deployment plan from CI' do
     expect(ci.fetch('Deploy environment').fetch('script')).to include(
+      'export BOLT_PROJECT="$CI_PROJECT_DIR"',
       'bolt plan run nest::puppet::deploy backend=kubernetes environment="$CI_COMMIT_BRANCH"',
     )
   end
