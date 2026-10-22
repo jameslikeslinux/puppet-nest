@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 CPUS = ("haswell", "cortex-a53", "sifive-u74")
-FIELDS = {"schema", "kind", "project", "sha", "pipeline", "job", "cpu", "image", "source_verification"}
+FIELDS = {"schema", "kind", "project", "sha", "pipeline", "job", "cpu", "image", "source_verification", "inputs"}
 
 
 def require(condition):
@@ -32,13 +32,30 @@ def context():
 def validate(row, cpu):
     sha, pipeline, repo = context()
     require(type(row) is dict and set(row) == FIELDS)
-    require(type(row["schema"]) is int and row["schema"] == 1 and row["kind"] == "nest_config_executor_member")
+    require(type(row["schema"]) is int and row["schema"] == 2 and row["kind"] == "nest_config_executor_member")
     require(row["project"] == "nest/config" and row["sha"] == sha)
     require(type(row["pipeline"]) is int and row["pipeline"] == pipeline)
     require(type(row["job"]) is int and 0 < row["job"] < 10 ** 20)
     require(cpu in CPUS and row["cpu"] == cpu)
     require(type(row["image"]) is str and re.fullmatch(re.escape(repo) + r"@sha256:[0-9a-f]{64}", row["image"]) is not None)
     require(row["source_verification"] == "git_head_and_oci_revision")
+    inputs = row["inputs"]
+    require(type(inputs) is dict and set(inputs) == {"schema", "kind", "source", "base_image", "puppetfile_digest", "modules"})
+    require(type(inputs["schema"]) is int and inputs["schema"] == 1
+            and inputs["kind"] == "nest_config_executor_inputs" and inputs["source"] == sha)
+    require(type(inputs["base_image"]) is str and re.fullmatch(r"[a-z0-9][a-z0-9.:-]*(/[a-z0-9][a-z0-9._-]*)+@sha256:[0-9a-f]{64}", inputs["base_image"]) is not None)
+    require(type(inputs["puppetfile_digest"]) is str and re.fullmatch(r"sha256:[0-9a-f]{64}", inputs["puppetfile_digest"]) is not None)
+    require(type(inputs["modules"]) is list and 6 <= len(inputs["modules"]) <= 128)
+    names = set()
+    for module in inputs["modules"]:
+        require(type(module) is dict and set(module) == {"name", "git_head", "content_digest"})
+        name = module["name"]
+        require(type(name) is str and re.fullmatch(r"[a-z][a-z0-9_]*", name) is not None and name not in names)
+        names.add(name)
+        require(type(module["content_digest"]) is str and re.fullmatch(r"sha256:[0-9a-f]{64}", module["content_digest"]) is not None)
+        require(module["git_head"] is None or (type(module["git_head"]) is str and re.fullmatch(r"[0-9a-f]{40}", module["git_head"]) is not None))
+        require(name != "nest" or module["git_head"] == sha)
+    require({"nest", "stdlib", "reboot", "ruby_task_helper", "private", "kubecm"} <= names)
     return row
 
 
@@ -54,9 +71,18 @@ def record(reference_path, output):
     raw = Path(reference_path).read_bytes()
     require(len(raw) <= 1024 and raw.endswith(b"\n") and raw.count(b"\n") == 1)
     reference = raw[:-1].decode("ascii")
-    row = validate({"schema": 1, "kind": "nest_config_executor_member", "project": "nest/config", "sha": sha,
+    require(cpu in CPUS and re.fullmatch(re.escape(context()[2]) + r"@sha256:[0-9a-f]{64}", reference) is not None)
+    # The recorded base is read from this digest image, then every module is
+    # rehashed there. No mounted checkout or submitted module list is trusted.
+    inputs_command = ["podman", "run", "--rm", "--pull=always", "--network=none", "--read-only",
+                      "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=python3", reference,
+                      "-c", "import json,subprocess; p='/opt/nest'; r=json.load(open(p+'/.executor-inputs.json')); subprocess.run(['python3',p+'/scripts/nest-executor-inputs.py','check','--source',r['source'],'--base',r['base_image']],check=True)"]
+    raw_inputs = command(inputs_command)
+    require(len(raw_inputs) <= 65536)
+    inputs = json.loads(raw_inputs, object_pairs_hook=unique)
+    row = validate({"schema": 2, "kind": "nest_config_executor_member", "project": "nest/config", "sha": sha,
                     "pipeline": pipeline, "job": int(job), "cpu": cpu, "image": reference,
-                    "source_verification": "git_head_and_oci_revision"}, cpu)
+                    "source_verification": "git_head_and_oci_revision", "inputs": inputs}, cpu)
     # No host mounts, network, build plan, or secret environment in the container.
     require(command(["podman", "run", "--rm", "--pull=always", "--network=none", "--read-only",
                      "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=git", reference,
@@ -84,8 +110,8 @@ def references(directory):
     rows = []
     for cpu in CPUS:
         with open(Path(directory) / (cpu + ".json"), "rb") as stream:
-            raw = stream.read(4097)
-        require(len(raw) <= 4096)
+            raw = stream.read(65537)
+        require(len(raw) <= 65536)
         rows.append(validate(json.loads(raw, object_pairs_hook=unique), cpu))
     require(len({row["job"] for row in rows}) == len(CPUS))
     require(len({row["image"] for row in rows}) == len(CPUS))

@@ -43,6 +43,7 @@ stages:
     - 'python3 spec/files/build_freeze_repos_test.py'
     - 'python3 spec/files/ci_bolt_module_install_test.py'
     - 'python3 spec/files/ci_executor_identity_test.py'
+    - 'python3 spec/files/nest_executor_inputs_test.py'
 
 'Hermes install fixtures':
   extends: .all-branch-ci
@@ -112,8 +113,10 @@ stages:
     - 'mkdir -p executor-receipts'
     - 'EXECUTOR_IMAGE="${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:executor-${CI_PIPELINE_ID}-${CI_JOB_ID}-${CPU}"'
     - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
+    - 'BOLT_BASE="${BOLT_IMAGE:-nest/tools/bolt}"; podman pull "$BOLT_BASE"'
+    - 'BOLT_BASE_DIGEST=$(podman image inspect "$BOLT_BASE" --format "{{ index .RepoDigests 0 }}")'
     - 'podman build
-        --build-arg=BOLT_IMAGE="${BOLT_IMAGE:-nest/tools/bolt}"
+        --build-arg=BOLT_IMAGE="$BOLT_BASE_DIGEST"
         --build-arg=BRANCH="$CI_COMMIT_BRANCH"
         --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
         --build-arg=SOURCE_URL="${CI_PROJECT_URL}.git"

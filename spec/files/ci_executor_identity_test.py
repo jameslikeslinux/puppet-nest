@@ -20,7 +20,18 @@ with open(os.environ['CALLS'], 'a') as stream:
 if os.environ.get('FAIL_PODMAN'):
     print('private-secret-native-error', file=sys.stderr)
     sys.exit(37)
-print(os.environ.get('LABEL_SHA' if sys.argv[1] == 'image' else 'OBSERVED_SHA', os.environ['CI_COMMIT_SHA']))
+if '--entrypoint=python3' in sys.argv:
+    names = ('nest', 'stdlib', 'reboot', 'ruby_task_helper', 'private', 'kubecm')
+    row = {'schema': 1, 'kind': 'nest_config_executor_inputs', 'source': os.environ['CI_COMMIT_SHA'],
+           'base_image': 'registry.example/nest/tools/bolt@sha256:' + 'f' * 64,
+           'puppetfile_digest': 'sha256:' + 'e' * 64,
+           'modules': [{'name': n, 'git_head': os.environ['CI_COMMIT_SHA'] if n == 'nest' else None,
+                        'content_digest': 'sha256:' + 'd' * 64} for n in names]}
+    if os.environ.get('BAD_INPUTS'):
+        row['modules'][0]['git_head'] = 'b' * 40
+    print(json.dumps(row))
+else:
+    print(os.environ.get('LABEL_SHA' if sys.argv[1] == 'image' else 'OBSERVED_SHA', os.environ['CI_COMMIT_SHA']))
 '''
 
 
@@ -61,15 +72,15 @@ class ExecutorIdentityTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), [REPO + "@sha256:" + format(i, "064x") for i in (1, 2, 3)])
         calls = [json.loads(line) for line in self.calls.read_text().splitlines()]
-        self.assertEqual(len(calls), 6)
-        for call in calls[::2]:
+        self.assertEqual(len(calls), 9)
+        for call in calls[1::3]:
             for flag in ("--network=none", "--read-only", "--cap-drop=ALL", "--entrypoint=git"):
                 self.assertIn(flag, call)
             self.assertEqual(call[-4:], ["-C", "/opt/nest", "rev-parse", "HEAD"])
             self.assertFalse(any("volume" in arg or arg.startswith("--env") for arg in call))
 
     def test_wrong_actual_source_or_podman_failure_never_writes_receipt(self):
-        for changes in ({"OBSERVED_SHA": "b" * 40}, {"LABEL_SHA": "b" * 40}, {"FAIL_PODMAN": "1"}):
+        for changes in ({"OBSERVED_SHA": "b" * 40}, {"LABEL_SHA": "b" * 40}, {"FAIL_PODMAN": "1"}, {"BAD_INPUTS": "1"}):
             ref = self.root / "image.ref"
             ref.write_text(REPO + "@sha256:" + "1" * 64 + "\n")
             output = self.root / "output.json"
@@ -116,11 +127,34 @@ class ExecutorIdentityTest(unittest.TestCase):
     def test_duplicate_keys_and_oversized_receipt_refuse(self):
         self.complete()
         path = self.receipts / "cortex-a53.json"
-        for raw in ('{"schema":1,"schema":1}', " " * 4097):
+        for raw in ('{"schema":1,"schema":1}', " " * 65537):
             path.write_text(raw)
             result = self.cli("refs", self.receipts)
             self.assertEqual(result.returncode, 1)
             self.assertEqual(result.stdout, "")
+
+    def test_missing_old_or_malformed_module_identity_refuses_aggregate(self):
+        self.complete()
+        path = self.receipts / "cortex-a53.json"
+        original = path.read_text()
+        for mutation in (
+            lambda row: row.update(schema=1),
+            lambda row: row.pop("inputs"),
+            lambda row: row["inputs"].update(base_image="nest/tools/bolt:latest"),
+            lambda row: row["inputs"].update(source="b" * 40),
+            lambda row: row["inputs"]["modules"].pop(),
+            lambda row: row["inputs"]["modules"].append(row["inputs"]["modules"][0]),
+            lambda row: row["inputs"]["modules"][0].update(git_head="b" * 40),
+            lambda row: row["inputs"]["modules"][0].update(content_digest="unknown"),
+            lambda row: row["inputs"].update(secret="private-secret-value"),
+        ):
+            row = json.loads(original)
+            mutation(row)
+            path.write_text(json.dumps(row))
+            result = self.cli("refs", self.receipts)
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stdout, "")
+            self.assertNotIn("private-secret", result.stderr)
 
     def test_containerfile_checks_out_exact_pipeline_commit_after_branch_moves(self):
         source = self.root / "source"
