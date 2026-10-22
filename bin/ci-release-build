@@ -42,8 +42,9 @@ def prepare(expected, member_id, receipt, placement=None):
     stage = member["stage"]
     require(stage in ("stage0", "stage1", "stage2", "stage3", "tool"))
     # Specialized wrappers must retain their own smoke and image contracts.
-    require(stage != "tool" or (member["project"] in ("nest/tools/llama.cpp", "nest/tools/bolt") and member["variant"] == "server"))
+    require(stage != "tool" or (member["project"] in ("nest/tools/llama.cpp", "nest/tools/bolt", "nest/tools/agent") and member["variant"] == "server"))
     require(member["project"] != "nest/tools/bolt" or member["cpu"] in ("haswell", "cortex-a53", "sifive-u74"))
+    require(member["project"] != "nest/tools/agent" or member["cpu"] == "zen5")
     require(stage == "stage3" or placement is None)
     require(stage != "stage0" or (member["mode"] == "refresh" and member["variant"] == "server"))
     decision = next(row["decision"] for row in expected["consumers"] if row["project"] == member["project"])
@@ -134,7 +135,7 @@ def execute(expected, member_id, receipt, directory, placement=None):
     # apply reports/errors stay in private local temporary files, never artifacts.
     with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as error:
         env = dict(os.environ, BOLT_CLEANUP_CMD="podman stop " + params["container"] + " >&/dev/null")
-        plan = "bolt" if member["project"] == "nest/tools/bolt" else member["stage"]
+        plan = member["project"].rsplit("/", 1)[1] if member["project"] in ("nest/tools/bolt", "nest/tools/agent") else member["stage"]
         result = subprocess.run([str(PROJECT / "bin" / "bolt-wrapper"), "plan", "run", "nest::build::" + plan,
                                  "--project", str(PROJECT), "--params", "-", "--format", "json"],
                                 cwd=PROJECT, env=env, input=release.canonical(params), stdout=output, stderr=error, check=False)
