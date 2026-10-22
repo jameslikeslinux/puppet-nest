@@ -141,7 +141,9 @@ def expectations(value: Any):
         selection = tuple(member[k] for k in ("stage", "project", "cpu", "platform", "variant", "host"))
         require(selection not in selections, "members: duplicate selection")
         selections.add(selection)
-        base_keys = "normal debug" if stage in {"stage0", "stage1"} else "image"
+        # Stage 0 derives both outputs from one build/base; only Stage 1 consumes
+        # a normal/debug input pair. Output pairing remains mandatory for both.
+        base_keys = "normal debug" if stage == "stage1" else "image"
         fields(member["bases"], base_keys, "member bases")
         for image in member["bases"].values():
             match(image, IMAGE, "base image")

@@ -5,6 +5,7 @@
 # @param container Build container name
 # @param cpu Build for this CPU architecture
 # @param build Build the image
+# @param candidate Candidate publication token; publish no ordinary aliases and return verified normal/debug digest refs
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
 # @param from_image Build starting from this image
@@ -20,6 +21,7 @@ plan nest::build::stage0 (
   String           $container,
   String           $cpu,
   Boolean          $build                 = true,
+  Optional[String] $candidate             = undef,
   Boolean          $deploy                = false,
   Optional[String] $emerge_default_opts   = undef,
   String           $from_image            = "nest/stage0:${cpu}",
@@ -33,6 +35,13 @@ plan nest::build::stage0 (
   Optional[Hash]   $repo_revisions        = undef,
 ) {
   $debug_volume = "${container}-debug"
+  if $candidate != undef {
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._-]{0,100}\z/], $candidate)
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image)
+    unless $build and $deploy and $init and $registry != 'localhost' and $from_image !~ /gentoo/ {
+      fail('Candidate Stage 0 publication requires build, deploy, init, an exact existing Nest base and a remote registry')
+    }
+  }
   if $repo_revisions != undef {
     assert_type(Struct[{
       'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
@@ -191,16 +200,29 @@ plan nest::build::stage0 (
   }
 
   if $deploy {
-    $image = "${registry}/nest/stage0:${cpu}"
+    $output_tag = $candidate ? {
+      undef   => $cpu,
+      default => "candidate-${candidate}",
+    }
+    $image = "${registry}/nest/stage0:${output_tag}"
     run_command("podman commit --change CMD=/bin/bash --squash ${container} ${image}", 'localhost', 'Commit build container')
 
     $debug_container = "${container}-debug"
-    $debug_image = "${registry}/nest/stage0/debug:${cpu}"
+    $debug_image = "${registry}/nest/stage0/debug:${output_tag}"
     run_command("podman run --name=${debug_container} --volume=${debug_volume}:/usr/lib/.debug:ro ${qemu_args} ${image} cp -a /usr/lib/.debug/. /usr/lib/debug", 'localhost', 'Copy debug symbols')
     run_command("podman commit --change CMD=/bin/bash ${debug_container} ${debug_image}", 'localhost', 'Commit debug container')
     run_command("podman rm ${debug_container}", 'localhost', 'Remove debug container')
 
-    unless $registry == 'localhost' {
+    if $candidate != undef {
+      $normal_ref = run_script('nest/build/publish-image.sh', 'localhost', arguments => [$image]).first.value['stdout'].strip
+      $debug_ref = run_script('nest/build/publish-image.sh', 'localhost', arguments => [$debug_image]).first.value['stdout'].strip
+      assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $normal_ref)
+      assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $debug_ref)
+      if $normal_ref.split('@')[-1] == $debug_ref.split('@')[-1] {
+        fail('Candidate normal/debug publication must return distinct content digests')
+      }
+      return({ 'normal' => $normal_ref, 'debug' => $debug_ref })
+    } elsif $registry != 'localhost' {
       run_command("podman push ${image}", 'localhost', "Push ${image}")
       run_command("podman push ${debug_image}", 'localhost', "Push ${debug_image}")
     }
