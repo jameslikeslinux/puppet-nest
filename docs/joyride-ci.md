@@ -33,7 +33,7 @@ is required.
 ## Managed cutover and verification
 
 1. Merge reviewed source with exact-head required CI. Deploy Puppet code using
-   `bolt plan run nest::puppet::deploy backend=both`.
+   `bolt plan run nest::puppet::deploy backend=kubernetes`.
 2. The existing registration helper reconciles the entire shared manager when
    registration scripts change. Pause admission on its existing registrations,
    record previous pause states, and let current jobs finish. Do not kill builds

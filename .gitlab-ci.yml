@@ -177,7 +177,8 @@ stages:
   stage: 'Deploy'
   tags: ['r10k']
   script:
-    - 'r10k deploy environment "$CI_COMMIT_BRANCH" --modules --verbose'
+    - 'bolt module install'
+    - 'bolt plan run nest::puppet::deploy backend=kubernetes environment="$CI_COMMIT_BRANCH"'
   rules:
     - if: '$RELEASE_INPUTS'
       when: never
