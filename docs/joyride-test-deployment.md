@@ -52,7 +52,7 @@ explicit expand/contract sequence or a separately planned, owner-approved
 maintenance procedure for incompatible changes. Never conceal such maintenance
 inside every routine release or automatically reverse a schema on timeout.
 
-One surge adds 450 millicores and 896 MiB of requested memory (up to 3584 MiB of
+One surge adds 450 millicores and 896 MiB of requested memory (up to 5376 MiB of
 container memory limits), plus its 1 GiB scratch-volume bound. The observed Kite
 capacity admitted this small budget; insufficient scheduling capacity must leave
 the old healthy pod serving, not relax maxUnavailable. Terminating pods can briefly
@@ -62,16 +62,17 @@ Production remains dormant and guarded; this is not a production HA claim.
 
 ## Owner dashboard and fast releases
 
-The TEST baseline is application MR 28, exact-head pipeline 11166, source
-`4e1034d404d3016baf5754d6fa217cf29bb1c19c`, merged as
-`62372f627b5fcb02f43c6ff7ea4e21aac98673e0`, image
-`sha256:f029515f9eb433b9f6a2376faee6c77ce92faaa94c6790d7a3b99c91a4f08be9`.
-It adds OTP-first sign-in, 90-day sessions with hourly authenticated rolling
-renewal, and branded mail from `Friday Night Joyride <joy@joyridedc.com>`.
+The TEST baseline is application MR 29, exact-head pipeline 11263, source
+`0dc66568b3f94d3c842d0150a42f7352bf0d9ed1`, merged as
+`05e0042ee80b2e111d8332ce049102597d729eba`, image
+`sha256:3227595c1e5c9bb99429a0e8e297bfee211b149239a9589833a824cd6c235e9d`.
+It adds bounded bundle-defined galleries and mutable curated slugs. It retains
+OTP-first sign-in, 90-day sessions with hourly authenticated rolling renewal,
+and branded mail from `Friday Night Joyride <joy@joyridedc.com>`.
 The seasonal owner dashboard and manifest-bound favicon remain included.
 Frontend/content releases remain independent of this backend pin; retain Luna's
 active release and all release history. The previous managed image is
-`sha256:9f4726538e1dfec511e3f2410ceff155b600f58bdcf5643cef9a4bb296242a1b`;
+`sha256:f029515f9eb433b9f6a2376faee6c77ce92faaa94c6790d7a3b99c91a4f08be9`;
 read the actual installed image again before any rollback.
 Internal `.eyrie` ingress and the existing private backchannel use the separate
 `joyride.internal_wsgi:application` listener on port 8003. Public WSGI remains on
@@ -85,9 +86,13 @@ These replace image CI as the routine frontend/content iteration path; image CI
 and the delivery adapter below remain for backend/dependency/legal changes.
 Upload the raw gzip archive with `Content-Type: application/octet-stream`,
 `X-Release-Sha256`, `X-Previous-Sha256`, `X-Release-Version` and `X-Source-Head`.
-The proxy accepts only those exact methods/targets, at most 32 MiB compressed,
-with 120-second upload/upstream and Gunicorn timeouts. The application additionally
-bounds unpacked data to 64 MiB and validates compare-and-swap and archive contents.
+The proxy accepts only those exact methods/targets: content admits 64 MiB compressed,
+while frontend remains 32 MiB. Upload/upstream and ops Gunicorn budgets stay at
+120 seconds. The content importer admits at most 128 MiB of files, 16 MiB per
+JPEG, 2 MiB per metadata file, 64 originals, 128 placements and 160 tar entries.
+Pixel bounds are 50 MP per image, 256 MP distinct and 512 MP placement-weighted.
+Frontend unpacked bounds remain unchanged. Both paths validate compare-and-swap
+and exact archive contents. See application `docs/content-bundle-v2.md` for schema.
 HTTP 200 with `state=succeeded` is committed activation, not an enqueued operation.
 Existing bearer ops callers require `release` scope; delivery credentials do not
 gain release authority. No Kubernetes credential or new publisher is introduced.
@@ -99,6 +104,21 @@ including retained release archives; its pinned implementation remains unchanged
 Both curated import dry-run and apply use `--initialize-only`, retaining an active
 revision across image restarts. Rollback uses the same endpoint with a retained
 archive and current SHA. Never delete editorial data/history to force startup.
+
+Ops, trusted-test and curated-import each have a 1536 MiB memory limit; requests
+remain unchanged. Sequential JPEG decoding and disk-spooled checked archives
+bound processing: the compressed snapshot plus tar needs roughly 193 MiB scratch
+at the cap, within the existing 1 GiB shared tmp. The 16 MiB input volume still
+fetches only the immutable r1 seed, not a newer gallery. The private PVC remains
+8 GiB. On the pre-deploy Kite survey, 1414 MiB was requested and 6066 MiB limited
+out of about 16086 MiB allocatable; one new surge adds 896 MiB requested and
+5376 MiB limited. Capacity is not permission to widen maxUnavailable.
+
+Bootstrap uses stable curated identity independent of mutable slug; both dry-run
+and apply retain `--initialize-only`. A managed backend rollout does not publish
+Luna's gallery or rename editorial routes. After v2 publication, rolling back to
+a pre-v2 backend first requires using the new backend to restore a compatible
+legacy content archive and slug. Never perform destructive automatic rollback.
 
 Production remains guarded and dormant. Allowlisted SMTP and sandbox billing
 remain unchanged. Deployment readiness, anonymous admin denial and baseline release
