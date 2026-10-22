@@ -181,6 +181,13 @@ After normal module installation, the nested `.modules/nest` checkout fetches
 the already cloned exact config commit locally and detaches there, rather than
 trusting the control branch still points to that source.
 
+Executor receipt verification pulls the exact published digest under a bounded
+600-second transfer/unpack budget, then checks inputs and Git source in offline,
+read-only containers with separate 180-second command limits. The OCI label is
+checked independently. Static phase/timeout diagnostics never echo native
+registry errors or credentials. A timeout still refuses the receipt and aggregate;
+the larger transfer budget is not acceptance of an incomplete check.
+
 `scripts/nest-executor-inputs.py record --source SHA --base DIGEST_REF` records
 the exact top-level and nested Nest source, Puppetfile digest, and every installed
 module's name, optional Git HEAD and content digest. It requires the existing

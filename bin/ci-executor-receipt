@@ -59,8 +59,14 @@ def validate(row, cpu):
     return row
 
 
-def command(args):
-    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=180).stdout.strip()
+def command(args, phase, timeout=180):
+    # Static phase labels only: never expose captured registry/credential errors.
+    print("Executor verification: " + phase, file=sys.stderr, flush=True)
+    try:
+        return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout).stdout.strip()
+    except subprocess.TimeoutExpired:
+        print("Executor verification timed out: " + phase, file=sys.stderr, flush=True)
+        raise
 
 
 def record(reference_path, output):
@@ -74,21 +80,24 @@ def record(reference_path, output):
     require(cpu in CPUS and re.fullmatch(re.escape(context()[2]) + r"@sha256:[0-9a-f]{64}", reference) is not None)
     # The recorded base is read from this digest image, then every module is
     # rehashed there. No mounted checkout or submitted module list is trusted.
-    inputs_command = ["podman", "run", "--rm", "--pull=always", "--network=none", "--read-only",
+    # A slow pull/unpack must not consume the bounded offline content-check
+    # budget. Still pull this exact published digest, never trust a local tag.
+    command(["podman", "pull", reference], "pull published digest", timeout=600)
+    inputs_command = ["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only",
                       "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=python3", reference,
                       "-c", "import json,subprocess; p='/opt/nest'; r=json.load(open(p+'/.executor-inputs.json')); subprocess.run(['python3',p+'/scripts/nest-executor-inputs.py','check','--source',r['source'],'--base',r['base_image']],check=True)"]
-    raw_inputs = command(inputs_command)
+    raw_inputs = command(inputs_command, "check installed inputs")
     require(len(raw_inputs) <= 65536)
     inputs = json.loads(raw_inputs, object_pairs_hook=unique)
     row = validate({"schema": 2, "kind": "nest_config_executor_member", "project": "nest/config", "sha": sha,
                     "pipeline": pipeline, "job": int(job), "cpu": cpu, "image": reference,
                     "source_verification": "git_head_and_oci_revision", "inputs": inputs}, cpu)
     # No host mounts, network, build plan, or secret environment in the container.
-    require(command(["podman", "run", "--rm", "--pull=always", "--network=none", "--read-only",
+    require(command(["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only",
                      "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=git", reference,
-                     "-C", "/opt/nest", "rev-parse", "HEAD"]) == sha)
+                     "-C", "/opt/nest", "rev-parse", "HEAD"], "check Git source") == sha)
     require(command(["podman", "image", "inspect", reference, "--format",
-                     '{{ index .Labels "org.opencontainers.image.revision" }}']) == sha)
+                     '{{ index .Labels "org.opencontainers.image.revision" }}'], "check OCI source") == sha)
     payload = (json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n").encode("ascii")
     # A private CI workspace, not a shared publication service. Never replace a receipt.
     with open(output, "xb") as stream:
