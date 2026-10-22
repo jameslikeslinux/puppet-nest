@@ -154,10 +154,13 @@ using them; never use latest-success artifacts. Since the config SHA is shared,
 a new producer source first needs its ordinary accepted executor publication;
 do not pair an old executor with a new config source merely to skip that boundary.
 
-The Stage 0 source lane implements candidate artifact acquisition but remains
-unpublished while that project's MR feature is disabled. Stage 1/2 wiring,
-multi-project trigger/needs integration, assembly and resource admission remain
-unfinished. Rollback disables this opt-in invocation and retains prior artifacts;
+Stage 0/1/2 candidate CI consumers are now published through their accepted
+source-only merge pipelines. They acquire exact config input/executor artifacts
+and retain individual results; live job-token access has not yet been exercised.
+Stage 3 source pipelines are isolated from legacy host-root builds and refuse
+unsupported candidate flags. Multi-project trigger/needs integration, assembly,
+resource admission and Stage 3 candidate execution remain unfinished.
+Rollback disables this opt-in invocation and retains prior artifacts;
 it does not rewrite historical input receipts or alter any release alias.
 
 ## Candidate schema 1
@@ -348,9 +351,9 @@ data and is not published; failure emits a static sanitized diagnostic. This is
 not a resumable OS build engine; GitLab job cancellation and the existing wrapper
 own cleanup, while partial candidate digests remain unselected.
 
-Stage project CI still needs to download trusted exact expectation/executor
-artifacts, select the matching image, invoke this entrypoint, retain `ID.json`
-as an artifact and bind its successful job status downstream. Candidate assembly,
+Stage 0/1/2 project CI implements exact expectation/executor artifact acquisition,
+image selection, this entrypoint and retained `ID.json`. Live job-token permissions
+and downstream successful-job binding remain unverified. Candidate assembly,
 Stage 2 firmware/ABI resource verification, native multi-project DAG, release
 promotion/rollback and Stage 3 frozen catalog/generation publication remain
 unfinished. A successful adapter fixture or metadata compatibility string is not
@@ -359,6 +362,40 @@ opt-in adapter; preserve published candidates and receipts rather than rebuildin
 historic outputs or changing live aliases.
 
 ## Isolated verification
+
+### Opt-in frozen Stage 3 catalog
+
+`nest::build::stage3` accepts optional `catalog_inputs`, with exactly `source`
+(the full lowercase config Git SHA) and `base` (the config executor's exact Bolt
+base image digest). These identify the existing retained executor input inventory,
+not the Stage 2 image. Use the accepted digest-pinned config executor and its
+`/opt/nest` Bolt project; do not point Bolt at a different project or modulepath.
+The trusted CI invocation must select that executor and validate its retained
+schema-2 receipt. This plan option alone is not an attestation of CI image use.
+
+Frozen catalog mode requires `build=true`, `init=true`, complete `repo_revisions`,
+an exact `stage2_image` and no `puppet_environment` (even an explicit empty string
+refuses). The existing installed input checker verifies both config checkouts,
+Puppetfile, base and every module's paths/content/permissions before container
+initialization and before/after final configuration. A failed check stops the
+plan. The final catalog uses Bolt `apply { include nest }`, compiled locally from
+the verified executor module set, with the existing Stage 3 target facts. It does
+not run `puppet agent` or fetch a mutable served catalog. Existing local identity
+and profile applies retain the same executor context. Ordinary invocations without
+`catalog_inputs` retain the served environment and Puppet detailed-exit behavior.
+
+This is an executing build option, not a read-only command. It does not publish a
+versioned root, freeze private host identity bytes, make dynamic external data
+reproducible or validate hardware compatibility. Existing rsync publication remains
+legacy behavior: callers must not treat that path as an immutable generation or
+use it for release-candidate success. Stage 3 CI still refuses candidate execution.
+Versioned publication, identity ownership/admission and the executing Stage 3
+candidate adapter must land before that boundary can be enabled. No host update,
+reset, reboot, release promotion or cleanup is triggered by this option.
+
+Rollback stops passing `catalog_inputs` and preserves accepted images/receipts;
+it does not replay a partially executed build or substitute a mutable catalog into
+an already accepted frozen release.
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_manifest_test.py

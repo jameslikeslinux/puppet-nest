@@ -8,6 +8,10 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
   let(:plan_modulepath) { Dir.mktmpdir('nest-stage03-frozen-spec-') }
   let(:pins) { { 'gentoo' => 'a' * 40, 'nest' => 'b' * 40, 'haskell' => 'c' * 40 } }
   let(:base) { "registry.example/nest/base@sha256:#{'d' * 64}" }
+  let(:catalog) { { 'source' => 'e' * 40, 'base' => "registry.example/nest/bolt@sha256:#{'f' * 64}" } }
+  let(:catalog_check) do
+    "python3 /opt/nest/scripts/nest-executor-inputs.py check --source #{catalog['source']} --base #{catalog['base']} > /dev/null"
+  end
 
   def modulepath
     [plan_modulepath, File.expand_path('../fixtures/modules', __dir__)]
@@ -18,6 +22,12 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     example.run
   ensure
     FileUtils.remove_entry(plan_modulepath)
+  end
+
+  before :each do
+    # BoltSpec indexes command stubs by exact string; regex exclusions need
+    # RSpec expectations while all other calls retain the real mock behavior.
+    allow(executor).to receive(:run_command).and_call_original
   end
 
   def options(stage)
@@ -78,8 +88,8 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
       allow_any_command
       expect_command('podman volume rm -f fixture-frozen-repos')
       expect_script('nest/build/freeze-repos.py').with_params('arguments' => ['prepare', *pins.values]).error_with('msg' => 'Missing commit', 'kind' => 'fixture/fetch')
-      expect_command(%r{emerge }).not_be_called
-      expect_command(%r{eselect profile}).not_be_called
+      expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
+      expect(executor).not_to receive(:run_command).with(anything, %r{eselect profile}, anything, anything)
       expect(run_plan("nest::build::stage#{stage}", options(stage)).ok?).to be(false)
     end
 
@@ -90,9 +100,9 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
       expect_script('nest/build/stage0-runtime.rb') if stage.zero?
       expect_script('nest/build/freeze-repos.py').with_params('arguments' => ['prepare', *pins.values])
       expect_script('nest/build/freeze-repos.py').with_params('arguments' => ['check', *pins.values]).error_with('msg' => 'Changed HEAD', 'kind' => 'fixture/drift')
-      expect_command(%r{emerge --deep}).not_be_called
-      expect_command(%r{podman commit}).not_be_called
-      expect_command(%r{zsh -c .*rsync}).not_be_called
+      expect(executor).not_to receive(:run_command).with(anything, %r{emerge --deep}, anything, anything)
+      expect(executor).not_to receive(:run_command).with(anything, %r{podman commit}, anything, anything)
+      expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
       expect(run_plan("nest::build::stage#{stage}", options(stage).merge('deploy' => true)).ok?).to be(false)
     end
 
@@ -114,5 +124,45 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
     gentoo = "registry.example/gentoo/stage3@sha256:#{'e' * 64}"
     expect(run_plan('nest::build::stage0', options(0).merge('from_image' => gentoo)).ok?).to be(false)
+  end
+
+  it 'verifies the installed executor before initialization and around the local Stage 3 catalog' do
+    mocks(3)
+    allow(executor).to receive(:run_command).and_call_original
+    expect(executor).not_to receive(:run_command).with(anything, %r{puppet.*agent}, anything, anything)
+    expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_command(catalog_check).with_targets('localhost').be_called_times(3)
+    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog)).ok?).to be(true)
+  end
+
+  it 'refuses incomplete catalog inputs and conflicting legacy modes before any command' do
+    expect(executor).not_to receive(:run_command)
+    [{ 'catalog_inputs' => {} }, { 'catalog_inputs' => catalog.merge('source' => 'main') },
+     { 'catalog_inputs' => catalog.merge('base' => 'registry.example/nest/bolt:latest') },
+     { 'catalog_inputs' => catalog.merge('extra' => true) }, { 'repo_revisions' => nil },
+     { 'stage2_image' => nil }, { 'init' => false }, { 'build' => false },
+     { 'puppet_environment' => 'main' }, { 'puppet_environment' => '' }].each do |override|
+      params = options(3).merge('catalog_inputs' => catalog).merge(override)
+      expect(run_plan('nest::build::stage3', params).ok?).to be(false)
+    end
+  end
+
+  it 'stops before removing any container or repository when the installed catalog inputs drift' do
+    expect_command(catalog_check).error_with('msg' => 'Executor inventory changed', 'kind' => 'fixture/drift')
+    expect_command('podman rm -f fixture').not_be_called
+    expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
+    expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
+    expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
+    params = options(3).merge('catalog_inputs' => catalog, 'deploy' => true)
+    expect(run_plan('nest::build::stage3', params).ok?).to be(false)
+  end
+
+  it 'retains the served Puppet environment path when frozen catalogs are not selected' do
+    mocks(3)
+    allow(executor).to receive(:run_command).and_call_original
+    expect(executor).to receive(:run_command).with(anything, %r{puppet.*agent.*environment.*fixture.*env}, anything, anything).and_call_original
+    expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_command(catalog_check).not_be_called
+    expect(run_plan('nest::build::stage3', options(3).merge('puppet_environment' => 'fixture-env')).ok?).to be(true)
   end
 end

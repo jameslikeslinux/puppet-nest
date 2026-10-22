@@ -20,6 +20,7 @@
 # @param rsync_private_key_var Environment variable for rsync private key
 # @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync
 # @param stage2_image Exact Stage2 image reference; defaults to platform/variant tag
+# @param catalog_inputs Exact installed config executor source/base; use its local modules, not a served environment
 plan nest::build::stage3 (
   String            $container,
   String            $hostname,
@@ -40,7 +41,20 @@ plan nest::build::stage3 (
   String            $rsync_private_key_var = 'NEST_RSYNC_PRIVATE_KEY',
   Optional[Hash]    $repo_revisions        = undef,
   Optional[String]  $stage2_image          = undef,
+  Optional[Hash]    $catalog_inputs        = undef,
 ) {
+  if $catalog_inputs != undef {
+    assert_type(Struct[{
+      'source' => Pattern[/\A[0-9a-f]{40}\z/],
+      'base'   => Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/],
+    }], $catalog_inputs)
+    unless $build and $init and $repo_revisions != undef and $puppet_environment == undef {
+      fail('Frozen Stage 3 catalogs require build, init, frozen repositories and no served Puppet environment')
+    }
+    # This opt-in path runs inside the accepted /opt/nest executor project.
+    # Its retained inventory includes both Nest checkouts and every module.
+    $check_catalog = "python3 /opt/nest/scripts/nest-executor-inputs.py check --source ${catalog_inputs['source'].shellquote} --base ${catalog_inputs['base'].shellquote} > /dev/null"
+  }
   if $repo_revisions != undef {
     assert_type(Struct[{
       'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
@@ -61,6 +75,10 @@ plan nest::build::stage3 (
   $base_image = $stage2_image ? {
     undef   => "nest/stage2/${variant}:${platform}",
     default => $stage2_image,
+  }
+
+  if $catalog_inputs != undef {
+    run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before initialization')
   }
 
   if $init {
@@ -193,16 +211,24 @@ plan nest::build::stage3 (
     run_command('emerge --depclean', $target, 'Remove unused packages')
 
     # Apply the main configuration
-    if !empty($puppet_environment) {
-      $puppet_environment_args = ['--environment', $puppet_environment]
+    if $catalog_inputs != undef {
+      run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before configuration')
+      # Bolt compiles from this exact executor project/module inventory. Never
+      # fetch a newer catalog from a mutable server environment in frozen mode.
+      apply($target, '_description' => 'Configure the host image from frozen local modules') { include nest }.nest::print_report
+      run_command($check_catalog, 'localhost', 'Verify frozen catalog executor after configuration')
     } else {
-      $puppet_environment_args = []
+      if !empty($puppet_environment) {
+        $puppet_environment_args = ['--environment', $puppet_environment]
+      } else {
+        $puppet_environment_args = []
+      }
+      $puppet_cmd = ['puppet', 'agent', $puppet_environment_args, '--test'].flatten.shellquote
+      $puppet_script = "${puppet_cmd} || [ \$? -eq 2 ]"
+      run_command("sh -c ${puppet_script.shellquote}", $target, 'Configure the host image', '_env_vars' => {
+        'FACTER_build' => 'stage3',
+      })
     }
-    $puppet_cmd = ['puppet', 'agent', $puppet_environment_args, '--test'].flatten.shellquote
-    $puppet_script = "${puppet_cmd} || [ \$? -eq 2 ]"
-    run_command("sh -c ${puppet_script.shellquote}", $target, 'Configure the host image', '_env_vars' => {
-      'FACTER_build' => 'stage3',
-    })
     if $repo_revisions != undef {
       run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
     }
