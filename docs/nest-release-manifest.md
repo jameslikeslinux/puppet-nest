@@ -187,6 +187,10 @@ read-only containers with separate 180-second command limits. The OCI label is
 checked independently. Static phase/timeout diagnostics never echo native
 registry errors or credentials. A timeout still refuses the receipt and aggregate;
 the larger transfer budget is not acceptance of an incomplete check.
+Both offline checks disable Podman's automatic read-only tmpfs mounts with
+`--read-only-tmpfs=false`. Neither needs writable temporary storage. This avoids
+copying image-resident temporary build trees into tmpfs before the verifier starts,
+while retaining the image's read-only paths and the existing verification limits.
 
 `scripts/nest-executor-inputs.py record --source SHA --base DIGEST_REF` records
 the exact top-level and nested Nest source, Puppetfile digest, and every installed

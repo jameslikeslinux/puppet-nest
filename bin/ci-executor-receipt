@@ -83,7 +83,10 @@ def record(reference_path, output):
     # A slow pull/unpack must not consume the bounded offline content-check
     # budget. Still pull this exact published digest, never trust a local tag.
     command(["podman", "pull", reference], "pull published digest", timeout=600)
-    inputs_command = ["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only",
+    # Podman's automatic read-only tmpfs copy-up can copy image /tmp build
+    # residue before the verifier even starts. Neither check needs writable
+    # temporary storage; keep those image paths read-only as well.
+    inputs_command = ["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only", "--read-only-tmpfs=false",
                       "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=python3", reference,
                       "-c", "import json,subprocess; p='/opt/nest'; r=json.load(open(p+'/.executor-inputs.json')); subprocess.run(['python3',p+'/scripts/nest-executor-inputs.py','check','--source',r['source'],'--base',r['base_image']],check=True)"]
     raw_inputs = command(inputs_command, "check installed inputs")
@@ -93,7 +96,7 @@ def record(reference_path, output):
                     "pipeline": pipeline, "job": int(job), "cpu": cpu, "image": reference,
                     "source_verification": "git_head_and_oci_revision", "inputs": inputs}, cpu)
     # No host mounts, network, build plan, or secret environment in the container.
-    require(command(["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only",
+    require(command(["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only", "--read-only-tmpfs=false",
                      "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=git", reference,
                      "-C", "/opt/nest", "rev-parse", "HEAD"], "check Git source") == sha)
     require(command(["podman", "image", "inspect", reference, "--format",
