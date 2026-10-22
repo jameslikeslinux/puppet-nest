@@ -604,7 +604,7 @@ The full frozen expectations file selects one `rebuild` member. Stage 0 currentl
 supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
 bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
 normal/debug base distinctions, CPU/platform/variant and all three repository
-pins. The direct llama.cpp tool path is supported as documented below; other
+pins. The direct llama.cpp and specialized OpenBolt paths are supported below; other
 tools refuse instead of bypassing their specialized wrappers. Stage 3 supports only explicit fresh initialization and requires the
 additional local placement contract below; refresh refuses. Candidate/container names derive from positive CI pipeline/job
 IDs, so one member must run per CI job. No arbitrary plan parameter overrides
@@ -714,8 +714,8 @@ supply the complete pins as well. Direct callers still own executor selection.
 Ordinary cached builds, fresh/refresh base defaults and tag/CPU publication
 are unchanged without these options.
 
-The existing `ci-release-build` adapter supports only `stage=tool`,
-`project=nest/tools/llama.cpp`, `variant=server` for now. It preserves explicit
+The existing `ci-release-build` adapter supports the direct `stage=tool`,
+`project=nest/tools/llama.cpp`, `variant=server` path. It preserves explicit
 fresh/refresh and uses the existing generic plan with exact base and repository
 pins. Source checkout, pinned executor/module identities and post-build checks
 are identical to Stage producers. Tool results have one exact image in the
@@ -723,16 +723,55 @@ project repository, with no variant suffix; the adapter exclusively retains
 and reopens the ordinary member result. Its reservations still prevent replay
 after failure or success. This adds no new schema or arbitrary plan override.
 
-OpenBolt, PDK, Agent, Firefox and Camofox still refuse in this adapter: their
+PDK, Agent, Firefox and Camofox still refuse in this adapter: their
 existing wrapper smoke tests and image changes must be preserved during their
 separate integration. Do not call the generic path to bypass them. Other known
 consumers still need explicit reuse/defer/retire decisions. The llama.cpp
-repository's exact artifact acquisition and candidate CI, bootstrap/DAG edges,
-compatibility admission and alias promotion remain unfinished. Source tests use
+repository's exact artifact acquisition and candidate CI are source-delivered in
+MR !2, merge `8674d7f0cb9af46851a2d8208867e7ca0f16c396`; no actual candidate
+build or publication is proven. Bootstrap/DAG edges, compatibility admission and
+alias promotion remain unfinished. Source tests use
 the actual Bolt plan with its mock executor and the real adapter with disposable
 Git/module fixtures and fake Bolt; they launch no real tool/OS builds or registry
 writes. Rollback stops passing the new options and retains old exact digests;
 never relabel a mutable rebuild as the same release.
+
+### Specialized OpenBolt candidates
+
+`nest::build::bolt` accepts optional `from_image`, `repo_revisions` and `candidate`.
+Candidate mode requires a fresh execution (`build=true`, `init=true`,
+`deploy=true`, complete exact repository pins and a digest base), no tag override,
+a remote registry and one actual supported CPU: haswell, cortex-a53 or sifive-u74.
+Both frozen fresh and refresh modes are supported. This does not invoke the
+generic publisher directly or weaken its build/init guard for a publish-only call.
+
+The existing generic tool plan builds without publication, using the exact base
+and isolated repository pins. The wrapper then starts the completed container,
+runs the existing `bolt`, `bolt --version` and multi-object Podman JSON parser
+smoke, rechecks frozen repositories, and performs a checked stop. Only afterward
+does it commit `candidate-TOKEN` with the existing `CMD=/bin/zsh`,
+`BOLT_DISABLE_ANALYTICS=true` and `BOLT_GEM=true` image changes. The same shared
+native publisher must return one exact `nest/tools/bolt@sha256:DIGEST`. Any smoke,
+repository, stop, commit, push or digest-readback failure stops the result. A
+partially pushed candidate may remain unselected for diagnosis; no CPU tag,
+aggregate alias or config pipeline is advanced.
+
+Candidate mode deliberately does not inherit Hiera registry credentials, and
+explicit username/password parameters refuse. It uses the already authenticated
+runner/Podman registry contract, like the frozen Stage adapters. Real registry
+authentication and a built OpenBolt executable are not proven by fixtures.
+Without candidate mode, existing credential defaults, smoke and legacy CPU-tag
+publication are unchanged.
+
+`ci-release-build` routes `stage=tool`, `project=nest/tools/bolt`, `variant=server`
+to this specialized wrapper, never to `nest::build::tool` as a direct producer.
+It validates the same source/executor/module identities before/after execution
+and retains/reopens the ordinary one-image member result. A changed/unsupported
+CPU or variant refuses before Bolt. The OpenBolt repository consumer, exact
+artifact acquisition and native bootstrap/DAG edge remain separate source work;
+no real OpenBolt/OS build, alias promotion or host action was exercised here.
+Actual-plan mocks cover smoke/publication refusal and legacy compatibility;
+disposable Git/module fixtures plus fake Bolt cover all CPU/mode dispatches.
 
 ## Isolated verification
 
