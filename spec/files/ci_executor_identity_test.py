@@ -81,7 +81,7 @@ class ExecutorIdentityTest(unittest.TestCase):
             self.assertEqual(call[:1], ["pull"])
             self.assertIn("@sha256:", call[1])
         for call in calls[2::4]:
-            for flag in ("--network=none", "--read-only", "--cap-drop=ALL", "--entrypoint=git"):
+            for flag in ("--network=none", "--read-only", "--read-only-tmpfs=false", "--cap-drop=ALL", "--entrypoint=git"):
                 self.assertIn(flag, call)
             self.assertIn("--pull=never", call)
             self.assertEqual(call[-4:], ["-C", "/opt/nest", "rev-parse", "HEAD"])
@@ -89,6 +89,9 @@ class ExecutorIdentityTest(unittest.TestCase):
         for call in calls[1::4]:
             self.assertIn("--pull=never", call)
             self.assertIn("--network=none", call)
+            self.assertIn("--read-only", call)
+            self.assertIn("--read-only-tmpfs=false", call)
+            self.assertFalse(any("volume" in arg or arg.startswith("--env") for arg in call))
 
     def test_pull_and_offline_checks_have_separate_bounded_budgets(self):
         module = runpy.run_path(str(SCRIPT))
