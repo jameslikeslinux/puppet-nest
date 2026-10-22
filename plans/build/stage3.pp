@@ -13,6 +13,7 @@
 # @param id Build ID
 # @param identityroot Host identity input, separate from publication destination
 # @param identity_ca_sha256 Independently approved public CA PEM digest, required for frozen catalogs
+# @param identity_reference Exact completed private identity generation UUID, required for frozen catalogs
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
 # @param puppet_environment Puppet environment to use for final configuration
@@ -35,6 +36,7 @@ plan nest::build::stage3 (
   Optional[Numeric] $id                    = undef,
   String            $identityroot          = $hostroot,
   Optional[String]  $identity_ca_sha256    = undef,
+  Optional[String]  $identity_reference    = undef,
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
   Optional[String]  $puppet_environment    = undef,
@@ -47,6 +49,8 @@ plan nest::build::stage3 (
 ) {
   if $catalog_inputs != undef {
     assert_type(Pattern[/\A[0-9a-f]{64}\z/], $identity_ca_sha256)
+    assert_type(Pattern[/\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/], $identity_reference)
+    $identity_args = [$identityroot, $hostroot, $hostname, $identity_ca_sha256, '--identity-reference', $identity_reference]
     assert_type(Struct[{
       'source' => Pattern[/\A[0-9a-f]{40}\z/],
       'base'   => Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/],
@@ -84,7 +88,7 @@ plan nest::build::stage3 (
     run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before initialization')
     # Frozen builds consume preprovisioned private identity; they must not create
     # or repair it, nor copy a root over that same source through legacy defaults.
-    run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname, $identity_ca_sha256])
+    run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => $identity_args)
   }
 
   if $init {
@@ -129,7 +133,7 @@ plan nest::build::stage3 (
     if $catalog_inputs != undef {
       # One process admits a stable private capture and installs those exact
       # bytes in this disposable container. Puppet must not reopen the live tree.
-      run_script('nest/build/check-stage3-paths.py', $target, arguments => [$identityroot, $hostroot, $hostname, $identity_ca_sha256, '--install'])
+      run_script('nest/build/check-stage3-paths.py', $target, arguments => $identity_args + ['--install'])
     }
 
     # Preserve and restore host identity info
@@ -228,12 +232,12 @@ plan nest::build::stage3 (
     # Apply the main configuration
     if $catalog_inputs != undef {
       run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before configuration')
-      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname, $identity_ca_sha256])
+      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => $identity_args)
       # Bolt compiles from this exact executor project/module inventory. Never
       # fetch a newer catalog from a mutable server environment in frozen mode.
       apply($target, '_description' => 'Configure the host image from frozen local modules') { include nest }.nest::print_report
       run_command($check_catalog, 'localhost', 'Verify frozen catalog executor after configuration')
-      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname, $identity_ca_sha256])
+      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => $identity_args)
     } else {
       if !empty($puppet_environment) {
         $puppet_environment_args = ['--environment', $puppet_environment]

@@ -40,7 +40,9 @@ def fixture():
                   "bases": {"normal": image(2), "debug": image(3)} if stage == "stage1" else {"image": image(4)},
                   "compatibility": {"kernel": "fixture-kernel", "modules_abi": "fixture-abi", "firmware": "efi", "bootloader": "systemd-boot"}
                   if stage in ("stage2", "stage3") else {},
-                  "identity_root": "/private/identities/fixture-host" if stage == "stage3" else None}
+                  "identity_root": "/private/identities/12345678-1234-4123-8123-123456789abc" if stage == "stage3" else None}
+        if stage == "stage3":
+            member.update(identity_reference="12345678-1234-4123-8123-123456789abc", identity_ca_sha256="a" * 64)
         artifacts = {"normal": image(10 + index), "debug": image(20 + index)} if stage in ("stage0", "stage1") else {"image": image(30 + index)}
         if stage == "stage3":
             artifacts = {"root": {"path": "/nest/releases/fixture-only/hosts/fixture-host", "dataset_guid": "123456789",
@@ -177,6 +179,37 @@ class ReleaseManifestTest(unittest.TestCase):
         self.expected["members"][3]["identity_root"] = "/nest/releases/fixture-only"
         self.reseal()
         with self.assertRaisesRegex(release.Invalid, "overlap"):
+            self.validate()
+
+    def test_stage3_reference_and_reviewed_public_ca_are_required_and_pinned(self):
+        for key in ("identity_reference", "identity_ca_sha256"):
+            self.expected, self.candidate = fixture()
+            del self.expected["members"][3][key]
+            self.reseal()
+            with self.subTest(key=key), self.assertRaises(release.Invalid):
+                self.validate()
+        for key, value in (("identity_reference", "latest"), ("identity_ca_sha256", "a" * 64 + "\n"),
+                           ("identity_reference", "22345678-1234-4123-8123-123456789abc")):
+            self.expected, self.candidate = fixture()
+            self.expected["members"][3][key] = value
+            self.reseal()
+            with self.subTest(key=key, value=value), self.assertRaises(release.Invalid):
+                self.validate()
+        for key, value in (("identity_reference", "22345678-1234-4123-8123-123456789abc"), ("identity_ca_sha256", "b" * 64)):
+            self.expected, self.candidate = fixture()
+            self.candidate["outputs"][3]["member"][key] = value
+            with self.assertRaisesRegex(release.Invalid, "compatibility mismatch"):
+                self.validate()
+
+    def test_stage3_private_record_cannot_be_added_to_public_schema(self):
+        self.expected["members"][3]["private_key_sha256"] = "b" * 64
+        self.reseal()
+        with self.assertRaises(release.Invalid):
+            self.validate()
+        self.expected, self.candidate = fixture()
+        self.expected["members"][0]["identity_reference"] = "12345678-1234-4123-8123-123456789abc"
+        self.reseal()
+        with self.assertRaises(release.Invalid):
             self.validate()
 
     def test_deferred_consumers_not_implicitly_rebuilt(self):

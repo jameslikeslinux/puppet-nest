@@ -119,8 +119,12 @@ def expectations(value: Any):
     indexed = {}
     selections = set()
     hosts = set()
+    identity_references = set()
     for member in members:
-        fields(member, "id stage project cpu platform variant host mode bases compatibility identity_root", "member")
+        if not isinstance(member, dict):
+            raise Invalid("member: invalid fields")
+        private_fields = " identity_reference identity_ca_sha256" if member.get("stage") == "stage3" else ""
+        fields(member, "id stage project cpu platform variant host mode bases compatibility identity_root" + private_fields, "member")
         match(member["id"], TOKEN, "member ID")
         require(member["id"] not in indexed, "members: duplicate ID")
         stage = member["stage"]
@@ -161,6 +165,12 @@ def expectations(value: Any):
             root = PurePosixPath("/nest/releases") / value["release"] / "hosts" / member["host"]
             require(identity != root and identity not in root.parents and root not in identity.parents,
                     "member: identity and generation trees overlap")
+            reference = member["identity_reference"]
+            match(reference, r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", "identity reference")
+            match(member["identity_ca_sha256"], r"[0-9a-f]{64}", "identity CA pin")
+            require(identity.name == reference, "member: identity path does not name the exact generation")
+            require(reference not in identity_references, "members: duplicate identity reference")
+            identity_references.add(reference)
         else:
             require(member["identity_root"] is None, "member: identity only belongs to Stage 3")
         indexed[member["id"]] = member

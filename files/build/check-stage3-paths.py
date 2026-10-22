@@ -4,6 +4,7 @@
 import argparse
 import fcntl
 import hashlib
+import json
 import os
 from pathlib import Path
 import pwd
@@ -173,9 +174,38 @@ def identity_inventory(identity):
     return result
 
 
-def capture(identity_value, output_value, hostname, ca_sha256):
+def reference_name(value):
+    # Opaque, caller-selected identity generation, never a secret-content digest.
+    require(re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", value) is not None)
+
+
+def reference_record(inventory, material, hostname, ca_sha256, reference):
+    reference_name(reference)
+    entries = {}
+    for relative, info in inventory.items():
+        entries[str(relative)] = {
+            "mode": stat.S_IMODE(info[3]), "uid": info[4], "gid": info[5],
+            "sha256": hashlib.sha256(material[relative]).hexdigest() if relative in material else None,
+        }
+    # This entire record is PRIVATE, including file names and key digests.
+    record = {"schema": 1, "reference": reference, "host": hostname, "ca_sha256": ca_sha256, "entries": entries}
+    return (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode("ascii")
+
+
+def read_reference(identity, reference):
+    reference_name(reference)
+    require(identity.name == reference)
+    require(stat.S_IMODE(identity.lstat().st_mode) == 0o700)
+    path = identity / ".nest-identity.json"
+    safe_file(path, {0}, private=True)
+    require(stat.S_IMODE(path.lstat().st_mode) == 0o400)
+    return read_material(path)
+
+
+def capture(identity_value, output_value, hostname, ca_sha256, reference=None):
     check(identity_value, output_value, hostname, ca_sha256)
     identity = Path(identity_value)
+    receipt = read_reference(identity, reference) if reference is not None else None
     before = identity_inventory(identity)
     material = {}
     total = 0
@@ -193,6 +223,9 @@ def capture(identity_value, output_value, hostname, ca_sha256):
     ssl = Path("etc/puppetlabs/puppet/ssl")
     check_tls_bytes(material[ssl / "certs/ca.pem"], material[ssl / ("certs/" + hostname + ".pem")],
                     material[ssl / ("private_keys/" + hostname + ".pem")], hostname, ca_sha256)
+    if reference is not None:
+        require(receipt == read_reference(identity, reference))
+        require(receipt == reference_record(before, material, hostname, ca_sha256, reference))
     return before, material
 
 
@@ -242,19 +275,70 @@ def install_capture(inventory, material, destination):
         require(actual == expected)
 
 
+def publish_reference(identity_value, output_value, hostname, ca_sha256, reference):
+    # Explicit private local capture only. No key generation, network, snapshot,
+    # alias, source mutation, or replacement of a prior/partial generation.
+    require(os.geteuid() == 0)
+    reference_name(reference)
+    output = canonical(output_value)
+    require(output.name == reference and not output.exists())
+    safe_directory(output.parent, {0}, {0})
+    require(stat.S_IMODE(output.parent.lstat().st_mode) == 0o700)
+    inventory, material = capture(identity_value, output_value, hostname, ca_sha256)
+    output.mkdir(mode=0o700)  # Atomic no-clobber reservation, including concurrent publishers.
+    # Failed output stays incomplete and cannot be retried/overwritten implicitly.
+    (output / "etc/puppetlabs/puppet").mkdir(parents=True, mode=0o700)
+    install_capture(inventory, material, output)
+    installed, copied = capture(str(output), identity_value, hostname, ca_sha256)
+    require(material == copied)
+    record = reference_record(installed, copied, hostname, ca_sha256, reference)
+    require(len(record) <= 1024 * 1024)
+    # Persist every installed directory entry before the completion marker. The
+    # marker is last; absence means incomplete, never a usable identity input.
+    for relative, info in reversed(list(installed.items())):
+        if stat.S_ISDIR(info[3]):
+            descriptor = os.open(output / relative, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+    path = output / ".nest-identity.json"
+    # An interrupted/failed marker write is rejected by exact canonical readback.
+    with path.open("xb") as stream:
+        os.fchmod(stream.fileno(), 0o400)
+        stream.write(record)
+        stream.flush()
+        os.fsync(stream.fileno())
+    for directory in (output, output.parent):
+        descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    capture(str(output), identity_value, hostname, ca_sha256, reference)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("identity_root")
     parser.add_argument("publication_root")
     parser.add_argument("hostname")
     parser.add_argument("ca_sha256", help="Independently approved SHA256 of the public CA PEM bytes")
-    parser.add_argument("--install", action="store_true", help="Capture and install identity inside a disposable Podman build container only")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--install", action="store_true", help="Capture and install identity inside a disposable Podman build container only")
+    mode.add_argument("--publish-reference", metavar="UUID", help="Explicitly capture a new private local generation at publication_root; never overwrite")
+    parser.add_argument("--identity-reference", metavar="UUID", help="Require the exact completed private generation; read-only unless --install")
     args = parser.parse_args()
     try:
-        if args.install:
+        if args.publish_reference:
+            require(args.identity_reference is None)
+            publish_reference(args.identity_root, args.publication_root, args.hostname, args.ca_sha256, args.publish_reference)
+        elif args.install:
             require(os.geteuid() == 0 and Path("/run/.containerenv").is_file())
-            inventory, material = capture(args.identity_root, args.publication_root, args.hostname, args.ca_sha256)
+            inventory, material = capture(args.identity_root, args.publication_root, args.hostname, args.ca_sha256, args.identity_reference)
             install_capture(inventory, material, Path("/"))
+        elif args.identity_reference is not None:
+            capture(args.identity_root, args.publication_root, args.hostname, args.ca_sha256, args.identity_reference)
         else:
             check(args.identity_root, args.publication_root, args.hostname, args.ca_sha256)
         print("Stage 3 identity/path admission passed")
