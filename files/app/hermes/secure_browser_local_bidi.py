@@ -11,6 +11,15 @@ from typing import Any
 import websockets.sync.client
 
 
+class NativeReplyError(RuntimeError):
+    """Correlated protocol rejection; never expose native messages/page data."""
+    def __init__(self, code):
+        self.native_code = code if code in {
+            "invalid argument", "unsupported operation", "no such frame",
+            "no such user context", "unknown error"} else "unknown error"
+        super().__init__("private Firefox command rejected")
+
+
 class CdpSession:
     protocol = "bidi"
 
@@ -31,11 +40,11 @@ class CdpSession:
             self.ws.close()
             raise
 
-    def _bidi(self, method: str, params: dict | None = None) -> dict:
+    def _bidi(self, method: str, params: dict | None = None, *, on_reply=None) -> dict:
         with self.lock:
-            return self._exchange(method, params)
+            return self._exchange(method, params, on_reply=on_reply)
 
-    def _exchange(self, method: str, params: dict | None = None) -> dict:
+    def _exchange(self, method: str, params: dict | None = None, *, on_reply=None) -> dict:
         if self.ws is None:
             raise RuntimeError("private Firefox observer is closed")
         self.next_id += 1
@@ -47,8 +56,12 @@ class CdpSession:
                 raise RuntimeError("private Firefox observation timed out")
             reply = json.loads(self.ws.recv(timeout=remaining))
             if reply.get("id") == self.next_id:
+                # The resident owner fsyncs creation receipts before returning
+                # to its caller. HTTP disconnects do not cancel this commit.
+                if on_reply is not None:
+                    on_reply(reply)
                 if reply.get("type") == "error" or "error" in reply:
-                    raise RuntimeError("private Firefox observation failed")
+                    raise NativeReplyError(reply.get("error"))
                 return reply.get("result") or {}
 
     def _bidi_contexts(self) -> list[dict]:

@@ -177,7 +177,7 @@ class Windows:
         finally:
             os.close(directory)
 
-    def _call(self, method, params=None):
+    def _call(self, method, params=None, *, on_reply=None):
         if self.broken and self._resumable():
             self.browser = None
             self.broken = False  # Reconnect identity, never replay the failed call.
@@ -186,8 +186,13 @@ class Windows:
         try:
             if self.browser is None:
                 self.browser = self.connect()
+            if on_reply is not None:
+                return self.browser._bidi(method, params or {}, on_reply=on_reply)
             return self.browser._bidi(method, params or {})
         except BaseException as exc:
+            if on_reply is not None and getattr(exc, "native_code", None) in {
+                    "invalid argument", "unsupported operation", "no such frame", "no such user context"}:
+                raise ControlError("FIREFOX_CREATE_REJECTED", "native creation rejected without effect; route to existing browser repair") from exc
             # Never reconnect/retry a possibly delivered native operation.
             self.broken = True
             if self.browser is not None:
@@ -246,6 +251,8 @@ class Windows:
             if old:
                 if old.get("state") == "creating":
                     return self._finish_creation(old)
+                if old.get("state") == "create_failed":
+                    raise ControlError("FIREFOX_CREATE_REJECTED", "native creation was rejected without effect; inspect lifecycle status and route to browser repair")
                 self._resolve(old)
                 return old
             if self.broken or self.orphaned:
@@ -266,16 +273,23 @@ class Windows:
                     self.acquire("owner")
                 if sum(r.get("state") != "closed" for r in self.state["windows"].values()) >= 12:
                     raise RuntimeError("owned window budget reached; no replacement created")
-                record = {"state": "creating", "epoch": self.epoch,
+                record = {"state": "creating", "epoch": self.epoch, "creation_id": secrets.token_hex(24),
                           "prior_windows": sorted({c["clientWindow"] for c in tree if c.get("clientWindow")})}
                 self.state["windows"][scope] = record
                 self._save()
-                created = self._call("browsingContext.create", {"type": "window", "background": True})["context"]
-                # Persist the returned native identity before any further read.
-                # A failed read can then reconcile this exact creation, never
-                # repeat create or infer ownership from URLs or titles.
-                record["context"] = created
-                self._save()
+                def receipt(reply):
+                    # Only a transport-correlated native response can supply
+                    # ownership, never URL/title or tree differences.
+                    if reply.get("type") == "error" or "error" in reply:
+                        code = reply.get("error")
+                        if code in {"invalid argument", "unsupported operation", "no such frame", "no such user context"}:
+                            record.update(state="create_failed", native_error=code)
+                    else:
+                        context = (reply.get("result") or {}).get("context")
+                        if isinstance(context, str) and context:
+                            record["context"] = context
+                    self._save()
+                self._call("browsingContext.create", {"type": "window", "background": True}, on_reply=receipt)
                 return self._finish_creation(record)
             record = {"state": "open", "epoch": self.epoch, "context": context["context"],
                       "window": context["clientWindow"], "viewer": secrets.token_urlsafe(32), "owner": scope == "owner"}
@@ -301,6 +315,40 @@ class Windows:
                 break
             time.sleep(.05)
         raise ControlError("FIREFOX_CREATION_UNCERTAIN", "retained window creation is not yet proven; no replacement or replay permitted", "uncertain")
+
+    def recovery(self, scope, *, reconcile=False):
+        """Finite reconciliation; never allocate, infer ownership or replay."""
+        valid_scope(scope)
+        record = self.state["windows"].get(scope)
+        state = record.get("state") if record else "unallocated"
+        result = {"scope_state": state, "retry_allowed": False, "input_replay_allowed": False}
+        if not record or state == "closed":
+            return {**result, "recovery_state": "not_needed", "next_action": "acquire" if not record else "none"}
+        if (record.get("epoch") != self.epoch or self.orphaned
+                or (self.state.get("controller") and not self._resumable())):
+            return {**result, "recovery_state": "owner_reconciliation_required", "next_action": "preserve_windows_and_request_scoped_owner_decision",
+                    "reason": "native_generation_lost", "automatic_recovery_exhausted": True}
+        if state == "create_failed":
+            return {**result, "recovery_state": "engineering_repair_required", "next_action": "route_to_existing_browser_repair",
+                    "reason": "native_create_rejected_without_effect", "outcome": "not_started", "automatic_recovery_exhausted": True}
+        if state == "creating":
+            if not record.get("context"):
+                return {**result, "recovery_state": "owner_reconciliation_required", "next_action": "preserve_windows_and_request_scoped_owner_decision",
+                        "reason": "creation_reply_not_retained", "outcome": "uncertain", "automatic_recovery_exhausted": True}
+            if not reconcile:
+                return {**result, "recovery_state": "reconcile_available", "next_action": "recover"}
+            try:
+                self._finish_creation(record)
+            except ControlError:
+                return {**result, "recovery_state": "engineering_repair_required", "next_action": "route_to_existing_browser_repair",
+                        "reason": "retained_creation_not_verified", "outcome": "uncertain", "automatic_recovery_exhausted": True}
+            result["scope_state"] = record["state"]
+        if record["state"] == "open":
+            if reconcile:
+                self._resolve(record)
+            return {**result, "recovery_state": "verified" if reconcile else "not_needed", "next_action": "read_back_before_input"}
+        return {**result, "recovery_state": "engineering_repair_required", "next_action": "route_to_existing_browser_repair",
+                "reason": "terminal_close_pending", "automatic_recovery_exhausted": True}
 
     def lifecycle(self, payload):
         scope = valid_scope(payload.get("scope"))
@@ -332,6 +380,12 @@ class Windows:
                     self._save()
                     return {**receipt, "already_closed": True}
                 raise RuntimeError("window close uncertain; preserved without replay")
+            if record.get("state") == "create_failed":
+                record.update(state="closed", terminal=terminal)
+                self._save()
+                return {**receipt, "already_closed": True}
+            if record.get("state") == "creating":
+                self._finish_creation(record)
             self._resolve(record)
             record.update(state="closing", terminal=terminal)
             self._save()
@@ -383,16 +437,19 @@ class Windows:
     def dispatch(self, command, payload):
         scope = valid_scope(payload.get("scope"))
         with self.lock:
-            if command in {"status", "diagnostics"}:
+            if command in {"status", "diagnostics"} or (command == "tabs" and payload.get("action", "status") in {"status", "recover"}):
                 # Observation must not create a window (or orphan a scope).
-                self._tree()
+                recovery = self.recovery(scope, reconcile=command == "tabs" and payload.get("action") == "recover")
+                if recovery.get("reason") != "native_generation_lost":
+                    self._tree()
                 return {"status": "ok", "scope": scope, "protocol": "firefox-windows-v3",
-                        "launch_protocol": "firefox-windows-v3", "bidi_available": True, "native_element_available": True,
+                        "launch_protocol": "firefox-windows-v3", "bidi_available": recovery.get("reason") != "native_generation_lost",
+                        "native_element_available": recovery.get("reason") != "native_generation_lost",
                         "browser_generation": self.epoch,
                         "window_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "scope_state": self.state["windows"].get(scope, {}).get("state", "unallocated"),
                         "session_contract": "one bridge-owned classic session; serialized commands; reconnect observer only",
-                        "recovery": "same-generation observer reconnect; unknown creation or generation loss requires explicit recovery; never session.end"}
+                        "recovery": recovery}
             record = self.acquire(scope)
             context = self._resolve(record)
             cid = context["context"]
