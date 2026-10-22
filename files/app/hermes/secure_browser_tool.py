@@ -40,7 +40,7 @@ MAX_RESULT_BYTES = 8_000_000
 CONTROLLER_STATE_DIR = Path(os.environ.get("SECURE_BROWSER_CONTROLLER_STATE_DIR", Path.home() / ".local/state/nest-firefox-controller"))
 WORKFLOW_RE = re.compile(r"[^A-Za-z0-9_.:@/-]+")
 CONTROL_ERRORS = {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN",
-                  "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_OUTCOME_UNCERTAIN"}
+                  "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_OUTCOME_UNCERTAIN", "FIREFOX_CREATE_REJECTED"}
 
 
 class FirefoxControlError(RuntimeError):
@@ -189,14 +189,28 @@ def _safe_call(operation: str, callback: Any) -> str:
             result["controller_diagnostics"] = {"elapsed_ms": int((time.monotonic() - started) * 1000)}
             return _json(result)
     except (RuntimeError, ValueError) as exc:
-        return _json({
+        result = {
             "operation": operation,
             "status": "error",
             "error": exc.code if isinstance(exc, FirefoxControlError) else "FIREFOX_UI_CONTROL_FAILED",
             "outcome": exc.outcome if isinstance(exc, FirefoxControlError) else "uncertain",
             "message": str(exc)[:1000],
             "protocol": CONTROL_MODE,
-        })
+        }
+        if (CONTROL_MODE == "firefox-windows-v3" and isinstance(exc, FirefoxControlError)
+                and exc.code in {"FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_CREATE_REJECTED"}
+                and operation not in {"status", "tab_lifecycle"}):
+            # One supported, read-only reconciliation, never the failed command
+            # or input key. Preserve the original error/outcome if this fails.
+            try:
+                with _controller_lock():
+                    readback = _bridge("tabs", {"action": "recover"})
+                result["recovery"] = readback.get("recovery")
+            except (RuntimeError, ValueError):
+                result["recovery"] = {"recovery_state": "engineering_repair_required", "retry_allowed": False,
+                                      "input_replay_allowed": False, "automatic_recovery_exhausted": True,
+                                      "next_action": "route_to_existing_browser_repair", "reason": "recovery_transport_unavailable"}
+        return _json(result)
 
 
 def _save_screenshot(result: dict[str, Any], *, owner_only: bool = False) -> dict[str, Any]:
@@ -472,6 +486,8 @@ def secure_browser_tab_lifecycle_tool(args: dict[str, Any], task_id: str | None 
         "mark_keep_open": "keep_open",
     }
     action = aliases.get(str(args.get("action") or "status"), str(args.get("action") or "status"))
+    if CONTROL_MODE == "firefox-windows-v3" and action in {"status", "recover"}:
+        return _safe_call("tab_lifecycle", lambda: _bridge("tabs", {"action": action}))
     return _safe_call("tab_lifecycle", lambda: _bridge("tabs", {
         "action": action,
         "workflow_id": _workflow_id(args, task_id),

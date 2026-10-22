@@ -214,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
                 if len(json.dumps(result).encode()) > MAX_RESPONSE:
                     raise ValueError("bounded window response exceeded")
             except Exception as exc:
-                if getattr(exc, "code", None) in {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN"}:
+                if getattr(exc, "code", None) in {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_CREATE_REJECTED"}:
                     result = {"status": "error", "error": getattr(exc, "code"), "outcome": getattr(exc, "outcome"), "message": str(exc)}
                 else:
                     result = {"status": "error", "error": "FIREFOX_OUTCOME_UNCERTAIN", "outcome": "uncertain", "message": "bounded Firefox operation failed or timed out; read back; retain the action key; do not replay"}

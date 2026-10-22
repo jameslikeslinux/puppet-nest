@@ -23,7 +23,7 @@ class Native:
         self.fail_create = False
         self.created = 0
 
-    def _bidi(self, method, payload):
+    def _bidi(self, method, payload, *, on_reply=None):
         self.calls.append((method, payload))
         if method == "browsingContext.getTree":
             return {"contexts": self.tree.copy()}
@@ -33,6 +33,8 @@ class Native:
             self.tree.append({"context": cid, "clientWindow": f"window-{self.created}", "url": "https://same.example/"})
             if self.fail_create:
                 raise OSError("response lost after creation")
+            if on_reply is not None:
+                on_reply({"type": "success", "result": {"context": cid}})
             return {"context": cid}
         if method == "browsingContext.close":
             self.tree = [c for c in self.tree if c["context"] != payload["context"]]
