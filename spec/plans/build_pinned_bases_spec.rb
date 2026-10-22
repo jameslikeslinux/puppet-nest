@@ -38,7 +38,7 @@ RSpec.describe 'Pinned stage build bases' do
       'podman create --dns=172.22.4.3 --init --name=fixture --pids-limit=0 --pull=always --volume=/nest:/nest ' \
         "--volume=fixture-debug:/usr/lib/debug --volume=fixture-repos:/var/db/repos  #{image} sleep infinity\n"
     else
-      "podman create --init --name=fixture --pull=always --volume=/nest:/nest  #{image} sleep infinity\n"
+      "podman create --init --name=fixture --pull=always --volume=/nest:/nest   #{image} sleep infinity\n"
     end
   end
 

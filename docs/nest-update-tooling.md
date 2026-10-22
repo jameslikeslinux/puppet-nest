@@ -455,6 +455,62 @@ Rollback stops supplying `candidate`; retain successful candidate digest refs
 and previous production aliases. Do not retry an entire OS build to recover a
 partial pair without inspecting the existing exact job outcome first.
 
+## Stage 1/2 frozen repository consumption
+
+Both existing plans accept optional `repo_revisions`, a complete hash with
+`gentoo`, `nest` and `haskell` full lowercase Git commit SHAs. These correspond
+to the existing public Portage snapshot, Nest overlay and Haskell repositories;
+Haskell is a real configured input and must not silently float. Pass this hash
+through the ordinary JSON Bolt plan parameters. Frozen mode requires `build=true`,
+`init=true` and exact base digest arguments (including both Stage 1 bases).
+Missing/extra repositories, malformed SHAs, existing-container mode and missing
+bases refuse before registry login or any container/volume command.
+
+Frozen mode replaces only the named build container's `CONTAINER-frozen-repos`
+volume during initialization, not Stage 1's ordinary `CONTAINER-repos` cache.
+The isolated volume mounts `/var/db/repos` with `nocopy`, so image-layer or cached
+repositories cannot enter the declared inputs. Never use a live host as the
+target of this build helper, or reuse another concurrent job's container name.
+This is executing build initialization, not an observation command.
+
+`files/build/freeze-repos.py prepare GENTOO_SHA NEST_SHA HASKELL_SHA` requires
+an empty repository directory, fetches each exact commit from its fixed public
+origin and checks out detached HEADs. There is no fallback to a branch, mutable
+tip or existing cache. A failed fetch leaves partial diagnostic state and fails
+the build; it never deletes that state or implicitly retries. Normal plan
+initialization on a subsequent explicitly selected build recreates its isolated
+volume. `check` with the same arguments performs no fetch or checkout and disables
+Git's optional index writes. It verifies complete inventory, exact origin/HEAD,
+detached state, clean tracked/untracked/ignored contents and no Git submodules.
+`--repos-dir` is available for disposable isolated fixtures, not host adoption.
+
+The plans skip `eix-sync` entirely in this mode and recheck inputs after the
+profile catalog and after final configuration/convergence, before publication.
+Puppet still owns repository configuration and package policy; it does not get
+a new private class parameter or host policy. Any observed drift stops output
+publication instead of being silently corrected. Default legacy sync/build
+behavior remains unchanged when the hash is absent, including candidate mode
+without this new hash. Fresh versus refresh still selects the ordinary recipe.
+
+The JSON helper receipt records the three consumed SHAs; it is not a signature
+or full build attestation. Repository volumes are build inputs, not image layers
+promised in the published output. Distfiles/binpkg policy, upstream fetches and
+other unpinned sources remain distinct reproducibility limits. The release
+record and real CI producers must still bind this complete selection, exact
+executor/config/module identity and resulting digests; the current manifest
+contract does not yet account for Haskell. Stage 0/3 consumption, producer records,
+versioned host roots, promotion and the repository DAG remain unfinished. No
+actual OS build or candidate publication was run for these fixtures.
+
+Pipeline 11125's three architecture builds and executor publication succeeded
+at `3ee96818c546104061c8cf39029337931d4adc39`. The amd64 member
+`registry.eyrie/nest/config/main@sha256:c4fad1da1c32daca00f052202a1af78397a77dff2c53520609832bc84e3fe7e2`
+was opened without host mounts through Bolt; its Git HEAD, Stage 1/2 plans and
+publisher bytes matched the accepted source. That previous executor contains
+candidate publication, not the new frozen-input interface until its own merged
+publication is verified. Rollback stops passing `repo_revisions`; do not call a
+mutable-source rebuild the same frozen release or erase earlier build receipts.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive

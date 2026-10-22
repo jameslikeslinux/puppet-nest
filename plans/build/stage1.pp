@@ -20,6 +20,7 @@
 # @param registry_username Username for registry
 # @param registry_password Password for registry
 # @param registry_password_var Environment variable for registry password
+# @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync
 plan nest::build::stage1 (
   String            $container,
   String            $cpu,
@@ -39,6 +40,7 @@ plan nest::build::stage1 (
   Optional[String]  $registry_username     = lookup('nest::build::registry_username', default_value => undef),
   Optional[String]  $registry_password     = lookup('nest::build::registry_password', default_value => undef),
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
+  Optional[Hash]    $repo_revisions        = undef,
 ) {
   $debug_volume = "${container}-debug"
   if $candidate != undef {
@@ -57,7 +59,22 @@ plan nest::build::stage1 (
       fail('Pinned Stage 1 bases require init=true; an existing container has not consumed these inputs')
     }
   }
-  $repos_volume = "${container}-repos" # cached between builds
+  if $repo_revisions != undef {
+    assert_type(Struct[{
+      'gentoo'  => Pattern[/\A[0-9a-f]{40}\z/],
+      'nest'    => Pattern[/\A[0-9a-f]{40}\z/],
+      'haskell' => Pattern[/\A[0-9a-f]{40}\z/],
+    }], $repo_revisions)
+    unless $build and $init and $from_image and $from_image_debug {
+      fail('Frozen Stage 1 repositories require build, init and both exact bases')
+    }
+    $repos_volume = "${container}-frozen-repos"
+    $repos_volume_options = ':nocopy'
+    $repo_args = [$repo_revisions['gentoo'], $repo_revisions['nest'], $repo_revisions['haskell']]
+  } else {
+    $repos_volume = "${container}-repos" # cached between legacy builds only
+    $repos_volume_options = ''
+  }
   $target = Target.new(name => $container, uri => "podman://${container}")
   $qemu_args = $qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')
 
@@ -91,6 +108,9 @@ plan nest::build::stage1 (
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
+    if $repo_revisions != undef {
+      run_command("podman volume rm -f ${repos_volume}", 'localhost', 'Remove previous isolated build repositories')
+    }
 
     $podman_debug_copy_cmd = @("COPY"/L)
       podman run \
@@ -115,7 +135,7 @@ plan nest::build::stage1 (
       --pull=always \
       --volume=/nest:/nest \
       --volume=${debug_volume}:/usr/lib/debug \
-      --volume=${repos_volume}:/var/db/repos \
+      --volume=${repos_volume}:/var/db/repos${repos_volume_options} \
       ${qemu_args} \
       ${base_image.shellquote} \
       sleep infinity
@@ -128,7 +148,11 @@ plan nest::build::stage1 (
     run_command("podman start ${container}", 'localhost', 'Start build container')
 
     # Profile controls Portage and Puppet configurations
-    run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['prepare'] + $repo_args)
+    } else {
+      run_command('eix-sync -aq', $target, 'Sync Portage repos')
+    }
     run_command("eselect profile set nest:${cpu}/${variant}", $target, 'Set profile')
 
     # Set up the build environment
@@ -143,6 +167,9 @@ plan nest::build::stage1 (
     run_command('sh -c "echo profile > /.apply_tags"', $target, 'Set Puppet tags for profile run')
     apply($target, '_description' => 'Configure the profile') { include nest }.nest::print_report
     run_command('rm /.apply_tags', $target, 'Clear Puppet tags')
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
     run_command('emerge --info', $target, 'Show Portage configuration')
 
     # Resolve circular dependencies
@@ -166,6 +193,9 @@ plan nest::build::stage1 (
 
     # Apply the main configuration
     apply($target, '_description' => 'Configure the stage') { include nest }.nest::print_report
+    if $repo_revisions != undef {
+      run_script('nest/build/freeze-repos.py', $target, arguments => ['check'] + $repo_args)
+    }
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
