@@ -1,8 +1,4 @@
-class nest::tool::bolt (
-  String            $cert,
-  Sensitive[String] $key,
-  Optional[String]  $ca = undef,
-) {
+class nest::tool::bolt {
   if $facts['build'] == 'bolt' {
     $bolt_version       = '5.6.0'
     $ruby_minor_version = $facts['ruby']['version'].regsubst('^(\d+\.\d+).*', '\1')
@@ -45,15 +41,6 @@ class nest::tool::bolt (
   } else {
     require nest::base::puppet
 
-    if $ca {
-      $ca_content = $ca
-    } else {
-      # Inventory still uses legacy PuppetDB and its legacy Bolt client identity.
-      # Agent CA migration must not change this independent trust relationship.
-      # Retire this bundle when the inventory endpoint and client migrate together.
-      $ca_content = file('nest/puppet/legacy-ca.pem')
-    }
-
     $config_group = $facts['os']['family'] ? {
       'Darwin' => 'wheel',
       default  => 'root',
@@ -70,25 +57,17 @@ class nest::tool::bolt (
         ensure => directory,
       ;
 
-      '/etc/puppetlabs/bolt/ca.pem':
-        content => $ca_content,
-      ;
-
-      '/etc/puppetlabs/bolt/cert.pem':
-        content => $cert,
-      ;
-
-      '/etc/puppetlabs/bolt/key.pem':
-        content   => $key,
-        show_diff => false,
+      # The existing internal HTTPS ingress terminates TLS with Eyrie trust.
+      # It exposes read-only queries; legacy mTLS credentials are not used.
+      # Leave the old files untouched for offline rollback.
+      '/etc/puppetlabs/bolt/ingress-ca.pem':
+        source => 'puppet:///modules/nest/certs/eyrie.crt',
       ;
 
       '/etc/puppetlabs/bolt/bolt-defaults.yaml':
         content   => epp('nest/puppet/bolt-defaults.yaml.epp', {
-          puppetdb_server_url => 'https://puppetdb.nest:8081',
-          puppetdb_cacert     => '/etc/puppetlabs/bolt/ca.pem',
-          puppetdb_cert       => '/etc/puppetlabs/bolt/cert.pem',
-          puppetdb_key        => '/etc/puppetlabs/bolt/key.pem',
+          puppetdb_server_url => 'https://puppetdb.eyrie:443',
+          puppetdb_cacert     => '/etc/puppetlabs/bolt/ingress-ca.pem',
         }),
       ;
     }

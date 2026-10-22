@@ -4,15 +4,18 @@ description: 'Deactivate a node and revoke its certs'
 parameters:
   name:
     description: 'Certname of the node to delete'
-    type: String
+    type: Pattern[/\A[a-zA-Z0-9][a-zA-Z0-9_.-]*\z/]
+
+  namespace:
+    description: 'OpenVox namespace whose CA and PuppetDB own the node'
+    type: Enum['default', 'test']
+    default: default
 
 steps:
-  - description: 'puppet node clean'
-    command: "podman exec puppetserver puppet node clean ${name}"
-    run_as: root
-    targets: puppet-server
+  - description: 'Clean the OpenVox CA identity'
+    command: "kubectl exec -n ${namespace} deploy/puppet-puppetserver -c puppet-puppetserver -- puppetserver ca clean --certname ${name}"
+    targets: localhost
 
   - description: 'puppet node deactivate'
-    command: "podman exec puppetserver puppet node deactivate ${name}"
-    run_as: root
-    targets: puppet-server
+    command: "kubectl exec -n ${namespace} deploy/puppet-puppetserver -c puppet-puppetserver -- puppet node deactivate ${name}"
+    targets: localhost

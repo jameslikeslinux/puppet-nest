@@ -1,8 +1,8 @@
-# Deploy the Puppet control repo during the OpenVox migration
+# Deploy the Puppet control repo to test and production OpenVox
 plan nest::puppet::deploy ( # lint:ignore:deploy_plan_boundary -- code rollout plan, not Kubernetes stack initialization
-  Enum['legacy', 'test', 'prod', 'kubernetes', 'both', 'all'] $backend          = 'both',
-  Optional[String[1]]                                         $environment      = 'main',
-  Boolean                                                     $all_environments = false,
+  Enum['test', 'prod', 'kubernetes', 'both', 'all'] $backend          = 'kubernetes',
+  Optional[String[1]]                               $environment      = 'main',
+  Boolean                                           $all_environments = false,
 ) {
   $environment_args = $all_environments ? {
     true    => [],
@@ -11,12 +11,6 @@ plan nest::puppet::deploy ( # lint:ignore:deploy_plan_boundary -- code rollout p
 
   if (!$all_environments) and ($environment !~ String[1]) {
     fail('environment must be set unless all_environments=true')
-  }
-
-  if $backend in ['legacy', 'both', 'all'] {
-    $legacy_cmd = (['/srv/puppet/bin/r10k', 'deploy', 'environment'] + $environment_args + ['-pv']).shellquote
-
-    run_command($legacy_cmd, 'puppet-server', 'Deploy Puppet code to legacy puppet-server', '_run_as' => 'root')
   }
 
   $openvox_backends = {
@@ -30,6 +24,7 @@ plan nest::puppet::deploy ( # lint:ignore:deploy_plan_boundary -- code rollout p
     },
   }
 
+  # Keep both/all as compatibility aliases for test + prod, never Podman.
   $selected_openvox_backends = $backend ? {
     'test'       => ['test'],
     'prod'       => ['prod'],

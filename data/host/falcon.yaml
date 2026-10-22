@@ -10,10 +10,10 @@ nest::classes:
   - 'nest::service::nzbget'
   - 'nest::service::ombi'
   - 'nest::service::plex'
-  - 'nest::service::puppet'
   - 'nest::service::radarr'
   - 'nest::service::reverse_proxy'
   - 'nest::service::sonarr'
+  - 'nest::tool::bolt::deploy'
 
 nest::dvorak: true
 nest::monitor_layout: ['DP-4@0', 'DP-2@2560']
@@ -78,11 +78,14 @@ nest::service::gitlab_runner::instances:
     qemu: true
 
   r10k:
-    default_image: 'registry.gitlab.joyfullee.me/nest/tools/r10k'
+    # Retain the existing runner identity/tag, but deploy only to OpenVox.
+    default_image: 'registry.gitlab.joyfullee.me/nest/tools/bolt'
+    bolt: true
+    puppetcore: true
     volumes:
-      - '/srv/puppet/code:/etc/puppetlabs/code'
-      - '/srv/puppet/r10k/config:/etc/puppetlabs/r10k:ro'
-      - '/srv/puppet/r10k/cache:/var/cache/r10k'
+      - '/nest/home/kubeconfigs/eyrie.conf:/root/.kube/config:ro'
+      - '/etc/puppetlabs/bolt/deploy-key.pem:/root/.ssh/id_rsa:ro'
+      - '/etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro'
 
 nest::service::reverse_proxy::hosts:
   nzbget.nest:
@@ -100,16 +103,6 @@ nest::service::reverse_proxy::hosts:
     ip: '172.22.4.2'
     ssl: false
     websockets: true
-
-  puppet.nest:
-    destination: '127.0.0.1:8180'
-    ip: '172.22.4.2'
-    ssl: false
-
-  puppetdb.nest:
-    destination: '127.0.0.1:8080'
-    ip: '172.22.4.2'
-    ssl: false
 
   radarr.nest:
     destination: '127.0.0.1:7878'
