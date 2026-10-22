@@ -154,6 +154,65 @@ differ from the later host-local transaction generation's
 `org.nest:release=sha256:MANIFEST_DIGEST`; do not treat this publication path as an
 already admitted host-local generation. No historical root is retrofitted here.
 
+### Explicit local Stage 3 root publication
+
+`files/build/publish-stage3-root.py` copies an already completed, offline local
+build tree into a new versioned filesystem, then seals and independently admits
+it. This is an executing storage operation, not a read-only plan. Invoke it only
+on an explicitly approved publication host with a preprovisioned private local
+ZFS parent mounted at `/nest/releases/RELEASE/hosts`, mode 0700. Select that
+parent's actual GUID independently; the command never chooses a pool, provisions
+ancestors, changes quotas/reservations or makes room by deleting rollback data.
+
+```sh
+python3 files/build/publish-stage3-root.py \
+  /PRIVATE_OFFLINE_ROOT HOST RELEASE PARENT_DATASET_GUID sha256:EXPECTATIONS_DIGEST
+```
+
+SOURCE must itself be one mounted, read-only local ZFS filesystem with no child
+datasets or submounts. It cannot be `/`, the release tree, a symlink alias, a
+directory in another filesystem or an NFS/container bind-mount view. All source
+and destination ancestors must be root-owned without untrusted writers. This
+command does not stop a running build, assemble mounted container volumes or
+turn an arbitrary live container root into an offline source. The future Stage 3
+adapter must materialize a complete offline build filesystem first; missing
+repository or other mounted content must not be silently omitted. Legacy
+running-container rsync remains separate and is not accepted as that input.
+
+An exclusive destination mkdir reserves `HOST` before dataset creation. Existing
+paths, symlinks, completed or interrupted publications refuse; no automatic retry
+removes a reservation. Only the exact new child dataset is created, with
+`canmount=noauto`, `exec=off`, `setuid=off`, `devices=off` and the frozen build
+release/expectations properties. Rsync copies the entire sealed source using
+archive/ACL/hardlink/xattr/numeric-ID and single-filesystem semantics, without
+delete or hidden exclusions. `--modify-window=-1` preserves nanosecond mtimes
+even when new directories/symlinks already have the same whole-second time.
+The source's full aggregate identity and native
+mount/GUID/read-only state are checked before and after copy. After pool flush,
+the new child is set read-only and the existing admission checker must verify
+its exact GUID, properties, mount closure and content digest against the source.
+Parent identity is rechecked across reservation and publication.
+
+Success prints only the existing `path`, `dataset_guid`, `content_digest` root
+artifact. The executing adapter must retain/reopen it through the normal member
+result path; stdout alone is not durable publication evidence. Native command
+failure, timeout, changed inputs, incomplete copy or failed readback emits a
+static exit-1 diagnostic and no accepted artifact. Argument errors use exit 2.
+Failure retains reserved paths and any partial dataset for diagnosis, possibly
+writable under the private parent; it never destroys, retries, advances an alias
+or changes an existing root. Even a sealed result after failed admission is not
+an accepted publication. Native operations are bounded to one hour each; source
+and target root/Puppet writers remain trusted, not adversarial.
+
+This is a local publication primitive, not end-to-end Stage 3 candidate execution.
+Build-to-publication transfer/materialization, adapter/CI integration, capacity
+policy, host-local generation delivery and release promotion remain unfinished.
+No real ZFS mutation is exercised by its fixtures: they use real disposable
+filesystems and rsync with mocked ZFS properties/commands. No production root,
+private identity or OS build is created during source validation. Rollback stops
+invoking the opt-in command and preserves completed and incomplete generations
+for explicit diagnosis/retention decisions; it does not rewrite a historical root.
+
 A consumer has exactly `project`, `decision`, `reason` and `members`. Decision is
 `rebuild`, `reuse`, `defer` or `retire`; reason is bounded printable text. Rebuild
 and reuse require the exact nonempty selected member IDs for that project and
