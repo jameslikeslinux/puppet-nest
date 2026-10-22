@@ -230,6 +230,8 @@ class Server(ThreadingHTTPServer):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--worker", action="store_true")
+    parser.add_argument("--reconcile-generation", default=os.environ.get("FIREFOX_GENERATION_RECONCILIATION_GRANT"),
+                        help="local operator JSON grant; requires exact owner approval and journal hash")
     args = parser.parse_args()
     if args.worker:
         try:
@@ -250,6 +252,8 @@ def main():
         state_dir = Path(os.environ.get("FIREFOX_UI_STATE_DIR", "/home/kasm-user/.local/state/nest-firefox-ui"))
         server.controller_lease = controller_lease(state_dir / "windows-controller.lock")
         server.windows = Windows(state_dir / "windows.json")
+        if args.reconcile_generation:
+            server.windows.reconcile_generation(json.loads(args.reconcile_generation))
     server.serve_forever()
 
 
