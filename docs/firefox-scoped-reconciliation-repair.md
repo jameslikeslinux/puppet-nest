@@ -72,3 +72,28 @@ commit, uncertain new creation, pending input and independent canonical receipt
 checks. The same suites are included in required exact-head CI. Disposable
 native and installed original-caller results are recorded separately; unit
 fixtures do not claim an active parent request or production acceptance.
+
+The managed `nest::build::firefox` build from source
+`4dd0fc9a768b843939f05a3de17855388d01420c` passed its smoke check, published,
+and was pulled back as
+`registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:524f20afd988a052cb1502161484e12699fb15b93255cde79d71ee28173dbf05`.
+Extracted controller, endpoint and both private transport hashes match source.
+The image pin is the next ordinary container baseline; controller-only overlay
+activation deliberately does not restart the current healthy Firefox pod.
+
+The baked-image disposable scoped canary passed with no owner mounts or external
+network. Actual native replies proved unchanged browser/session and owner
+binding across controller refresh; fresh scope admission, one new retired-scope
+binding, repeated acquire without growth, preserved old unknown native window
+and byte-identical archive all passed. Its retired journal is explicit synthetic
+fixture setup, not production acceptance. Initial harness attempts exposed
+extension first-run settling and competing fixture controller initialization;
+the harness now lets the resident server initialize the session before closing
+only disposable extension tabs. Those fixture changes are not a production
+root-cause claim or a retry of uncertain owner input.
+
+Initial required CI validation/unit jobs failed before tests on GitLab and
+registry HTTP 503 responses. Same-head retries were requested; browser fixtures
+passed on their first run. Bolt preflight initially lacked ruby_task_helper in
+this new worktree. `bolt module install` resolved it; inventory-backed transport
+then passed as joy on owl. No direct SSH or ad-hoc Puppet fallback was used.
