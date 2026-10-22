@@ -214,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
                 if len(json.dumps(result).encode()) > MAX_RESPONSE:
                     raise ValueError("bounded window response exceeded")
             except Exception as exc:
-                if getattr(exc, "code", None) in {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_CREATE_REJECTED"}:
+                if getattr(exc, "code", None) in {"FIREFOX_BUSY", "FIREFOX_IDENTITY_LOST", "FIREFOX_NATIVE_OUTCOME_UNCERTAIN", "FIREFOX_CREATION_UNCERTAIN", "FIREFOX_CREATE_REJECTED", "FIREFOX_BINDING_RETIRED"}:
                     result = {"status": "error", "error": getattr(exc, "code"), "outcome": getattr(exc, "outcome"), "message": str(exc)}
                 else:
                     result = {"status": "error", "error": "FIREFOX_OUTCOME_UNCERTAIN", "outcome": "uncertain", "message": "bounded Firefox operation failed or timed out; read back; retain the action key; do not replay"}
@@ -232,6 +232,7 @@ def main():
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--reconcile-generation", default=os.environ.get("FIREFOX_GENERATION_RECONCILIATION_GRANT"),
                         help="local operator JSON grant; requires exact owner approval and journal hash")
+    parser.add_argument("--recover-binding", help="local operator JSON grant; requires independently verified scoped approval")
     args = parser.parse_args()
     if args.worker:
         try:
@@ -254,6 +255,8 @@ def main():
         server.windows = Windows(state_dir / "windows.json")
         if args.reconcile_generation:
             server.windows.reconcile_generation(json.loads(args.reconcile_generation))
+        if args.recover_binding:
+            server.windows.authorize_binding(json.loads(args.recover_binding))
     server.serve_forever()
 
 

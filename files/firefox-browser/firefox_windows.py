@@ -362,13 +362,69 @@ class Windows:
             raise RuntimeError("bound window contains unproven contexts; preserve and refuse input")
         return matches[0]
 
+    def authorize_binding(self, grant):
+        """Local operator only: admit one new binding, never replay an old create.
+
+        Like reconcile_generation, this is not a public API. The administrator
+        must independently verify the exact canonical nonterminal request and
+        trusted proposal approval before supplying this short-lived grant.
+        """
+        with self.operation():
+            if not isinstance(grant, dict) or set(grant) != {"approval", "scope", "archive", "epoch", "expires_at"}:
+                raise ValueError("exact local binding recovery grant required")
+            scope = valid_scope(grant["scope"])
+            if (scope == "owner" or not isinstance(grant["approval"], str)
+                    or not re.fullmatch(r"apr-[A-Za-z0-9_-]+", grant["approval"])
+                    or type(grant["expires_at"]) is not int or grant["expires_at"] <= time.time()
+                    or grant["epoch"] != self.epoch):
+                raise ValueError("invalid or expired scoped binding recovery grant")
+            record = self.state["windows"].get(scope, {})
+            if record.get("terminal") or record.get("state") == "closed":
+                raise RuntimeError("terminal scope cannot be reopened")
+            previous = self.state.get("binding_recoveries", {}).get(scope)
+            if previous:
+                if previous != grant:
+                    raise RuntimeError("conflicting binding recovery grant")
+                return  # Includes an uncertain new creation: never send it twice.
+            if (record.get("state") != "retired" or record.get("archive") != grant["archive"]
+                    or not re.fullmatch(r"[a-f0-9]{64}\.json", str(grant["archive"]))):
+                raise RuntimeError("grant does not identify the exact retired binding")
+            if (self.orphaned or self.broken
+                    or (self.state.get("controller") and not self._resumable())
+                    or self.state.get("reconciliation", {}).get("epoch") != self.epoch):
+                raise RuntimeError("current resident generation required for binding recovery")
+            if any(r.get("state") != "delivered" for r in self.state["actions"].values()):
+                raise RuntimeError("pending or uncertain input prevents binding recovery")
+            archive = self.path.parent / "generation-history" / grant["archive"]
+            bundle = json.loads(archive.read_bytes())
+            original = json.loads(bundle["journals"][self.path.name])["windows"].get(scope)
+            if not original or original.get("state") == "closed":
+                raise RuntimeError("immutable history does not contain a recoverable binding")
+            # Preserve both the tombstone provenance and the operator receipt.
+            # Atomic commit precedes any later allocation by the normal caller.
+            original_state = self.state
+            self.state = {**self.state,
+                          "binding_recoveries": {**self.state.get("binding_recoveries", {}), scope: dict(grant)},
+                          "windows": {**self.state["windows"], scope: {**record, "state": "recovery_ready"}}}
+            try:
+                self._save()
+            except BaseException:
+                self.state = original_state
+                raise
+
     def acquire(self, scope):
         valid_scope(scope)
         with self.lock:
-            reconciliation = self.state.get("reconciliation")
-            if reconciliation and scope not in {"owner", reconciliation["scope"]}:
-                raise ControlError("FIREFOX_BINDING_RETIRED", "old generation preserved in history; no replacement authorized")
             old = self.state["windows"].get(scope)
+            if old and old.get("state") == "retired":
+                raise ControlError("FIREFOX_BINDING_RETIRED", "old generation preserved in history; no replacement authorized")
+            if old and old.get("state") == "recovery_ready":
+                grant = self.state.get("binding_recoveries", {}).get(scope, {})
+                if grant.get("epoch") != self.epoch or grant.get("expires_at", 0) <= time.time():
+                    raise ControlError("FIREFOX_BINDING_RETIRED", "binding recovery grant expired; no replacement authorized")
+                if any(r.get("state") != "delivered" for r in self.state["actions"].values()):
+                    raise RuntimeError("pending or uncertain input prevents binding recovery")
+                old = None  # New reservation below, not a retry of the archived create.
             if old:
                 if old.get("state") == "creating":
                     return self._finish_creation(old)
@@ -443,8 +499,17 @@ class Windows:
         record = self.state["windows"].get(scope)
         state = record.get("state") if record else "unallocated"
         result = {"scope_state": state, "retry_allowed": False, "input_replay_allowed": False}
+        if state == "recovery_ready":
+            grant = self.state.get("binding_recoveries", {}).get(scope, {})
+            if (grant.get("epoch") == self.epoch and grant.get("expires_at", 0) > time.time()
+                    and not self.orphaned and not self.broken
+                    and (not self.state.get("controller") or self._resumable())):
+                return {**result, "recovery_state": "fresh_binding_authorized", "next_action": "acquire",
+                        "reason": "scoped_operator_grant", "new_binding_allowed": True}
+            return {**result, "recovery_state": "scoped_authorization_required", "next_action": "verify_existing_approval_and_apply_local_binding_grant",
+                    "reason": "binding_grant_expired_or_generation_lost", "automatic_recovery_exhausted": True}
         if state == "retired":
-            return {**result, "recovery_state": "owner_reconciliation_required", "next_action": "preserve_windows_and_request_scoped_owner_decision",
+            return {**result, "recovery_state": "scoped_authorization_required", "next_action": "verify_existing_approval_and_apply_local_binding_grant",
                     "reason": "binding_retired_with_history", "automatic_recovery_exhausted": True}
         if not record or state == "closed":
             return {**result, "recovery_state": "not_needed", "next_action": "acquire" if not record else "none"}
@@ -496,6 +561,12 @@ class Windows:
                 if record.get("terminal") != terminal:
                     raise RuntimeError("closed scope lacks the exact terminal receipt")
                 return {**receipt, "already_closed": True}
+            if record.get("state") in {"retired", "recovery_ready"}:
+                # Retain terminal fencing without claiming the unknown old
+                # native window was closed. The outbox stays unacknowledged.
+                record.update(state="retired", terminal=terminal)
+                self._save()
+                raise RuntimeError("retired native window preserved; terminal scope fenced")
             # An interrupted close is reconciled only in the retained native
             # session, including an observer restored to that exact session.
             if record["state"] == "closing" and record.get("epoch") == self.epoch:

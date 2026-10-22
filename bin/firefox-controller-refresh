@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Operator-only, source-managed controller overlay; never restart Firefox.
+
+Run via Bolt on the supervisor. Sources must be extracted from the verified
+managed image. An optional recovery requires an independently reviewed exact
+proposal hash and a fresh canonical broker receipt, not worker approval prose.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ASSETS = ('firefox-bridge-server.py', 'firefox_windows.py', 'firefox-ui-bridge.py',
+          'secure_browser_bidi.py', 'secure_browser_local_bidi.py',
+          'window-viewer.html', 'window-viewer.js')
+
+
+def approved_request(request_id, approval_id, proposal_hash):
+    sys.path.insert(0, '/opt/hermes-agent/src')
+    from agent_request_broker import kanban_backend as broker
+    conn = broker.connect_read_snapshot()
+    try:
+        item = broker.index_for_request(conn, request_id)
+        if not item or item.status in {'completed', 'cancelled', 'denied', 'superseded'}:
+            raise ValueError('canonical nonterminal request required')
+        task = broker.require_kanban().get_task(conn, item.task_id)
+        approval = broker.current_approval(conn, item.request_id)
+        proposal = broker.latest_proposal(conn, item.request_id)
+        if (not task or task.status in {'done', 'archived'} or not approval or not proposal
+                or approval['approval_id'] != approval_id or approval['source'] != 'telegram_trusted'
+                or approval.get('steering') or approval['proposal_hash'] != proposal_hash
+                or proposal['proposal_hash'] != proposal_hash
+                or not broker.structured_proposal_text(conn, item=item, proposal=proposal)):
+            raise ValueError('exact intact trusted scoped approval required')
+        return f'kanban:{broker.board_name()}:{item.task_id}'
+    finally:
+        conn.close()
+
+
+def resident(data):
+    """Private administrator exec, not an authenticated public bridge command."""
+    import fcntl
+    import importlib.util
+    import signal
+    import time
+    import urllib.request
+
+    state_dir = Path(os.environ.get('FIREFOX_UI_STATE_DIR', '/home/kasm-user/.local/state/nest-firefox-ui'))
+    lock = Path('/tmp/nest-firefox/endpoint.lock').open('a+')
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)  # Refuse, never interrupt an active operation.
+    state = json.loads((state_dir / 'windows.json').read_bytes())
+    controller = state['controller']
+    if controller['epoch'] != data['expected_generation']:
+        raise ValueError('controller generation changed; no refresh')
+    if any(r.get('state') != 'delivered' for r in state['actions'].values()):
+        raise ValueError('pending or uncertain input; no refresh')
+    sources = data['sources']
+    if set(sources) != set(ASSETS):
+        raise ValueError('complete managed controller overlay required')
+    hashes = {name: hashlib.sha256(raw.encode()).hexdigest() for name, raw in sources.items()}
+    revision = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
+    destination = Path('/tmp/nest-firefox/controller-overlays') / revision
+    destination.mkdir(parents=True, exist_ok=True, mode=0o700)
+    for name, raw in sources.items():
+        if name.endswith('.py'):
+            compile(raw, name, 'exec')
+        path = destination / name
+        if path.exists() and path.read_text() != raw:
+            raise ValueError('immutable overlay conflicts')
+        path.write_text(raw)
+        path.chmod(0o400)
+    spec = importlib.util.spec_from_file_location('refresh_windows', destination / 'firefox_windows.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if module.process_generation(controller['pid']) != controller['generation']:
+        raise ValueError('native browser generation changed; no refresh')
+    processes = []
+    for path in Path('/proc').iterdir():
+        if path.name.isdigit():
+            try:
+                argv = (path / 'cmdline').read_bytes().split(b'\0')
+                if len(argv) > 1 and Path(os.fsdecode(argv[1])).name == 'firefox-bridge-server.py':
+                    processes.append((int(path.name), os.fsdecode(argv[1])))
+            except FileNotFoundError:
+                pass
+    if len(processes) != 1:
+        raise ValueError('exactly one resident controller required')
+    pid, previous_source = processes[0]
+    if hashlib.sha256(Path(previous_source).with_name('firefox_windows.py').read_bytes()).hexdigest() != data['expected_source']:
+        raise ValueError('installed controller source changed; no refresh')
+    env = dict(os.fsdecode(pair).split('=', 1) for pair in Path(f'/proc/{pid}/environ').read_bytes().split(b'\0') if pair)
+    env.pop('FIREFOX_GENERATION_RECONCILIATION_GRANT', None)
+    args = [sys.executable, str(destination / 'firefox-bridge-server.py')]
+    if data.get('scope'):
+        record = state['windows'].get(data['scope'], {})
+        if record.get('state') != 'retired' or record.get('terminal'):
+            raise ValueError('exact nonterminal retired binding required')
+        grant = {'scope': data['scope'], 'approval': data['approval_id'], 'archive': record['archive'],
+                 'epoch': controller['epoch'], 'expires_at': int(time.time()) + 300}
+        # Validate against an isolated in-memory copy, without native access or
+        # journal mutation. The new leased server commits the same grant below.
+        check = module.Windows(state_dir / 'windows.json')
+        check._save = lambda: None
+        check.authorize_binding(grant)
+        args += ['--recover-binding', json.dumps(grant)]
+    os.kill(pid, signal.SIGTERM)  # Observer/server only; driver and Firefox stay alive.
+    deadline = time.monotonic() + 5
+    lease = (state_dir / 'windows-controller.lock').open('a+')
+    while True:
+        try:
+            fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            break
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise RuntimeError('old controller lease did not release; no replacement started')
+            time.sleep(.05)
+    lease.close()
+    child = subprocess.Popen(args, env=env, stdin=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    token = Path(env['FIREFOX_BRIDGE_TOKEN_FILE']).read_text().strip()
+    deadline = time.monotonic() + 10
+    while True:
+        try:
+            request = urllib.request.Request('http://127.0.0.1:8766/_nest/bridge/v1',
+                data=json.dumps({'command': 'status', 'payload': {'scope': 'owner'}}).encode(),
+                headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token})
+            # The updater still holds endpoint.lock. Release only after the new
+            # server owns the controller lease; no mutation is sent for readiness.
+            if child.poll() is not None:
+                raise RuntimeError('new controller exited; preserve browser, do not retry refresh')
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            with urllib.request.urlopen(request, timeout=2) as reply:
+                result = json.load(reply)
+            if result.get('browser_generation') != controller['epoch'] or result.get('window_source_sha256') != hashes['firefox_windows.py']:
+                raise ValueError('controller readback differs from managed overlay')
+            after = json.loads((state_dir / 'windows.json').read_bytes())
+            if after['controller'] != controller or any(after['windows'].get(k) != v for k, v in state['windows'].items() if k != data.get('scope')):
+                raise ValueError('unrelated binding changed during refresh')
+            print(json.dumps({'status': 'ok', 'browser_restarted': False, 'generation': controller['epoch'],
+                              'overlay': revision, 'source_hashes': hashes, 'recovery_scope': data.get('scope')}))
+            return
+        except (OSError, urllib.error.URLError):
+            if time.monotonic() >= deadline:
+                raise RuntimeError('controller readback unavailable; preserve state, no automatic retry')
+            time.sleep(.1)
+
+
+def main():
+    if sys.argv[1:] == ['--resident']:
+        resident(json.load(sys.stdin))
+        return
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--source-dir', required=True, type=Path)
+    parser.add_argument('--expected-generation', required=True)
+    parser.add_argument('--expected-source', required=True)
+    parser.add_argument('--request-id')
+    parser.add_argument('--approval-id')
+    parser.add_argument('--proposal-hash')
+    args = parser.parse_args()
+    scope = None
+    if any((args.request_id, args.approval_id, args.proposal_hash)):
+        if not all((args.request_id, args.approval_id, args.proposal_hash)):
+            raise ValueError('exact request, approval and reviewed proposal hash required')
+        scope = approved_request(args.request_id, args.approval_id, args.proposal_hash)
+    data = {'sources': {name: (args.source_dir / name).read_text() for name in ASSETS},
+            'expected_generation': args.expected_generation, 'expected_source': args.expected_source,
+            'scope': scope, 'approval_id': args.approval_id}
+    # Fixed deployment and container, never accept arbitrary host/process targets.
+    script = Path(__file__).read_text()
+    code = 'import sys; sys.argv=["controller-refresh","--resident"]; exec(compile(' + repr(script) + ',"controller-refresh","exec"))'
+    subprocess.run(['kubectl', '-n', 'ai', 'exec', '-i', 'deployment/firefox', '-c', 'kasm-firefox', '--',
+                    'python3', '-c', code], input=json.dumps(data), text=True, check=True, timeout=30)
+
+
+if __name__ == '__main__':
+    main()
