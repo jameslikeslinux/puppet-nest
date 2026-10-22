@@ -595,6 +595,27 @@ the container. Git HEAD and four source-file hashes matched accepted main. This
 verifies the preceding frozen-input executor, not this new candidate interface
 until its own publication is verified, and is not an OS-stage or boot acceptance.
 
+## Config executor source and pipeline identity
+
+Executor builds now require the exact `CI_COMMIT_SHA`, check out that exact
+commit even if its branch has advanced, and set the OCI revision label. The
+branch name remains intact for Stage 3's default Puppet environment selection.
+The existing candidate publisher returns a remotely verified digest for a unique
+pipeline/job/CPU tag. `bin/ci-executor-receipt` checks the actual digest image's
+Git HEAD and label using a read-only, network-disabled container without host
+mounts, retains the sanitized member JSON as CI artifacts, and validates the
+complete same-source/same-pipeline architecture set before index assembly.
+Mutable CPU tags no longer select aggregate members. Missing or stale receipts
+fail instead of borrowing a newer pipeline's image.
+
+Legacy CPU and `latest` tags remain compatibility outputs and may still move
+out of order under concurrent pipelines; they are not release identity or
+promotion authority. Module/base closure, Stage producer integration and the
+multi-project release DAG remain unfinished. See `nest-release-manifest.md` for
+the receipt contract and rollback boundary. Fixtures execute the real source
+checkout shell against a moving local Git branch and the real receipt CLI with
+fake Podman; they do not build an OS or operate on ZFS.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive

@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Bind config executor members to this CI pipeline; never authorize an OS rollout."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+CPUS = ("haswell", "cortex-a53", "sifive-u74")
+FIELDS = {"schema", "kind", "project", "sha", "pipeline", "job", "cpu", "image", "source_verification"}
+
+
+def require(condition):
+    if not condition:
+        raise ValueError("invalid executor identity or incomplete pipeline members")
+
+
+def context():
+    sha = os.environ.get("CI_COMMIT_SHA", "")
+    require(re.fullmatch(r"[0-9a-f]{40}", sha) is not None)
+    require(os.environ.get("CI_PROJECT_PATH") == "nest/config")
+    pipeline = os.environ.get("CI_PIPELINE_ID", "")
+    require(re.fullmatch(r"[1-9][0-9]{0,19}", pipeline) is not None)
+    repo = os.environ.get("CI_REGISTRY_IMAGE", "") + "/" + os.environ.get("CI_COMMIT_REF_SLUG", "")
+    require(re.fullmatch(r"[a-z0-9][a-z0-9.:-]*(/[a-z0-9][a-z0-9._-]*)+", repo) is not None)
+    return sha, int(pipeline), repo
+
+
+def validate(row, cpu):
+    sha, pipeline, repo = context()
+    require(type(row) is dict and set(row) == FIELDS)
+    require(type(row["schema"]) is int and row["schema"] == 1 and row["kind"] == "nest_config_executor_member")
+    require(row["project"] == "nest/config" and row["sha"] == sha)
+    require(type(row["pipeline"]) is int and row["pipeline"] == pipeline)
+    require(type(row["job"]) is int and 0 < row["job"] < 10 ** 20)
+    require(cpu in CPUS and row["cpu"] == cpu)
+    require(type(row["image"]) is str and re.fullmatch(re.escape(repo) + r"@sha256:[0-9a-f]{64}", row["image"]) is not None)
+    require(row["source_verification"] == "git_head_and_oci_revision")
+    return row
+
+
+def command(args):
+    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=180).stdout.strip()
+
+
+def record(reference_path, output):
+    sha, pipeline, _ = context()
+    cpu = os.environ.get("CPU", "")
+    job = os.environ.get("CI_JOB_ID", "")
+    require(re.fullmatch(r"[1-9][0-9]{0,19}", job) is not None)
+    raw = Path(reference_path).read_bytes()
+    require(len(raw) <= 1024 and raw.endswith(b"\n") and raw.count(b"\n") == 1)
+    reference = raw[:-1].decode("ascii")
+    row = validate({"schema": 1, "kind": "nest_config_executor_member", "project": "nest/config", "sha": sha,
+                    "pipeline": pipeline, "job": int(job), "cpu": cpu, "image": reference,
+                    "source_verification": "git_head_and_oci_revision"}, cpu)
+    # No host mounts, network, build plan, or secret environment in the container.
+    require(command(["podman", "run", "--rm", "--pull=always", "--network=none", "--read-only",
+                     "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=git", reference,
+                     "-C", "/opt/nest", "rev-parse", "HEAD"]) == sha)
+    require(command(["podman", "image", "inspect", reference, "--format",
+                     '{{ index .Labels "org.opencontainers.image.revision" }}']) == sha)
+    payload = (json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n").encode("ascii")
+    # A private CI workspace, not a shared publication service. Never replace a receipt.
+    with open(output, "xb") as stream:
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    require(Path(output).read_bytes() == payload)
+
+
+def unique(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result)
+        result[key] = value
+    return result
+
+
+def references(directory):
+    rows = []
+    for cpu in CPUS:
+        with open(Path(directory) / (cpu + ".json"), "rb") as stream:
+            raw = stream.read(4097)
+        require(len(raw) <= 4096)
+        rows.append(validate(json.loads(raw, object_pairs_hook=unique), cpu))
+    require(len({row["job"] for row in rows}) == len(CPUS))
+    require(len({row["image"] for row in rows}) == len(CPUS))
+    # Print only after the complete exact-pipeline set is validated.
+    return "\n".join(row["image"] for row in rows)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="action", required=True)
+    one = sub.add_parser("record")
+    one.add_argument("reference_path")
+    one.add_argument("output")
+    all_members = sub.add_parser("refs")
+    all_members.add_argument("directory")
+    args = parser.parse_args()
+    try:
+        if args.action == "record":
+            record(args.reference_path, args.output)
+        else:
+            print(references(args.directory))
+        return 0
+    except (OSError, ValueError, TypeError, RecursionError, subprocess.SubprocessError):
+        # Never echo subprocess stderr, submitted metadata, paths, or CI credentials.
+        print("Executor identity verification failed; no accepted member set emitted", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

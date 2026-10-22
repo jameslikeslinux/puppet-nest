@@ -148,6 +148,39 @@ and `candidate`, so it remains interpretable after the input files disappear.
 
 ## Trust, publication and rollback boundaries
 
+Config executor CI now pins its Git checkout to `CI_COMMIT_SHA`, verifies that
+exact HEAD after cloning even if the branch moves, and sets the OCI revision
+label. The local branch name is retained at that exact commit because `bin/build`
+derives Stage 3's default Puppet environment from it. Each architecture publishes
+a unique pipeline/job/CPU tag through the existing remote digest-readback helper.
+`bin/ci-executor-receipt record REF_FILE
+JSON_FILE` opens that digest with no container network, host mounts or writable
+root, checks its Git HEAD and revision label, then exclusively writes and
+reopens one schema-1 `nest_config_executor_member` receipt. The input reference
+must belong to the current CI registry repository/ref slug. Failed inspection,
+wrong source, malformed input or an existing receipt refuses without replacement.
+No submitted command output or environment is copied into the artifact.
+
+The build job retains `executor-receipts/` as normal GitLab artifacts. The image
+deployment job downloads those successful prior-stage artifacts and invokes
+`bin/ci-executor-receipt refs executor-receipts`: exactly the expected Haswell,
+Cortex-A53 and SiFive-U74 receipts must match this project, source and pipeline,
+with distinct positive job IDs and digest references. Only after the complete
+set validates are refs emitted for OCI index assembly. It never substitutes a
+mutable CPU tag for a missing member. A single-CPU `BUILD` run still does not
+publish an aggregate. These executor receipts are not Stage 0/1 output pairs or
+a completed release manifest; they do not attest module revisions, base-image
+compatibility or GitLab job status independently. CI artifact origin and normal
+job dependency success remain part of the trusted pipeline boundary.
+
+Legacy CPU tags and both `latest` executor aliases remain compatibility outputs,
+not immutable release inputs. Concurrent older pipelines can still replace
+those aliases out of order; use the retained digest identities, not tag recency,
+for release selection. This slice does not implement release alias admission or
+compare-and-swap. Rollback restores the previous CI source only for subsequent
+tooling builds; preserve all already published digests and do not use a failed
+receipt as a reason to launch OS builds or host actions.
+
 These are sanitized metadata documents. Never supply private keys, tokens, full
 environments, certificates or backup contents. The tool rejects unknown fields
 but does not scrub secrets placed inside valid free-text reason/compatibility
