@@ -185,7 +185,11 @@ trusting the control branch still points to that source.
 the exact top-level and nested Nest source, Puppetfile digest, and every installed
 module's name, optional Git HEAD and content digest. It requires the existing
 Nest, private, stdlib, reboot, Ruby task helper and KubeCM modules. Git-backed
-modules must have no tracked changes. The file digest covers relative paths,
+modules may have Bolt's installer-pruned tracked deletions, but modified, added
+or type-changed tracked files refuse. The nested Nest module is force-checked out
+inside this build-owned image to restore the complete exact source before hashing;
+the top-level and nested Nest source must be clean. This never resets an operator
+checkout or a live host. The file digest covers relative paths,
 file bytes, permission bits, directories and symbolic-link text; Git internals
 are excluded and links are never followed. Link identities do not prove their
 referents are available or compatible. The entire installed module set, including

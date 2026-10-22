@@ -127,6 +127,9 @@ class ExecutorInputsTest(unittest.TestCase):
         self.git(nested, "config", "user.email", "fixture@example.invalid")
         (nested / "Puppetfile").write_text("Moved nested module")
         self.git(nested, "commit", "-am", "Moved nested branch")
+        # Bolt prunes tracked non-module content in both index and worktree.
+        (nested / "scripts/nest-executor-inputs.py").unlink()
+        self.git(nested, "rm", "--cached", "Puppetfile")
         command = next(line[4:] for line in (ROOT / "Containerfile").read_text().splitlines()
                        if line.startswith('RUN git -C "$BOLT_PROJECT/.modules/nest"'))
         result = subprocess.run(["sh", "-c", command], env=dict(self.env, BOLT_PROJECT=str(self.project),
@@ -134,6 +137,26 @@ class ExecutorInputsTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.git(nested, "rev-parse", "HEAD"), self.source)
         self.assertEqual(self.cli("check").returncode, 0)
+
+
+    def test_installer_pruned_git_modules_are_content_bound_but_modifications_refuse(self):
+        module = self.project / ".modules/reboot"
+        self.git(module, "init", "-b", "main")
+        self.git(module, "config", "user.name", "Fixture")
+        self.git(module, "config", "user.email", "fixture@example.invalid")
+        (module / "docs").write_text("Pruned installer fixture")
+        (module / "spec").write_text("Pruned fixture index")
+        self.git(module, "add", ".")
+        self.git(module, "commit", "-m", "Fixture module")
+        (module / "docs").unlink()
+        self.git(module, "rm", "spec")
+        self.record()
+        self.assertEqual(self.cli("check").returncode, 0)
+        self.git(module, "restore", "--source=HEAD", "--staged", "--worktree", ".")
+        self.assertEqual(self.cli("check").returncode, 1, "Changed installed content must not match its old digest")
+        (self.project / ".executor-inputs.json").unlink()
+        (module / "fixture").write_text("Changed tracked source")
+        self.assertEqual(self.cli("record").returncode, 1)
 
 
 if __name__ == "__main__":

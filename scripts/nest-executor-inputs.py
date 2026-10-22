@@ -30,7 +30,7 @@ def sha(payload):
 def git(directory, *args):
     env = dict(os.environ, GIT_OPTIONAL_LOCKS="0")
     return subprocess.check_output(["git", "-C", str(directory), *args], env=env,
-                                   stderr=subprocess.DEVNULL, timeout=30).decode("ascii").strip()
+                                   stderr=subprocess.DEVNULL, timeout=30).decode("ascii").rstrip("\n")
 
 
 def tree(directory):
@@ -77,12 +77,17 @@ def observe(project, source, base):
         require(re.fullmatch(r"[a-z][a-z0-9_]*", module.name) is not None)
         require(module.is_dir() and not module.is_symlink())
         revision = None
+        changes = ""
         if (module / ".git").exists():
             revision = git(module, "rev-parse", "HEAD")
             require(re.fullmatch(r"[0-9a-f]{40}", revision) is not None)
-            require(not git(module, "status", "--porcelain", "--untracked-files=no"))
+            changes = git(module, "status", "--porcelain", "--untracked-files=no")
+            # Bolt prunes non-module files after checkout. Bind that installed
+            # tree by content instead of claiming its Git worktree is pristine.
+            require(all(line[:2] in (" D", "D ", "DD") for line in changes.splitlines()))
         if module.name == "nest":
             require(revision == source)
+            require(not changes)
         rows.append({"name": module.name, "git_head": revision, "content_digest": tree(module)})
     require(rows and {"nest", "stdlib", "reboot", "ruby_task_helper", "private", "kubecm"}
             <= {row["name"] for row in rows})
