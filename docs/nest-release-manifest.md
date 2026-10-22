@@ -7,8 +7,8 @@ in an existing CI artifact directory. It never builds images, queries GitLab or
 a registry, copies a host root, changes an alias, or authorizes rollout.
 
 This is part of R06, not completed R06/R07 delivery. The opt-in producer below
-executes frozen Stage 0/1/2 candidate plans. Existing stage pipelines do not yet
-invoke it or call this validator. The real
+executes frozen Stage 0/1/2 and explicitly placed local Stage 3 candidate plans.
+Stage 0/1/2 CI invokes the adapter; Stage 3 CI integration remains disabled. The real
 multi-project DAG, registry resource verification, output publication and alias
 compare-and-swap remain separate integration work. `plans/build/manifest.pp`
 still means an OCI multi-architecture index; it is not this release manifest.
@@ -333,11 +333,12 @@ absence of the final record means no accepted completion. Stop invoking this
 opt-in path to roll back source behavior; do not delete reservations to replay.
 
 This plan path requires build and publication on the same approved local storage
-host with the complete stopped-build shape documented above. In particular,
-nonempty hidden image repositories still refuse; unsupported existing bases are
-not silently cleaned. The plan does not provision staging/parents, select capacity
-policy, transfer roots between hosts, retain public CI member results or enable
-Stage 3 candidate CI. These remain prerequisites for the executing adapter. The
+host with the complete stopped-build shape documented above. Hidden image
+repositories are replaced in the assembled view by the exact frozen volume;
+neither source is silently cleaned. The plan does not provision staging/parents,
+select capacity policy, transfer roots between hosts, retain public CI member
+results or enable Stage 3 candidate CI. The local adapter below retains the
+sanitized member result separately. The
 caller must exclusively own the build and placement; preflight is not a lock,
 and rerunning the whole build plan is not a resume interface. Fixtures exercise
 real Bolt plan control flow and private receipt retention with fake native
@@ -594,7 +595,7 @@ destroy a generation, alter a host, or relax a failed admission gate.
 --executor-receipt FILE --output-dir ABSOLUTE_DIRECTORY` is an executing build
 entrypoint, not a read-only planning command. Invoke it only in an approved
 Stage CI job using a pinned config executor image. It runs exactly one existing
-`nest::build::stage0`, `stage1` or `stage2` candidate plan through the existing
+`nest::build::stage0`, `stage1`, `stage2` or `stage3` candidate plan through the existing
 cleanup wrapper, passing JSON parameters over stdin. It never calls a host
 update plan or changes ordinary CPU/platform/latest aliases. Candidate image
 publication is a real side effect and requires the build scope's authorization.
@@ -603,8 +604,9 @@ The full frozen expectations file selects one `rebuild` member. Stage 0 currentl
 supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
 bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
 normal/debug base distinctions, CPU/platform/variant and all three repository
-pins. Stage 3 and tools refuse before execution rather than falling through to
-legacy defaults. Candidate/container names derive from positive CI pipeline/job
+pins. Tools refuse before execution rather than falling through to legacy
+defaults. Stage 3 supports only explicit fresh initialization and requires the
+additional local placement contract below; refresh refuses. Candidate/container names derive from positive CI pipeline/job
 IDs, so one member must run per CI job. No arbitrary plan parameter overrides
 are accepted; existing Hiera resource policy remains in effect.
 
@@ -645,11 +647,50 @@ Stage 0/1/2 project CI implements exact expectation/executor artifact acquisitio
 image selection, this entrypoint and retained `ID.json`. Live job-token permissions
 and downstream successful-job binding remain unverified. Candidate assembly,
 Stage 2 firmware/ABI resource verification, native multi-project DAG, release
-promotion/rollback and Stage 3 frozen catalog/generation publication remain
+promotion/rollback and Stage 3 CI acquisition/retention and host-local transfer remain
 unfinished. A successful adapter fixture or metadata compatibility string is not
 hardware boot or whole-release compatibility proof. Rollback stops invoking the
 opt-in adapter; preserve published candidates and receipts rather than rebuilding
 historic outputs or changing live aliases.
+
+### Stage 3 adapter local placement
+
+For one approved Stage 3 build, append `--stage3-placement FILE`. This file has
+exactly `schema` (integer 1), `kind` (`nest_stage3_local_placement`), `member`
+(the selected member ID), `expectations_digest` (the exact prefixed digest of
+the full expectations), `staging`, `staging_guid`, `receipts` and `parent_guid`.
+Paths are canonical absolute strings; GUIDs are positive decimal strings.
+The latter four fields select the already provisioned local resources documented
+above. The adapter neither selects a pool nor creates staging or its parents.
+Missing/mismatched/extra fields refuse before Bolt. Supplying placement for
+another stage also refuses; it is not a generic plan-parameter escape hatch.
+
+Run on the same explicitly approved local build/publication host, with the native
+root/ZFS/Podman permissions and mount view required by the plan and checkers.
+An ordinary CI container with only an NFS `/nest` view is not sufficient. No remote
+placement, privileged-runner selection, capacity policy or automatic storage
+provisioning is implied by this interface. The file is a trusted caller's placement
+choice bound to frozen expectations, not authorization to build a release.
+
+The adapter passes the exact Stage 2 base, repository pins, private identity
+generation/CA pin and accepted executor catalog inventory to `nest::build::stage3`.
+It supplies `root_publication` and the exact versioned hostroot with `deploy=false`;
+no candidate registry flags, legacy rsync or served Puppet environment are used.
+The existing plan admits placement before initialization, completes the checked
+build and stopped-root publication, and retains its private completion receipt.
+After the plan returns, the adapter rejects malformed/wrong-path root objects
+and independently invokes `check-stage3-root.py` with the returned exact GUID,
+expectations digest and content digest. Only identical native readback followed
+by the installed-executor recheck permits ordinary `ID.json` retention/readback.
+Native check failure, changed content or interrupted result retention leaves the
+attempt reserved and no accepted member; it never retries or deletes resources.
+Private identity/root payloads and native diagnostics are not public CI artifacts.
+
+The adapter fixtures use real disposable Git/module inventories and fake Bolt and
+native root admission. They do not exercise live ZFS, identity or OS builds. Stage 3
+project CI still refuses candidate execution until its separate exact artifact,
+placement, executor and retention integration is delivered. Host-local generation
+transfer, operational capacity policy and disruptive canary acceptance remain open.
 
 ## Isolated verification
 

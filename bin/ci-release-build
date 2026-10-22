@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one frozen Stage 0/1/2 candidate using existing Bolt; retain its result."""
+"""Run one frozen Stage 0/1/2/3 candidate using existing Bolt; retain its result."""
 
 import argparse
 import importlib.util
@@ -35,12 +35,13 @@ def positive(name):
     return int(value)
 
 
-def prepare(expected, member_id, receipt):
+def prepare(expected, member_id, receipt, placement=None):
     indexed = release.expectations(expected)
     require(member_id in indexed)
     member = indexed[member_id]
     stage = member["stage"]
-    require(stage in ("stage0", "stage1", "stage2"))
+    require(stage in ("stage0", "stage1", "stage2", "stage3"))
+    require(stage == "stage3" or placement is None)
     require(stage != "stage0" or (member["mode"] == "refresh" and member["variant"] == "server"))
     decision = next(row["decision"] for row in expected["consumers"] if row["project"] == member["project"])
     require(decision == "rebuild")
@@ -77,7 +78,28 @@ def prepare(expected, member_id, receipt):
               "repo_revisions": {"gentoo": expected["sources"]["nest/gentoo/portage"],
                                  "nest": expected["sources"]["nest/overlay"],
                                  "haskell": expected["sources"]["nest/gentoo/haskell"]}}
-    if stage == "stage1":
+    if stage == "stage3":
+        require(member["mode"] == "fresh")
+        require(re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", member["host"]) is not None)
+        release.fields(placement, "schema kind member expectations_digest staging staging_guid receipts parent_guid", "placement")
+        require(type(placement["schema"]) is int and placement["schema"] == 1
+                and placement["kind"] == "nest_stage3_local_placement")
+        require(placement["member"] == member_id and placement["expectations_digest"] == release.digest(expected))
+        for key in ("staging_guid", "parent_guid"):
+            release.match(placement[key], r"[1-9][0-9]{0,19}", "placement GUID")
+        for key in ("staging", "receipts"):
+            release.absolute_path(placement[key], "placement path")
+        params = {"container": "nest-candidate-" + token, "hostname": member["host"],
+                  "platform": member["platform"], "variant": member["variant"],
+                  "build": True, "init": True, "deploy": False,
+                  "repo_revisions": params["repo_revisions"], "stage2_image": member["bases"]["image"],
+                  "hostroot": "/nest/releases/" + expected["release"] + "/hosts/" + member["host"],
+                  "identityroot": member["identity_root"], "identity_reference": member["identity_reference"],
+                  "identity_ca_sha256": member["identity_ca_sha256"],
+                  "catalog_inputs": {"source": expected["executor"]["source"], "base": receipt["inputs"]["base_image"]},
+                  "root_publication": {key: placement[key] for key in ("staging", "staging_guid", "receipts", "parent_guid")}}
+        params["root_publication"].update(release=expected["release"], expectations=release.digest(expected))
+    elif stage == "stage1":
         params.update(variant=member["variant"], refresh=member["mode"] == "refresh",
                       from_image=member["bases"]["normal"], from_image_debug=member["bases"]["debug"])
     else:
@@ -87,8 +109,8 @@ def prepare(expected, member_id, receipt):
     return member, params, {"project": member["project"], "sha": os.environ["CI_COMMIT_SHA"], "pipeline": pipeline, "job": job}
 
 
-def execute(expected, member_id, receipt, directory):
-    member, params, producer = prepare(expected, member_id, receipt)
+def execute(expected, member_id, receipt, directory, placement=None):
+    member, params, producer = prepare(expected, member_id, receipt, placement)
     directory = Path(directory)
     require(directory.is_absolute() and directory.resolve() == directory and directory.is_dir())
     target = directory / (member_id + ".json")
@@ -113,19 +135,38 @@ def execute(expected, member_id, receipt, directory):
         raw = output.read(release.LIMIT + 1)
     require(len(raw) <= release.LIMIT)
     artifacts = json.loads(raw, object_pairs_hook=release.unique_object)
-    repository = os.environ["CI_REGISTRY_IMAGE"]
-    if member["stage"] != "stage0":
-        repository += "/" + member["variant"]
-    keys = {"normal", "debug"} if member["stage"] != "stage2" else {"image"}
-    require(type(artifacts) is dict and set(artifacts) == keys)
-    for key, reference in artifacts.items():
-        prefix = repository + ("/debug" if key == "debug" else "")
-        require(type(reference) is str and re.fullmatch(re.escape(prefix) + r"@sha256:[0-9a-f]{64}", reference) is not None)
-    if "debug" in artifacts:
-        require(artifacts["normal"].split("@")[-1] != artifacts["debug"].split("@")[-1])
+    if member["stage"] == "stage3":
+        release.fields(artifacts, "root", "Stage 3 artifacts")
+        root = artifacts["root"]
+        release.fields(root, "path dataset_guid content_digest", "Stage 3 root")
+        require(root["path"] == params["hostroot"])
+        release.match(root["dataset_guid"], r"[1-9][0-9]{0,19}", "root GUID")
+        release.match(root["content_digest"], release.DIGEST, "root digest")
+        # Independent native admission on the SAME explicitly selected local
+        # publication host, not trust in the plan's returned object alone.
+        with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as error:
+            result = subprocess.run([sys.executable, str(PROJECT / "files/build/check-stage3-root.py"),
+                                     root["path"], member["host"], expected["release"], root["dataset_guid"],
+                                     release.digest(expected), "--content-digest", root["content_digest"]],
+                                    stdout=output, stderr=error, check=False, timeout=3600)
+            require(result.returncode == 0)
+            output.seek(0)
+            raw = output.read(release.LIMIT + 1)
+        require(len(raw) <= release.LIMIT and json.loads(raw, object_pairs_hook=release.unique_object) == root)
+    else:
+        repository = os.environ["CI_REGISTRY_IMAGE"]
+        if member["stage"] != "stage0":
+            repository += "/" + member["variant"]
+        keys = {"normal", "debug"} if member["stage"] != "stage2" else {"image"}
+        require(type(artifacts) is dict and set(artifacts) == keys)
+        for key, reference in artifacts.items():
+            prefix = repository + ("/debug" if key == "debug" else "")
+            require(type(reference) is str and re.fullmatch(re.escape(prefix) + r"@sha256:[0-9a-f]{64}", reference) is not None)
+        if "debug" in artifacts:
+            require(artifacts["normal"].split("@")[-1] != artifacts["debug"].split("@")[-1])
     # Recheck installed source/modules after execution; a build that changed its
     # own executor cannot emit a frozen-input success record.
-    require(prepare(expected, member_id, receipt)[1:] == (params, producer))
+    require(prepare(expected, member_id, receipt, placement)[1:] == (params, producer))
     row = {"schema": 1, "kind": "nest_release_member_result", "release": expected["release"],
            "expectations_digest": release.digest(expected), "executor_receipt": receipt,
            "output": {"member": member, "producer": producer, "executor": expected["executor"], "artifacts": artifacts}}
@@ -149,10 +190,12 @@ def main():
     parser.add_argument("--member", required=True)
     parser.add_argument("--executor-receipt", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--stage3-placement", help="Exact local placement JSON; required only for Stage 3")
     args = parser.parse_args()
     try:
         print(json.dumps(execute(release.load(args.expectations), args.member,
-                                 release.load(args.executor_receipt), args.output_dir), sort_keys=True))
+                                 release.load(args.executor_receipt), args.output_dir,
+                                 release.load(args.stage3_placement) if args.stage3_placement else None), sort_keys=True))
         return 0
     except (OSError, ValueError, TypeError, KeyError, StopIteration, RecursionError, subprocess.SubprocessError):
         print("Candidate build failed; no accepted release member emitted", file=sys.stderr)

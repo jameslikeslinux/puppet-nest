@@ -29,6 +29,17 @@ stage = sys.argv[3].split('::')[-1]
 repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage != 'stage0' else '')
 row = ({'normal': repo + '@sha256:' + 'c' * 64, 'debug': repo + '/debug@sha256:' + 'd' * 64}
        if stage != 'stage2' else {'image': repo + '@sha256:' + 'c' * 64})
+if stage == 'stage3':
+    row = {'root': {'path': p['hostroot'], 'dataset_guid': '456', 'content_digest': 'sha256:' + 'c' * 64}}
+    bad = os.environ.get('BAD_ROOT')
+    if bad == 'path':
+        row['root']['path'] = '/nest/hosts/fixture'
+    elif bad == 'guid':
+        row['root']['dataset_guid'] = True
+    elif bad == 'digest':
+        row['root']['content_digest'] = 'mutable'
+    elif bad == 'extra':
+        row['root']['private'] = 'must not emit'
 if os.environ.get('BAD_OUTPUT') == 'partial':
     row.pop(next(iter(row)))
 if os.environ.get('BAD_OUTPUT') == 'mutable':
@@ -38,6 +49,17 @@ if os.environ.get('BAD_OUTPUT') == 'same':
 if os.environ.get('BAD_OUTPUT') == 'wrong_repo':
     row[next(iter(row))] = 'other.example/nest/stage0@sha256:' + 'c' * 64
 print(json.dumps(row))
+'''
+FAKE_ROOT = r'''import json, os, sys
+with open(os.environ['CALLS'], 'a') as stream:
+    stream.write(json.dumps({'root_check': sys.argv[1:]}) + '\n')
+if os.environ.get('FAIL_ROOT_CHECK'):
+    print('private-secret-error', file=sys.stderr)
+    sys.exit(27)
+root = {'path': sys.argv[1], 'dataset_guid': sys.argv[4], 'content_digest': sys.argv[7]}
+if os.environ.get('CHANGE_ROOT_CHECK'):
+    root['content_digest'] = 'sha256:' + 'd' * 64
+print(json.dumps(root))
 '''
 
 
@@ -56,6 +78,9 @@ class CandidateBuildTest(unittest.TestCase):
             path = self.project / name
             path.parent.mkdir(exist_ok=True)
             shutil.copy2(ROOT / name, path)
+        checker = self.project / "files/build/check-stage3-root.py"
+        checker.parent.mkdir(parents=True)
+        checker.write_text(FAKE_ROOT)
         (self.project / "Puppetfile").write_text("fixture only\n")
         self.sha = self.init_git(self.project)
         modules = self.project / ".modules"
@@ -105,26 +130,37 @@ class CandidateBuildTest(unittest.TestCase):
     def select(self, stage, mode="fresh"):
         project = "nest/" + stage
         member = {"id": "fixture-member", "stage": stage, "project": project, "cpu": "haswell", "variant": "server",
-                  "platform": "vanilla" if stage == "stage2" else None, "host": None, "mode": mode,
+                  "platform": "vanilla" if stage in ("stage2", "stage3") else None,
+                  "host": "fixture" if stage == "stage3" else None, "mode": mode,
                   "bases": {key: "registry.example/nest/base@sha256:" + digit * 64
                             for key, digit in (("normal", "1"), ("debug", "2"))} if stage == "stage1"
                   else {"image": "registry.example/nest/base@sha256:" + "1" * 64},
                   "compatibility": {key: "fixture only" for key in ("kernel", "modules_abi", "firmware", "bootloader")}
-                  if stage == "stage2" else {}, "identity_root": None}
+                  if stage in ("stage2", "stage3") else {}, "identity_root": None}
+        if stage == "stage3":
+            reference = "12345678-1234-4123-8123-123456789abc"
+            member.update(identity_root="/private/identities/" + reference, identity_reference=reference,
+                          identity_ca_sha256="f" * 64)
         self.expected["members"] = [member]
         self.expected["sources"][project] = self.producer_sha
-        self.expected["consumers"] = [r for r in self.expected["consumers"] if r["project"] not in ("nest/stage0", "nest/stage1", "nest/stage2")]
+        self.expected["consumers"] = [r for r in self.expected["consumers"] if r["project"] not in
+                                      ("nest/stage0", "nest/stage1", "nest/stage2", "nest/stage3")]
         self.expected["consumers"].append({"project": project, "decision": "rebuild", "reason": "Fixture only", "members": [member["id"]]})
         self.env.update(CI_PROJECT_PATH=project, CI_COMMIT_SHA=self.producer_sha,
                         CI_JOB_IMAGE=self.receipt["image"], CI_REGISTRY_IMAGE="registry.example/" + project)
 
-    def cli(self, **env):
+    def cli(self, placement=None, **env):
         expected = self.root / "expectations.json"
         receipt = self.root / "receipt.json"
         expected.write_text(json.dumps(self.expected))
         receipt.write_text(json.dumps(self.receipt))
+        extra = []
+        if placement is not None:
+            path = self.root / "placement.json"
+            path.write_text(json.dumps(placement))
+            extra = ["--stage3-placement", str(path)]
         return subprocess.run([sys.executable, str(self.project / "bin/ci-release-build"), "--expectations", str(expected),
-                               "--executor-receipt", str(receipt), "--member", "fixture-member", "--output-dir", str(self.output)],
+                               "--executor-receipt", str(receipt), "--member", "fixture-member", "--output-dir", str(self.output)] + extra,
                               env=dict(self.env, **env), text=True, capture_output=True)
 
     def calls(self):
@@ -218,6 +254,69 @@ class CandidateBuildTest(unittest.TestCase):
         self.assertEqual(self.cli().returncode, 1)
         self.assertEqual(target.read_bytes(), original)
         self.assertEqual(len(self.calls()), 1)
+
+
+    def placement(self):
+        return {"schema": 1, "kind": "nest_stage3_local_placement", "member": "fixture-member",
+                "expectations_digest": MANIFEST["digest"](self.expected), "staging": "/private/staging",
+                "staging_guid": "123", "receipts": "/private/receipts", "parent_guid": "234"}
+
+    def test_stage3_binds_local_plan_and_independent_resource_readback_before_retention(self):
+        self.select("stage3")
+        placement = self.placement()
+        result = self.cli(placement)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        row = json.loads((self.output / "fixture-member.json").read_text())
+        candidate = {"schema": 1, "kind": "nest_release_candidate", "release": self.expected["release"],
+                     "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]}
+        MANIFEST["validate"](self.expected, candidate)
+        params = self.calls()[0]["params"]
+        self.assertEqual(params["hostname"], "fixture")
+        self.assertFalse(params["deploy"])
+        self.assertEqual(params["identityroot"], self.expected["members"][0]["identity_root"])
+        self.assertEqual(params["stage2_image"], self.expected["members"][0]["bases"]["image"])
+        self.assertEqual(params["catalog_inputs"], {"source": self.sha, "base": self.receipt["inputs"]["base_image"]})
+        self.assertEqual(params["root_publication"], {"release": "fixture-only", "expectations": row["expectations_digest"],
+                         **{k: placement[k] for k in ("staging", "staging_guid", "receipts", "parent_guid")}})
+        for key in ("candidate", "cpu", "registry", "from_image", "puppet_environment"):
+            self.assertNotIn(key, params)
+        root = row["output"]["artifacts"]["root"]
+        self.assertEqual(self.calls()[1]["root_check"], [root["path"], "fixture", "fixture-only", "456",
+                         row["expectations_digest"], "--content-digest", root["content_digest"]])
+        self.assertTrue(json.loads(result.stdout)["readback_verified"])
+        self.assertEqual(self.cli(placement).returncode, 1)
+        self.assertEqual(len(self.calls()), 2)
+
+    def test_stage3_missing_wrong_or_unknown_placement_refuses_before_bolt(self):
+        self.select("stage3")
+        self.assertEqual(self.cli().returncode, 1)
+        for key, value in (("member", "other"), ("expectations_digest", "sha256:" + "d" * 64),
+                           ("schema", True), ("staging_guid", True), ("receipts", "relative"), ("unknown", "value")):
+            placement = self.placement()
+            placement[key] = value
+            self.assertEqual(self.cli(placement).returncode, 1, key)
+        self.assertEqual(self.calls(), [])
+
+    def test_stage3_refresh_and_nonstage3_placement_refuse_before_bolt(self):
+        self.select("stage3", "refresh")
+        self.assertEqual(self.cli(self.placement()).returncode, 1)
+        self.select("stage1")
+        self.assertEqual(self.cli(self.placement()).returncode, 1)
+        self.assertEqual(self.calls(), [])
+
+    def test_stage3_bad_root_or_failed_or_changed_native_readback_never_emits_member(self):
+        self.select("stage3")
+        for index, env in enumerate([{"BAD_ROOT": value} for value in ("path", "guid", "digest", "extra")] +
+                                    [{"FAIL_ROOT_CHECK": "1"}, {"CHANGE_ROOT_CHECK": "1"}, {"FAIL_BUILD": "1"}]):
+            self.output = self.root / ("fault-" + str(index))
+            self.output.mkdir()
+            result = self.cli(self.placement(), **env)
+            self.assertEqual(result.returncode, 1, env)
+            self.assertNotIn("private-secret", result.stderr)
+            self.assertFalse((self.output / "fixture-member.json").exists())
+            count = len(self.calls())
+            self.assertEqual(self.cli(self.placement()).returncode, 1)
+            self.assertEqual(len(self.calls()), count)
 
 
 if __name__ == "__main__":
