@@ -14,6 +14,20 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
   let(:catalog_check) do
     "python3 /opt/nest/scripts/nest-executor-inputs.py check --source #{catalog['source']} --base #{catalog['base']} > /dev/null"
   end
+  let(:publication) do
+    { 'release' => 'fixture-release', 'expectations' => "sha256:#{'a' * 64}",
+      'staging' => '/private/staging', 'staging_guid' => '123', 'receipts' => '/private/receipts', 'parent_guid' => '456' }
+  end
+  let(:publication_options) do
+    options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host',
+                     'hostroot' => '/nest/releases/fixture-release/hosts/fixture-host', 'root_publication' => publication)
+  end
+  let(:finish_command) do
+    "python3 /opt/nest/files/build/finish-stage3-root.py fixture /private/staging 123 /private/receipts fixture-host fixture-release 456 sha256:#{'a' * 64} /private/fixture-host"
+  end
+  let(:root_artifact) do
+    { 'root' => { 'path' => publication_options['hostroot'], 'dataset_guid' => '789', 'content_digest' => "sha256:#{'b' * 64}" } }
+  end
 
   def modulepath
     [plan_modulepath, File.expand_path('../fixtures/modules', __dir__)]
@@ -162,7 +176,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
     expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
     expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
-    params = options(3).merge('catalog_inputs' => catalog, 'deploy' => true)
+    params = options(3).merge('catalog_inputs' => catalog)
     expect(run_plan('nest::build::stage3', params).ok?).to be(false)
   end
 
@@ -175,7 +189,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
     expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
     expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
-    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'deploy' => true)).ok?).to be(false)
+    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog)).ok?).to be(false)
   end
 
   it 'retains the served Puppet environment path when frozen catalogs are not selected' do
@@ -200,7 +214,61 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect(executor).not_to receive(:apply)
     expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
     expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
-    params = options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host', 'deploy' => true)
+    params = options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host')
     expect(run_plan('nest::build::stage3', params).ok?).to be(false)
+  end
+
+  it 'rejects frozen legacy rsync and malformed publication selections before commands' do
+    expect(executor).not_to receive(:run_command)
+    [{ 'deploy' => true }, { 'catalog_inputs' => nil }, { 'hostroot' => '/nest/hosts/fixture-host' },
+     { 'root_publication' => publication.merge('extra' => true) },
+     { 'root_publication' => publication.merge('staging_guid' => 'unknown') }].each do |override|
+      expect(run_plan('nest::build::stage3', publication_options.merge(override)).ok?).to be(false)
+    end
+    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'deploy' => true)).ok?).to be(false)
+  end
+
+  it 'admits placement before initialization and returns the completed stopped-root artifact without restart' do
+    mocks(3)
+    expect_script('nest/build/check-stage3-paths.py').be_called_times(4)
+    expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_command(catalog_check).be_called_times(4)
+    expect_command("#{finish_command} --check")
+    expect_command(finish_command).always_return('stdout' => root_artifact.to_json)
+    expect_command('podman start fixture').be_called_times(1)
+    expect_command('podman stop fixture').be_called_times(1)
+    expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
+    result = run_plan('nest::build::stage3', publication_options)
+    expect(result.ok?).to be(true)
+    expect(result.value).to eq(root_artifact)
+  end
+
+  it 'stops before container removal when publication placement refuses' do
+    expect_command(catalog_check)
+    expect_script('nest/build/check-stage3-paths.py')
+    expect_command("#{finish_command} --check").error_with('msg' => 'Wrong placement', 'kind' => 'fixture/placement')
+    expect_command('podman rm -f fixture').not_be_called
+    expect_command(finish_command).not_be_called
+    expect(run_plan('nest::build::stage3', publication_options).ok?).to be(false)
+  end
+
+  it 'never invokes publication after a failed container stop' do
+    mocks(3)
+    expect_script('nest/build/check-stage3-paths.py').be_called_times(4)
+    expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_command("#{finish_command} --check")
+    expect_command('podman stop fixture').error_with('msg' => 'Stop failed', 'kind' => 'fixture/stop')
+    expect_command(finish_command).not_be_called
+    expect(run_plan('nest::build::stage3', publication_options).ok?).to be(false)
+  end
+
+  it 'refuses changed publication paths rather than returning an accepted member' do
+    mocks(3)
+    expect_script('nest/build/check-stage3-paths.py').be_called_times(4)
+    expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_command("#{finish_command} --check")
+    wrong = { 'root' => root_artifact['root'].merge('path' => '/wrong') }
+    expect_command(finish_command).always_return('stdout' => wrong.to_json)
+    expect(run_plan('nest::build::stage3', publication_options).ok?).to be(false)
   end
 end

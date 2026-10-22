@@ -274,8 +274,65 @@ retry, dataset removal, quota change, alias, live identity repair or host action
 is performed. Rollback stops invoking these opt-in primitives and preserves all
 generations for explicit diagnosis. Fixtures use real disposable tree copies
 and rsync, but fake Podman/ZFS responses: no actual ZFS or OS build is exercised.
-Stage 3 plan/adapter/CI integration, remote transfer, capacity policy and host-local
-transaction generations remain unfinished; candidate execution is still disabled.
+The opt-in plan composition below now invokes these local primitives. Candidate
+adapter/CI integration, remote transfer, capacity policy and host-local transaction
+generations remain unfinished; candidate CI execution is still disabled.
+
+### Local frozen Stage 3 completion through Bolt
+
+`nest::build::stage3` now accepts `root_publication`, an explicit hash with exactly
+`release`, `expectations` (`sha256:` plus the frozen expectations digest), `staging`
+(absolute path), `staging_guid` (decimal string), `receipts` (absolute private
+directory) and `parent_guid` (decimal string). Both GUIDs are independently selected
+native resources, not values inferred from a mutable path. This requires the
+existing complete frozen `catalog_inputs`/repositories/identity selection,
+`deploy=false`, and `hostroot=/nest/releases/RELEASE/hosts/HOST`. Missing or extra
+fields refuse. Frozen catalogs now refuse `deploy=true` outright: the legacy
+running-container rsync path cannot claim immutable publication. Ordinary builds
+without frozen catalogs keep their existing behavior.
+
+Before any container initialization, the plan runs the verified executor's
+`files/build/finish-stage3-root.py` with `--check`. This is read-only placement
+admission: root-owned canonical disjoint staging, receipts, identity and publication
+parent; private receipt/publication directories; exact local writable ZFS GUIDs;
+initially empty staging; and absent destination and attempt records. It neither
+creates resources nor reserves them, and it does not promise that capacity will
+remain sufficient during a later build. Frozen builds no longer forward an SSH
+agent socket into their container. Repository access must use the existing approved
+non-agent path; ordinary legacy socket forwarding is unchanged.
+
+After checked container stop and another installed-executor check, the plan invokes
+the helper without `--check`. It repeats placement admission, retains/fsyncs/reopens
+`finish-STAGING_GUID.started` mode 0600, invokes the existing stopped-root
+materializer, reopens its private receipt, verifies the sealed staging GUID and
+digest, then invokes the existing local publisher. Publication must have the exact
+assembled digest and pass another native root admission. Only after private
+`finish-STAGING_GUID.json` retention/fsync/readback does the helper return the
+ordinary `{"root":{"path":...,"dataset_guid":...,"content_digest":...}}` object.
+The plan checks its complete shape and exact selected host path before returning.
+Sibling helper imports run together from `/opt/nest` inside the accepted executor,
+not from Bolt's isolated single-script upload directory.
+
+The direct helper's positional arguments are `CONTAINER STAGING STAGING_GUID
+RECEIPTS HOST RELEASE PARENT_GUID EXPECTATIONS_DIGEST IDENTITY_ROOT`, optionally
+followed by `--check`. Its default mode executes storage writes, never an OS build,
+container restart or host update. Failures emit a static exit-1 diagnostic without
+native output. No completed or partial attempt is overwritten or automatically
+retried. Keep all staging/publication resources and private receipts after failure;
+absence of the final record means no accepted completion. Stop invoking this
+opt-in path to roll back source behavior; do not delete reservations to replay.
+
+This plan path requires build and publication on the same approved local storage
+host with the complete stopped-build shape documented above. In particular,
+nonempty hidden image repositories still refuse; unsupported existing bases are
+not silently cleaned. The plan does not provision staging/parents, select capacity
+policy, transfer roots between hosts, retain public CI member results or enable
+Stage 3 candidate CI. These remain prerequisites for the executing adapter. The
+caller must exclusively own the build and placement; preflight is not a lock,
+and rerunning the whole build plan is not a resume interface. Fixtures exercise
+real Bolt plan control flow and private receipt retention with fake native
+resources, alongside the real filesystem/rsync tests for both existing primitives.
+No live ZFS, identity, OS build, aliases or reset/reboot are exercised here.
 
 A consumer has exactly `project`, `decision`, `reason` and `members`. Decision is
 `rebuild`, `reuse`, `defer` or `retire`; reason is bounded printable text. Rebuild
