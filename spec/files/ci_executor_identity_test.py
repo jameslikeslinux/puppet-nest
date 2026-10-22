@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Real local Git and fake Podman only; no registry, credentials or OS build."""
 
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
+import runpy
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "bin/ci-executor-receipt"
@@ -72,12 +76,39 @@ class ExecutorIdentityTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), [REPO + "@sha256:" + format(i, "064x") for i in (1, 2, 3)])
         calls = [json.loads(line) for line in self.calls.read_text().splitlines()]
-        self.assertEqual(len(calls), 9)
-        for call in calls[1::3]:
+        self.assertEqual(len(calls), 12)
+        for call in calls[::4]:
+            self.assertEqual(call[:1], ["pull"])
+            self.assertIn("@sha256:", call[1])
+        for call in calls[2::4]:
             for flag in ("--network=none", "--read-only", "--cap-drop=ALL", "--entrypoint=git"):
                 self.assertIn(flag, call)
+            self.assertIn("--pull=never", call)
             self.assertEqual(call[-4:], ["-C", "/opt/nest", "rev-parse", "HEAD"])
             self.assertFalse(any("volume" in arg or arg.startswith("--env") for arg in call))
+        for call in calls[1::4]:
+            self.assertIn("--pull=never", call)
+            self.assertIn("--network=none", call)
+
+    def test_pull_and_offline_checks_have_separate_bounded_budgets(self):
+        module = runpy.run_path(str(SCRIPT))
+        with patch.dict(os.environ, dict(self.env, CPU="haswell", CI_JOB_ID="101"), clear=True):
+            ref = self.root / "image.ref"
+            ref.write_text(REPO + "@sha256:" + "1" * 64 + "\n")
+            original = subprocess.run
+            with patch.object(module["subprocess"], "run", wraps=original) as execute:
+                module["record"](ref, self.root / "output.json")
+            self.assertEqual([call.kwargs["timeout"] for call in execute.call_args_list], [600, 180, 180, 180])
+
+    def test_timeout_diagnostic_identifies_phase_without_native_secrets(self):
+        module = runpy.run_path(str(SCRIPT))
+        error = subprocess.TimeoutExpired(["private-secret-command"], 180, output="private-secret-output", stderr="private-secret-error")
+        output = io.StringIO()
+        with patch.object(module["subprocess"], "run", side_effect=error), contextlib.redirect_stderr(output):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                module["command"](["ignored"], "check installed inputs")
+        self.assertIn("timed out: check installed inputs", output.getvalue())
+        self.assertNotIn("private-secret", output.getvalue())
 
     def test_wrong_actual_source_or_podman_failure_never_writes_receipt(self):
         for changes in ({"OBSERVED_SHA": "b" * 40}, {"LABEL_SHA": "b" * 40}, {"FAIL_PODMAN": "1"}, {"BAD_INPUTS": "1"}):
