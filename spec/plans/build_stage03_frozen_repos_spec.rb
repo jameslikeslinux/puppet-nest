@@ -131,8 +131,9 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     allow(executor).to receive(:run_command).and_call_original
     expect(executor).not_to receive(:run_command).with(anything, %r{puppet.*agent}, anything, anything)
     expect_script('nest/build/freeze-repos.py').be_called_times(3)
+    expect_script('nest/build/check-stage3-paths.py').with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host']).be_called_times(3)
     expect_command(catalog_check).with_targets('localhost').be_called_times(3)
-    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog)).ok?).to be(true)
+    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host')).ok?).to be(true)
   end
 
   it 'refuses incomplete catalog inputs and conflicting legacy modes before any command' do
@@ -157,12 +158,25 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     expect(run_plan('nest::build::stage3', params).ok?).to be(false)
   end
 
+  it 'refuses unsafe or absent private identity before any container or repository mutation' do
+    expect_command(catalog_check)
+    expect_script('nest/build/check-stage3-paths.py')
+      .with_params('arguments' => ['/nest/hosts/fixture-host', '/nest/hosts/fixture-host', 'fixture-host'])
+      .error_with('msg' => 'Unsafe identity', 'kind' => 'fixture/identity')
+    expect_command('podman rm -f fixture').not_be_called
+    expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
+    expect(executor).not_to receive(:run_command).with(anything, %r{emerge }, anything, anything)
+    expect(executor).not_to receive(:run_command).with(anything, %r{zsh -c .*rsync}, anything, anything)
+    expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'deploy' => true)).ok?).to be(false)
+  end
+
   it 'retains the served Puppet environment path when frozen catalogs are not selected' do
     mocks(3)
     allow(executor).to receive(:run_command).and_call_original
     expect(executor).to receive(:run_command).with(anything, %r{puppet.*agent.*environment.*fixture.*env}, anything, anything).and_call_original
     expect_script('nest/build/freeze-repos.py').be_called_times(3)
     expect_command(catalog_check).not_be_called
+    expect_script('nest/build/check-stage3-paths.py').not_be_called
     expect(run_plan('nest::build::stage3', options(3).merge('puppet_environment' => 'fixture-env')).ok?).to be(true)
   end
 end

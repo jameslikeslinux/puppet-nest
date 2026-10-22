@@ -384,6 +384,33 @@ not run `puppet agent` or fetch a mutable served catalog. Existing local identit
 and profile applies retain the same executor context. Ordinary invocations without
 `catalog_inputs` retain the served environment and Puppet detailed-exit behavior.
 
+Frozen mode also requires a separately provisioned private `identityroot`; its
+legacy default equal to `hostroot` now refuses before container removal, repository
+creation or package work. `files/build/check-stage3-paths.py IDENTITY OUTPUT HOST`
+is a read-only metadata admission check, invoked locally before initialization
+and before/after final configuration. Both paths must be canonical absolute paths
+without symlink aliases or equal/ancestor/descendant overlap. The identity's entire
+ancestry and existing output ancestors must be root-owned directories without
+untrusted writers. Existing machine-id must be a nonzero lowercase 32-hex value.
+The existing SSL tree must contain `certs/ca.pem`, `certs/HOST.pem` and
+`private_keys/HOST.pem`. Copied SSL material permits only root/Puppet ownership,
+no untrusted writers, regular readable nonempty files, protected directories and
+private keys without group/other access. Links and special files refuse, including
+extra files in the recursively copied source. The checker neither emits identity
+values nor reads certificate/key contents into its output. Exit 1 is sanitized
+failure; argument errors use argparse exit 2.
+
+Frozen identity setup only copies those existing sources into the build root;
+it does not generate a machine-id or create/chmod/chown the private input tree.
+Legacy identity initialization remains available without `catalog_inputs`.
+Missing identities must be provisioned through the separately approved identity
+workflow, not repaired as an incidental candidate build. This admission does not
+verify certificate/key correspondence, chain validity or trust policy, freeze
+identity bytes, or protect against a trusted root/Puppet writer changing them
+between checks. A stable private capture/binding and trust validation are still
+required before enabling the Stage 3 candidate adapter. No key hashes or secret
+bytes are added to public release receipts.
+
 This is an executing build option, not a read-only command. It does not publish a
 versioned root, freeze private host identity bytes, make dynamic external data
 reproducible or validate hardware compatibility. Existing rsync publication remains
@@ -400,6 +427,7 @@ an already accepted frozen release.
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_manifest_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/ci_release_build_test.py
+PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_paths_test.py
 ```
 
 The suite uses conspicuously fixture-only sources, identities and image refs.
