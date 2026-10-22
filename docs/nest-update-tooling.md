@@ -303,6 +303,42 @@ work. Do not call the legacy plan to test those proposed interfaces. Its plan
 regressions execute the actual Puppet plan with Bolt's mock executor and mock
 subplans, never real reset or reboot commands.
 
+## Bounded system and actual user-manager observation
+
+`nest::host::update_manager_health target=HOST` is a read-only one-host plan.
+It invokes `nest::update_manager_health` through the ordinary inventory-backed
+Bolt transport with root escalation, which is required to inventory all actual
+user managers and query their buses. It does not prepare, accept, finalize,
+reboot, apply a catalog, clear failures, mask units, or start a user manager.
+
+The task emits schema 1, kind `nest_update_manager_health`, an observed boot ID,
+system failed-unit identities and each operational `user@UID.service` manager's
+UID, PID, availability and failed-unit identities. It cross-checks the complete
+loaded user-manager unit inventory against actual `systemd --user` processes,
+including lingering managers without a login session. It queries each existing,
+ownership-checked user bus as that user, then repeats both inventories and checks
+boot continuity. A missing bus, failed command, orphan process, transitioning
+manager, changed inventory or unsupported JSON output is unavailable, never zero.
+An empty available inventory requires both successful unit and process scans.
+
+Each command is bounded to five seconds within a sixty-second command budget;
+inventories are capped at 128 units/managers. Failed observations remain in the
+returned report, and all discovered managers are attempted even if one bus fails.
+No raw command output, unit descriptions, environment or journal is returned.
+Task execution may succeed while the returned `result` is `fail`: callers must
+inspect availability, completeness and result, not only Bolt transport success.
+Failure to establish basic observation returns a Bolt task error instead.
+
+This is the manager-observation component of acceptance, not complete R11 or
+an acceptance document for `nest reset accept`. `acceptance_recorded` is always
+false. A zero-failure manager inventory does not prove a responsive desktop or
+physical audio/display UX. Retained failed records remain failed here; later
+release-policy integration must bind each historical explanation to its exact
+unit identity and retained journal/rationale rather than erase or auto-explain it.
+Normal main catalog, converged repeat, hardware/service canaries, release policy
+and durable collector bundle integration remain required before acceptance.
+Rollback simply stops using this observation plan; no host state needs undoing.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive
