@@ -74,9 +74,9 @@ native and installed original-caller results are recorded separately; unit
 fixtures do not claim an active parent request or production acceptance.
 
 The managed `nest::build::firefox` build from source
-`4dd0fc9a768b843939f05a3de17855388d01420c` passed its smoke check, published,
+`122816c869e3a490fc930355ebbb81d0a812bad6` passed its smoke check, published,
 and was pulled back as
-`registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:524f20afd988a052cb1502161484e12699fb15b93255cde79d71ee28173dbf05`.
+`registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:df4f8641e557b51ea5e6f79bec112431f9a4a106c70b11509a4c21b4a0705150`.
 Extracted controller, endpoint and both private transport hashes match source.
 The image pin is the next ordinary container baseline; controller-only overlay
 activation deliberately does not restart the current healthy Firefox pod.
