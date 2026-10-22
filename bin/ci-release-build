@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one frozen Stage 0/1/2/3 candidate using existing Bolt; retain its result."""
+"""Run one frozen Stage or supported tool candidate using existing Bolt."""
 
 import argparse
 import importlib.util
@@ -40,7 +40,9 @@ def prepare(expected, member_id, receipt, placement=None):
     require(member_id in indexed)
     member = indexed[member_id]
     stage = member["stage"]
-    require(stage in ("stage0", "stage1", "stage2", "stage3"))
+    require(stage in ("stage0", "stage1", "stage2", "stage3", "tool"))
+    # Specialized wrappers must retain their own smoke and image contracts.
+    require(stage != "tool" or (member["project"] == "nest/tools/llama.cpp" and member["variant"] == "server"))
     require(stage == "stage3" or placement is None)
     require(stage != "stage0" or (member["mode"] == "refresh" and member["variant"] == "server"))
     decision = next(row["decision"] for row in expected["consumers"] if row["project"] == member["project"])
@@ -104,6 +106,8 @@ def prepare(expected, member_id, receipt, placement=None):
                       from_image=member["bases"]["normal"], from_image_debug=member["bases"]["debug"])
     else:
         params["from_image"] = member["bases"]["image"]
+        if stage == "tool":
+            params.update(tool="llama.cpp", base_variant=member["variant"], refresh=member["mode"] == "refresh")
         if stage == "stage2":
             params.update(variant=member["variant"], platform=member["platform"], refresh=member["mode"] == "refresh")
     return member, params, {"project": member["project"], "sha": os.environ["CI_COMMIT_SHA"], "pipeline": pipeline, "job": job}
@@ -155,9 +159,9 @@ def execute(expected, member_id, receipt, directory, placement=None):
         require(len(raw) <= release.LIMIT and json.loads(raw, object_pairs_hook=release.unique_object) == root)
     else:
         repository = os.environ["CI_REGISTRY_IMAGE"]
-        if member["stage"] != "stage0":
+        if member["stage"] not in ("stage0", "tool"):
             repository += "/" + member["variant"]
-        keys = {"normal", "debug"} if member["stage"] != "stage2" else {"image"}
+        keys = {"image"} if member["stage"] in ("stage2", "tool") else {"normal", "debug"}
         require(type(artifacts) is dict and set(artifacts) == keys)
         for key, reference in artifacts.items():
             prefix = repository + ("/debug" if key == "debug" else "")

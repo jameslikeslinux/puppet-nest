@@ -26,9 +26,9 @@ if os.environ.get('FAIL_BUILD'):
 if os.environ.get('CHANGE_MODULE'):
     (pathlib.Path(os.environ['EXECUTOR']) / '.modules/stdlib/data').write_text('changed')
 stage = sys.argv[3].split('::')[-1]
-repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage != 'stage0' else '')
+repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool') else '')
 row = ({'normal': repo + '@sha256:' + 'c' * 64, 'debug': repo + '/debug@sha256:' + 'd' * 64}
-       if stage != 'stage2' else {'image': repo + '@sha256:' + 'c' * 64})
+       if stage not in ('stage2', 'tool') else {'image': repo + '@sha256:' + 'c' * 64})
 if stage == 'stage3':
     row = {'root': {'path': p['hostroot'], 'dataset_guid': '456', 'content_digest': 'sha256:' + 'c' * 64}}
     bad = os.environ.get('BAD_ROOT')
@@ -128,7 +128,7 @@ class CandidateBuildTest(unittest.TestCase):
         return git("rev-parse", "HEAD")
 
     def select(self, stage, mode="fresh"):
-        project = "nest/" + stage
+        project = "nest/tools/llama.cpp" if stage == "tool" else "nest/" + stage
         member = {"id": "fixture-member", "stage": stage, "project": project, "cpu": "haswell", "variant": "server",
                   "platform": "vanilla" if stage in ("stage2", "stage3") else None,
                   "host": "fixture" if stage == "stage3" else None, "mode": mode,
@@ -144,7 +144,7 @@ class CandidateBuildTest(unittest.TestCase):
         self.expected["members"] = [member]
         self.expected["sources"][project] = self.producer_sha
         self.expected["consumers"] = [r for r in self.expected["consumers"] if r["project"] not in
-                                      ("nest/stage0", "nest/stage1", "nest/stage2", "nest/stage3")]
+                                      ("nest/stage0", "nest/stage1", "nest/stage2", "nest/stage3", project)]
         self.expected["consumers"].append({"project": project, "decision": "rebuild", "reason": "Fixture only", "members": [member["id"]]})
         self.env.update(CI_PROJECT_PATH=project, CI_COMMIT_SHA=self.producer_sha,
                         CI_JOB_IMAGE=self.receipt["image"], CI_REGISTRY_IMAGE="registry.example/" + project)
@@ -198,6 +198,59 @@ class CandidateBuildTest(unittest.TestCase):
                     {"CI_REGISTRY_IMAGE": "other.example/nest/stage1"}):
             self.assertEqual(self.cli(**env).returncode, 1)
             self.assertEqual(self.calls(), [])
+
+    def test_llama_tool_candidate_preserves_mode_and_retains_exact_project_digest(self):
+        for mode in ("fresh", "refresh"):
+            self.select("tool", mode)
+            self.output = self.root / mode
+            self.output.mkdir()
+            result = self.cli()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            call = self.calls()[-1]
+            self.assertEqual(call["args"][2], "nest::build::tool")
+            params = call["params"]
+            self.assertEqual(params["tool"], "llama.cpp")
+            self.assertEqual(params["base_variant"], "server")
+            self.assertEqual(params["refresh"], mode == "refresh")
+            self.assertEqual(params["from_image"], self.expected["members"][0]["bases"]["image"])
+            self.assertNotIn("tag", params)
+            row = json.loads((self.output / "fixture-member.json").read_text())
+            self.assertEqual(row["output"]["artifacts"], {"image": "registry.example/nest/tools/llama.cpp@sha256:" + "c" * 64})
+            candidate = {"schema": 1, "kind": "nest_release_candidate", "release": self.expected["release"],
+                         "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]}
+            MANIFEST["validate"](self.expected, candidate)
+
+    def test_specialized_tools_wrong_variant_and_tool_placement_refuse_before_bolt(self):
+        self.select("tool")
+        self.assertEqual(self.cli(self.placement()).returncode, 1)
+        self.expected["members"][0]["variant"] = "workstation"
+        self.assertEqual(self.cli().returncode, 1)
+        self.expected["members"][0]["variant"] = "server"
+        for tool in ("bolt", "pdk", "agent", "firefox", "camofox", "r10k", "whisper.cpp"):
+            project = "nest/tools/" + tool
+            member = self.expected["members"][0]
+            member["project"] = project
+            self.expected["sources"][project] = self.producer_sha
+            self.expected["consumers"] = [{"project": p, "decision": "rebuild" if p == project else "defer",
+                                           "reason": "Fixture only", "members": [member["id"]] if p == project else []}
+                                          for p in sorted(MANIFEST["TOOL_CONSUMERS"])]
+            self.env.update(CI_PROJECT_PATH=project, CI_REGISTRY_IMAGE="registry.example/" + project)
+            self.assertEqual(self.cli().returncode, 1, tool)
+        self.assertEqual(self.calls(), [])
+
+    def test_tool_failed_or_invalid_publication_never_emits_member(self):
+        self.select("tool")
+        for index, env in enumerate([{"FAIL_BUILD": "1"}] +
+                                    [{"BAD_OUTPUT": bad} for bad in ("partial", "mutable", "wrong_repo", "same")]):
+            self.output = self.root / ("tool-fault-" + str(index))
+            self.output.mkdir()
+            result = self.cli(**env)
+            self.assertEqual(result.returncode, 1, env)
+            self.assertFalse((self.output / "fixture-member.json").exists())
+            self.assertNotIn("private-secret", result.stderr)
+            count = len(self.calls())
+            self.assertEqual(self.cli().returncode, 1)
+            self.assertEqual(len(self.calls()), count)
 
     def test_changed_actual_module_stops_before_bolt(self):
         (self.project / ".modules/stdlib/data").write_text("changed")

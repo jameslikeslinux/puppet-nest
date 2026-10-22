@@ -604,8 +604,8 @@ The full frozen expectations file selects one `rebuild` member. Stage 0 currentl
 supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
 bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
 normal/debug base distinctions, CPU/platform/variant and all three repository
-pins. Tools refuse before execution rather than falling through to legacy
-defaults. Stage 3 supports only explicit fresh initialization and requires the
+pins. The direct llama.cpp tool path is supported as documented below; other
+tools refuse instead of bypassing their specialized wrappers. Stage 3 supports only explicit fresh initialization and requires the
 additional local placement contract below; refresh refuses. Candidate/container names derive from positive CI pipeline/job
 IDs, so one member must run per CI job. No arbitrary plan parameter overrides
 are accepted; existing Hiera resource policy remains in effect.
@@ -691,6 +691,48 @@ native root admission. They do not exercise live ZFS, identity or OS builds. Sta
 project CI still refuses candidate execution until its separate exact artifact,
 placement, executor and retention integration is delivered. Host-local generation
 transfer, operational capacity policy and disruptive canary acceptance remain open.
+
+### Generic tool candidate inputs and llama.cpp adapter
+
+`nest::build::tool` now accepts optional `from_image`, `repo_revisions` and
+`candidate`, with the same exact digest, complete three-repository and token
+contracts as the Stage plans. A base pin requires initialization; frozen inputs
+additionally require a build and reject all extra volume overrides, which could
+otherwise hide the admitted repository tree. Frozen mode recreates only the
+named `CONTAINER-frozen-repos` volume at `/var/db/repos:nocopy`, prepares exact
+detached commits, skips `eix-sync`, and checks complete inputs after the tool
+catalog before stopping/committing. It never removes the ordinary repository
+cache. Missing pins, drift or preparation failure stops publication.
+
+Candidate mode requires build, init, deploy, an exact base, a remote registry
+and no explicit `tag`. It commits/pushes only `candidate-TOKEN` in the existing
+tool repository, then uses the shared native remote digest reader. Only an
+exact same-repository digest permits the returned `{image: REFERENCE}` result.
+Push/readback failure leaves an unselected partial candidate, never an alias
+update or accepted result. Candidate mode alone does not freeze repositories;
+supply the complete pins as well. Direct callers still own executor selection.
+Ordinary cached builds, fresh/refresh base defaults and tag/CPU publication
+are unchanged without these options.
+
+The existing `ci-release-build` adapter supports only `stage=tool`,
+`project=nest/tools/llama.cpp`, `variant=server` for now. It preserves explicit
+fresh/refresh and uses the existing generic plan with exact base and repository
+pins. Source checkout, pinned executor/module identities and post-build checks
+are identical to Stage producers. Tool results have one exact image in the
+project repository, with no variant suffix; the adapter exclusively retains
+and reopens the ordinary member result. Its reservations still prevent replay
+after failure or success. This adds no new schema or arbitrary plan override.
+
+OpenBolt, PDK, Agent, Firefox and Camofox still refuse in this adapter: their
+existing wrapper smoke tests and image changes must be preserved during their
+separate integration. Do not call the generic path to bypass them. Other known
+consumers still need explicit reuse/defer/retire decisions. The llama.cpp
+repository's exact artifact acquisition and candidate CI, bootstrap/DAG edges,
+compatibility admission and alias promotion remain unfinished. Source tests use
+the actual Bolt plan with its mock executor and the real adapter with disposable
+Git/module fixtures and fake Bolt; they launch no real tool/OS builds or registry
+writes. Rollback stops passing the new options and retains old exact digests;
+never relabel a mutable rebuild as the same release.
 
 ## Isolated verification
 
