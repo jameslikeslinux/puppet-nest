@@ -37,6 +37,7 @@ class ExecutorIdentityTest(unittest.TestCase):
         podman.chmod(0o755)
         self.env = dict(os.environ, CI_PROJECT_PATH="nest/config", CI_COMMIT_SHA=SHA, CI_PIPELINE_ID="123",
                         CI_REGISTRY_IMAGE="registry.example/nest/config", CI_COMMIT_REF_SLUG="main",
+                        GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1",
                         CALLS=str(self.calls), PATH=str(self.root) + os.pathsep + os.environ["PATH"])
 
     def cli(self, *args, **changes):
@@ -124,7 +125,7 @@ class ExecutorIdentityTest(unittest.TestCase):
     def test_containerfile_checks_out_exact_pipeline_commit_after_branch_moves(self):
         source = self.root / "source"
         source.mkdir()
-        git = lambda *args: subprocess.check_output(["git", "-C", str(source), *args], text=True).strip()
+        git = lambda *args: subprocess.check_output(["git", "-C", str(source), *args], env=self.env, text=True).strip()
         git("init", "-b", "main")
         git("config", "user.email", "fixture@example.invalid")
         git("config", "user.name", "Fixture")
