@@ -109,6 +109,7 @@ def test_terminal_retired_binding_cannot_use_an_otherwise_valid_grant(engine, mo
         controller.lifecycle(close(B))
     with pytest.raises(RuntimeError, match='terminal scope'):
         controller.authorize_binding(grant)
+    assert controller.recovery(B)['next_action'] == 'none'
     assert native.created == 2
 
 

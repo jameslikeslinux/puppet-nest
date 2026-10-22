@@ -499,10 +499,14 @@ class Windows:
         record = self.state["windows"].get(scope)
         state = record.get("state") if record else "unallocated"
         result = {"scope_state": state, "retry_allowed": False, "input_replay_allowed": False}
+        if record and record.get("terminal") and state in {"retired", "recovery_ready"}:
+            return {**result, "recovery_state": "terminal_binding_preserved", "next_action": "none",
+                    "reason": "terminal_scope_fenced", "new_binding_allowed": False}
         if state == "recovery_ready":
             grant = self.state.get("binding_recoveries", {}).get(scope, {})
             if (grant.get("epoch") == self.epoch and grant.get("expires_at", 0) > time.time()
                     and not self.orphaned and not self.broken
+                    and all(r.get("state") == "delivered" for r in self.state["actions"].values())
                     and (not self.state.get("controller") or self._resumable())):
                 return {**result, "recovery_state": "fresh_binding_authorized", "next_action": "acquire",
                         "reason": "scoped_operator_grant", "new_binding_allowed": True}
