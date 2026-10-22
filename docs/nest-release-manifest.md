@@ -156,7 +156,7 @@ a unique pipeline/job/CPU tag through the existing remote digest-readback helper
 `bin/ci-executor-receipt record REF_FILE
 JSON_FILE` opens that digest with no container network, host mounts or writable
 root, checks its Git HEAD and revision label, then exclusively writes and
-reopens one schema-1 `nest_config_executor_member` receipt. The input reference
+reopens one schema-2 `nest_config_executor_member` receipt. The input reference
 must belong to the current CI registry repository/ref slug. Failed inspection,
 wrong source, malformed input or an existing receipt refuses without replacement.
 No submitted command output or environment is copied into the artifact.
@@ -169,9 +169,42 @@ with distinct positive job IDs and digest references. Only after the complete
 set validates are refs emitted for OCI index assembly. It never substitutes a
 mutable CPU tag for a missing member. A single-CPU `BUILD` run still does not
 publish an aggregate. These executor receipts are not Stage 0/1 output pairs or
-a completed release manifest; they do not attest module revisions, base-image
+a completed release manifest; they do not attest module or base-image
 compatibility or GitLab job status independently. CI artifact origin and normal
 job dependency success remain part of the trusted pipeline boundary.
+
+Schema 2 also embeds `inputs`, a schema-1 `nest_config_executor_inputs` record.
+CI pulls the selected Bolt base once and passes a repository-qualified digest
+from Podman's image readback to `BOLT_IMAGE`; the Containerfile consumes that
+exact reference. Direct Containerfile callers must likewise pass an exact base.
+After normal module installation, the nested `.modules/nest` checkout fetches
+the already cloned exact config commit locally and detaches there, rather than
+trusting the control branch still points to that source.
+
+`scripts/nest-executor-inputs.py record --source SHA --base DIGEST_REF` records
+the exact top-level and nested Nest source, Puppetfile digest, and every installed
+module's name, optional Git HEAD and content digest. It requires the existing
+Nest, private, stdlib, reboot, Ruby task helper and KubeCM modules. Git-backed
+modules must have no tracked changes. The file digest covers relative paths,
+file bytes, permission bits, directories and symbolic-link text; Git internals
+are excluded and links are never followed. Link identities do not prove their
+referents are available or compatible. The entire installed module set, including
+ignored/untracked module content, participates. Missing/added/changed modules,
+bytes, paths or permissions fail the subsequent exact readback. No file contents,
+remote URLs, credentials or full environment enter the public receipt.
+
+The build workspace retains `.executor-inputs.json` in the image via exclusive
+creation and fsync. `check` recomputes all identities read-only and requires exact
+bytes. The receipt producer runs that check in the actual published digest image,
+with no network, host mounts or writable root, before retaining the embedded
+sanitized identities. Failure emits no accepted receipt. The aggregate reader
+requires schema 2; earlier schema-1 artifacts remain historical source/pipeline
+evidence, not module-complete receipts. Do not silently upgrade them with the
+current module set or rebuild old outputs merely to produce new metadata.
+This records consumed modules; it does not freeze their mutable upstream refs
+before installation, prove compatibility, or reproduce historical modules on
+rebuild. Release producers must select the exact accepted executor digest and
+compare its retained input inventory, not reinstall modules from main.
 
 Legacy CPU tags and both `latest` executor aliases remain compatibility outputs,
 not immutable release inputs. Concurrent older pipelines can still replace

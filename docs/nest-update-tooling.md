@@ -610,11 +610,30 @@ fail instead of borrowing a newer pipeline's image.
 
 Legacy CPU and `latest` tags remain compatibility outputs and may still move
 out of order under concurrent pipelines; they are not release identity or
-promotion authority. Module/base closure, Stage producer integration and the
+promotion authority. Stage producer integration and the
 multi-project release DAG remain unfinished. See `nest-release-manifest.md` for
 the receipt contract and rollback boundary. Fixtures execute the real source
 checkout shell against a moving local Git branch and the real receipt CLI with
 fake Podman; they do not build an OS or operate on ZFS.
+
+Executor receipt schema 2 adds the consumed exact Bolt base and complete installed
+module content identities. CI resolves the pulled base digest before the build;
+the nested Nest module is pinned locally to the same config source. The actual
+published image must pass a read-only module rehash before its receipt is retained.
+Missing/drifted modules and dirty or mismatched Nest sources refuse. This records
+actual consumption, not module compatibility or deterministic mutable-ref rebuilds.
+Earlier schema-1 receipts remain historical and cannot be mixed into the new
+aggregate reader. Release producers still need to bind these identities to the
+frozen selection and actual Stage outputs; no OS build is implied by this change.
+
+Pipeline 11145 completed successfully at
+`5e537b37d9d8be92609152ba24d4693d2ed216be`, including every architecture and
+aggregate publication. Its amd64 digest
+`registry.eyrie/nest/config/main@sha256:8f16936971723e721b19fcda563f7914118a9d36e088b8903c0f89d578d6e45b`
+was opened through ordinary Bolt without host mounts or container network. Git
+HEAD, OCI revision, branch, seven source-file hashes and the nested Nest source
+matched accepted main. That verifies the preceding schema-1 executor, not this
+new module inventory until its own publication/readback succeeds.
 
 ## Operational authority and rollback
 
