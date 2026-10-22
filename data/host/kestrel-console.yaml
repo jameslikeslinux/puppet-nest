@@ -1,6 +1,6 @@
 ---
-# Intentionally excluded from the host rollout; retain its existing CA endpoint.
-puppet::agent_server_hostname: 'puppet.nest'
+# Match the production CA used by the host and its Stage 3 identity.
+puppet::agent_server_hostname: 'puppet.eyrie'
 
 nest::classes:
   - 'nest::tool::minicom'
