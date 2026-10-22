@@ -104,12 +104,16 @@ class Windows:
         # transition. Keep the original journal intact; import no draft data.
         legacy = self.path.parent / "state.json"
         self.legacy_keys = set(json.loads(legacy.read_text()).get("action_keys", {})) if legacy.exists() else set()
+        self.legacy_keys.update(self.state.get("retired_action_keys", []))
         # A fresh native session changes identities even for existing windows.
         # Do not reconnect to old IDs, guess by URL, or spawn replacements.
         self.orphaned = any(r.get("state") != "closed" for r in self.state["windows"].values())
         if self._resumable():
             self.epoch = self.state["controller"]["epoch"]
             self.orphaned = False
+        elif not self.state.get("controller") and self.state.get("reconciliation", {}).get("epoch"):
+            self.epoch = self.state["reconciliation"]["epoch"]
+            self.orphaned = False  # Explicit grant committed before native session creation.
 
     def _resumable(self):
         controller = self.state.get("controller", {})
@@ -118,6 +122,88 @@ class Windows:
                     and process_generation(controller["pid"]) == controller["generation"])
         except (OSError, ValueError, KeyError, IndexError):
             return False
+
+    def reconcile_generation(self, grant):
+        """Local administrator-only transition, under the exclusive server lease.
+
+        The grant is supplied by the operator after exact owner authorization,
+        never accepted from the public bridge or inferred from recovery prose.
+        Crash before the final journal commit leaves the old generation fenced.
+        """
+        with self.operation():
+            if set(grant) != {"approval", "scope", "journal_sha256"}:
+                raise ValueError("exact scoped reconciliation grant required")
+            scope = valid_scope(grant["scope"])
+            if scope == "owner" or not re.fullmatch(r"apr-[A-Za-z0-9_-]+", grant["approval"]):
+                raise ValueError("exact request and owner approval receipt required")
+            previous = self.state.get("reconciliation")
+            if previous and previous.get("approval") == grant["approval"]:
+                if previous.get("scope") != scope or previous.get("journal_sha256") != grant["journal_sha256"]:
+                    raise RuntimeError("conflicting reconciliation receipt")
+                return  # Never retire the newly established generation twice.
+            if previous or not self.orphaned or self._resumable() or self.browser is not None:
+                raise RuntimeError("only an unconnected lost generation may be retired")
+            if self.state["windows"].get(scope, {}).get("state") == "closed":
+                raise RuntimeError("terminal acceptance scope cannot be reopened")
+            journals = {p.name: p.read_bytes() for p in sorted(self.path.parent.glob("*.json"))}
+            digest = hashlib.sha256(json.dumps({name: hashlib.sha256(raw).hexdigest()
+                                               for name, raw in journals.items()}, sort_keys=True).encode()).hexdigest()
+            if digest != grant["journal_sha256"] or json.loads(journals[self.path.name]) != self.state:
+                raise RuntimeError("journal changed since the authorized safety read")
+            retired_keys = set(self.legacy_keys)
+            for raw in journals.values():
+                journal = json.loads(raw)
+                retired_keys.update(journal.get("actions", {}))
+                retired_keys.update(journal.get("action_keys", {}))
+                records = list(journal.get("actions", {}).values()) + list(journal.get("action_keys", {}).values())
+                if any(not isinstance(r, dict) or r.get("state", r.get("delivery_state")) != "delivered" for r in records):
+                    raise RuntimeError("pending or uncertain input prevents reconciliation")
+            # Never end an existing native session just to make a new one fit.
+            if driver_request("GET", "/status").get("ready") is not True:
+                raise RuntimeError("native driver already occupied; preserve without session replacement")
+            history = self.path.parent / "generation-history"
+            history.mkdir(mode=0o700, exist_ok=True)
+            archive = history / (digest + ".json")
+            bundle = json.dumps({"grant": grant, "journals": {name: raw.decode("utf-8")
+                                for name, raw in journals.items()}}, sort_keys=True).encode()
+            try:
+                fd = os.open(archive.with_suffix(".new"), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write(bundle)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                    os.fchmod(stream.fileno(), 0o400)
+                os.link(archive.with_suffix(".new"), archive)
+            except FileExistsError:
+                if archive.read_bytes() != bundle:
+                    raise RuntimeError("immutable generation archive conflicts") from None
+            finally:
+                archive.with_suffix(".new").unlink(missing_ok=True)
+            for directory_path in (history, self.path.parent):
+                directory = os.open(directory_path, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(directory)
+                finally:
+                    os.close(directory)
+            retired = {key: record if record.get("state") == "closed" else {"state": "retired", "archive": archive.name}
+                       for key, record in self.state["windows"].items()
+                       if key not in {"owner", scope}}
+            # Keep every action key non-replayable; full original bindings and
+            # all journals are immutable history, not claimed as closed windows.
+            replacement = {**self.state, "windows": retired, "retired_action_keys": sorted(retired_keys),
+                           "reconciliation": {**grant, "epoch": self.epoch}}
+            replacement.pop("controller", None)
+            original = self.state
+            self.state = replacement
+            try:
+                self._save()
+            except BaseException:
+                self.state = original
+                self.broken = True
+                raise
+            self.orphaned = False
+            self.broken = False
+            self.legacy_keys.update(retired_keys)
 
     @contextlib.contextmanager
     def operation(self):
@@ -247,6 +333,9 @@ class Windows:
     def acquire(self, scope):
         valid_scope(scope)
         with self.lock:
+            reconciliation = self.state.get("reconciliation")
+            if reconciliation and scope not in {"owner", reconciliation["scope"]}:
+                raise ControlError("FIREFOX_BINDING_RETIRED", "old generation preserved in history; no replacement authorized")
             old = self.state["windows"].get(scope)
             if old:
                 if old.get("state") == "creating":
@@ -322,6 +411,9 @@ class Windows:
         record = self.state["windows"].get(scope)
         state = record.get("state") if record else "unallocated"
         result = {"scope_state": state, "retry_allowed": False, "input_replay_allowed": False}
+        if state == "retired":
+            return {**result, "recovery_state": "owner_reconciliation_required", "next_action": "preserve_windows_and_request_scoped_owner_decision",
+                    "reason": "binding_retired_with_history", "automatic_recovery_exhausted": True}
         if not record or state == "closed":
             return {**result, "recovery_state": "not_needed", "next_action": "acquire" if not record else "none"}
         if (record.get("epoch") != self.epoch or self.orphaned
