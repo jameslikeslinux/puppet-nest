@@ -81,6 +81,18 @@ Each member has exactly these fields:
 | `bases` | Stage 1: exact `normal` and `debug` image pins; all others, including Stage 0: exact `image` pin |
 | `compatibility` | Stage 2/3: exact `kernel`, `modules_abi`, `firmware`, `bootloader` strings; otherwise empty object |
 | `identity_root` | Stage 3: canonical absolute private identity input directory; otherwise null |
+| `identity_reference` | Stage 3 only: exact completed private generation UUID v4; directory basename must match |
+| `identity_ca_sha256` | Stage 3 only: reviewed public CA PEM digest, bare lowercase 64-hex |
+
+The last two fields are required only on Stage 3 members and prohibited on all
+other stages. Earlier experimental Stage 3 records lacking either field refuse;
+do not retrofit them with the current mutable identity or automatically trust its
+CA. Re-freeze expectations after independently selecting a completed private
+generation and reviewed CA pin. References must be distinct per host member.
+These fields are copied into the exact output member and participate in the
+canonical expectations digest; a changed reference or CA invalidates the output.
+Metadata validation does not open the private tree or establish CA approval.
+The producer must run private-generation admission against those exact values.
 
 Selection tuples `(stage, project, cpu, platform, variant, host)` must be unique.
 Stage 0 consumes one base and derives both normal/debug outputs from the same
@@ -449,13 +461,71 @@ This does not generate machine identity, repair or alter the private input tree,
 or renew credentials. Legacy initialization remains available without
 `catalog_inputs`. Missing identities use their separately approved provisioning
 workflow. CA selection must still come from reviewed release trust policy, not
-auto-trust of the same input. Capture is per-build, not a retained immutable
-private-identity generation or binding in a release receipt. Those binding and
-policy interfaces remain required before enabling the Stage 3 candidate adapter.
+auto-trust of the same input. The private generation interface below now binds
+subsequent frozen builds to one retained capture. Release manifest integration
+and reviewed trust-policy selection remain required before the Stage 3 adapter.
 No key hashes or secret bytes enter public receipts or diagnostics.
 
+### Private identity generation reference
+
+Frozen `catalog_inputs` now also requires `identity_reference`, a canonical
+lowercase UUID v4 selected for this capture. `identityroot` must be the exact
+completed generation directory with that UUID as its basename, not the mutable
+legacy host identity source. The same reference is checked before initialization,
+during captured-byte installation and around final configuration. Missing,
+partial, changed or mismatched generations halt before the next build phase.
+Ordinary legacy builds without `catalog_inputs` remain unchanged.
+
+Explicit capture is a separate root-only operation, not automatic repair by a
+build. Provision a root-owned mode-0700 parent on private local durable storage,
+outside the source and versioned host-root publication trees. Then invoke:
+
+```text
+python3 files/build/check-stage3-paths.py SOURCE /PRIVATE_PARENT/UUID HOST CA_SHA256 --publish-reference UUID
+```
+
+SOURCE is an existing admitted identity tree. UUID is the caller-selected v4
+reference; CA_SHA256 is independently approved public CA PEM identity, not an
+automatically accepted digest of SOURCE. The checker creates no keys, certs,
+machine IDs, snapshots, aliases or network requests. It first takes the existing
+stable bounded memory capture. An exclusive mkdir reserves the new generation;
+an existing directory (even empty or incomplete) or concurrent writer refuses,
+never overwrites or silently retries. Files are privately staged, fsynced, copied
+and reopened. Directories are fsynced before the completion marker, then the
+generation and its parent are fsynced and the whole completed capture read back.
+The source and all prior generations remain untouched. Failures after reservation
+can leave an incomplete private directory; retain/inspect it and select a new UUID
+instead of deleting the reservation to replay blindly.
+
+The root is mode 0700 and `.nest-identity.json` is root-only mode 0400. This PRIVATE
+record binds the reference, host, public CA pin, exact copied path set, modes,
+owners and file digests, including private-key digests. Never copy the record or
+any generation file into public CI artifacts, logs or release reports. Only the
+opaque UUID, reviewed public CA pin and private generation path may enter the
+later sanitized release interface. No record bytes or key hashes are printed.
+
+Read-only verification uses the original positional arguments with the completed
+generation as IDENTITY and adds `--identity-reference UUID`. `--install` may be
+added only inside the disposable build container. The private marker is read
+before and after the stable capture and compared to the exact canonical record
+recomputed from captured bytes and metadata. Added/removed paths, changed machine
+ID, valid-but-replaced identity, modes, reference or trust binding all refuse.
+Private marker and source bytes are never installed into the image as receipts;
+only the admitted machine ID and SSL material are installed. `--publish-reference`
+and `--install` are mutually exclusive. All operational failures use the existing
+static sanitized exit-1 diagnostic; argument errors retain argparse exit 2.
+
+This is write-once by the supported interface and content-bound on every read,
+not ZFS filesystem immutability, signing, custody, or protection from privileged
+writers who can replace both private content and its record. Root/Puppet and the
+private storage boundary remain trusted. No real private generation is created
+as part of source validation; tests use disposable synthetic TLS identities.
+The release schema binds the opaque reference and public CA pin, but the Stage 3
+candidate adapter and reviewed release-policy selection remain unfinished.
+Stage 3 CI still refuses candidate execution.
+
 This is an executing build option, not a read-only command. It does not publish a
-versioned root, retain an immutable private identity reference, make dynamic external data
+versioned host root, make dynamic external data
 reproducible or validate hardware compatibility. Existing rsync publication remains
 legacy behavior: callers must not treat that path as an immutable generation or
 use it for release-candidate success. Stage 3 CI still refuses candidate execution.
@@ -473,6 +543,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 spec/files/ci_release_build_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_paths_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_trust_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_capture_test.py
+PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_reference_test.py
 ```
 
 The suite uses conspicuously fixture-only sources, identities and image refs.
