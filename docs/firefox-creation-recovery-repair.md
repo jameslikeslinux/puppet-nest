@@ -1,7 +1,9 @@
 # Firefox creation receipt and finite recovery repair
 
-Status: source implementation tested locally and in disposable native Firefox;
-not yet an installed production repair. Agent Request ^2085 owns follow-through.
+Status: browser source merged through Nest MR !449; authoritative broker source
+merged through broker MR !197. Managed Firefox image published and pulled back;
+production browser activation and installed acceptance remain pending. Agent
+Request ^2085 owns follow-through.
 
 ## Observed incident and root cause boundary
 
@@ -134,3 +136,54 @@ uses Recreate: do not restart Firefox merely to clear uncertainty. If activation
 requires interruption, retain profile/journals, inspect pending actions and obtain
 one scoped owner decision. No readiness message has been sent to Luna. Catalog
 engineering remains with ^2080 and is not held behind this repair.
+
+## Integration continuation
+
+Nest MR !449 merged as `12ae3513cf9a4742dc035050578b71720899d340` after
+exact-head pipeline 11284 passed all required jobs at
+`3265998926ab56d1e1da444a78218637220fcbb2`. The initial unit fixture fetch
+failed with GitLab HTTP 503; the unrelated Joyride fixture teardown timed out
+removing a disposable container. Both passed on a same-head retry without code
+changes. Browser fixture jobs passed on the initial run.
+
+Broker MR !197 merged as `1a2c24191dfc6d4a3119b6de467d61277c9532ca`
+after exact-head pipeline 11291 passed. Bare indexed capability parking now
+returns `capability_resolution_required`, preserving the live claim and original
+run. The caller must bind an exact existing canonical repair prerequisite or
+present a genuinely necessary typed owner decision; it cannot silently leave
+triage residue or substitute an unchanged timer. Existing claim, actor, owner
+grant and dependency gates remain authoritative. No Hermes core change was
+necessary. This broker merge includes the sibling incidental-MR recovery pin;
+the Nest activation advances that descendant without reverting sibling work.
+
+Managed build command, from this task's isolated Nest worktree:
+
+```sh
+sudo -n env BOLT_CLEANUP_CMD='podman stop nest-firefox-ar2085 >/dev/null 2>&1' ./bin/bolt-wrapper plan run nest::build::firefox container=nest-firefox-ar2085 cpu=zen5 tag=ar2085-creation-32659989 registry=registry.gitlab.joyfullee.me build=true init=false deploy=true --stream
+```
+
+The isolated build container started from the installed immutable Firefox image,
+with only build/cache mounts, not the owner profile. Puppet applied the candidate
+controller, endpoint and private transport; the standard Firefox/Kasm smoke check
+passed before publication. Remote pull-back confirmed:
+
+- Image: `registry.gitlab.joyfullee.me/nest/tools/firefox@sha256:1f5335471cd08b7c54260cf9da7c3b477914fa95ca4688c56548373ec34c5cf4`.
+- Image config: `942389ed0a3762f92b603f4a6d7571aa905f24355405d99ae769ae39dad97be2`.
+- Controller: `7cb782971c60b05b9c6170976253bde3c8264c0d690c4a5f4cf5151bc6a311aa`.
+- Endpoint: `2f5d42e45348ce38463f3465bf374914c448dc0b5e3ed68663fde77e1d232901`.
+- Private transport: `05b70052faf05895187716df21410719b3e46b4c8a8926cf22c90fb943cdc630`.
+
+The initial inventory smoke lacked the worktree's `ruby_task_helper` module.
+`bolt module install` populated project dependencies; the exact inventory-backed
+smoke then passed as `joy` on `owl`. This was not an SSH transport blocker and no
+direct SSH or ad-hoc host Puppet fallback was used. Managed `nest::puppet::deploy`
+and the tagged `nest::puppet::run` path perform host activation.
+
+Fresh production journal inspection found owner and two known request windows
+open, plus ^2080's `creating` reservation without a context. All recorded input
+actions were delivered; none was pending/uncertain at that observation. Those
+facts do not identify the unknown creation or authorize its closure. The current
+image is unchanged. A singleton Recreate rollout would interrupt the owner and
+invalidate native generation bindings; preservation and explicit reconciliation
+must be scoped before activation. No readiness notification has been sent and no
+installed browser acceptance is claimed.
