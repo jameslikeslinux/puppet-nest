@@ -26,9 +26,9 @@ if os.environ.get('FAIL_BUILD'):
 if os.environ.get('CHANGE_MODULE'):
     (pathlib.Path(os.environ['EXECUTOR']) / '.modules/stdlib/data').write_text('changed')
 stage = sys.argv[3].split('::')[-1]
-repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool') else '')
+repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool', 'bolt') else '')
 row = ({'normal': repo + '@sha256:' + 'c' * 64, 'debug': repo + '/debug@sha256:' + 'd' * 64}
-       if stage not in ('stage2', 'tool') else {'image': repo + '@sha256:' + 'c' * 64})
+       if stage not in ('stage2', 'tool', 'bolt') else {'image': repo + '@sha256:' + 'c' * 64})
 if stage == 'stage3':
     row = {'root': {'path': p['hostroot'], 'dataset_guid': '456', 'content_digest': 'sha256:' + 'c' * 64}}
     bad = os.environ.get('BAD_ROOT')
@@ -127,8 +127,8 @@ class CandidateBuildTest(unittest.TestCase):
         git("commit", "-m", "Fixture only")
         return git("rev-parse", "HEAD")
 
-    def select(self, stage, mode="fresh"):
-        project = "nest/tools/llama.cpp" if stage == "tool" else "nest/" + stage
+    def select(self, stage, mode="fresh", tool="llama.cpp"):
+        project = "nest/tools/" + tool if stage == "tool" else "nest/" + stage
         member = {"id": "fixture-member", "stage": stage, "project": project, "cpu": "haswell", "variant": "server",
                   "platform": "vanilla" if stage in ("stage2", "stage3") else None,
                   "host": "fixture" if stage == "stage3" else None, "mode": mode,
@@ -220,13 +220,60 @@ class CandidateBuildTest(unittest.TestCase):
                          "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]}
             MANIFEST["validate"](self.expected, candidate)
 
+    def test_openbolt_candidate_dispatches_specialized_wrapper_for_all_supported_cpus_and_modes(self):
+        for cpu in ("haswell", "cortex-a53", "sifive-u74"):
+            for mode in ("fresh", "refresh"):
+                self.select("tool", mode, "bolt")
+                self.expected["members"][0]["cpu"] = cpu
+                self.output = self.root / ("bolt-" + cpu + "-" + mode)
+                self.output.mkdir()
+                result = self.cli()
+                self.assertEqual(result.returncode, 0, result.stderr)
+                call = self.calls()[-1]
+                self.assertEqual(call["args"][2], "nest::build::bolt")
+                params = call["params"]
+                self.assertEqual(params["cpu"], cpu)
+                self.assertEqual(params["refresh"], mode == "refresh")
+                self.assertEqual(params["from_image"], self.expected["members"][0]["bases"]["image"])
+                self.assertEqual(params["candidate"], "p901-j902")
+                self.assertEqual(params["repo_revisions"], {"gentoo": "b" * 40, "nest": "a" * 40, "haskell": "c" * 40})
+                self.assertTrue(params["build"] and params["deploy"] and params["init"])
+                for key in ("tag", "tool", "base_variant", "registry_password"):
+                    self.assertNotIn(key, params)
+                row = json.loads((self.output / "fixture-member.json").read_text())
+                self.assertEqual(row["output"]["artifacts"], {"image": "registry.example/nest/tools/bolt@sha256:" + "c" * 64})
+                MANIFEST["validate"](self.expected, {"schema": 1, "kind": "nest_release_candidate",
+                                                  "release": self.expected["release"],
+                                                  "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]})
+
+    def test_openbolt_wrong_cpu_and_variant_refuse_before_bolt(self):
+        self.select("tool", tool="bolt")
+        for cpu, variant in (("zen5", "server"), ("haswell", "workstation")):
+            self.expected["members"][0].update(cpu=cpu, variant=variant)
+            self.assertEqual(self.cli().returncode, 1)
+        self.assertEqual(self.calls(), [])
+
+    def test_openbolt_failed_or_invalid_publication_never_retains_or_replays_result(self):
+        self.select("tool", tool="bolt")
+        for index, env in enumerate([{"FAIL_BUILD": "1"}] +
+                                    [{"BAD_OUTPUT": bad} for bad in ("partial", "mutable", "wrong_repo", "same")]):
+            self.output = self.root / ("bolt-fault-" + str(index))
+            self.output.mkdir()
+            result = self.cli(**env)
+            self.assertEqual(result.returncode, 1, env)
+            self.assertFalse((self.output / "fixture-member.json").exists())
+            self.assertNotIn("private-secret", result.stderr)
+            count = len(self.calls())
+            self.assertEqual(self.cli().returncode, 1)
+            self.assertEqual(len(self.calls()), count)
+
     def test_specialized_tools_wrong_variant_and_tool_placement_refuse_before_bolt(self):
         self.select("tool")
         self.assertEqual(self.cli(self.placement()).returncode, 1)
         self.expected["members"][0]["variant"] = "workstation"
         self.assertEqual(self.cli().returncode, 1)
         self.expected["members"][0]["variant"] = "server"
-        for tool in ("bolt", "pdk", "agent", "firefox", "camofox", "r10k", "whisper.cpp"):
+        for tool in ("pdk", "agent", "firefox", "camofox", "r10k", "whisper.cpp"):
             project = "nest/tools/" + tool
             member = self.expected["members"][0]
             member["project"] = project
