@@ -386,6 +386,23 @@ This is not a registry/ZFS verifier, a live release or a wired build DAG.
 Stage producers, immutable generation publication and alias promotion remain
 integration work. Fixture-only command tests must not be reported as live builds.
 
+## Executor bootstrap failure reporting
+
+`bin/ci-bolt-module-install` runs the ordinary module installation once. A failed
+install now preserves its exact native exit after network/project
+diagnostics, and the helper releases its private SSH agent on success, module
+failure and key-setup failure. Diagnostics are best effort and cannot turn a
+failed module install into success. This fixes Zsh's read-only `status` variable
+collision and avoids relying on a returning error trap for exit-time cleanup.
+It does not retry module fetches, change credentials or weaken SSH verification.
+
+The all-branch fixture job exercises the actual helper in real Zsh with fake
+Bolt, SSH-agent and network commands. Failure exits 1, 37 and 128 must each
+produce diagnostics, no installed-success marker, exactly one install attempt
+and agent cleanup. These isolated checks do not prove GitLab availability; a
+failed real build still needs its own diagnosis and exact-job retry/readback.
+Executor publication is distinct from Stage 0–3 builds and live host rollout.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive
