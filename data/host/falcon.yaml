@@ -13,6 +13,7 @@ nest::classes:
   - 'nest::service::radarr'
   - 'nest::service::reverse_proxy'
   - 'nest::service::sonarr'
+  - 'nest::tool::bolt::deploy'
 
 nest::dvorak: true
 nest::monitor_layout: ['DP-4@0', 'DP-2@2560']
@@ -83,7 +84,7 @@ nest::service::gitlab_runner::instances:
     puppetcore: true
     volumes:
       - '/nest/home/kubeconfigs/eyrie.conf:/root/.kube/config:ro'
-      - '/root/.ssh/id_ed25519_eyrie:/root/.ssh/id_ed25519:ro'
+      - '/etc/puppetlabs/bolt/deploy-key.pem:/root/.ssh/id_rsa:ro'
       - '/etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts:ro'
 
 nest::service::reverse_proxy::hosts:

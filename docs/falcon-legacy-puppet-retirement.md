@@ -18,9 +18,11 @@ not part of retirement and must not be run as a verification probe.
 
 The existing Falcon `r10k` runner identity/tag is retained for compatibility, but
 its job uses the ordinary Bolt deployment plan. Its managed image, trust mounts,
-Forge environment and existing Eyrie SSH/kubeconfig mounts replace the legacy
-`/srv/puppet` mounts. This is a trusted administrative deployment runner, not an
-untrusted-code sandbox. Drain the shared runner manager before reconciling its
+Forge environment and existing Eyrie kubeconfig mount replace the legacy
+`/srv/puppet` mounts. `nest::tool::bolt::deploy` installs the same encrypted code
+deployment key used by the OpenVox sidecars at a separate root-only client path;
+it does not reuse the host's Eyrie transport key. This is a trusted administrative
+deployment runner, not an untrusted-code sandbox. Drain the shared runner manager before reconciling its
 registration, preserving prior admission states; never interrupt ongoing builds.
 
 `nest::service::puppet` remains the shared OpenVox credential/marker class used by
@@ -104,4 +106,15 @@ The broader focused run exposed two existing failures in
 `spec/data/kubernetes_config_image_spec.rb`: it expects Hermes backup
 `imagePullPolicy: IfNotPresent`, while the unchanged baseline source already uses
 `Always`. Both the spec and Hermes dashboard data are unchanged by this retirement.
-These failures must not be hidden or described as passing exact-head CI.
+These local failures must not be hidden. The independently verified GitLab
+pipeline for initial revision `aef7e550b8b09dd0fea14d9258b636d330241d74` did pass all
+jobs, including 1338 unit examples with no failures. Treat the local discrepancy
+separately from CI; every subsequent revision still needs its own exact-head gate.
+
+An ephemeral deployment-image check on Falcon verified Kubernetes access and
+successful private module installation using the existing shared code-deploy
+key. The host Eyrie transport key did not authenticate to GitLab; it was not
+adopted for CI. The root-only pre-retirement archive was created and listed at
+`/srv/puppet/retirement/systemd-and-bolt-before-retirement.tar.gz` (mode 0600),
+containing all five units and the existing Bolt configuration. No private bytes
+were printed.

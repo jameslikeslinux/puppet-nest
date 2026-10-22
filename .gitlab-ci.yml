@@ -176,6 +176,8 @@ stages:
 'Deploy environment':
   stage: 'Deploy'
   tags: ['r10k']
+  variables:
+    GIT_SSH_COMMAND: 'ssh -o HostName=ssh.gitlab.eyrie. -o HostKeyAlias=gitlab.joyfullee.me'
   script:
     - 'bolt module install'
     - 'bolt plan run nest::puppet::deploy backend=kubernetes environment="$CI_COMMIT_BRANCH"'
