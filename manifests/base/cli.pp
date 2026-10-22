@@ -1,7 +1,7 @@
 class nest::base::cli {
   nest::lib::package { 'app-admin/nest-cli':
-    # Immutable transaction/lifecycle source; retain the activation-safe rollback floor.
-    ensure => '0.9.0_p20261021-r1',
+    # Immutable capacity/transaction source; retain the activation-safe rollback floor.
+    ensure => '0.9.0_p20261021-r2',
     tag    => 'nest_cli_package',
   }
 

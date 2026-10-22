@@ -134,7 +134,7 @@ Real A/B mount continuity remains a separately authorized canary requirement.
 
 CLI MR !10 merged as `84f95665bc46519fb27d1f670a5d28b0d515321c` after required
 exact-head pipeline 11036 passed. Overlay MR !5 packages that merge as
-`=app-admin/nest-cli-0.9.0_p20261021-r1::nest`, selected by `nest::base::cli`.
+`=app-admin/nest-cli-0.9.0_p20261021-r1::nest` (the previous lifecycle revision).
 Its complete 28-library-file aggregate SHA256 is
 `85ba2dddc1289e3b4ab2fbea1fda628e41491f5a9b88bbea778cd1dde7228d79`.
 Required overlay pipeline 11039 and merged-main pipeline 11040 passed. A new
@@ -153,6 +153,36 @@ Retain `0.9.0_p20261021` as the activation-safe code rollback. Earlier versions
 cannot interpret lifecycle receipts: do not downgrade to bypass a failed
 transaction, erase state/locks, or replay a legacy reset. The new immutable
 revision must not receive the historical exact-version activation patch.
+
+### Capacity-gated immutable revision
+
+`nest::base::cli` now selects `=app-admin/nest-cli-0.9.0_p20261021-r2::nest`
+from overlay MR !6, merge `2c649392f5cc4270d4292f697b1ffe765cc29569`.
+It packages CLI MR !11, merge `a85bbf68a5030b306cd793afdbc1ed3dd7f0e0ee`.
+The complete 30-library-file aggregate SHA256 is
+`48fe283c865c620e3391dcceb6aecd5975eddc6a636d58fb9255bfc3fe78a505`.
+Read back the installed plan's full source identity, not just its version;
+the Ruby version string does not distinguish these immutable revisions.
+
+This revision retains lifecycle/finalize and adds mandatory release, host,
+pool and source-bound `--capacity-policy FILE` for new transactions. Read the
+installed `reset-capacity.md` and policy schema. The packaged
+`reset-capacity-policy.fixture-only.json` is test data, never a live budget.
+Ordinary `nest reset --plan --format=json` remains read-only and does not
+itself establish transactional admission or allocate a generation.
+
+Native capacity admission deliberately refuses unsupported layouts, including
+finite quota/refquota, reservations, ZVOLs and ambiguous clone dependencies.
+Physical free/slop/reserve, logical availability, source apparent bytes and
+promotion bounds are distinct. Do not relax limits or delete rollback to make
+admission pass. A real host may correctly remain unsupported after installation.
+No operational budgets or host-local source generations are provisioned by
+this package pin. Installing tooling is not approval to reset, activate or reboot.
+
+Keep prior immutable packages and receipts. An unresolved capacity-gated
+transaction cannot be downgraded to the prior lifecycle revision or retrofitted
+with a different policy to bypass refusal. Historical accepted/finalized reports
+remain readable; their existence does not prove a new capacity admission.
 
 ## Fail-closed ZFS startup
 
