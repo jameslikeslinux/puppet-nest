@@ -42,6 +42,7 @@ stages:
     - 'python3 spec/files/build_publish_image_test.py'
     - 'python3 spec/files/build_freeze_repos_test.py'
     - 'python3 spec/files/ci_bolt_module_install_test.py'
+    - 'python3 spec/files/ci_executor_identity_test.py'
 
 'Hermes install fixtures':
   extends: .all-branch-ci
@@ -108,19 +109,27 @@ stages:
   stage: 'Build'
   script:
     - 'mkdir empty'
+    - 'mkdir -p executor-receipts'
+    - 'EXECUTOR_IMAGE="${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:executor-${CI_PIPELINE_ID}-${CI_JOB_ID}-${CPU}"'
     - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
     - 'podman build
         --build-arg=BOLT_IMAGE="${BOLT_IMAGE:-nest/tools/bolt}"
         --build-arg=BRANCH="$CI_COMMIT_BRANCH"
         --build-arg=REPOSITORY="$CI_REPOSITORY_URL"
         --build-arg=SOURCE_URL="${CI_PROJECT_URL}.git"
+        --build-arg=SOURCE_SHA="$CI_COMMIT_SHA"
         --dns=172.22.4.3
         --file=Containerfile
         --secret=id=ssh_private_key,src="$NEST_CI_PRIVATE_KEY_FILE"
         --squash
-        --tag="${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"
+        --tag="$EXECUTOR_IMAGE"
         empty'
+    - 'bash files/build/publish-image.sh "$EXECUTOR_IMAGE" > "executor-receipts/${CPU}.ref"'
+    - 'python3 bin/ci-executor-receipt record "executor-receipts/${CPU}.ref" "executor-receipts/${CPU}.json"'
+    - 'podman tag "$EXECUTOR_IMAGE" "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"'
     - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"'
+  artifacts:
+    paths: ['executor-receipts/']
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD == $CPU'
@@ -170,9 +179,8 @@ stages:
     - 'cleanup() { podman manifest rm "$LOCAL_IMAGE" || true; }; trap cleanup EXIT'
     - 'podman manifest exists "$LOCAL_IMAGE" && podman manifest rm "$LOCAL_IMAGE"'
     - 'podman manifest create "$LOCAL_IMAGE"'
-    - 'podman manifest add "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:haswell"'
-    - 'podman manifest add "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:cortex-a53"'
-    - 'podman manifest add "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:sifive-u74"'
+    - 'EXECUTOR_REFS=$(python3 bin/ci-executor-receipt refs executor-receipts)'
+    - 'for reference in $EXECUTOR_REFS; do podman manifest add "$LOCAL_IMAGE" "docker://$reference" || exit; done'
     - 'podman manifest push --all "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:latest"'
     - 'podman manifest push --all "$LOCAL_IMAGE" "registry.eyrie/${IMAGE}:latest"'
   rules:
