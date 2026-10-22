@@ -387,7 +387,15 @@ and profile applies retain the same executor context. Ordinary invocations witho
 Frozen mode also requires a separately provisioned private `identityroot`; its
 legacy default equal to `hostroot` now refuses before container removal, repository
 creation or package work. `files/build/check-stage3-paths.py IDENTITY OUTPUT HOST`
-is a read-only metadata admission check, invoked locally before initialization
+now requires a fourth argument, `CA_SHA256`, the independently approved bare
+lowercase SHA256 of the public CA PEM file bytes. `nest::build::stage3` takes it
+as `identity_ca_sha256`, mandatory with `catalog_inputs`; missing, malformed or
+changed pins refuse before mutation. This deliberately tightens the opt-in frozen
+interface; ordinary builds without `catalog_inputs` remain unchanged. Obtain the
+pin from the release's reviewed trust policy, not by automatically accepting the
+current identity tree's CA. A pin selected from that same unreviewed input would
+only prove self-consistency, not approved trust. This is public CA content identity,
+never a key fingerprint. The checker is read-only admission, invoked locally before initialization
 and before/after final configuration. Both paths must be canonical absolute paths
 without symlink aliases or equal/ancestor/descendant overlap. The identity's entire
 ancestry and existing output ancestors must be root-owned directories without
@@ -396,20 +404,35 @@ The existing SSL tree must contain `certs/ca.pem`, `certs/HOST.pem` and
 `private_keys/HOST.pem`. Copied SSL material permits only root/Puppet ownership,
 no untrusted writers, regular readable nonempty files, protected directories and
 private keys without group/other access. Links and special files refuse, including
-extra files in the recursively copied source. The checker neither emits identity
-values nor reads certificate/key contents into its output. Exit 1 is sanitized
-failure; argument errors use argparse exit 2.
+extra files in the recursively copied source. The checker emits no identity
+values, certificates, keys or key digests. Exit 1 is sanitized failure; argument
+errors use argparse exit 2.
+
+The checker reads bounded material into private process memory, compares the
+certificate and private key's public keys, and requires exactly the selected host
+as its single common name. Wildcards, a matching SAN with a different common name,
+multiple leaf PEM objects, encrypted keys and trailing unrelated material refuse.
+Native OpenSSL validates current validity, the client-auth purpose, host name and
+chain against only the pinned CA bytes. Default file/directory/store trust and
+inherited OpenSSL configuration are disabled. Each command is bounded to 15 seconds
+and native diagnostics are discarded. Linux sealed anonymous memory supplies the
+exact approved CA to OpenSSL without creating a temporary file; unsupported
+OpenSSL options or missing tools fail closed. The executor requires OpenSSL 3,
+Linux `/proc/self/fd` and Python's memfd/sealing support. No CA, key or cert is
+generated, repaired or renewed by admission. This is not a revocation-status or
+remote TLS endpoint check; no CRL/OCSP fetch or network command is performed.
 
 Frozen identity setup only copies those existing sources into the build root;
 it does not generate a machine-id or create/chmod/chown the private input tree.
 Legacy identity initialization remains available without `catalog_inputs`.
 Missing identities must be provisioned through the separately approved identity
-workflow, not repaired as an incidental candidate build. This admission does not
-verify certificate/key correspondence, chain validity or trust policy, freeze
-identity bytes, or protect against a trusted root/Puppet writer changing them
-between checks. A stable private capture/binding and trust validation are still
-required before enabling the Stage 3 candidate adapter. No key hashes or secret
-bytes are added to public release receipts.
+workflow, not repaired as an incidental candidate build. Admission verifies trust
+relative to the independently supplied CA pin, not the authority of whoever chose
+it. It does not freeze the whole identity tree or protect against a trusted
+root/Puppet writer changing material between checks or before Puppet copies it.
+A stable private capture/binding and release-policy CA selection are still required
+before enabling the Stage 3 candidate adapter. No key hashes or secret bytes are
+added to public release receipts.
 
 This is an executing build option, not a read-only command. It does not publish a
 versioned root, freeze private host identity bytes, make dynamic external data
@@ -428,6 +451,7 @@ an already accepted frozen release.
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_manifest_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/ci_release_build_test.py
 PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_paths_test.py
+PYTHONDONTWRITEBYTECODE=1 python3 spec/files/build_stage3_trust_test.py
 ```
 
 The suite uses conspicuously fixture-only sources, identities and image refs.

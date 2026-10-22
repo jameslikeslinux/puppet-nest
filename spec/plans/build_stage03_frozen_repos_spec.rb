@@ -9,6 +9,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
   let(:pins) { { 'gentoo' => 'a' * 40, 'nest' => 'b' * 40, 'haskell' => 'c' * 40 } }
   let(:base) { "registry.example/nest/base@sha256:#{'d' * 64}" }
   let(:catalog) { { 'source' => 'e' * 40, 'base' => "registry.example/nest/bolt@sha256:#{'f' * 64}" } }
+  let(:ca_sha256) { 'a' * 64 }
   let(:catalog_check) do
     "python3 /opt/nest/scripts/nest-executor-inputs.py check --source #{catalog['source']} --base #{catalog['base']} > /dev/null"
   end
@@ -35,7 +36,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     if stage.zero?
       common.merge('cpu' => 'arm1176', 'from_image' => base, 'registry' => 'localhost')
     else
-      common.merge('hostname' => 'fixture-host', 'platform' => 'vanilla', 'variant' => 'server', 'stage2_image' => base)
+      common.merge('hostname' => 'fixture-host', 'platform' => 'vanilla', 'variant' => 'server', 'stage2_image' => base, 'identity_ca_sha256' => ca_sha256)
     end
   end
 
@@ -131,7 +132,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
     allow(executor).to receive(:run_command).and_call_original
     expect(executor).not_to receive(:run_command).with(anything, %r{puppet.*agent}, anything, anything)
     expect_script('nest/build/freeze-repos.py').be_called_times(3)
-    expect_script('nest/build/check-stage3-paths.py').with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host']).be_called_times(3)
+    expect_script('nest/build/check-stage3-paths.py').with_params('arguments' => ['/private/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256]).be_called_times(3)
     expect_command(catalog_check).with_targets('localhost').be_called_times(3)
     expect(run_plan('nest::build::stage3', options(3).merge('catalog_inputs' => catalog, 'identityroot' => '/private/fixture-host')).ok?).to be(true)
   end
@@ -142,7 +143,8 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
      { 'catalog_inputs' => catalog.merge('base' => 'registry.example/nest/bolt:latest') },
      { 'catalog_inputs' => catalog.merge('extra' => true) }, { 'repo_revisions' => nil },
      { 'stage2_image' => nil }, { 'init' => false }, { 'build' => false },
-     { 'puppet_environment' => 'main' }, { 'puppet_environment' => '' }].each do |override|
+     { 'puppet_environment' => 'main' }, { 'puppet_environment' => '' },
+     { 'identity_ca_sha256' => nil }, { 'identity_ca_sha256' => 'mutable' }, { 'identity_ca_sha256' => "#{ca_sha256}\n" }].each do |override|
       params = options(3).merge('catalog_inputs' => catalog).merge(override)
       expect(run_plan('nest::build::stage3', params).ok?).to be(false)
     end
@@ -161,7 +163,7 @@ RSpec.describe 'Stage 0 and Stage 3 frozen repository inputs' do
   it 'refuses unsafe or absent private identity before any container or repository mutation' do
     expect_command(catalog_check)
     expect_script('nest/build/check-stage3-paths.py')
-      .with_params('arguments' => ['/nest/hosts/fixture-host', '/nest/hosts/fixture-host', 'fixture-host'])
+      .with_params('arguments' => ['/nest/hosts/fixture-host', '/nest/hosts/fixture-host', 'fixture-host', ca_sha256])
       .error_with('msg' => 'Unsafe identity', 'kind' => 'fixture/identity')
     expect_command('podman rm -f fixture').not_be_called
     expect_command('podman volume rm -f fixture-frozen-repos').not_be_called
