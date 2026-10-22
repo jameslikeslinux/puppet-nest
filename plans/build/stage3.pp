@@ -79,6 +79,9 @@ plan nest::build::stage3 (
 
   if $catalog_inputs != undef {
     run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before initialization')
+    # Frozen builds consume preprovisioned private identity; they must not create
+    # or repair it, nor copy a root over that same source through legacy defaults.
+    run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname])
   }
 
   if $init {
@@ -122,50 +125,54 @@ plan nest::build::stage3 (
 
     # Preserve and restore host identity info
     apply($target, '_description' => 'Set up host identity info') {
-      file { $identityroot:
-        ensure => directory,
-        mode   => '0555',
-        owner  => 'root',
-        group  => 'root',
-      }
-      ->
-      exec { 'systemd-machine-id-setup':
-        command => "/usr/bin/systemd-machine-id-setup --root=${identityroot.shellquote}",
-        creates => "${identityroot}/etc/machine-id",
-      }
-      ->
-      file {
-        '/etc/machine-id':
-          source => "${identityroot}/etc/machine-id",
-        ;
-
-        "${identityroot}/etc/puppetlabs":
+      if $catalog_inputs == undef {
+        file { $identityroot:
           ensure => directory,
-          mode   => '0755',
+          mode   => '0555',
           owner  => 'root',
           group  => 'root',
-        ;
+        }
+        ->
+        exec { 'systemd-machine-id-setup':
+          command => "/usr/bin/systemd-machine-id-setup --root=${identityroot.shellquote}",
+          creates => "${identityroot}/etc/machine-id",
+          before  => File['/etc/machine-id'],
+        }
 
-        "${identityroot}/etc/puppetlabs/puppet":
-          ensure => directory,
-          mode   => '0750',
-          owner  => 'root',
-          group  => 'puppet',
-        ;
+        file {
+          "${identityroot}/etc/puppetlabs":
+            ensure => directory,
+            mode   => '0755',
+            owner  => 'root',
+            group  => 'root',
+          ;
 
-        "${identityroot}/etc/puppetlabs/puppet/ssl":
-          ensure => directory,
-          mode   => '0771',
-          owner  => 'puppet',
-          group  => 'puppet',
-        ;
+          "${identityroot}/etc/puppetlabs/puppet":
+            ensure => directory,
+            mode   => '0750',
+            owner  => 'root',
+            group  => 'puppet',
+          ;
 
-        # Puppet Agent will correct permissions on these files
-        '/etc/puppetlabs/puppet/ssl':
-          ensure  => directory,
-          source  => "${identityroot}/etc/puppetlabs/puppet/ssl",
-          recurse => true,
-        ;
+          "${identityroot}/etc/puppetlabs/puppet/ssl":
+            ensure => directory,
+            mode   => '0771',
+            owner  => 'puppet',
+            group  => 'puppet',
+            before => File['/etc/puppetlabs/puppet/ssl'],
+          ;
+        }
+      }
+
+      file { '/etc/machine-id':
+        source => "${identityroot}/etc/machine-id",
+      }
+      ->
+      # Puppet Agent will correct permissions on these files
+      file { '/etc/puppetlabs/puppet/ssl':
+        ensure  => directory,
+        source  => "${identityroot}/etc/puppetlabs/puppet/ssl",
+        recurse => true,
       }
 
       if $cluster {
@@ -213,10 +220,12 @@ plan nest::build::stage3 (
     # Apply the main configuration
     if $catalog_inputs != undef {
       run_command($check_catalog, 'localhost', 'Verify frozen catalog executor before configuration')
+      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname])
       # Bolt compiles from this exact executor project/module inventory. Never
       # fetch a newer catalog from a mutable server environment in frozen mode.
       apply($target, '_description' => 'Configure the host image from frozen local modules') { include nest }.nest::print_report
       run_command($check_catalog, 'localhost', 'Verify frozen catalog executor after configuration')
+      run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => [$identityroot, $hostroot, $hostname])
     } else {
       if !empty($puppet_environment) {
         $puppet_environment_args = ['--environment', $puppet_environment]
