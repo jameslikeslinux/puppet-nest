@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Seasonal owner dashboard and optional release favicon; app MR 26, pipeline 11070.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:9f4726538e1dfec511e3f2410ceff155b600f58bdcf5643cef9a4bb296242a1b
+# OTP sign-in, rolling sessions and branded mail; app MR 28, pipeline 11166.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:f029515f9eb433b9f6a2376faee6c77ce92faaa94c6790d7a3b99c91a4f08be9
 affinity: {}
 tolerations: []
 resources:

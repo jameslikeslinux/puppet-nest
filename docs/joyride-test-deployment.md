@@ -62,13 +62,16 @@ Production remains dormant and guarded; this is not a production HA claim.
 
 ## Owner dashboard and fast releases
 
-The TEST baseline is application MR 26, exact-head pipeline 11070, source
-`071088d5a9b9d0eb8fa9c2056c364eb42e896568`, image
-`sha256:9f4726538e1dfec511e3f2410ceff155b600f58bdcf5643cef9a4bb296242a1b`.
-It includes the seasonal read-only owner dashboard and MR 25's optional
-manifest-bound root favicon. Frontend/content releases remain independent of
-this backend pin. The previous managed image is
-`sha256:60333d9908ceeaf0c87c84f40d8b136bd5b12453d7ccbb3577cc3914046a9d4d`;
+The TEST baseline is application MR 28, exact-head pipeline 11166, source
+`4e1034d404d3016baf5754d6fa217cf29bb1c19c`, merged as
+`62372f627b5fcb02f43c6ff7ea4e21aac98673e0`, image
+`sha256:f029515f9eb433b9f6a2376faee6c77ce92faaa94c6790d7a3b99c91a4f08be9`.
+It adds OTP-first sign-in, 90-day sessions with hourly authenticated rolling
+renewal, and branded mail from `Friday Night Joyride <joy@joyridedc.com>`.
+The seasonal owner dashboard and manifest-bound favicon remain included.
+Frontend/content releases remain independent of this backend pin; retain Luna's
+active release and all release history. The previous managed image is
+`sha256:9f4726538e1dfec511e3f2410ceff155b600f58bdcf5643cef9a4bb296242a1b`;
 read the actual installed image again before any rollback.
 Internal `.eyrie` ingress and the existing private backchannel use the separate
 `joyride.internal_wsgi:application` listener on port 8003. Public WSGI remains on
