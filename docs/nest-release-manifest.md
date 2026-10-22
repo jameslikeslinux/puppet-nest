@@ -108,6 +108,52 @@ This is the versioned publication destination, not the transaction CLI's require
 host-local read-only ZFS generation. The later transfer/admission producer must
 verify ownership, content, local mount, dataset GUID and release properties.
 
+### Read-only Stage 3 publication-root admission
+
+`files/build/check-stage3-root.py` implements resource admission for an already
+completed, sealed root. Run it as root on the publication host, not an NFS client:
+
+```sh
+python3 files/build/check-stage3-root.py \
+  /nest/releases/RELEASE/hosts/HOST HOST RELEASE DATASET_GUID \
+  sha256:EXPECTATIONS_DIGEST
+```
+
+The path must match exactly and have canonical root-owned ancestors without
+group/other write access. Native ZFS inspection must identify exactly one mounted,
+read-only filesystem at that path, with the supplied GUID, no descendant
+filesystems, `org.nest:build-release=RELEASE` and
+`org.nest:expectations=sha256:EXPECTATIONS_DIGEST`. Actual mount-table inspection
+also rejects submounts, stacked roots, a different source and network filesystems.
+Neither input metadata nor a directory in another dataset is sufficient. Seal
+properties and ancestor safety are rechecked after the content scan.
+
+Success prints exactly the existing root artifact object: `path`, `dataset_guid`
+and `content_digest`. Append `--content-digest sha256:DIGEST` to require an earlier
+aggregate identity rather than emit a changed one. Exit 1 is an admission failure;
+diagnostics do not include native stderr, private paths/contents, xattr values or
+per-file key hashes. Argument errors use ordinary argparse exit 2.
+
+The aggregate SHA256 is domain-separated as `nest-stage3-root-v1`. It binds sorted
+relative raw filename bytes, file types/modes, owner/group, nanosecond mtimes,
+device identities, sorted xattr names/values (including supported ACL metadata),
+symlink targets, hardlink topology and regular-file bytes. Variable fields use
+eight-byte big-endian length framing; regular-file data uses the declared size.
+Inodes, filesystem device IDs, ctimes and link counts are stability checks, not
+portable digest fields. The scanner never follows symlinks, opens FIFO/device
+contents, traverses another filesystem or accepts sockets. It checks file identity
+and observed metadata before/after reads; unreadable metadata/content refuses.
+Private root payloads must never be uploaded as public CI evidence. The aggregate
+is a content identity, not a signature, producer attestation or live authorization.
+
+This command does not create/copy/seal a dataset, write a receipt into the root,
+change aliases, inspect the live identity source, build an OS or enable Stage 3
+candidate CI. The versioned publication producer and adapter must still call it
+after sealing and retain/reopen the result. Its build-input properties deliberately
+differ from the later host-local transaction generation's
+`org.nest:release=sha256:MANIFEST_DIGEST`; do not treat this publication path as an
+already admitted host-local generation. No historical root is retrofitted here.
+
 A consumer has exactly `project`, `decision`, `reason` and `members`. Decision is
 `rebuild`, `reuse`, `defer` or `retire`; reason is bounded printable text. Rebuild
 and reuse require the exact nonempty selected member IDs for that project and
