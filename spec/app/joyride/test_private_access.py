@@ -170,7 +170,8 @@ class PrivateAccess(unittest.TestCase):
             self.assertNotIn(b"forged", data)
             for suffix in ("?x=1", "/", "/extra"):
                 self.assertEqual(self.request(path=path + suffix, method="POST")[0], 404)
-            self.assertEqual(self.request(path=path, method="POST", extra="Content-Length: 33554433\r\n")[0], 413)
+            limit = 64 * 1024 * 1024 if kind == "content" else 32 * 1024 * 1024
+            self.assertEqual(self.request(path=path, method="POST", extra=f"Content-Length: {limit + 1}\r\n")[0], 413)
 
     def test_isolated_status_is_token_free_and_strips_caller_identity(self):
         self.assertEqual(self.request(path="/ops/status")[0], 200)

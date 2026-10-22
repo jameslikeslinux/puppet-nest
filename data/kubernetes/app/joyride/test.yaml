@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# OTP sign-in, rolling sessions and branded mail; app MR 28, pipeline 11166.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:f029515f9eb433b9f6a2376faee6c77ce92faaa94c6790d7a3b99c91a4f08be9
+# Bounded content v2; app MR 29, pipeline 11263.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:3227595c1e5c9bb99429a0e8e297bfee211b149239a9589833a824cd6c235e9d
 affinity: {}
 tolerations: []
 resources:
@@ -578,7 +578,7 @@ resources:
                 cpu: 100m
                 memory: 192Mi
               limits:
-                memory: 768Mi
+                memory: 1536Mi
             command: [python, -B, -c]
             args:
             - |
@@ -724,7 +724,7 @@ resources:
                 cpu: 100m
                 memory: 192Mi
               limits:
-                memory: 768Mi
+                memory: 1536Mi
             command:
             - gunicorn
             - joyride.ops_wsgi:application
@@ -776,7 +776,7 @@ resources:
                 cpu: 50m
                 memory: 128Mi
               limits:
-                memory: 512Mi
+                memory: 1536Mi
             command:
             - gunicorn
             - joyride.trusted_test_wsgi:application
