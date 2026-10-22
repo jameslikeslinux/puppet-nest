@@ -54,6 +54,9 @@ describe 'nest::app::hermes' do
           instances: {
             'talon' => {
               'soul_content' => 'test soul',
+              'gitlab_enabled' => true,
+              'gitlab_token' => 'fixture-token',
+              'dashboard_enabled' => true,
             },
           },
         }
@@ -72,6 +75,14 @@ describe 'nest::app::hermes' do
         expect(guard).to eq("/bin/sh -c \"test -x /opt/hermes-agent/venv/bin/python && /opt/hermes-agent/venv/bin/python -c 'import sys; assert sys.version_info[:2] == (3, 13)'\"")
       end
       it { is_expected.to contain_exec('build_hermes_tui').that_requires('Exec[install_hermes_npm]') }
+      it 'refreshes gateways for real runtime and glab changes, not UI build receipts' do
+        subscriptions = catalogue.resource('Exec', 'restart_hermes_gateway_talon')[:subscribe].map(&:to_s)
+
+        expect(subscriptions).to include('Exec[install_hermes_agent]', 'Exec[install_hermes_agent_request_broker]', 'Exec[configure_hermes_glab_talon]')
+        expect(subscriptions).not_to include('Exec[build_hermes_tui]', 'Exec[build_hermes_dashboard_web]')
+        expect(catalogue.resource('Exec', 'restart_hermes_gateway_talon')[:refreshonly]).to be true
+        expect(catalogue.resource('File', '/home/joy/.hermes/profiles/talon/glab/config.yml')[:replace]).to be false
+      end
       it { is_expected.to contain_file(production_timer_path).with_ensure('file') }
       it { is_expected.to contain_file(development_timer_path).with_ensure('file') }
       it { is_expected.to contain_systemd__user_service('hermes-agent-request-gitlab-mr-notes').with_unit('hermes-agent-request-gitlab-mr-notes.timer') }

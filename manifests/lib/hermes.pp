@@ -316,12 +316,7 @@ define nest::lib::hermes (
       require => File[$profile_dir],
     }
 
-    file { $glab_config_path:
-      ensure    => file,
-      mode      => '0600',
-      owner     => $user,
-      group     => $user,
-      content   => Sensitive(@("YAML")),
+    $glab_managed_content = Sensitive(@("YAML"))
         git_protocol: ssh
         editor: null
         browser: null
@@ -334,13 +329,45 @@ define nest::lib::hermes (
         hosts:
         ${glab_config_host_entries}
         | YAML
+
+    file { "${glab_config_path}.puppet":
+      ensure    => file,
+      mode      => '0600',
+      owner     => $user,
+      group     => $user,
+      content   => $glab_managed_content,
       show_diff => false,
       require   => File[$glab_config_dir],
+    }
+
+    # glab writes last_seen_version during normal commands. Seed once, then
+    # reconcile policy/auth semantically without fighting that runtime field.
+    file { $glab_config_path:
+      ensure    => file,
+      mode      => '0600',
+      owner     => $user,
+      group     => $user,
+      content   => $glab_managed_content,
+      replace   => false,
+      show_diff => false,
+      require   => File[$glab_config_dir],
+    }
+
+    exec { "configure_hermes_glab_${profile}":
+      command => "${venv_python} ${install_dir}/bin/manage-glab-config apply ${glab_config_path} ${glab_config_path}.puppet",
+      unless  => "${venv_python} ${install_dir}/bin/manage-glab-config check ${glab_config_path} ${glab_config_path}.puppet",
+      user    => $user,
+      require => [
+        File[$glab_config_path],
+        File["${glab_config_path}.puppet"],
+        File["${install_dir}/bin/manage-glab-config"],
+        Python::Pyvenv[$venv_dir],
+      ],
     }
   }
 
   $glab_config_subscribe = ($gitlab_enabled and $gitlab_token != undef) ? {
-    true    => [File[$glab_config_path]],
+    true    => [File[$glab_config_path], Exec["configure_hermes_glab_${profile}"]],
     default => [],
   }
 

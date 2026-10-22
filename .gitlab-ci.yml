@@ -42,6 +42,7 @@ stages:
     - 'python3 spec/files/build_publish_image_test.py'
     - 'python3 spec/files/build_freeze_repos_test.py'
     - 'python3 spec/files/ci_bolt_module_install_test.py'
+    - 'python3 spec/files/hermes_build_state_test.py'
 
 'Joyride private access':
   extends: .all-branch-ci
