@@ -23,6 +23,7 @@
 # @param repo_revisions Complete gentoo/nest/haskell commit pins; isolated repositories, no sync
 # @param stage2_image Exact Stage2 image reference; defaults to platform/variant tag
 # @param catalog_inputs Exact installed config executor source/base; use its local modules, not a served environment
+# @param root_publication Explicit local staging/publication placement; frozen catalogs only, never legacy rsync
 plan nest::build::stage3 (
   String            $container,
   String            $hostname,
@@ -46,8 +47,31 @@ plan nest::build::stage3 (
   Optional[Hash]    $repo_revisions        = undef,
   Optional[String]  $stage2_image          = undef,
   Optional[Hash]    $catalog_inputs        = undef,
+  Optional[Hash]    $root_publication      = undef,
 ) {
+  if $root_publication != undef {
+    assert_type(Struct[{
+      'release'      => Pattern[/\A[a-z0-9][a-z0-9._-]{0,127}\z/],
+      'expectations' => Pattern[/\Asha256:[0-9a-f]{64}\z/],
+      'staging'      => String[1],
+      'staging_guid' => Pattern[/\A[1-9][0-9]{0,19}\z/],
+      'receipts'     => String[1],
+      'parent_guid'  => Pattern[/\A[1-9][0-9]{0,19}\z/],
+    }], $root_publication)
+    unless $catalog_inputs != undef and !$deploy and $hostroot == "/nest/releases/${root_publication['release']}/hosts/${hostname}" {
+      fail('Local root publication requires frozen catalogs, the exact versioned hostroot and deploy=false')
+    }
+    $finish_args = [$container, $root_publication['staging'], $root_publication['staging_guid'],
+      $root_publication['receipts'], $hostname, $root_publication['release'],
+      $root_publication['parent_guid'], $root_publication['expectations'], $identityroot]
+    # Keep sibling imports together in the verified executor, not Bolt's
+    # single-script temporary upload directory.
+    $finish_command = "python3 /opt/nest/files/build/finish-stage3-root.py ${finish_args.shellquote}"
+  }
   if $catalog_inputs != undef {
+    if $deploy {
+      fail('Frozen Stage 3 catalogs cannot publish through legacy running-container rsync')
+    }
     assert_type(Pattern[/\A[0-9a-f]{64}\z/], $identity_ca_sha256)
     assert_type(Pattern[/\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/], $identity_reference)
     $identity_args = [$identityroot, $hostroot, $hostname, $identity_ca_sha256, '--identity-reference', $identity_reference]
@@ -89,6 +113,9 @@ plan nest::build::stage3 (
     # Frozen builds consume preprovisioned private identity; they must not create
     # or repair it, nor copy a root over that same source through legacy defaults.
     run_script('nest/build/check-stage3-paths.py', 'localhost', arguments => $identity_args)
+    if $root_publication != undef {
+      run_command("${finish_command} --check", 'localhost', 'Admit local Stage 3 publication placement before build')
+    }
   }
 
   if $init {
@@ -97,7 +124,7 @@ plan nest::build::stage3 (
       run_command("podman volume rm -f ${container}-frozen-repos", 'localhost', 'Remove previous isolated build repositories')
     }
 
-    if !empty($ssh_auth_sock) and run_command("test -S ${ssh_auth_sock}", 'localhost', 'Check SSH_AUTH_SOCK', '_catch_errors' => true).ok {
+    if $catalog_inputs == undef and !empty($ssh_auth_sock) and run_command("test -S ${ssh_auth_sock}", 'localhost', 'Check SSH_AUTH_SOCK', '_catch_errors' => true).ok {
       $ssh_auth_sock_volume = "--volume=${ssh_auth_sock}:${ssh_auth_sock}:ro"
     } else {
       $ssh_auth_sock_volume = ''
@@ -255,6 +282,20 @@ plan nest::build::stage3 (
     }
 
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
+  }
+
+  if $root_publication != undef {
+    run_command($check_catalog, 'localhost', 'Verify frozen executor before root publication')
+    $published = parsejson(run_command($finish_command, 'localhost', 'Materialize and publish stopped Stage 3 root').first.value['stdout'])
+    assert_type(Struct[{ 'root' => Struct[{
+      'path'           => String[1],
+      'dataset_guid'   => Pattern[/\A[1-9][0-9]{0,19}\z/],
+      'content_digest' => Pattern[/\Asha256:[0-9a-f]{64}\z/],
+    }] }], $published)
+    unless $published['root']['path'] == $hostroot {
+      fail('Published Stage 3 root path does not match the selected hostroot')
+    }
+    return($published)
   }
 
   if $deploy {
