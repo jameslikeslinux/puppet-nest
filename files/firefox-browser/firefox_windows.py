@@ -131,14 +131,26 @@ class Windows:
         Crash before the final journal commit leaves the old generation fenced.
         """
         with self.operation():
-            if set(grant) != {"approval", "scope", "journal_sha256"}:
+            if set(grant) not in ({"approval", "scope", "journal_sha256"},
+                                  {"approval", "scope", "journal_sha256", "retire_unresolved"}):
                 raise ValueError("exact scoped reconciliation grant required")
+            exemptions = grant.get("retire_unresolved", [])
+            if not isinstance(exemptions, list) or any(
+                    not isinstance(e, dict) or set(e) != {"journal", "key_sha256", "record_sha256"}
+                    or e["journal"] != "state.json"
+                    or any(not isinstance(e[k], str) or not re.fullmatch(r"[a-f0-9]{64}", e[k])
+                           for k in ("key_sha256", "record_sha256")) for e in exemptions):
+                raise ValueError("exact historical legacy record fingerprints required")
+            allowed = {(e["journal"], e["key_sha256"], e["record_sha256"]) for e in exemptions}
+            if len(allowed) != len(exemptions):
+                raise ValueError("duplicate historical retirement fingerprint")
             scope = valid_scope(grant["scope"])
             if scope == "owner" or not re.fullmatch(r"apr-[A-Za-z0-9_-]+", grant["approval"]):
                 raise ValueError("exact request and owner approval receipt required")
             previous = self.state.get("reconciliation")
             if previous and previous.get("approval") == grant["approval"]:
-                if previous.get("scope") != scope or previous.get("journal_sha256") != grant["journal_sha256"]:
+                if (previous.get("scope") != scope or previous.get("journal_sha256") != grant["journal_sha256"]
+                        or previous.get("retire_unresolved", []) != exemptions):
                     raise RuntimeError("conflicting reconciliation receipt")
                 return  # Never retire the newly established generation twice.
             if previous or not self.orphaned or self._resumable() or self.browser is not None:
@@ -151,13 +163,24 @@ class Windows:
             if digest != grant["journal_sha256"] or json.loads(journals[self.path.name]) != self.state:
                 raise RuntimeError("journal changed since the authorized safety read")
             retired_keys = set(self.legacy_keys)
-            for raw in journals.values():
+            matched = set()
+            for name, raw in journals.items():
                 journal = json.loads(raw)
                 retired_keys.update(journal.get("actions", {}))
                 retired_keys.update(journal.get("action_keys", {}))
-                records = list(journal.get("actions", {}).values()) + list(journal.get("action_keys", {}).values())
-                if any(not isinstance(r, dict) or r.get("state", r.get("delivery_state")) != "delivered" for r in records):
-                    raise RuntimeError("pending or uncertain input prevents reconciliation")
+                for field in ("actions", "action_keys"):
+                    for key, record in journal.get(field, {}).items():
+                        if isinstance(record, dict) and record.get("state", record.get("delivery_state")) == "delivered":
+                            continue
+                        fingerprint = (name, hashlib.sha256(key.encode()).hexdigest(),
+                                       hashlib.sha256(json.dumps(record, sort_keys=True).encode()).hexdigest())
+                        if (field != "action_keys" or not isinstance(record, dict)
+                                or record.get("delivery_state") not in {"delivery_started", "delivery_uncertain"}
+                                or fingerprint not in allowed):
+                            raise RuntimeError("pending or uncertain input prevents reconciliation")
+                        matched.add(fingerprint)
+            if matched != allowed:
+                raise RuntimeError("historical retirement records missing or changed")
             # Never end an existing native session just to make a new one fit.
             if driver_request("GET", "/status").get("ready") is not True:
                 raise RuntimeError("native driver already occupied; preserve without session replacement")

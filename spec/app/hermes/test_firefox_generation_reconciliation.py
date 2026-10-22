@@ -146,3 +146,61 @@ def test_retired_scope_cannot_receive_terminal_closure_receipt(engine, monkeypat
         controller.lifecycle(close(B))
     assert native.calls == calls
     assert controller.state['windows'][B]['state'] == 'retired'
+
+
+def historical_grant(controller):
+    record = {'delivery_state': 'delivery_uncertain', 'operation': 'type',
+              'workflow': 'fixture-only', 'created_at': 123}
+    legacy = controller.path.parent / 'state.json'
+    legacy.write_text(json.dumps({'action_keys': {'historical': record}}))
+    grant = grant_for(controller)
+    grant['retire_unresolved'] = [{'journal': 'state.json',
+                                 'key_sha256': hashlib.sha256(b'historical').hexdigest(),
+                                 'record_sha256': hashlib.sha256(json.dumps(record, sort_keys=True).encode()).hexdigest()}]
+    return grant, legacy
+
+
+def test_exact_historical_retirement_preserves_bytes_and_forbids_replay(engine, monkeypatch):
+    controller, native = lost(engine, monkeypatch)
+    grant, legacy = historical_grant(controller)
+    original = legacy.read_bytes()
+    calls = native.calls.copy()
+    controller.reconcile_generation(grant)
+    assert native.calls == calls
+    assert legacy.read_bytes() == original
+    archive = next((controller.path.parent / 'generation-history').glob('*.json'))
+    assert json.loads(archive.read_text())['journals']['state.json'].encode() == original
+    assert 'historical' in controller.legacy_keys
+    assert 'historical' in windows.Windows(controller.path, connect=lambda: native).legacy_keys
+    controller.reconcile_generation(grant)
+    changed = {**grant, 'retire_unresolved': []}
+    with pytest.raises(RuntimeError, match='conflicting'):
+        controller.reconcile_generation(changed)
+
+
+@pytest.mark.parametrize('mutation', ['record', 'key', 'extra', 'missing', 'native', 'other-journal'])
+def test_historical_exemption_is_exact_and_never_covers_other_input(engine, monkeypatch, mutation):
+    controller, native = lost(engine, monkeypatch)
+    grant, legacy = historical_grant(controller)
+    state = json.loads(legacy.read_text())
+    if mutation == 'record':
+        state['action_keys']['historical']['workflow'] = 'changed'
+    elif mutation == 'key':
+        state['action_keys']['different'] = state['action_keys'].pop('historical')
+    elif mutation == 'extra':
+        state['action_keys']['new-input'] = {'delivery_state': 'delivery_started'}
+    elif mutation == 'missing':
+        state['action_keys'].clear()
+    elif mutation == 'native':
+        state['actions'] = state.pop('action_keys')
+    else:
+        (controller.path.parent / 'another.json').write_text(json.dumps(state))
+    legacy.write_text(json.dumps(state))
+    grant['journal_sha256'] = grant_for(controller)['journal_sha256']
+    before = controller.path.read_bytes()
+    calls = native.calls.copy()
+    with pytest.raises(RuntimeError, match='pending or uncertain|missing or changed'):
+        controller.reconcile_generation(grant)
+    assert native.calls == calls
+    assert controller.path.read_bytes() == before
+    assert not (controller.path.parent / 'generation-history').exists()

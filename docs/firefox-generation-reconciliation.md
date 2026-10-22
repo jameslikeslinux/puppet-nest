@@ -1,6 +1,6 @@
 # Explicit Firefox generation reconciliation
 
-Status: candidate source, not activated. Request ^2085 / task t_274a959c.
+Status: approved historical-retirement candidate, not activated. Request ^2085 / task t_274a959c.
 
 Joy approved scoped generation reconciliation through
 apr-20261022-202336-6f806a. That approval retains a fresh no-unresolved-input
@@ -10,7 +10,8 @@ The resident server accepts a local administrator JSON grant through
 --reconcile-generation or FIREFOX_GENERATION_RECONCILIATION_GRANT. Neither the
 public authenticated API nor the owner viewer accepts this operation. The
 exclusive controller lease must already be held. Grant fields are approval,
-scope and journal_sha256; scope must be the single authorized request, not owner.
+scope and journal_sha256, with optional retire_unresolved; scope must be the
+single authorized request, not owner.
 The approval receipt is an audit reference, not an authorization mechanism:
 the administering operator must verify the actual owner approval separately.
 
@@ -61,7 +62,7 @@ The exact all-journal safety digest at the observation was
 b32e00bb495b4f9c0529a3eaee53f3acf4c95bcf3810903f82184653f8868a7d.
 It must be recomputed immediately before any future operation.
 
-The candidate correctly refuses this production state. No production journal,
+The initial candidate correctly refused this production state. No production journal,
 profile, binding, browser session or window was changed. No new image was
 activated. The existing approval's no-unresolved-input gate cannot be satisfied
 by ignoring legacy delivery_state fields. A new exact owner decision is needed
@@ -69,7 +70,31 @@ before adding any narrowly grandfathered historical-action retirement path.
 Such a path must preserve the original states and bytes, exempt only the exact
 reviewed action records, refuse any additional unresolved input, and never send
 or acknowledge those actions as delivered. The current source intentionally
-contains no exemption switch.
+contained no exemption switch.
+
+## Approved exact historical retirement
+
+Joy approved proposal 24893 through apr-20261022-222118-678b75. This permits
+only immutable retirement of the two historical inputs above, never replay or
+rewriting delivery state, within the already approved single-refresh allowance.
+The local grant now accepts retire_unresolved: a list of exact state.json
+legacy action-key and full-record SHA256 fingerprints. Each entry must match
+an unresolved delivery_started or delivery_uncertain action_keys record.
+Native actions, other journals, missing records, altered records, duplicate
+fingerprints and any additional unresolved input refuse before native access
+or archival. The whole-journal digest remains mandatory and is rechecked under
+the exclusive lease. Same-grant idempotency includes these fingerprints.
+
+The full-record hash uses SHA256 of json.dumps(record, sort_keys=True).encode().
+Fresh sanitized inspection confirmed the approved key hashes and timestamps;
+the full-record hashes are, respectively:
+
+- 0532634926c6bae1187d754cffcdcf2c1707af8f39ee91c68712bbe25cb77cdb
+- 1a8d478ccb1f88734ddec775c117b622ea0cf8d597f8b0115066b0f5aea980e1
+
+Original legacy bytes stay untouched and are also in the immutable archive.
+All old keys remain permanently non-replayable. The exception is operator
+supplied, not an incident-specific hardcoded allowance or a public API bypass.
 
 Working installed request-context acceptance remains incomplete. The prior
 installed creation-receipt repair and finite broker routing remain deployed.
