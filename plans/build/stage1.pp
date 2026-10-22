@@ -8,6 +8,8 @@
 # @param build Build the image
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
+# @param from_image Exact normal base digest; requires from_image_debug and init=true
+# @param from_image_debug Exact matching debug base digest; requires from_image
 # @param id Build ID
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
@@ -24,6 +26,8 @@ plan nest::build::stage1 (
   Boolean           $build                 = true,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
+  Optional[String]  $from_image            = undef,
+  Optional[String]  $from_image_debug      = undef,
   Optional[Numeric] $id                    = undef,
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
@@ -35,6 +39,16 @@ plan nest::build::stage1 (
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
 ) {
   $debug_volume = "${container}-debug"
+  if ($from_image == undef) != ($from_image_debug == undef) {
+    fail('Pinned Stage 1 bases require both from_image and from_image_debug')
+  }
+  if $from_image {
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image)
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image_debug)
+    unless $init {
+      fail('Pinned Stage 1 bases require init=true; an existing container has not consumed these inputs')
+    }
+  }
   $repos_volume = "${container}-repos" # cached between builds
   $target = Target.new(name => $container, uri => "podman://${container}")
   $qemu_args = $qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')
@@ -58,12 +72,14 @@ plan nest::build::stage1 (
 
   if $init {
     if $refresh {
-      $from_image       = "nest/stage1/${variant}:${cpu}"
-      $from_image_debug = "nest/stage1/${variant}/debug:${cpu}"
+      $default_image       = "nest/stage1/${variant}:${cpu}"
+      $default_image_debug = "nest/stage1/${variant}/debug:${cpu}"
     } else {
-      $from_image       = "nest/stage0:${cpu}"
-      $from_image_debug = "nest/stage0/debug:${cpu}"
+      $default_image       = "nest/stage0:${cpu}"
+      $default_image_debug = "nest/stage0/debug:${cpu}"
     }
+    $base_image = pick($from_image, $default_image)
+    $base_image_debug = pick($from_image_debug, $default_image_debug)
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
     run_command("podman volume rm -f ${debug_volume}", 'localhost', 'Remove existing debug volume')
@@ -75,7 +91,7 @@ plan nest::build::stage1 (
       --rm \
       --volume=${debug_volume}:/usr/lib/.debug \
       ${qemu_args} \
-      ${from_image_debug} \
+      ${base_image_debug.shellquote} \
       cp -a /usr/lib/debug/. /usr/lib/.debug
       | COPY
 
@@ -93,7 +109,7 @@ plan nest::build::stage1 (
       --volume=${debug_volume}:/usr/lib/debug \
       --volume=${repos_volume}:/var/db/repos \
       ${qemu_args} \
-      ${from_image} \
+      ${base_image.shellquote} \
       sleep infinity
       | CREATE
 

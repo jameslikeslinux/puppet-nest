@@ -9,6 +9,7 @@
 # @param cpu Build for this CPU architecture
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
+# @param from_image Exact base digest; requires init=true (fresh uses Stage 1 debug, refresh uses Stage 2)
 # @param id Build ID
 # @param init Initialize the build container
 # @param makeopts Override make flags (e.g. -j4)
@@ -26,6 +27,7 @@ plan nest::build::stage2 (
   String            $cpu                   = $platform,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
+  Optional[String]  $from_image            = undef,
   Optional[Numeric] $id                    = undef,
   Boolean           $init                  = true,
   Optional[String]  $makeopts              = undef,
@@ -37,6 +39,12 @@ plan nest::build::stage2 (
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
 ) {
   $target = Target.new(name => $container, uri => "podman://${container}")
+  if $from_image {
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image)
+    unless $init {
+      fail('Pinned Stage 2 base requires init=true; an existing container has not consumed this input')
+    }
+  }
 
   if $cpu == $platform {
     $profile = "${cpu}/${variant}"
@@ -63,10 +71,11 @@ plan nest::build::stage2 (
 
   if $init {
     if $refresh {
-      $from_image = "nest/stage2/${variant}:${platform}"
+      $default_image = "nest/stage2/${variant}:${platform}"
     } else {
-      $from_image = "nest/stage1/${variant}/debug:${cpu}"
+      $default_image = "nest/stage1/${variant}/debug:${cpu}"
     }
+    $base_image = pick($from_image, $default_image)
 
     run_command("podman rm -f ${container}", 'localhost', 'Stop and remove existing build container')
 
@@ -77,7 +86,7 @@ plan nest::build::stage2 (
       --pull=always \
       --volume=/nest:/nest \
       ${qemu_user_targets.map |$arch| { "--volume=/usr/bin/qemu-${arch}:/usr/bin/qemu-${arch}:ro" }.join(' ')} \
-      ${from_image} \
+      ${base_image.shellquote} \
       sleep infinity
       | CREATE
 
