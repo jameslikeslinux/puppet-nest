@@ -213,6 +213,70 @@ private identity or OS build is created during source validation. Rollback stops
 invoking the opt-in command and preserves completed and incomplete generations
 for explicit diagnosis/retention decisions; it does not rewrite a historical root.
 
+### Stopped-container root materialization
+
+`files/build/materialize-stage3-root.py` assembles a completed frozen build's
+image layer and its separate repository volume into an offline filesystem for
+the local publication command above. It executes copying and ZFS sealing; it is
+not a read-only probe. Run as root only on the explicitly selected local build
+host, using a preprovisioned, initially empty writable ZFS staging filesystem
+outside `/nest/releases` and its independently selected GUID:
+
+```sh
+python3 files/build/materialize-stage3-root.py \
+  CONTAINER /PRIVATE_STAGING_ROOT STAGING_GUID /PRIVATE_RECEIPT_DIRECTORY
+```
+
+The separate existing receipt directory must be mode 0700 with safe root-owned
+ancestors, disjoint from staging, the container layer and repository volume.
+An exclusive `materialize-GUID.started` reservation is fsynced before mounting
+or copying. An earlier interrupted or completed attempt refuses even if staging
+is empty. No retry removes a reservation, destroys a dataset or makes space.
+
+Podman must report one exact stopped/exited container with no live PID, pause or
+exec sessions. Its mounts must be the existing `/nest` and `/falcon` host shares,
+exactly `CONTAINER-frozen-repos` at `/var/db/repos`, and optional read-only QEMU
+helper binds. Unknown mounts, SSH-agent sockets, volume plugins/options, mismatched
+mount sources and any other container referencing that volume refuse. The stopped
+build must have an empty hidden image-layer `/var/db/repos`, with ordinary real
+directory ancestors; nonempty hidden content refuses rather than being mixed or
+silently deleted. Older images that do not meet this requirement are unsupported
+inputs, not evidence that missing repositories may be ignored.
+
+The command mounts the stopped layer locally without starting it. Root and volume
+trees must have safe canonical ancestry, be disjoint and have no submounts,
+including same-device binds. It copies the entire image layer with the existing
+archive/ACL/hardlink/xattr/numeric-ID/nanosecond semantics and compares its complete
+restore-relevant aggregate identity. It then copies the complete repository
+volume and compares that subtree's aggregate. Host shares, emulation binds and
+Podman's runtime-generated mounts are not release payload; their external content
+is never traversed. Both source aggregates, stopped-container identity, volume
+identity/exclusivity and target filesystem identity are rechecked before sealing.
+This is bounded observational consistency with trusted privileged build writers,
+not a container-engine-wide lock or adversarial writer protection. The caller
+must exclusively own the build and staging filesystem during execution.
+
+Checked non-forced unmount precedes pool flush and `readonly=on`. Exact local
+mount/GUID/read-only state is reopened around the assembled content digest.
+`materialize-GUID.json` is exclusively written mode 0600, fsynced and reopened
+before success. The small schema-1 `nest_stage3_materialized_root` record contains
+container ID, staging path, dataset GUID and aggregate digest; no key bytes,
+per-file key hashes or native diagnostics. This private staging receipt is not
+the versioned publication artifact or release manifest. Retain it privately,
+then explicitly invoke publication with that sealed staging path. Each command
+is bounded to one hour; operational failures use a static exit-1 diagnostic and
+no accepted stdout receipt. Argument errors use exit 2.
+
+Failure retains staging and reservations, including a possibly sealed root when
+later receipt retention fails. Best-effort non-forced mount release after failure
+does not mean that the copy or cleanup succeeded. No container restart, automatic
+retry, dataset removal, quota change, alias, live identity repair or host action
+is performed. Rollback stops invoking these opt-in primitives and preserves all
+generations for explicit diagnosis. Fixtures use real disposable tree copies
+and rsync, but fake Podman/ZFS responses: no actual ZFS or OS build is exercised.
+Stage 3 plan/adapter/CI integration, remote transfer, capacity policy and host-local
+transaction generations remain unfinished; candidate execution is still disabled.
+
 A consumer has exactly `project`, `decision`, `reason` and `members`. Decision is
 `rebuild`, `reuse`, `defer` or `retire`; reason is bounded printable text. Rebuild
 and reuse require the exact nonempty selected member IDs for that project and
