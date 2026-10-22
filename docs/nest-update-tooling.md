@@ -339,6 +339,42 @@ Normal main catalog, converged repeat, hardware/service canaries, release policy
 and durable collector bundle integration remain required before acceptance.
 Rollback simply stops using this observation plan; no host state needs undoing.
 
+## Exact Stage 1 and Stage 2 base inputs
+
+The existing `bin/build` wrapper passes optional plan arguments through unchanged.
+Stage 1 now accepts `from_image` and `from_image_debug` together; Stage 2 accepts
+`from_image`. Explicit overrides must be repository references ending in
+`@sha256:` followed by 64 lowercase hexadecimal characters, not mutable tags.
+They are shell-quoted at the actual Podman normal/debug initialization commands.
+Invalid references, incomplete Stage 1 pairs and overrides with `init=false`
+fail before login, container removal, volume removal or creation. An existing
+container cannot truthfully claim to have consumed a newly supplied base pin.
+
+Without overrides, compatibility is unchanged: fresh Stage 1 uses Stage 0's
+CPU normal/debug pair; refresh uses the selected Stage 1 CPU/variant pair.
+Fresh Stage 2 uses the selected Stage 1 CPU/variant debug image; refresh uses
+the selected Stage 2 platform/variant image. `refresh` still determines the
+ordinary build recipe, including fresh Stage 1 circular-dependency handling;
+an explicit pin changes the base, not that recipe. Do not pair unrelated normal
+and debug images or use a Stage 2 refresh base with the fresh recipe.
+
+These are build inputs, not read-only planning switches. Real `bin/build` runs
+can remove build containers/volumes and compile packages; `deploy=true` still
+publishes the existing mutable tags. No OS build or alias promotion is authorized
+merely because this interface is installed. The regression suite invokes the
+actual Puppet plans using Bolt's mock executor, with build and deploy disabled;
+it never runs Podman or mutates storage.
+
+Digest syntax proves neither that the image exists nor that its CPU, variant,
+firmware and normal/debug pairing are compatible. The release manifest and CI
+consumer must supply and validate those relationships. This slice does not pin
+Portage/overlay sync, produce immutable outputs, verify executor identity, publish
+versioned Stage 3 roots, or implement the build DAG. Those remain required R06/R07
+work. Stage 0's existing `from_image` and Stage 3's existing `stage2_image`
+interfaces are unchanged. Rollback stops passing the new optional arguments
+while retaining exact accepted base digests; do not rebuild an old release from
+mutable tags and call it the same release.
+
 ## Operational authority and rollback
 
 The implementation scope permits ordinary source publication, nondisruptive
