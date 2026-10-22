@@ -6,6 +6,7 @@
 # @param platform Build for this platform
 # @param variant Build this variant
 # @param build Build the image
+# @param candidate Candidate publication token; publish no ordinary alias and return the verified image digest ref
 # @param cpu Build for this CPU architecture
 # @param deploy Deploy the image
 # @param emerge_default_opts Override default emerge options (e.g. --jobs=4)
@@ -24,6 +25,7 @@ plan nest::build::stage2 (
   String            $platform,
   String            $variant,
   Boolean           $build                 = true,
+  Optional[String]  $candidate             = undef,
   String            $cpu                   = $platform,
   Boolean           $deploy                = false,
   Optional[String]  $emerge_default_opts   = undef,
@@ -39,6 +41,12 @@ plan nest::build::stage2 (
   String            $registry_password_var = 'NEST_REGISTRY_PASSWORD',
 ) {
   $target = Target.new(name => $container, uri => "podman://${container}")
+  if $candidate != undef {
+    assert_type(Pattern[/\A[a-z0-9][a-z0-9._-]{0,100}\z/], $candidate)
+    unless $build and $deploy and $init and $from_image and $registry != 'localhost' {
+      fail('Candidate Stage 2 publication requires build, deploy, init, an exact base and a remote registry')
+    }
+  }
   if $from_image {
     assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $from_image)
     unless $init {
@@ -126,10 +134,18 @@ plan nest::build::stage2 (
   }
 
   if $deploy {
-    $image = "${registry}/nest/stage2/${variant}:${platform}"
+    $output_tag = $candidate ? {
+      undef   => $platform,
+      default => "candidate-${candidate}",
+    }
+    $image = "${registry}/nest/stage2/${variant}:${output_tag}"
     run_command("podman commit --change CMD=/bin/zsh ${container} ${image}", 'localhost', 'Commit build container')
 
-    unless $registry == 'localhost' {
+    if $candidate != undef {
+      $image_ref = run_script('nest/build/publish-image.sh', 'localhost', arguments => [$image]).first.value['stdout'].strip
+      assert_type(Pattern[/\A[a-z0-9][a-z0-9._:\/-]*@sha256:[0-9a-f]{64}\z/], $image_ref)
+      return({ 'image' => $image_ref })
+    } elsif $registry != 'localhost' {
       run_command("podman push ${image}", 'localhost', "Push ${image}")
     }
   }

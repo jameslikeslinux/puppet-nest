@@ -388,6 +388,14 @@ integration work. Fixture-only command tests must not be reported as live builds
 
 ## Executor bootstrap failure reporting
 
+Merged-main pipeline 11122 completed successfully on source
+`b9b3ab6493cf27ea426fb89bfa76db88b09c8096`, including all three architecture
+builds and publication. The published amd64 member
+`registry.eyrie/nest/config/main@sha256:693866554c4aaf39f7f78968fa4fb00df6b83acc080cfd36a5f3db406ad83957`
+was opened through inventory-backed Bolt without host mounts. Its Git source and
+the bootstrap helper, Stage 1/2 plans and release-validator bytes matched that
+accepted source. This is executor content verification, not an OS-stage build.
+
 `bin/ci-bolt-module-install` runs the ordinary module installation once. A failed
 install now preserves its exact native exit after network/project
 diagnostics, and the helper releases its private SSH agent on success, module
@@ -402,6 +410,50 @@ produce diagnostics, no installed-success marker, exactly one install attempt
 and agent cleanup. These isolated checks do not prove GitLab availability; a
 failed real build still needs its own diagnosis and exact-job retry/readback.
 Executor publication is distinct from Stage 0–3 builds and live host rollout.
+
+## Stage 1 and Stage 2 candidate output references
+
+The existing Stage 1/2 build plans accept optional `candidate=TOKEN`. Tokens
+are lowercase alphanumeric followed by at most 100 alphanumeric/dot/underscore/
+hyphen characters. Use a unique pipeline/job/member token, not a stable alias.
+Candidate mode requires `build=true`, `init=true`, `deploy=true`, a remote
+registry and the exact base arguments described above. Missing requirements
+fail before login or container mutation. Default legacy publication is unchanged.
+
+Candidate mode commits and pushes only `candidate-TOKEN` tags in the existing
+Stage 1 normal/debug repositories or Stage 2 variant repository. It does not
+update CPU/platform tags, aggregate indexes, mirror aliases or a release pointer.
+These temporary tags are not immutable or an approval mechanism: retain and
+consume the returned content digests, and do not reuse a token for another job.
+The plan result is `{normal: REFERENCE, debug: REFERENCE}` for Stage 1 and
+`{image: REFERENCE}` for Stage 2, with repository-qualified `@sha256:` references.
+Stage 1 returns only after both distinct normal/debug digests are verified;
+failure may leave a partial candidate in the registry, never a successful pair.
+
+`files/build/publish-image.sh` uses native `podman push --digestfile`, reading
+Podman's newline-free digest file, then reopens the exact remote manifest/config
+through explicit `docker://` transport. It creates a unique local verification
+index and removes only its owned index. This handles OCI single images (which
+the installed `podman manifest inspect` refuses) without repulling all layers.
+Push/readback/cleanup failure returns nonzero and no reference; failed create
+never removes a possibly preexisting local index. A forced kill can leave an
+unselected local verification index. It never changes TLS or credentials.
+
+The publisher verifies manifest/config retrieval, not every layer's readability,
+CPU tuning, installed kernel/firmware, source freeze or actual boot compatibility.
+The current build recipes still sync Portage/overlay; candidate mode must not be
+labeled a frozen release producer until that separate input work is integrated.
+Producer/executor identities, member selection and these output references must
+still be assembled and retained by the real stage CI lanes. Stage 0/tools,
+versioned Stage 3/local generations, the real DAG and reviewed promotion/rollback
+remain unfinished. No new build, candidate push or alias promotion was launched
+to test this interface; verification uses real Bash/fake Podman and actual Bolt
+plans with a mock executor. A read-only remote OCI metadata probe separately
+verified the native Podman path against the accepted executor member.
+
+Rollback stops supplying `candidate`; retain successful candidate digest refs
+and previous production aliases. Do not retry an entire OS build to recover a
+partial pair without inspecting the existing exact job outcome first.
 
 ## Operational authority and rollback
 
