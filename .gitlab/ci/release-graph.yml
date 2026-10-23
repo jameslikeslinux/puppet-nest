@@ -7,7 +7,7 @@
   script:
     - 'python3 scripts/nest-release-graph.py --check-selection'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
 
@@ -21,7 +21,7 @@
     when: on_success
     paths: ['release-graph/']
   rules:
-    - if: '$NEST_DAG_FIXTURE || $CI_COMMIT_TAG'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/ || $CI_COMMIT_TAG'
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "trigger") && $RELEASE_GRAPH == "true" && $RELEASE_GRAPH_FILE'
 
@@ -40,6 +40,6 @@
       yaml_variables: false
       pipeline_variables: false
   rules:
-    - if: '$NEST_DAG_FIXTURE || $CI_COMMIT_TAG'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/ || $CI_COMMIT_TAG'
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "trigger") && $RELEASE_GRAPH == "true" && $RELEASE_GRAPH_FILE'

@@ -14,7 +14,7 @@ stages:
 
 .all-branch-ci:
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH'
@@ -27,7 +27,7 @@ stages:
   image: 'registry.eyrie/nest/stage1/server'
   tags: ['$RUNNER_SMOKE_TAG']
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RUNNER_SMOKE_TAG'
   script:
@@ -178,7 +178,7 @@ stages:
   artifacts:
     paths: ['executor-receipts/', 'executor-bootstrap/']
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
       when: never
@@ -226,7 +226,7 @@ stages:
     - 'bolt module install'
     - 'bolt plan run nest::puppet::deploy backend=kubernetes environment="$CI_COMMIT_BRANCH"'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
       when: never
@@ -256,7 +256,7 @@ stages:
     - 'podman manifest push --all "$LOCAL_IMAGE" "${CI_REGISTRY}/${IMAGE}:latest"'
     - 'podman manifest push --all "$LOCAL_IMAGE" "registry.eyrie/${IMAGE}:latest"'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
       when: never
@@ -278,7 +278,7 @@ stages:
   script:
     - 'python3 scripts/nest-executor-bootstrap.py --check-selection'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
 
@@ -289,7 +289,7 @@ stages:
   script:
     - 'python3 scripts/nest-release-route.py --check-selection'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
 
@@ -305,6 +305,6 @@ stages:
     when: on_success
     paths: ['release-inputs/']
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_INPUTS'

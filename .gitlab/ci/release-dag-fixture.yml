@@ -8,6 +8,7 @@
   script:
     - 'python3 -m pip install --disable-pip-version-check PyYAML==6.0.3'
     - 'PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_dag_fixture_test.py'
+    - 'PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_nested_dag_fixture_test.py'
 
 'Check release DAG fixture selection':
   stage: 'Test'
@@ -18,7 +19,7 @@
     # rejected by bridge rules; do not mistake this runtime identity for one.
     - 'env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py'
   rules:
-    - if: '$NEST_DAG_FIXTURE'
+    - if: '$NEST_DAG_FIXTURE =~ /[\s\S]/'
 
 'Stage 0 release DAG fixture':
   stage: 'Build'
@@ -36,7 +37,7 @@
   rules:
     - if: &fixture_conflicts '$CI_COMMIT_TAG =~ /[\s\S]/ || $RELEASE_INPUTS =~ /[\s\S]/ || $EXECUTOR_ONLY =~ /[\s\S]/ || $BUILD =~ /[\s\S]/ || $CPU =~ /[\s\S]/ || $RUNNER_SMOKE_TAG =~ /[\s\S]/ || $RELEASE_CANDIDATE =~ /[\s\S]/ || $RELEASE_DAG =~ /[\s\S]/ || $RELEASE_DAG_FIXTURE =~ /[\s\S]/ || $RELEASE_VALIDATE_ONLY =~ /[\s\S]/ || $RELEASE_CPU =~ /[\s\S]/ || $RELEASE_MEMBER =~ /[\s\S]/ || $RELEASE_INPUT_JOB_ID =~ /[\s\S]/ || $RELEASE_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_EXECUTOR_JOB_ID =~ /[\s\S]/ || $RELEASE_EXECUTOR_IMAGE =~ /[\s\S]/ || $FROM_GENTOO =~ /[\s\S]/ || $STAGE0_RESUME =~ /[\s\S]/ || $REFRESH =~ /[\s\S]/ || $NEST_LEGACY_BUILD =~ /[\s\S]/ || $RELEASE_PLATFORM =~ /[\s\S]/ || $PLATFORM =~ /[\s\S]/ || $RELEASE_VARIANT =~ /[\s\S]/ || $VARIANT =~ /[\s\S]/ || $RELEASE_MODE =~ /[\s\S]/'
       when: never
-    - if: &host_conflicts '$RELEASE_HOST =~ /[\s\S]/ || $RELEASE_STAGE3_PLACEMENT_FILE =~ /[\s\S]/ || $HOSTNAME =~ /[\s\S]/ || $CLUSTER =~ /[\s\S]/ || $PROFILE =~ /[\s\S]/ || $RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
+    - if: &host_conflicts '$RELEASE_HOST =~ /[\s\S]/ || $RELEASE_STAGE3_PLACEMENT_FILE =~ /[\s\S]/ || $HOSTNAME =~ /[\s\S]/ || $CLUSTER =~ /[\s\S]/ || $PROFILE =~ /[\s\S]/ || $RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/ || $EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/ || $RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "pass"'
       variables:
@@ -311,3 +312,39 @@
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'fail'
+
+# Exercise config child -> config node -> route child -> native leaf without
+# candidate selection, using only the existing Stage 1 status fixture.
+'Compile nested DAG fixture':
+  stage: 'Build'
+  needs: ['Check release DAG fixture selection']
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  tags: ['owl']
+  script:
+    - 'env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py --compile-nested'
+  artifacts:
+    when: on_success
+    paths: ['nested-dag-fixture/']
+  rules: &nested_fixture_rules
+    - if: *fixture_conflicts
+      when: never
+    - if: *host_conflicts
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && ($NEST_DAG_FIXTURE == "nested-stage1-pass" || $NEST_DAG_FIXTURE == "nested-stage1-fail")'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && ($NEST_DAG_FIXTURE == "node-stage1-pass" || $NEST_DAG_FIXTURE == "node-stage1-fail")'
+
+'Run nested DAG fixture':
+  stage: 'Deploy'
+  needs: ['Compile nested DAG fixture']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    include:
+      - artifact: 'nested-dag-fixture/child.yml'
+        job: 'Compile nested DAG fixture'
+    strategy: mirror
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules: *nested_fixture_rules

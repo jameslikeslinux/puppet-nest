@@ -67,7 +67,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
                 rules = self.config['.template']['rules']
             else:
                 rules = job['rules']
-            self.assertEqual(rules[0], {'if': '$NEST_DAG_FIXTURE', 'when': 'never'}, name)
+            self.assertEqual(rules[0], {'if': r'$NEST_DAG_FIXTURE =~ /[\s\S]/', 'when': 'never'}, name)
 
     def test_native_bridge_has_no_command_or_inherited_pipeline_variables(self):
         for stage, prefix in (('stage0', ''), ('stage1', 'stage1-'), ('stage2', 'stage2-'), ('stage3', 'stage3-')):
@@ -103,7 +103,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
             self.assertIn('$CI_PIPELINE_SOURCE == "api"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "web"', rule['if'])
         self.assertEqual(len(job['rules']), 4)
-        self.assertEqual(self.fixture['Check release DAG fixture selection']['rules'], [{'if': '$NEST_DAG_FIXTURE'}])
+        self.assertEqual(self.fixture['Check release DAG fixture selection']['rules'], [{'if': r'$NEST_DAG_FIXTURE =~ /[\s\S]/'}])
 
     def test_container_runtime_hostname_is_cleared_only_after_pipeline_admission(self):
         check = self.fixture['Check release DAG fixture selection']
@@ -141,7 +141,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         check = self.config['Check release route selection']
         self.assertEqual(check['stage'], 'Test')
         self.assertEqual(check['script'], ['python3 scripts/nest-release-route.py --check-selection'])
-        self.assertEqual(check['rules'][0], {'if': '$NEST_DAG_FIXTURE', 'when': 'never'})
+        self.assertEqual(check['rules'][0], {'if': r'$NEST_DAG_FIXTURE =~ /[\s\S]/', 'when': 'never'})
 
 
 if __name__ == '__main__':
