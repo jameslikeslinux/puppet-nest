@@ -16,7 +16,7 @@ CONFLICTS = (
 
 
 def admitted(env):
-    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail') and
+    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail', 'stage1-pass', 'stage1-fail') and
             env.get('CI_PIPELINE_SOURCE') in ('api', 'web') and
             not env.get('CI_COMMIT_TAG') and
             not any(env.get(key) for key in CONFLICTS))
@@ -26,7 +26,7 @@ def main():
     if sys.argv[1:] or not admitted(os.environ):
         print('Release DAG fixture selection refused; no build or deployment', file=sys.stderr)
         return 1
-    print('Nonpublishing Stage 0 status fixture selected; no release execution')
+    print('Nonpublishing native status fixture selected; no release execution')
     return 0
 
 
