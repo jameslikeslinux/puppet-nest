@@ -23,10 +23,10 @@ class ReleaseDagFixtureTest(unittest.TestCase):
 
     def test_exact_operator_modes_only(self):
         for source in ('api', 'web', 'push', 'merge_request_event', 'schedule', 'pipeline', 'parent_pipeline', 'trigger', ''):
-            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'stage4-pass', 'false', 'true', '', 'PASS'):
+            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'stage4-pass', 'false', 'true', '', 'PASS'):
                 with self.subTest(source=source, mode=mode):
                     self.assertEqual(POLICY['admitted'](dict(CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode)),
-                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail'))
+                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail'))
 
     def test_every_conflict_and_tag_refuses(self):
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
@@ -42,6 +42,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
             for source, mode, code in (('api', 'pass', 0), ('web', 'fail', 0), ('api', 'stage1-pass', 0),
                                        ('web', 'stage1-fail', 0), ('api', 'stage2-pass', 0), ('web', 'stage2-fail', 0),
                                        ('api', 'stage3-pass', 0), ('web', 'stage3-fail', 0), ('push', 'stage3-pass', 1),
+                                       ('api', 'bolt-pass', 0), ('web', 'bolt-fail', 0), ('push', 'bolt-pass', 1),
                                        ('push', 'stage2-pass', 1), ('push', 'stage1-pass', 1), ('push', 'pass', 1), ('api', 'false', 1)):
                 env = dict(PATH=os.defpath, CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode,
                            CI_JOB_TOKEN='fixture-private-token', PYTHONDONTWRITEBYTECODE='1')
@@ -66,9 +67,11 @@ class ReleaseDagFixtureTest(unittest.TestCase):
     def test_native_bridge_has_no_command_or_inherited_pipeline_variables(self):
         for stage, prefix in (('stage0', ''), ('stage1', 'stage1-'), ('stage2', 'stage2-'), ('stage3', 'stage3-')):
             self.check_bridge(stage, prefix)
+        self.check_bridge('tools/bolt', 'bolt-')
 
     def check_bridge(self, stage, prefix):
-        job = self.fixture['Stage ' + stage[-1] + ' release DAG fixture']
+        name = 'OpenBolt' if stage == 'tools/bolt' else 'Stage ' + stage[-1]
+        job = self.fixture[name + ' release DAG fixture']
         self.assertNotIn('script', job)
         self.assertNotIn('variables', job)  # No executing flags during rule evaluation.
         self.assertEqual(job['inherit'], {'variables': False})
