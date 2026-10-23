@@ -82,12 +82,26 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
             self.assertIn('$' + key + r' =~ /[\s\S]/', conditions)
         for rule, mode in zip(job['rules'][2:], ('pass', 'fail')):
-            self.assertEqual(rule['variables'], dict(RELEASE_DAG='true', RELEASE_VALIDATE_ONLY='true', RELEASE_DAG_FIXTURE=mode))
+            expected = dict(RELEASE_DAG='true', RELEASE_VALIDATE_ONLY='true', RELEASE_DAG_FIXTURE=mode)
+            if stage == 'stage3':
+                expected['HOSTNAME'] = ''  # Clear Docker runtime hostname, not a host selection.
+            self.assertEqual(rule['variables'], expected)
             self.assertIn('$NEST_DAG_FIXTURE == "' + prefix + mode + '"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "api"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "web"', rule['if'])
         self.assertEqual(len(job['rules']), 4)
         self.assertEqual(self.fixture['Check release DAG fixture selection']['rules'], [{'if': '$NEST_DAG_FIXTURE'}])
+
+    def test_container_runtime_hostname_is_cleared_only_after_pipeline_admission(self):
+        check = self.fixture['Check release DAG fixture selection']
+        self.assertEqual(check['script'], ['env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py'])
+        env = dict(PATH=os.defpath, CI_PIPELINE_SOURCE='api', NEST_DAG_FIXTURE='stage3-pass',
+                   HOSTNAME='fixture-container-runtime', PYTHONDONTWRITEBYTECODE='1')
+        direct = subprocess.run([sys.executable, str(SCRIPT)], env=env, capture_output=True, check=False)
+        self.assertEqual(direct.returncode, 1)  # A direct host selector still refuses.
+        result = subprocess.run(['env', '-u', 'HOSTNAME', sys.executable, str(SCRIPT)],
+                                env=env, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0)
 
 
 if __name__ == '__main__':

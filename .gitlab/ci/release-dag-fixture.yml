@@ -14,7 +14,9 @@
   image: 'registry.gitlab.joyfullee.me/nest/config/main@sha256:2b6981788cba6f9e9bcdd4c391d17ca812c991e00bcb8ff3a670530226fafbe3'
   tags: ['owl']
   script:
-    - 'python3 scripts/nest-release-dag-fixture.py'
+    # Docker exports its container hostname. Caller host selectors were already
+    # rejected by bridge rules; do not mistake this runtime identity for one.
+    - 'env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py'
   rules:
     - if: '$NEST_DAG_FIXTURE'
 
@@ -125,11 +127,13 @@
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage3-pass"'
       variables:
+        HOSTNAME: ''
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'pass'
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage3-fail"'
       variables:
+        HOSTNAME: ''
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'fail'
