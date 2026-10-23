@@ -1,17 +1,15 @@
 # Native same-source release graph
 
-Current admission: executing graph compilation is disabled. Actual
-nonpublishing pipelines 11573 and 11574 reached the generated config child,
-then its same-project `trigger: project: nest/config` failed with
-`invalid_bridge_trigger` before any leaf job. GitLab supports same-project
-child pipelines, not that multi-project form. Replacing only that edge with
-a child would put the existing route at a forbidden third child level.
-Lint accepted this syntax but did not prove scheduling. The CLI now refuses
-`--compile` before publishing graph artifacts; standalone frozen-input routes
-remain available. The scheduling description below is retained design and
-offline coverage, not a working production topology. Remove this refusal
-only after flattening freezer jobs into a supported two-child graph and
-verifying its exact native lineage and nonpublishing pass/fail propagation.
+Current admission: executing graph compilation remains disabled. Actual
+nonpublishing pipelines 11573 and 11574 rejected the former same-project
+multi-project node edge with `invalid_bridge_trigger`. Lint did not prove
+scheduling. The compiler now flattens member freezers into the graph child,
+and the freezer, predecessor and final acceptance readers use that direct
+lineage. This source has offline coverage, not live contract acceptance.
+The CLI still refuses `--compile` before publishing artifacts. Standalone
+frozen-input routes remain available. Remove this refusal only after the exact
+flattened contracts and nonpublishing pass/fail propagation are verified;
+the previously accepted status-only nesting exercise is not that evidence.
 
 `scripts/nest-release-graph.py` extends the existing frozen-input publisher,
 base discovery/binder, candidate route and final assembler. It is a GitLab CI
@@ -92,8 +90,8 @@ rechecked between the pipeline listing and exact job acquisition. All existing
 source SHA, project/pipeline/job, artifact hash, result member, executor and
 prepublication race checks still apply. Artifact paths and schemas are unchanged.
 
-This is a compatibility prerequisite, not scheduler enablement. The planned
-supported topology is root compiler -> config graph child containing distinct
+This is a compatibility prerequisite, not scheduler enablement. The compiler's
+topology is root compiler -> config graph child containing distinct
 member freezer jobs -> per-member route child -> Stage/tool native pipeline.
 Each freezer waits only for its predecessor route bridges. There is no separate
 config node pipeline. Each job's isolated workspace can keep the existing
@@ -101,10 +99,12 @@ config node pipeline. Each job's isolated workspace can keep the existing
 resolve that flattened lineage rather than the old node layer.
 
 Stage/tool repository consumers must implement the same exact member-scoped
-name admission in reviewed source before the executing graph is enabled. Their
-current legacy-name checks are not bypassed by this config change. The CLI
-remains disabled until the flattened compiler, lineage/freezer/acceptance checks,
-consumer admission and actual nonpublishing pass/fail exercise are complete.
+name admission in reviewed source before the executing graph is enabled.
+All four Stage consumers and OpenBolt, PDK, Agent and Firefox have now passed
+independent parent acceptance of that prerequisite; no consumer check is
+bypassed here. Specialized executor pins remain independently enforced.
+The CLI remains disabled pending actual flattened-contract nonpublishing
+pass/fail acceptance.
 Do not replay the previously accepted status fixtures as proof of those new
 contracts, and do not use real candidate builds merely to test scheduling.
 
@@ -113,26 +113,29 @@ The compiler job writes, fsyncs and reopens `release-graph/request.json`,
 source/pipeline/job, with execution explicitly not started. Existing CI retains
 only successful publication. No previous job-local directory is overwritten.
 
-`Run release graph` includes the generated artifact as a config child pipeline.
-Its `Release node MEMBER` jobs use native multi-project config triggers and
-`strategy: mirror`. Each node has `needs` only on its actual predecessors;
-independent siblings can run concurrently. All bridge layers require success
-and disable tolerated failures and caller pipeline-variable forwarding.
-Only fixed mode fields and compiler artifact identities cross the graph edge.
+`Run release graph` includes the generated artifact as the first config child.
+Each ordinary `Freeze release inputs MEMBER` job waits only on predecessor
+`Release node MEMBER` bridges. Each member bridge waits on its own freezer and
+includes that exact job's `release-inputs/candidate.yml` as the second and final
+config child. Its direct multi-project bridge starts the Stage/tool pipeline.
+There is no config node pipeline or same-project multi-project edge. Independent
+siblings can run concurrently. Every bridge requires success, uses
+`strategy: mirror`, and disables caller pipeline-variable forwarding.
 
-Each node config pipeline uses the existing uniquely named `Freeze release
-inputs` job, then `Route frozen candidate`, its config child and the direct
-Stage/tool native bridge. This deliberately preserves the existing producer
-job names and artifact contracts. A node cannot select compilation again, so
-config -> config node -> Stage/tool does not create a recursive executor loop.
+Each freezer acquires the exact compiler artifact by successful job ID and byte
+hash, verifies its running required job identity in the graph child and the
+compiler -> graph edge, then resolves successful predecessor graph/freezer ->
+route child -> Stage/tool edges. The graph's input pipeline is shared but every
+member's input job is distinct. Legacy/scoped ambiguity, sibling substitution,
+changed job identity and old node-layer lineage refuse. Unrelated running
+sibling freezers do not block a successful predecessor. Volatile runner/user
+metadata is not identity. Parent-pipeline route compilation is admitted only
+for the exact scoped freezer job name; ordinary parent jobs remain refused.
 
-The node acquires the exact compiler artifact by successful job ID and byte
-hash, verifies its own active native graph edge and compiler -> graph lineage,
-then resolves each successful predecessor graph -> config node -> route child
--> Stage/tool edge. Existing discovery rejects failed, erased, moved, retried,
-ambiguous, tolerated or incomplete producer resources, outgoing leaf triggers,
-changed artifacts and wrong source/executor inputs. It binds actual immutable
-predecessor output references, not mutable latest-success lookups.
+Existing discovery rejects failed, erased, moved, retried, ambiguous, tolerated
+or incomplete producer resources, outgoing leaf triggers, changed artifacts
+and wrong source/executor inputs. It binds actual immutable predecessor output
+references, not mutable latest-success lookups.
 
 Immediately before publication, a graph-specific guard reacquires the parent
 lineage as well as the ordinary discovery/route checks. A retried graph-parent

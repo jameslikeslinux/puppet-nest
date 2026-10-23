@@ -31,6 +31,8 @@ def request(expected) -> Any:
 
 
 class NativeGraph(F['FakeGitLab']):
+    after_get: Any
+
     def __init__(self, expected):
         super().__init__()
         self.expected = expected
@@ -38,9 +40,11 @@ class NativeGraph(F['FakeGitLab']):
         self.graph = request(expected)
         self.jobs[('nest/config', 901)] = self.make_job('nest/config', 900, 901, 'Build haswell')
         self.jobs[('nest/config', 601)] = self.make_job('nest/config', 600, 601, 'Compile release graph')
-        self.jobs[('nest/config', 801)] = self.make_job('nest/config', 800, 801, 'Freeze release inputs')
+        self.jobs[('nest/config', 801)] = self.make_job('nest/config', 650, 801, 'Freeze release inputs stage0')
+        self.jobs[('nest/config', 9011)] = self.make_job('nest/config', 650, 9011, 'Freeze release inputs stage1')
         self.jobs[('nest/stage0', 101)] = self.make_job('nest/stage0', 1, 101, 'Candidate haswell')
         for job in self.jobs.values(): job['allow_failure'] = False
+        self.jobs[('nest/config', 9011)]['status'] = 'running'
         self.result['release'] = expected['release']
         self.result['executor_receipt'] = self.executor
         self.result['expectations_digest'] = R['digest'](expected)
@@ -53,16 +57,14 @@ class NativeGraph(F['FakeGitLab']):
                           ('nest/stage0', 101, 'release-results/stage0.json'): self.result}
         self.pipelines = {i: self.pipeline(i, source, status) for i, source, status in (
             (600, 'api', 'running'), (650, 'parent_pipeline', 'running'),
-            (800, 'pipeline', 'success'), (850, 'parent_pipeline', 'success'))}
+            (850, 'parent_pipeline', 'success'))}
         self.pipelines[1] = self.pipeline(1, 'pipeline', 'success', project='nest/stage0')
         self.bridges = {
             600: [self.bridge(610, 'Run release graph', 600, 650, 'running')],
-            650: [self.bridge(660, 'Release node stage0', 650, 800),
-                  self.bridge(661, 'Release node stage1', 650, 9010, 'running')],
-            800: [self.bridge(810, 'Route frozen candidate', 800, 850)],
+            650: [self.bridge(660, 'Release node stage0', 650, 850)],
             850: [self.bridge(860, 'Build frozen member', 850, 1)], 1: []}
-        self.bridges[650][1]['downstream_pipeline'] = self.pipeline(9010, 'pipeline', 'running')
-        self.pipeline_jobs = {800: [self.jobs[('nest/config', 801)]], 1: [self.jobs[('nest/stage0', 101)]]}
+        self.pipeline_jobs = {650: [self.jobs[('nest/config', 801)], self.jobs[('nest/config', 9011)]],
+                              1: [self.jobs[('nest/stage0', 101)]]}
         self.after_get = None
 
     def pipeline(self, number, source, status, project='nest/config'):
@@ -105,8 +107,8 @@ class GraphTest(unittest.TestCase):
                         CI_COMMIT_BRANCH='main',
                         CI_JOB_NAME='Compile release graph', RELEASE_GRAPH='true', RELEASE_GRAPH_FILE='/fixture/graph.json')
         self.env.pop('RELEASE_INPUTS')
-        self.node_env = dict(self.f.env, CI_PIPELINE_SOURCE='pipeline', CI_PIPELINE_ID='9010', CI_JOB_ID='9011',
-                             CI_JOB_NAME='Freeze release inputs', RELEASE_GRAPH_NODE='true', RELEASE_GRAPH_MEMBER='stage1',
+        self.node_env = dict(self.f.env, CI_PIPELINE_SOURCE='parent_pipeline', CI_PIPELINE_ID='650', CI_JOB_ID='9011',
+                             CI_JOB_NAME='Freeze release inputs stage1', RELEASE_GRAPH_NODE='true', RELEASE_GRAPH_MEMBER='stage1',
                              RELEASE_GRAPH_INPUT_PIPELINE='600', RELEASE_GRAPH_INPUT_JOB='601',
                              RELEASE_GRAPH_INPUT_SHA256=hashlib.sha256(R['canonical'](self.request)).hexdigest(),
                              RELEASE_GRAPH_ROOT_PIPELINE='650')
@@ -115,7 +117,7 @@ class GraphTest(unittest.TestCase):
         completed = subprocess.run([sys.executable, str(ROOT / 'scripts/nest-release-graph.py'), '--compile'],
                                    cwd=self.f.checkout, env=self.env, capture_output=True, text=True, check=False)
         self.assertEqual(completed.returncode, 1)
-        self.assertIn('unsupported same-project node topology', completed.stderr)
+        self.assertIn('flattened graph acceptance pending', completed.stderr)
         self.assertFalse((self.f.checkout / 'release-graph').exists())
 
     def test_compiles_exact_native_dependencies_and_reopens_no_clobber_artifacts(self):
@@ -124,16 +126,22 @@ class GraphTest(unittest.TestCase):
         receipt = G['compile_graph'](self.request, self.env)
         directory = self.f.checkout / 'release-graph'
         graph = json.loads((directory / 'graph.yml').read_bytes())
-        self.assertEqual(graph['Release node stage0']['needs'], [])
-        self.assertEqual(graph['Release node stage1']['needs'], ['Release node stage0'])
+        self.assertEqual(graph['Freeze release inputs stage0']['needs'], [])
+        self.assertEqual(graph['Freeze release inputs stage1']['needs'], ['Release node stage0'])
         for name in ('stage0', 'stage1'):
             job = graph['Release node ' + name]
+            freezer = 'Freeze release inputs ' + name
+            self.assertEqual(job['needs'], [freezer])
             self.assertFalse(job['allow_failure'])
-            self.assertEqual(job['trigger'], dict(project='nest/config', branch='main', strategy='mirror',
+            self.assertEqual(job['trigger'], dict(include=[dict(artifact='release-inputs/candidate.yml', job=freezer)], strategy='mirror',
                                                  forward=dict(yaml_variables=True, pipeline_variables=False)))
             self.assertEqual(job['inherit'], dict(variables=False))
-            self.assertEqual(job['variables']['RELEASE_GRAPH_ROOT_PIPELINE'], '$CI_PIPELINE_ID')
-            self.assertNotIn('RELEASE_GRAPH', job['variables'])
+            self.assertNotIn('variables', job)
+            frozen = graph[freezer]
+            self.assertEqual(frozen['variables']['RELEASE_GRAPH_ROOT_PIPELINE'], '$CI_PIPELINE_ID')
+            self.assertNotIn('RELEASE_GRAPH', frozen['variables'])
+            self.assertEqual(frozen['script'], ['python3 scripts/nest-release-graph.py --freeze-node'])
+            self.assertEqual(frozen['artifacts'], dict(when='on_success', paths=['release-inputs/']))
         self.assertNotIn(b'fixture-private-value', (directory / 'graph.yml').read_bytes())
         self.assertEqual(hashlib.sha256((directory / 'request.json').read_bytes()).hexdigest(), receipt['request_sha256'])
         self.assertEqual(self.request, before)
@@ -158,12 +166,63 @@ class GraphTest(unittest.TestCase):
         with self.assertRaises(FileExistsError): G['freeze_node'](self.node_env, self.api)
 
     def test_root_node_uses_reviewed_pinned_bases_without_predecessor_acquisition(self):
-        env = dict(self.node_env, RELEASE_GRAPH_MEMBER='stage0', CI_PIPELINE_ID='800')
-        self.api.bridges[650][0]['status'] = 'running'
+        env = dict(self.node_env, RELEASE_GRAPH_MEMBER='stage0', CI_JOB_ID='801', CI_JOB_NAME='Freeze release inputs stage0')
+        self.api.jobs[('nest/config', 801)]['status'] = 'running'
         G['freeze_node'](env, self.api)
         frozen = R['load'](self.f.checkout / 'release-inputs/expectations.json')
         self.assertEqual(frozen, self.request['expectations'])
         self.assertFalse(any('/projects/nest%2Fstage0' in p for p in self.api.reads))
+
+    def test_flattened_freezer_exact_identity_and_no_legacy_or_sibling_substitution(self):
+        for change in ('legacy', 'sibling', 'duplicate', 'erased', 'tolerated', 'failed', 'pipeline', 'commit', 'job', 'name'):
+            api = NativeGraph(copy.deepcopy(self.api.expected))
+            env = dict(self.node_env)
+            row = api.jobs[('nest/config', 9011)]
+            if change == 'legacy': row['name'] = 'Freeze release inputs'
+            if change == 'sibling': row['name'] = 'Freeze release inputs stage0'
+            if change == 'duplicate': api.pipeline_jobs[650].append(copy.deepcopy(row))
+            if change == 'erased': row['erased_at'] = 'fixture'
+            if change == 'tolerated': row['allow_failure'] = True
+            if change == 'failed': row['status'] = 'failed'
+            if change == 'pipeline': row['pipeline']['id'] = 651
+            if change == 'commit': row['commit']['id'] = 'f' * 40
+            if change == 'job': env['CI_JOB_ID'] = '9012'
+            if change == 'name': env['CI_JOB_NAME'] = 'Freeze release inputs stage1 '
+            with self.subTest(change=change), self.assertRaises(ValueError): G['freeze_node'](env, api)
+            self.assertFalse((self.f.checkout / 'release-inputs').exists())
+
+    def test_running_siblings_and_volatile_job_fields_do_not_block_exact_predecessor(self):
+        self.api.pipeline_jobs[650].append(dict(id=990, name='Freeze release inputs sibling', status='running'))
+        def after(path):
+            if '/pipelines/650/jobs?' in path:
+                row = self.api.jobs[('nest/config', 9011)]
+                row['duration'] = row.get('duration', 0) + 1
+                row['runner'] = dict(contacted_at=str(row['duration']))
+        self.api.after_get = after
+        G['freeze_node'](self.node_env, self.api)
+        self.assertTrue((self.f.checkout / 'release-inputs/candidate.yml').exists())
+
+    def test_running_freezer_replacement_during_acquisition_refuses_before_publication(self):
+        def after(path):
+            if path.endswith('/jobs/901/artifacts/executor-receipts/haswell.json'):
+                self.api.jobs[('nest/config', 9011)]['id'] = 9012
+        self.api.after_get = after
+        with self.assertRaises(ValueError): G['freeze_node'](self.node_env, self.api)
+        self.assertFalse((self.f.checkout / 'release-inputs').exists())
+
+    def test_flattened_predecessor_refuses_ambiguous_or_wrong_freezer_and_old_node_layer(self):
+        for change in ('legacy', 'duplicate', 'failed', 'old-node', 'extra-route'):
+            api = NativeGraph(copy.deepcopy(self.api.expected))
+            if change == 'legacy': api.jobs[('nest/config', 801)]['name'] = 'Freeze release inputs'
+            if change == 'duplicate':
+                extra = copy.deepcopy(api.jobs[('nest/config', 801)])
+                extra.update(id=802, name='Freeze release inputs')
+                api.pipeline_jobs[650].append(extra)
+            if change == 'failed': api.jobs[('nest/config', 801)]['status'] = 'failed'
+            if change == 'old-node': api.pipelines[850]['source'] = 'pipeline'
+            if change == 'extra-route': api.bridges[850].append(dict(id=870, name='Unexpected'))
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                G['native_node'](api, self.request, 650, 'stage0')
 
     def test_partial_modes_conflicts_and_nonoperator_graph_sources_refuse(self):
         plain = {k: v for k, v in self.env.items() if k not in G['KEYS']}
@@ -174,7 +233,7 @@ class GraphTest(unittest.TestCase):
             with self.subTest(source=source), self.assertRaises(ValueError): G['selected'](dict(self.env, CI_PIPELINE_SOURCE=source))
         for key in G['CONFLICTS']:
             with self.subTest(key=key), self.assertRaises(ValueError): G['selected'](dict(self.env, **{key: 'false'}))
-        for source in ('api', 'parent_pipeline', 'push', 'trigger'):
+        for source in ('api', 'pipeline', 'push', 'trigger'):
             with self.assertRaises(ValueError): G['selected'](dict(self.node_env, CI_PIPELINE_SOURCE=source))
 
     def test_schema_coverage_pair_compatibility_expansion_and_cycles_refuse(self):
@@ -219,11 +278,11 @@ class GraphTest(unittest.TestCase):
             if change == 'compiler': api.jobs[('nest/config', 601)]['name'] = 'Other'
             if change == 'sha': api.graph['expectations']['release'] = 'moved'
             if change == 'root': api.pipelines[650]['source'] = 'api'
-            if change == 'active': api.bridges[650][1]['downstream_pipeline']['id'] = 999
+            if change == 'active': api.jobs[('nest/config', 9011)]['id'] = 999
             if change == 'lineage': api.bridges[600][0]['downstream_pipeline']['id'] = 999
-            if change == 'failed-node': api.pipelines[800]['status'] = 'failed'
+            if change == 'failed-node': api.jobs[('nest/config', 801)]['status'] = 'failed'
             if change == 'moved-node': api.bridges[650][0]['downstream_pipeline']['sha'] = 'f' * 40
-            if change == 'missing-route': api.bridges[800] = []
+            if change == 'missing-route': api.bridges[650] = []
             if change == 'failed-route': api.pipelines[850]['status'] = 'failed'
             if change == 'loop': api.bridges[1] = [dict(id=102)]
             if change == 'hidden': api.pipeline_jobs[1].append(dict(id=102, name='Other', status='failed', allow_failure=True))
@@ -291,8 +350,8 @@ class GraphTest(unittest.TestCase):
                                        bindings=copy.deepcopy(candidate['nodes'][1]['bindings'])))
         G['compile_graph'](candidate, self.env)
         graph = R['load'](self.f.checkout / 'release-graph/graph.yml')
-        self.assertEqual(graph['Release node stage1']['needs'], ['Release node stage0'])
-        self.assertEqual(graph['Release node stage1-workstation']['needs'], ['Release node stage0'])
+        self.assertEqual(graph['Freeze release inputs stage1']['needs'], ['Release node stage0'])
+        self.assertEqual(graph['Freeze release inputs stage1-workstation']['needs'], ['Release node stage0'])
         candidate['nodes'] = candidate['nodes'][1:]
         candidate['nodes'][0]['bindings'] = []
         candidate['nodes'][1]['bindings'] = []
@@ -311,15 +370,13 @@ class GraphTest(unittest.TestCase):
         # Produce a Stage 1 result using the descendant's actually frozen input.
         G['freeze_node'](self.node_env, self.api)
         frozen = R['load'](self.f.checkout / 'release-inputs/expectations.json')
-        self.api.pipelines[9010] = self.api.pipeline(9010, 'pipeline', 'success')
         self.api.pipelines[9050] = self.api.pipeline(9050, 'parent_pipeline', 'success')
         self.api.pipelines[2] = self.api.pipeline(2, 'pipeline', 'success', project='nest/stage1')
-        self.api.bridges[650][1].update(status='success', downstream_pipeline=copy.deepcopy(self.api.pipelines[9010]))
-        self.api.bridges[9010] = [self.api.bridge(9020, 'Route frozen candidate', 9010, 9050)]
+        self.api.bridges[650].append(self.api.bridge(661, 'Release node stage1', 650, 9050))
         self.api.bridges[9050] = [self.api.bridge(9060, 'Build frozen member', 9050, 2)]
         self.api.bridges[2] = []
-        for project, pipeline, job, name in [('nest/config', 9010, 9011, 'Freeze release inputs'),
-                                              ('nest/stage1', 2, 102, 'Candidate haswell-server')]:
+        self.api.jobs[('nest/config', 9011)]['status'] = 'success'
+        for project, pipeline, job, name in [('nest/stage1', 2, 102, 'Candidate haswell-server')]:
             self.api.jobs[(project, job)] = self.api.make_job(project, pipeline, job, name)
             self.api.jobs[(project, job)]['allow_failure'] = False
             self.api.pipeline_jobs[pipeline] = [self.api.jobs[(project, job)]]

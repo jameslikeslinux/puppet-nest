@@ -95,6 +95,16 @@ class ReleaseRouteTest(unittest.TestCase):
         for source in ('api', 'web', 'pipeline', 'trigger'):
             self.assertTrue(ROUTE['selected'](dict(self.f.env, CI_PIPELINE_SOURCE=source)))
 
+    def test_parent_source_requires_exact_scoped_freezer_job(self):
+        member = self.f.env['RELEASE_ROUTE_MEMBER']
+        for name in ('Freeze release inputs', 'Freeze release inputs sibling',
+                     'Freeze release inputs  ' + member, 'Freeze release inputs ' + member + '\n', ''):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.publish(CI_PIPELINE_SOURCE='parent_pipeline', CI_JOB_NAME=name)
+        self.assertEqual(self.api.reads, [])
+        receipt = self.publish(CI_PIPELINE_SOURCE='parent_pipeline', CI_JOB_NAME='Freeze release inputs ' + member)
+        self.assertEqual(receipt['candidate_route']['member'], member)
+
     def test_unknown_reuse_and_unimplemented_tool_refuse(self):
         with self.assertRaises(ValueError): self.publish(RELEASE_ROUTE_MEMBER='absent')
         self.f.expected['consumers'][-1]['decision'] = 'reuse'

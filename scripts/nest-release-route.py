@@ -29,7 +29,9 @@ def selected(env):
     if requested:
         require(env.get('RELEASE_ROUTE') == 'true', 'explicit candidate routing required')
         require(env.get('RELEASE_INPUTS') == 'true', 'routing requires frozen inputs')
-        require(env.get('CI_PIPELINE_SOURCE') in ('api', 'web', 'pipeline', 'trigger')
+        native_freezer = (env.get('CI_PIPELINE_SOURCE') == 'parent_pipeline'
+                          and env.get('CI_JOB_NAME') == 'Freeze release inputs ' + str(env.get('RELEASE_ROUTE_MEMBER')))
+        require((env.get('CI_PIPELINE_SOURCE') in ('api', 'web', 'pipeline', 'trigger') or native_freezer)
                 and not env.get('CI_COMMIT_TAG'), 'unsupported routing source')
         require(not any(env.get(key) for key in CONFLICTS), 'conflicting routing selection')
         R['match'](env.get('RELEASE_ROUTE_MEMBER'), R['TOKEN'], 'routing member')
