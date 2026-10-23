@@ -589,6 +589,38 @@ aliases are unchanged. Rollback stops invoking this opt-in validator and retains
 previous manifest/artifact digests; it does not rebuild an old release from main,
 destroy a generation, alter a host, or relax a failed admission gate.
 
+## Frozen browser candidate producers
+
+The existing `nest::build::firefox` and `nest::build::camofox` wrappers now accept
+`candidate`, `from_image` and complete `repo_revisions`, using the same executing
+adapter interface below. Frozen Firefox selects `zen5` with variant `workstation`;
+its legacy fresh base CPU remains `haswell` because Stage 1 has no zen5 workstation
+output. Camofox selects `zen5` with variant `server`. These are distinct base and
+runtime contracts, not interchangeable browser images. The release owner must
+verify the selected digest's actual CPU/variant compatibility before execution;
+the wrapper's syntax checks alone cannot establish it.
+
+Candidate mode requires build, init and deploy, an exact base, all three source
+pins, no tag override and a remote registry. Existing runner registry authentication
+is required; credential parameters refuse. Fresh/refresh remains the frozen
+member's ordinary recipe. The adapter dispatches each specialized wrapper, not
+the generic plan directly: Firefox's headless smoke and Camofox's tab-creation
+smoke must pass, followed by another frozen-repository check and checked stop.
+Only then is `candidate-TOKEN` committed and remotely verified. Firefox retains
+CMD `/usr/local/bin/nest-firefox-browser` and WORKDIR `/home/kasm-user`; Camofox
+retains CMD `/usr/local/bin/nest-camofox-browser` and WORKDIR `/home/node`.
+Failure emits no accepted result, although a failed push can leave an unselected
+candidate. Existing latest/custom-tag publication is unchanged outside candidate
+mode. The returned value is exactly one same-project repository digest `image`.
+
+These source interfaces do not yet enable either repository's frozen CI consumer,
+prove actual browser UX, build or publish an image, promote aliases or change the
+live services. PDK remains unsupported by the frozen adapter until its specialized
+smoke and private gem configuration contract is implemented. The native DAG,
+resource admission and separately authorized release exercise remain required.
+Rollback stops supplying candidate options; preserve existing digests and failed
+attempts rather than replaying a build or moving production aliases.
+
 ## Frozen Stage candidate producer
 
 `python3 /opt/nest/bin/ci-release-build --expectations FILE --member ID
@@ -605,7 +637,8 @@ supports only refresh of a Nest base with the server profile; raw Gentoo/fresh
 bootstrap is intentionally rejected. Stage 1/2 preserve explicit fresh/refresh,
 normal/debug base distinctions, CPU/platform/variant and all three repository
 pins. The direct llama.cpp and specialized OpenBolt/Agent paths are supported below; other
-tools refuse instead of bypassing their specialized wrappers. Stage 3 supports only explicit fresh initialization and requires the
+tools refuse instead of bypassing their specialized wrappers, except for the specialized
+browser paths documented below. Stage 3 supports only explicit fresh initialization and requires the
 additional local placement contract below; refresh refuses. Candidate/container names derive from positive CI pipeline/job
 IDs, so one member must run per CI job. No arbitrary plan parameter overrides
 are accepted; existing Hiera resource policy remains in effect.
