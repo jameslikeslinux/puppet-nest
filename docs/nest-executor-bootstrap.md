@@ -1,0 +1,136 @@
+# Distinct OpenBolt to config executor bootstrap
+
+The config executor build accepts an exact successful native OpenBolt result
+without relabeling the old executor's release as the new config source. This
+extends the existing `.template` build and schema-2 executor receipt. It creates
+no trigger or service, and cannot trigger config -> Bolt -> config recursively.
+The ordinary same-source binder, discovery, assembly and envelope contracts are
+unchanged; do not bypass their source checks to model this separate boundary.
+
+This is input acquisition and candidate executor publication, not the complete
+release DAG, production resource/ISA/ABI acceptance, alias promotion or rollout.
+Installing it does not authorize a new OpenBolt or OS build merely for evidence.
+
+## CI selection
+
+On the exact selected successor config revision, use the existing API, web,
+native pipeline or trigger source with:
+
+- `EXECUTOR_BOOTSTRAP=true` and `EXECUTOR_ONLY=true`.
+- `BUILD=haswell`, `BUILD=cortex-a53` or `BUILD=sifive-u74`, exactly one native
+  executor architecture. The selected job supplies its matching `CPU`.
+- `RELEASE_BOOTSTRAP_FILE`, a GitLab file variable containing the request below.
+
+No caller `BOLT_IMAGE` override is permitted in this mode. Ordinary builds without
+bootstrap fields retain their existing default/override behavior. Tag, push, MR,
+schedule and parent-pipeline bootstrap execution are refused. Partial, false,
+malformed or conflicting selection cannot fall through to ordinary executor
+builds or either deployment job. The Test-stage selection job fails before any
+Build-stage action. Existing isolated status-fixture mode still suppresses all
+executor/deployment jobs; do not mix it with executing modes.
+
+The helper runs before registry login, directory creation or build commands:
+
+```sh
+python3 scripts/nest-executor-bootstrap.py --check-selection
+python3 scripts/nest-executor-bootstrap.py --ci-base
+```
+
+The first validates selection only. The second reads the exact submitted file,
+checks the clean real CI checkout/project/source/job/CPU identity, acquires the
+OpenBolt inputs and publishes a new local `executor-bootstrap` directory. It
+prints only the acquired immutable OpenBolt reference for the existing build
+script. Static diagnostics and exit 1 indicate operational refusal; argument
+errors return 2. Neither helper invocation builds, triggers or retries anything.
+`--ci-base` without bootstrap fields prints the existing ordinary base selection
+and does not create a bootstrap directory.
+
+## Request schema 1
+
+The request has exactly `schema`, `kind`, `successor_source`, `successor_cpu`,
+and `producer`:
+
+- `schema` is integer 1; `kind` is `nest_executor_bootstrap`.
+- `successor_source` is the exact new config Git SHA. It must match the actual
+  clean checkout, not a mutable branch name, and differ from the prior config
+  source in the OpenBolt input artifact.
+- `successor_cpu` is the exact selected native executor CPU above.
+- `producer` uses the existing base-binding selector with exactly `project`,
+  `pipeline`, `job`, `member`, `input_pipeline`, `input_job`, `input_sha256` and
+  `result_sha256`. Project must be `nest/tools/bolt`; positive integer identities
+  name actual jobs/pipelines. The two bare lowercase SHA256 values bind the
+  original input and result file bytes, not reserialized JSON or the ZIP archive.
+
+Select these values from the already successful, separately approved OpenBolt
+producer. Do not predict a future result, use latest-success lookup, fill missing
+evidence by rebuilding or claim that this request is new build authorization.
+The original input job must be named `Freeze release inputs`. Existing legacy
+and digest-named member results are supported through the bounded ZIP reader.
+
+## Exact prior boundary and successor publication
+
+Acquisition independently checks:
+
+1. The original frozen input byte hash and complete expectation/source/consumer
+   schema. The selected member must be a rebuilt server OpenBolt with exactly the
+   selected executor CPU; another tool, variant or reused member cannot substitute.
+2. The exact successful unerased input job and OpenBolt producer source/pipeline/
+   job/archive. The whole OpenBolt pipeline must have succeeded as a native
+   downstream, with no tolerated/incomplete jobs and no outgoing trigger bridge.
+   A green result job in a failed pipeline is not acceptance.
+3. The original result's input digest, member, source, artifacts and embedded
+   schema-2 old-executor receipt. The old executor's actual successful job and
+   independently read receipt must match; no future successor receipt is needed.
+4. The output must be an immutable architecture OpenBolt image under
+   `registry.gitlab.joyfullee.me/nest/tools/bolt/`. Jobs, original artifact bytes,
+   executor receipt and native pipeline inventories are reacquired before use.
+
+Only fixed allowlisted GitLab GETs are used through existing `glab` authentication.
+No token, caller URL, private identity content, job trace, mutation or polling
+endpoint is introduced. Equivalent runner/job-token access is not assumed: missing
+access must fail rather than injecting a user token or claiming fixture success as
+production access acceptance. Free-text prior expectations are retained as input
+data, not secret-scrubbed; review/sanitize them before sharing artifacts.
+
+`executor-bootstrap/receipt.json` retains the separate old inputs/result/executor
+and new source/job/CPU/base identity, with explicit `build=not_started`,
+`image_compatibility_verification=not_performed` and no promotion authorization.
+`bolt.ref` contains the exact immutable base reference. Both files are no-clobber,
+fsynced and reopened before the helper returns. CI retains them with the ordinary
+executor receipts on successful publication; they are not a build-success receipt.
+
+The existing build pulls that exact digest, refuses a different resolved reference,
+and passes it to `Containerfile`. The image's own installed input/module checks
+produce the ordinary schema-2 receipt at the new config source. Before that receipt
+is written, its actual base/source/CPU/pipeline/job must match the retained bootstrap
+input. This proves the measured installed base matches acquisition; it does not
+certify ISA/ABI or every resource needed by future consumers.
+
+Bootstrap builds publish only the unique existing executor image and receipt.
+They do not update CPU aliases, the aggregate `latest` manifest, Puppet code or
+live hosts. Ordinary managed tooling delivery retains its existing behavior.
+A later consumer must use the exact new executor job/digest after independent
+acceptance. Firefox, Camofox and llama.cpp source-owned executor pins are unchanged.
+
+## Tests, remaining work and rollback
+
+Offline tests exercise all three native architecture boundaries, raw/digest-named
+results, old/new source separation, exact failed/erased/moved jobs, independently
+changed executor evidence, failed/non-native/looping OpenBolt pipelines, hidden
+failures, selection conflicts, read races, no-clobber/readback failure and real
+CLI acquisition with fake glab. Fake Podman tests bind actual successor input
+observations before writing a schema-2 receipt. They build/publish nothing.
+Real GitLab merged-YAML dry runs verify admission and ordinary compatibility
+without creating pipelines or artifacts.
+
+The full native graph must still schedule the prior executor -> OpenBolt ->
+this successor boundary and freeze each descendant after actual predecessor
+success. Automatic graph generation, later source-owned executor admission,
+production permission/resource/ISA/ABI checks, full release policy/promotion and
+host transaction lifecycle remain open. No actual new candidate bootstrap is
+run merely to claim this interface is operationally proven.
+
+Rollback omits both bootstrap fields and retains all original input/result/
+executor receipts and digests. Do not relabel an old result at the new source,
+promote an alias automatically, delete prior images or replay a completed build.
+The first destructive host canary remains separately Joy-gated.

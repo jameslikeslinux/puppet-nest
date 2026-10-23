@@ -230,11 +230,39 @@ class ExecutorIdentityTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(destination.exists())
 
+    def test_bootstrap_actual_base_and_exact_successor_identity_before_receipt(self):
+        directory = self.root / 'executor-bootstrap'
+        directory.mkdir()
+        base = 'registry.example/nest/tools/bolt@sha256:' + 'f' * 64
+        receipt = dict(schema=1, kind='nest_executor_bootstrap_input',
+                       successor=dict(source=SHA, cpu='haswell', pipeline=123, job=101,
+                                      base_image=base, build='not_started'))
+        path = directory / 'receipt.json'
+        path.write_text(json.dumps(receipt))
+        (directory / 'bolt.ref').write_text(base + '\n')
+        self.env.update(EXECUTOR_BOOTSTRAP='true', RELEASE_BOOTSTRAP_FILE='/fixture/request.json',
+                        EXECUTOR_ONLY='true', BUILD='haswell', CI_PIPELINE_SOURCE='api',
+                        CI_PROJECT_DIR=str(self.root))
+        ref = self.root / 'image.ref'
+        ref.write_text(REPO + '@sha256:' + '1' * 64 + '\n')
+        for key, value in [('source', 'b' * 40), ('cpu', 'cortex-a53'), ('pipeline', 124),
+                           ('job', 102), ('base_image', 'registry.example/nest/tools/bolt@sha256:' + 'e' * 64)]:
+            bad = json.loads(json.dumps(receipt))
+            bad['successor'][key] = value
+            path.write_text(json.dumps(bad))
+            result = self.cli('record', ref, self.root / 'output.json', CPU='haswell', CI_JOB_ID='101')
+            self.assertEqual(result.returncode, 1, key)
+            self.assertFalse((self.root / 'output.json').exists())
+        path.write_text(json.dumps(receipt))
+        result = self.cli('record', ref, self.root / 'output.json', CPU='haswell', CI_JOB_ID='101')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads((self.root / 'output.json').read_bytes())['inputs']['base_image'], base)
+
     def test_ci_wires_exact_source_and_artifacts_not_mutable_index_members(self):
         ci = (ROOT / ".gitlab-ci.yml").read_text()
         self.assertIn('--build-arg=SOURCE_SHA="$CI_COMMIT_SHA"', ci)
         self.assertIn('executor-${CI_PIPELINE_ID}-${CI_JOB_ID}-${CPU}', ci)
-        self.assertIn('paths: [\'executor-receipts/\']', ci)
+        self.assertIn('paths: [\'executor-receipts/\', \'executor-bootstrap/\']', ci)
         deploy = ci.split("'Deploy image':", 1)[1]
         self.assertIn("ci-executor-receipt refs", deploy)
         for cpu in ("haswell", "cortex-a53", "sifive-u74"):

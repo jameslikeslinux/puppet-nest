@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import subprocess
 import sys
 
@@ -95,6 +96,10 @@ def record(reference_path, output):
     row = validate({"schema": 2, "kind": "nest_config_executor_member", "project": "nest/config", "sha": sha,
                     "pipeline": pipeline, "job": int(job), "cpu": cpu, "image": reference,
                     "source_verification": "git_head_and_oci_revision", "inputs": inputs}, cpu)
+    if os.environ.get('EXECUTOR_BOOTSTRAP') or os.environ.get('RELEASE_BOOTSTRAP_FILE'):
+        bootstrap = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/nest-executor-bootstrap.py'))
+        require(bootstrap['selected'](os.environ))
+        bootstrap['check_successor'](row, Path(os.environ['CI_PROJECT_DIR']) / 'executor-bootstrap')
     # No host mounts, network, build plan, or secret environment in the container.
     require(command(["podman", "run", "--rm", "--pull=never", "--network=none", "--read-only", "--read-only-tmpfs=false",
                      "--cap-drop=ALL", "--security-opt=no-new-privileges", "--entrypoint=git", reference,
@@ -146,7 +151,7 @@ def main():
         else:
             print(references(args.directory))
         return 0
-    except (OSError, ValueError, TypeError, RecursionError, subprocess.SubprocessError):
+    except (OSError, ValueError, KeyError, TypeError, RecursionError, subprocess.SubprocessError):
         # Never echo subprocess stderr, submitted metadata, paths, or CI credentials.
         print("Executor identity verification failed; no accepted member set emitted", file=sys.stderr)
         return 1
