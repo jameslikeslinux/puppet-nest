@@ -97,26 +97,33 @@ def publish(input_path, env, discovery=False, api=None, before_publication=None)
     # A fresh, private CI job directory is the publication boundary. Failure never
     # replaces an earlier artifact; on-success CI retention excludes partial output.
     records = {"expectations.json": payload, "receipt.json": release["canonical"](receipt)}
+    # Consumers compare the schema-1 input receipt exactly. Keep compiler and
+    # discovery evidence in a separately bound sidecar, not additive receipt
+    # fields that invalidate every strict downstream consumer.
+    provenance_receipt = {
+        'schema': 1, 'kind': 'nest_release_input_provenance',
+        'input_receipt_sha256': hashlib.sha256(records['receipt.json']).hexdigest(),
+    }
     if route_selected:
         graph = routing['compile_bridge'](expected, receipt, env,
                                           routing['B']['GitLab']() if api is None else api)
         records['candidate.yml'] = release['canonical'](graph)
-        receipt['candidate_route'] = {
+        provenance_receipt['candidate_route'] = {
             'artifact': 'release-inputs/candidate.yml',
             'artifact_sha256': hashlib.sha256(records['candidate.yml']).hexdigest(),
             'member': env['RELEASE_ROUTE_MEMBER'],
             'execution': 'not_started',
         }
-        records['receipt.json'] = release['canonical'](receipt)
     if provenance is not None:
         records['discovery.json'] = release['canonical'](provenance)
         require(len(records['discovery.json']) <= release['LIMIT'], 'discovery artifact exceeds size limit')
-        receipt['base_discovery'] = {
+        provenance_receipt['base_discovery'] = {
             'artifact': 'release-inputs/discovery.json',
             'artifact_sha256': hashlib.sha256(records['discovery.json']).hexdigest(),
             'edges': len(provenance['edges']),
         }
-        records['receipt.json'] = release['canonical'](receipt)
+    if route_selected or provenance is not None:
+        records['provenance.json'] = release['canonical'](provenance_receipt)
     if trust is not None:
         records["trust.json"] = trust
     if before_publication is not None:

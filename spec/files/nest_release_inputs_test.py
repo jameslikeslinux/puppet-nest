@@ -165,6 +165,7 @@ class ReleaseInputsTest(unittest.TestCase):
         self.assertEqual(receipt['resource_verification'], 'not_performed')
         self.assertTrue(json.loads(result.stdout)['readback_verified'])
         self.assertNotIn('Fixture only', result.stdout)
+        self.assertFalse((self.checkout / 'release-inputs/provenance.json').exists())
 
     def test_existing_output_and_symlink_refuse_without_replacement(self):
         directory = self.checkout / 'release-inputs'
@@ -276,7 +277,10 @@ class ReleaseInputsTest(unittest.TestCase):
         self.assertEqual(frozen['members'][0]['bases'], api.result['output']['artifacts'])
         self.assertEqual(receipt['artifact_sha256'], hashlib.sha256((base / 'expectations.json').read_bytes()).hexdigest())
         provenance = (base / 'discovery.json').read_bytes()
-        self.assertEqual(receipt['base_discovery']['artifact_sha256'], hashlib.sha256(provenance).hexdigest())
+        sidecar = RELEASE['load'](base / 'provenance.json')
+        self.assertEqual(sidecar['base_discovery']['artifact_sha256'], hashlib.sha256(provenance).hexdigest())
+        self.assertEqual(sidecar['input_receipt_sha256'], hashlib.sha256((base / 'receipt.json').read_bytes()).hexdigest())
+        self.assertNotIn('base_discovery', receipt)
         self.assertEqual(json.loads(provenance)['expectations'], frozen)
         self.assertEqual(RELEASE['load'](base / 'receipt.json'), receipt)
         self.assertFalse(receipt['promotion_authorized'])
@@ -339,6 +343,17 @@ class ReleaseInputsTest(unittest.TestCase):
         self.assertTrue(json.loads(result.stdout)['readback_verified'])
 
     def test_native_failed_provenance_readback_refuses(self):
+        api, _ = self.native()
+        original = Path.read_bytes
+
+        def read(path):
+            return b'changed' if path.name == 'provenance.json' else original(path)
+
+        with patch.object(Path, 'read_bytes', read):
+            with self.assertRaises(ValueError):
+                MODULE['publish'](self.input, self.env, discovery=True, api=api)
+
+    def test_native_failed_discovery_readback_still_refuses(self):
         api, _ = self.native()
         original = Path.read_bytes
 
