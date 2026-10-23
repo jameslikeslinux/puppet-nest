@@ -1,0 +1,46 @@
+---
+# A real multi-project status edge, deliberately separate from release execution.
+'Release DAG policy tests':
+  extends: .all-branch-ci
+  stage: 'Test'
+  image: 'python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2'
+  tags: ['owl']
+  script:
+    - 'python3 -m pip install --disable-pip-version-check PyYAML==6.0.3'
+    - 'PYTHONDONTWRITEBYTECODE=1 python3 spec/files/nest_release_dag_fixture_test.py'
+
+'Check release DAG fixture selection':
+  stage: 'Test'
+  image: 'registry.gitlab.joyfullee.me/nest/config/main@sha256:2b6981788cba6f9e9bcdd4c391d17ca812c991e00bcb8ff3a670530226fafbe3'
+  tags: ['owl']
+  script:
+    - 'python3 scripts/nest-release-dag-fixture.py'
+  rules:
+    - if: '$NEST_DAG_FIXTURE'
+
+'Stage 0 release DAG fixture':
+  stage: 'Build'
+  needs: ['Check release DAG fixture selection']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    project: 'nest/stage0'
+    branch: 'main'
+    strategy: mirror
+    forward:
+      yaml_variables: true
+      pipeline_variables: false
+  rules:
+    - if: '$CI_COMMIT_TAG || $RELEASE_INPUTS || $EXECUTOR_ONLY || $BUILD || $CPU || $RUNNER_SMOKE_TAG || $RELEASE_CANDIDATE || $RELEASE_DAG || $RELEASE_DAG_FIXTURE || $RELEASE_VALIDATE_ONLY || $RELEASE_CPU || $RELEASE_MEMBER || $RELEASE_INPUT_JOB_ID || $RELEASE_INPUT_SHA256 || $RELEASE_EXECUTOR_JOB_ID || $RELEASE_EXECUTOR_IMAGE || $FROM_GENTOO || $STAGE0_RESUME || $REFRESH || $NEST_LEGACY_BUILD || $RELEASE_PLATFORM || $PLATFORM || $RELEASE_VARIANT || $VARIANT || $RELEASE_MODE'
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "pass"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'pass'
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "fail"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'fail'
