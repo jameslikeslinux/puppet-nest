@@ -1,8 +1,9 @@
 # Luna's isolated Joyride TEST access
 
-Joy's current decision is Tailscale authentication only. Luna needs no Muse
-connector credential, token injection, synthetic identity header, secret bridge
-or routine ops CI job. Existing CI preview credentials and ordinary application
+Existing exact release/status routes use Tailscale authentication only. Member
+administration additionally requires the existing TEST ops bearer token; the
+proxy never injects it. Luna needs no new Muse connector credential, synthetic
+identity header, secret bridge or routine ops CI job. Existing CI preview credentials and ordinary application
 member/admin authentication remain unchanged. Production and public launch are
 outside this TEST change.
 
@@ -68,6 +69,30 @@ existing bearer credentials; the public listener exposes no ops routes. Other
 cluster pods and direct PodIP/Service calls must fail network admission. Inspect
 all additive NetworkPolicies, not merely the named policy. Kubernetes node-local
 and same-pod processes are privileged trust roots, not untrusted network clients.
+
+### Bearer member administration
+
+Only the private `/ops/members/` prefix additionally reaches the authenticated
+ops listener on port 8001. It preserves `Authorization`, `Idempotency-Key` and
+`Content-Type`, discarding all other caller headers. Bodies are bounded to 8 KiB;
+existing TLS, rate, connection and timeout limits remain in effect. The exact
+trusted release routes above still use port 8002 and never receive bearer tokens.
+The private-access pod has narrowly selected ingress/egress permission for 8001;
+no new public ingress, tailnet grant or forwarded identity trust is introduced.
+
+The existing TEST token retains `status,diagnostics,deploy:test,member:read,release`
+and adds `member:admin` without rotation. Production is unchanged. GET member
+and audit require `member:read`; mutations require `member:admin` and an
+`Idempotency-Key`. All member endpoints independently enforce TEST environment.
+The application contract in Joyride `docs/test-member-administration.md` defines
+payloads, atomic audit/replay, historical waiver retention and session epochs.
+Public/internal web and trusted listeners do not register member ops routes.
+Verify with a nonexistent synthetic member, never real account mutations.
+
+Deploy the authoritative merged-main image to every application listener and
+worker before exposing the new private route. After waiver reset or session
+revocation, an old-image rollback is unsafe; use separately reviewed compatible
+forward repair, never reverse migration 0009 or delete legal/audit history.
 
 The immutable baseline application must include the trusted entry point. Older
 artifacts predating application MR 3 cannot be used as successful rollback
