@@ -8,12 +8,12 @@ require 'tmpdir'
 
     let(:plan_modulepath) { Dir.mktmpdir('nest-browser-candidate-spec-') }
     let(:pins) { { 'gentoo' => 'a' * 40, 'nest' => 'b' * 40, 'haskell' => 'c' * 40 } }
-    let(:base) { "registry.example/nest/stage1/#{tool == 'firefox' ? 'workstation' : 'server'}@sha256:#{'d' * 64}" }
+    let(:base) { "registry.example/nest/stage1/#{(tool == 'firefox') ? 'workstation' : 'server'}@sha256:#{'d' * 64}" }
     let(:image) { "registry.example/nest/tools/#{tool}:candidate-111-fixture" }
     let(:reference) { "registry.example/nest/tools/#{tool}@sha256:#{'e' * 64}" }
-    let(:workdir) { tool == 'firefox' ? '/home/kasm-user' : '/home/node' }
+    let(:workdir) { (tool == 'firefox') ? '/home/kasm-user' : '/home/node' }
     let(:commit) { "podman commit --change CMD=/usr/local/bin/nest-#{tool}-browser --change WORKDIR=#{workdir} fixture #{image}" }
-    let(:smoke) { tool == 'firefox' ? '/opt/nest/firefox/bin/smoke-firefox.sh' : 'podman exec fixture /opt/nest/camofox/bin/smoke-tabs.sh' }
+    let(:smoke) { (tool == 'firefox') ? '/opt/nest/firefox/bin/smoke-firefox.sh' : 'podman exec fixture /opt/nest/camofox/bin/smoke-tabs.sh' }
     let(:options) do
       { 'container' => 'fixture', 'cpu' => 'zen5', 'build' => true, 'deploy' => true,
         'init' => true, 'candidate' => '111-fixture', 'from_image' => base, 'repo_revisions' => pins,
