@@ -122,6 +122,53 @@ is still the provenance boundary; no signature or custody service is invented.
 Sanitize reviewed free-text expectations before publishing local/public files:
 valid JSON fields are not secret scrubbers.
 
+## Native per-edge input publication
+
+The existing `Freeze release inputs` CI job also accepts
+`RELEASE_DISCOVERY_FILE`, a file containing the schema-1
+`nest_release_base_discovery` request documented in
+[native discovery](nest-release-native-discovery.md). Set `RELEASE_INPUTS=true`
+and exactly one of `RELEASE_EXPECTATIONS_FILE` or `RELEASE_DISCOVERY_FILE`.
+The unchanged static input path remains available for seed inputs. CI invokes
+`scripts/nest-release-inputs.py --ci`; it reads file paths as data without shell
+argument interpolation. Missing or simultaneous input selections refuse.
+
+For direct invocation in the exact config CI context, use either
+`--expectations /absolute/expectations.json` or
+`--discovery /absolute/discovery.json`. These options and `--ci` are mutually
+exclusive. The existing project, clean checkout, config SHA, pipeline/job and
+public identity-trust checks apply before discovery performs any external read.
+This is input publication, not a read-only invocation: it writes a fresh private
+`release-inputs` directory and never replaces an existing generation.
+
+In discovery mode, the job itself resolves the selected successful native
+bridges, original predecessor inputs/results and independent executor receipt,
+then freezes the actual bound bases. Failed, erased, moved, incomplete or
+cross-source resources refuse before a publication directory is created.
+Original predecessor artifacts are never rewritten. After successful acquisition,
+the job retains the ordinary `expectations.json`, `receipt.json`, optional public
+`trust.json`, and complete `discovery.json` provenance. The receipt's additive
+`base_discovery` field binds the provenance artifact SHA256 and observed edge
+count. All retained bytes are fsynced and reopened; CI uploads this directory
+only on success. The input job name and ordinary expectations artifact path stay
+unchanged for existing consumers and the assembler.
+
+This removes manual digest copying between discovery and input publication; it
+does not start a successor pipeline. The graph must still schedule each freeze
+after its actual predecessor bridge has succeeded, supply exact pipeline and
+bridge selectors, and pass the resulting input job identity/digest to the next
+member. Use existing authorized glab authentication. No token is supplied in the
+request, and no equivalent CI job-token permissions or image/ISA/ABI admission
+are inferred from resource metadata. `resource_verification=not_performed` and
+`promotion_authorized=false` remain truthful in the ordinary input receipt.
+
+Offline tests exercise the actual publisher and native discovery/binder with
+fixture GitLab responses, including a separate real CLI process with fake glab.
+They reopen frozen inputs/provenance after producer exit and request removal;
+failed/erased/changed predecessors, dirty or wrong-source checkouts, conflicting
+file selections and failed provenance readback refuse. These are not candidate
+release or live artifact-access acceptance.
+
 ## Remaining integration and rollback
 
 Actual predecessor result acquisition is covered by offline fake-GitLab and
@@ -129,9 +176,10 @@ real CLI/fake-glab fixtures. Read-only exact executor/job acceptance can run
 against current managed delivery without building an OS. No actual candidate
 build is launched to manufacture a predecessor artifact for this test.
 
-Full native DAG generation, downstream bridge/job discovery, automatic per-edge
-input freezing, job-token access, aggregate manifest assembly, resource/ABI
-admission and explicit promotion/rollback remain required. Config/OpenBolt
+Native discovery, per-edge publication and manifest/envelope assembly now have
+working interfaces, but full native DAG scheduling/generation, actual production
+artifact/job-token access, resource/ABI admission and explicit promotion/rollback
+remain required. Config/OpenBolt
 bootstrap is a distinct phase: this same-source binder deliberately rejects
 cross-config-source relabeling and does not create a completion cycle between
 an old executor, new OpenBolt and a new config executor. It must be integrated

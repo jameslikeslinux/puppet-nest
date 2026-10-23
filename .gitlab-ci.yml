@@ -253,10 +253,10 @@ stages:
   variables:
     PYTHONDONTWRITEBYTECODE: '1'
   script:
-    - 'python3 scripts/nest-release-inputs.py --expectations "$RELEASE_EXPECTATIONS_FILE"'
+    - 'python3 scripts/nest-release-inputs.py --ci'
   artifacts:
     when: on_success
-    paths: ['release-inputs/expectations.json', 'release-inputs/receipt.json', 'release-inputs/trust.json']
+    paths: ['release-inputs/']
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
