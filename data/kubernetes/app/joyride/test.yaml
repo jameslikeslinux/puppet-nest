@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Membership-only route viewing; app MR 35, merged-main pipeline 11671.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:d659a336da561a7acc59896b3c37e0b192f7d3a197a811ea59a7d8cb41e0d5f0
+# Audited TEST member administration; app MR 36, merged-main pipeline 11693.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:e12ad8eb2da7eaabcac6add447c3cabe63426617e17900c7dafc5b0fb2fc249c
 affinity: {}
 tolerations: []
 resources:
