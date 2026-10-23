@@ -47,13 +47,14 @@ class NativeGraph(F['FakeGitLab']):
         self.jobs[('nest/config', 9011)]['status'] = 'running'
         self.result['release'] = expected['release']
         self.result['executor_receipt'] = self.executor
-        self.result['expectations_digest'] = R['digest'](expected)
+        projected = G['I']['project_member'](expected, 'stage0')
+        self.result['expectations_digest'] = R['digest'](projected)
         self.result['output']['member'] = copy.deepcopy(expected['members'][0])
         self.result['output']['executor'] = expected['executor']
         self.result['output']['producer']['sha'] = expected['sources']['nest/stage0']
         self.artifacts = {('nest/config', 901, 'executor-receipts/haswell.json'): self.executor,
                           ('nest/config', 601, 'release-graph/request.json'): self.graph,
-                          ('nest/config', 801, 'release-inputs/expectations.json'): expected,
+                          ('nest/config', 801, 'release-inputs/expectations.json'): projected,
                           ('nest/stage0', 101, 'release-results/stage0.json'): self.result}
         self.pipelines = {i: self.pipeline(i, source, status) for i, source, status in (
             (600, 'api', 'running'), (650, 'parent_pipeline', 'running'),
@@ -154,7 +155,8 @@ class GraphTest(unittest.TestCase):
         receipt = G['freeze_node'](self.node_env, self.api)
         directory = self.f.checkout / 'release-inputs'
         frozen = R['load'](directory / 'expectations.json')
-        self.assertEqual(frozen['members'][1]['bases'], self.api.result['output']['artifacts'])
+        self.assertEqual([m['id'] for m in frozen['members']], ['stage1'])
+        self.assertEqual(frozen['members'][0]['bases'], self.api.result['output']['artifacts'])
         self.assertEqual(self.request, before)
         route = R['load'](directory / 'candidate.yml')['Build frozen member']
         self.assertEqual(route['trigger']['project'], 'nest/stage1')
@@ -171,7 +173,8 @@ class GraphTest(unittest.TestCase):
         self.api.jobs[('nest/config', 801)]['status'] = 'running'
         G['freeze_node'](env, self.api)
         frozen = R['load'](self.f.checkout / 'release-inputs/expectations.json')
-        self.assertEqual(frozen, self.request['expectations'])
+        self.assertEqual(frozen, G['I']['project_member'](self.request['expectations'], 'stage0'))
+        self.assertEqual(R['load'](self.f.checkout / 'release-inputs/closure.json'), self.request['expectations'])
         self.assertFalse(any('/projects/nest%2Fstage0' in p for p in self.api.reads))
 
     def test_flattened_freezer_exact_identity_and_no_legacy_or_sibling_substitution(self):
@@ -326,7 +329,7 @@ class GraphTest(unittest.TestCase):
         completed = subprocess.run([sys.executable, str(ROOT / 'scripts/nest-release-graph.py'), '--freeze-node'],
                                    env=dict(self.node_env, PATH=str(binary) + os.pathsep + self.node_env['PATH']), capture_output=True)
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(R['load'](self.f.checkout / 'release-inputs/expectations.json')['members'][1]['bases'],
+        self.assertEqual(R['load'](self.f.checkout / 'release-inputs/expectations.json')['members'][0]['bases'],
                          self.api.result['output']['artifacts'])
         self.assertNotIn(b'Traceback', completed.stderr)
 
@@ -384,7 +387,7 @@ class GraphTest(unittest.TestCase):
         self.api.artifacts[('nest/config', 9011, 'release-inputs/expectations.json')] = frozen
         self.leaf = dict(schema=1, kind='nest_release_member_result', release=frozen['release'],
                          expectations_digest=R['digest'](frozen), executor_receipt=self.api.executor,
-                         output=dict(member=copy.deepcopy(frozen['members'][1]), executor=frozen['executor'],
+                         output=dict(member=copy.deepcopy(frozen['members'][0]), executor=frozen['executor'],
                                      producer=dict(project='nest/stage1', sha=frozen['sources']['nest/stage1'], pipeline=2, job=102),
                                      artifacts=dict(normal=F['MANIFEST']['image'](501), debug=F['MANIFEST']['image'](502))))
         self.api.artifacts[('nest/stage1', 102, 'release-results/stage1.json')] = self.leaf
@@ -399,6 +402,28 @@ class GraphTest(unittest.TestCase):
         self.assertFalse(receipt['promotion_authorized'])
         self.assertEqual(R['load'](self.f.checkout / 'release-graph-acceptance/receipt.json'), receipt)
         with self.assertRaises(FileExistsError): G['accept_graph'](env, self.api)
+
+    def test_self_consistent_leaf_cannot_change_projection_policy_sources_or_dependency_bases(self):
+        env = self.completed()
+        frozen = self.api.artifacts[('nest/config', 9011, 'release-inputs/expectations.json')]
+        original, result = copy.deepcopy(frozen), copy.deepcopy(self.leaf)
+        for change in ('policy', 'base', 'full-matrix'):
+            if change == 'policy': frozen['consumers'][0]['reason'] = 'Changed unrelated policy'
+            if change == 'base':
+                frozen['members'][0]['bases']['normal'] = F['MANIFEST']['image'](800)
+                self.leaf['output']['member'] = copy.deepcopy(frozen['members'][0])
+            if change == 'full-matrix':
+                full = copy.deepcopy(self.request['expectations'])
+                full['members'][1] = copy.deepcopy(frozen['members'][0])
+                frozen.clear(); frozen.update(full)
+            # Pass the ordinary result/input digest contract. Final graph
+            # acceptance must independently reconstruct the exact projection.
+            self.leaf['expectations_digest'] = R['digest'](frozen)
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'graph leaf escaped'):
+                G['accept_graph'](env, self.api)
+            self.assertFalse((self.f.checkout / 'release-graph-acceptance').exists())
+            frozen.clear(); frozen.update(copy.deepcopy(original))
+            self.leaf.clear(); self.leaf.update(copy.deepcopy(result))
 
     def test_green_leaf_with_wrong_dependency_base_or_executor_is_not_accepted(self):
         env = self.completed()

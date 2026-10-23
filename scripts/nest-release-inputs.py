@@ -2,6 +2,7 @@
 """Retain reviewed frozen expectations in config CI; never build or trigger."""
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -63,6 +64,23 @@ def identity_trust(expected, checkout, source):
     return release["canonical"](policy)
 
 
+def project_member(expected, identifier):
+    """Select one rebuild without changing source pins or losing the full closure."""
+    indexed = release['expectations'](expected)
+    require(identifier in indexed, 'unknown projected member')
+    member = indexed[identifier]
+    consumer = next(row for row in expected['consumers'] if row['project'] == member['project'])
+    require(consumer['decision'] == 'rebuild', 'projection requires rebuild decision')
+    projected = copy.deepcopy(expected)
+    projected['members'] = [copy.deepcopy(member)]
+    for row in projected['consumers']:
+        row['members'] = [identifier] if row['project'] == member['project'] else []
+        if row['project'] != member['project'] and row['decision'] in ('rebuild', 'reuse'):
+            row['decision'] = 'defer'
+    release['expectations'](projected)
+    return projected
+
+
 def publish(input_path, env, discovery=False, api=None, before_publication=None):
     checkout = Path(env.get("CI_PROJECT_DIR", ""))
     source = identity(env, checkout)
@@ -83,6 +101,13 @@ def publish(input_path, env, discovery=False, api=None, before_publication=None)
         release['expectations'](expected)
         require(expected['sources']['nest/config'] == source, 'discovered config source changed')
         require(identity_trust(expected, checkout, source) == trust, 'discovered identity trust changed')
+    closure = b''
+    if route_selected:
+        # Strict downstream consumers execute one member. Keep the complete
+        # post-discovery closure independently, including every original decision.
+        closure = release['canonical'](expected)
+        require(len(closure) <= release['LIMIT'], 'routed closure exceeds size limit')
+        expected = project_member(expected, env['RELEASE_ROUTE_MEMBER'])
     payload = release["canonical"](expected)
     require(len(payload) <= release["LIMIT"], "canonical expectations exceed size limit")
     raw_sha = hashlib.sha256(payload).hexdigest()
@@ -105,6 +130,13 @@ def publish(input_path, env, discovery=False, api=None, before_publication=None)
         'input_receipt_sha256': hashlib.sha256(records['receipt.json']).hexdigest(),
     }
     if route_selected:
+        records['closure.json'] = closure
+        provenance_receipt['member_projection'] = {
+            'artifact': 'release-inputs/closure.json',
+            'artifact_sha256': hashlib.sha256(closure).hexdigest(),
+            'member': env['RELEASE_ROUTE_MEMBER'],
+            'expectations_digest': release['digest'](expected),
+        }
         graph = routing['compile_bridge'](expected, receipt, env,
                                           routing['B']['GitLab']() if api is None else api)
         records['candidate.yml'] = release['canonical'](graph)

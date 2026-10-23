@@ -352,7 +352,7 @@ def accept_graph(env, api):
             selected_member['bases'][edge['base']] = outputs[edge['producer']]['artifacts'][edge['artifact']]
         original_expected = copy.deepcopy(request['expectations'])
         original_expected['members'] = [selected_member if m['id'] == name else m for m in original_expected['members']]
-        require(original == original_expected and output['member'] == selected_member
+        require(original == I['project_member'](original_expected, name) and output['member'] == selected_member
                 and output['executor'] == expected['executor'], 'graph leaf escaped frozen inputs or dependency bases')
         outputs[name] = output
         expected['members'] = [selected_member if m['id'] == name else m for m in expected['members']]
