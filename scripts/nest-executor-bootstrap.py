@@ -100,7 +100,8 @@ def acquire(request, source, cpu, api) -> dict[str, Any]:
     expected = B['decode'](raw_input)
     members = R['expectations'](expected)
     old_source = expected['sources']['nest/config']
-    require(old_source != source, 'bootstrap requires distinct config sources')
+    old_executor_source = expected['executor']['source']
+    require(old_source != source and old_executor_source != source, 'bootstrap requires distinct config sources')
     require(selector['member'] in members, 'missing OpenBolt member')
     member = members[selector['member']]
     require(member['stage'] == 'tool' and member['project'] == 'nest/tools/bolt'
@@ -121,7 +122,7 @@ def acquire(request, source, cpu, api) -> dict[str, Any]:
     # Independently read the OLD executor job and actual receipt, not merely the
     # embedded declaration. No successor executor is a prerequisite for itself.
     embedded = result['executor_receipt']
-    executor_job = B['job'](api, 'nest/config', embedded['pipeline'], embedded['job'], old_source)
+    executor_job = B['job'](api, 'nest/config', embedded['pipeline'], embedded['job'], old_executor_source)
     require(executor_job['name'] == 'Build ' + cpu, 'wrong old executor job')
     executor_path = 'executor-receipts/' + cpu + '.json'
     executor = B['artifact'](api, 'nest/config', embedded['job'], executor_path)

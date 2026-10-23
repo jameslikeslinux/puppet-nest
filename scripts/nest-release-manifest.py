@@ -101,7 +101,7 @@ def producer(value, source_project, sources):
 
 def expectations(value: Any):
     fields(value, "schema kind release sources executor members consumers", "expectations")
-    require(type(value["schema"]) is int and value["schema"] == 1
+    require(type(value["schema"]) is int and value["schema"] in (1, 2)
             and value["kind"] == "nest_release_expectations", "expectations: unsupported schema/kind")
     match(value["release"], TOKEN, "release")
     sources = value["sources"]
@@ -112,7 +112,12 @@ def expectations(value: Any):
     require({"nest/config", "nest/overlay", "nest/gentoo/portage", "nest/gentoo/haskell"} <= set(sources),
             "sources: missing config, overlay, Portage or Haskell")
     fields(value["executor"], "source image", "executor")
-    require(value["executor"]["source"] == sources["nest/config"], "executor: stale config source")
+    match(value["executor"]["source"], SHA, "executor source SHA")
+    # Schema 1 deliberately retains its historical same-source meaning. Schema
+    # 2 separately pins the recipe/config checkout and the executor build; its
+    # exact native job, receipt, module inventory and image are still acquired.
+    require(value["schema"] == 2 or value["executor"]["source"] == sources["nest/config"],
+            "executor: stale config source")
     match(value["executor"]["image"], IMAGE, "executor image")
     members = value["members"]
     require(type(members) is list and 0 < len(members) <= 1024, "members: invalid inventory")
