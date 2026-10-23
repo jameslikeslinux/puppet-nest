@@ -5,6 +5,7 @@ default:
 include:
   - local: '.gitlab/ci/release-dag-fixture.yml'
   - local: '.gitlab/ci/release-routing.yml'
+  - local: '.gitlab/ci/release-graph.yml'
 
 stages:
   - 'Test'
@@ -84,6 +85,7 @@ stages:
     - 'python3 spec/files/nest_release_inputs_test.py'
     - 'python3 spec/files/nest_release_route_test.py'
     - 'python3 spec/files/nest_executor_bootstrap_test.py'
+    - 'python3 spec/files/nest_release_graph_test.py'
     - 'python3 spec/files/nest_executor_inputs_test.py'
 
 'Hermes install fixtures':
@@ -178,6 +180,8 @@ stages:
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
+    - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
+      when: never
     - if: '$RELEASE_INPUTS'
       when: never
     - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
@@ -224,6 +228,8 @@ stages:
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
+    - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
+      when: never
     - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
       when: never
     - if: '$RELEASE_INPUTS'
@@ -251,6 +257,8 @@ stages:
     - 'podman manifest push --all "$LOCAL_IMAGE" "registry.eyrie/${IMAGE}:latest"'
   rules:
     - if: '$NEST_DAG_FIXTURE'
+      when: never
+    - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
       when: never
     - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
       when: never
@@ -292,7 +300,7 @@ stages:
   variables:
     PYTHONDONTWRITEBYTECODE: '1'
   script:
-    - 'python3 scripts/nest-release-inputs.py --ci'
+    - 'if [ "$RELEASE_GRAPH_NODE" = "true" ]; then python3 scripts/nest-release-graph.py --freeze-node; else python3 scripts/nest-release-inputs.py --ci; fi'
   artifacts:
     when: on_success
     paths: ['release-inputs/']
