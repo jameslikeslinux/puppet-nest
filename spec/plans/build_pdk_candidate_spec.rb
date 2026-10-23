@@ -83,7 +83,7 @@ RSpec.describe 'PDK frozen candidate wrapper' do
     end
   end
 
-  ['pdk new module --skip-interview build /module',
+  ['sh -c "cd / && rm -rf /module && pdk new module --skip-interview build /module"',
    'sh -c "cd /module && pdk new class smoke && pdk new task smoke && bundle install && pdk validate && pdk test unit --tests=spec/classes/smoke_spec.rb"',
    "bash -o pipefail -c 'git archive HEAD | podman cp - fixture:/module'",
    'sh -c "cd /module && NEST_PDK_OFFLINE=false ruby /opt/pdk-cache-nest.rb"'].each do |command|
