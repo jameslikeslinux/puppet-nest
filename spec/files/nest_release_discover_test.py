@@ -83,6 +83,18 @@ class DiscoverTest(unittest.TestCase):
         self.assertFalse(result['promotion_authorized'])
         self.assertEqual(result['publication'], 'not_performed')
 
+    def test_generated_child_bridge_can_use_original_parent_input_pipeline(self):
+        # Artifact-backed routing creates a config child containing the direct
+        # member bridge; the unique input publisher remains in its parent.
+        self.api.root['id'] = 850
+        self.api.request['producers']['upstream'].update(root_pipeline=850, bridge='Build frozen member')
+        self.api.bridge.update(name='Build frozen member', pipeline=copy.deepcopy(self.api.root))
+        result = self.discover()
+        selector = result['binding_request']['producers']['upstream']
+        self.assertEqual((selector['input_pipeline'], selector['input_job']), (800, 801))
+        self.assertEqual(result['edges']['upstream']['root']['id'], 850)
+        self.assertEqual(result['expectations']['members'][0]['bases'], self.api.result['output']['artifacts'])
+
     def test_parent_can_finish_during_acquisition_but_requires_fresh_run(self):
         self.api.after_result = lambda api: api.root.update(status='success')
         with self.assertRaises(ValueError): self.discover()
