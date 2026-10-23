@@ -62,27 +62,33 @@ Production remains dormant and guarded; this is not a production HA claim.
 
 ## Owner dashboard and fast releases
 
-The TEST baseline is application MR 30, merged-main pipeline 11314, source
-`bca91ba2aa452e4cd1b930926180dcd73a9601df`, image
-`sha256:69c6ec23e8423bfeaeb4f356c267b98bf76f5e8b571b10e52544e53eeed7f107`.
-It selects member ride templates only for actual routes, repairing catalog page
-routing without expanding proxy access. Preview job 46113 already reached
-terminal success for deployment `b2d80a0d-ab15-4d8b-9176-6771e90e3fe7`;
-do not replay it for baseline reconciliation. Catalog development-route privacy
-remains separate unfinished work; this routing repair is not privacy acceptance.
+The TEST baseline is application MR 31, merged-main pipeline 11370, source
+`6fc9fd6dab08c0c19e72ec8ceeee538e92f86160`, image
+`sha256:0ffcc26acde46f6a969485564d3ce70ca7013a284d4c52e084720363096cc1a7`.
+Build job 46487 published this immutable multiarchitecture index. Catalog
+fragments are selected server-side: anonymous responses omit development rows,
+identifiers and titles from HTML and linked public assets, while qualifying
+members retain their existing entitlement boundary. Catalog responses use
+`Cache-Control: no-store, private` and `Vary: Cookie`. The actual-Route-only
+template selection from MR 30 remains, without expanding proxy access.
+Preview job 46489 already reached terminal success for deployment
+`f4feeeac-3e5b-4ee6-b5f4-99e0ad92cd34`; do not replay it for baseline
+reconciliation. Anonymous ordinary HTTPS checks cover disclosure and cache
+boundaries. Installed member-selection checks use synthetic identity/entitlement
+inputs; they are not live authenticated HTTP acceptance.
 It retains bounded bundle-defined galleries, mutable curated slugs,
 OTP-first sign-in, 90-day sessions with hourly authenticated rolling renewal,
 and branded mail from `Friday Night Joyride <joy@joyridedc.com>`.
 The seasonal owner dashboard and manifest-bound favicon remain included.
 Frontend/content releases remain independent of this backend pin; retain Luna's
-active release and all release history. The verified active frontend is r37,
-source `357e2ce9aff86fd8c191bc9e7aee627931dc0d54`, archive
-`6b8d360a8d316de09130b2c14d7a0123be1aa931d5534548e81e8ac18f0f2ff0`;
+active release and all release history. The verified active frontend is r38,
+source `d9004750f52864bff531b9db12d083efabef2504`, archive
+`a0b7ded415386e4a09df86c0a3c6424c59db68244ed973242f3c45033864e79f`;
 content is r7, archive
 `0fa5d3f6214961b194aa6aa9fc4e09dda0f9102a29bfbe43f15b8312335fe147`.
 A managed baseline apply must preserve both, not publish another release.
 The previous managed image is
-`sha256:3227595c1e5c9bb99429a0e8e297bfee211b149239a9589833a824cd6c235e9d`;
+`sha256:69c6ec23e8423bfeaeb4f356c267b98bf76f5e8b571b10e52544e53eeed7f107`;
 read the actual installed image again before any rollback.
 Internal `.eyrie` ingress and the existing private backchannel use the separate
 `joyride.internal_wsgi:application` listener on port 8003. Public WSGI remains on
