@@ -2,6 +2,7 @@
 """Offline complete-architecture acquisition with real discovery/assembly checks."""
 
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -66,7 +67,10 @@ class ProgramGitLab:
             # Producer-map keys are member identities, not JSON field names.
             assembly['producers'] = {k + '-' + architecture: v for k, v in assembly['producers'].items()}
             assemblies[architecture] = assembly
-            for path in set(original.native_reads):
+            paths = set(original.native_reads) - {p for p in original.native_reads if p.endswith('/artifacts')}
+            paths.update('projects/' + project.replace('/', '%2F') + '/jobs/' + str(job) + '/artifacts/' + name
+                         for project, job, name in original.artifacts if name.startswith('release-results/'))
+            for path in paths:
                 raw = json.loads(original.get(path))
                 row = transform(raw)
                 if type(row) is dict and row.get('kind') == 'nest_release_member_result':
@@ -91,7 +95,11 @@ class ProgramGitLab:
 
     def get(self, path):
         self.reads.append(path)
-        raw = R['canonical'](self.replies[path])
+        if path.endswith('/artifacts'):
+            raw = F['F']['F']['result_archive']([(key.removeprefix(path + '/'), R['canonical'](row))
+                                                for key, row in self.replies.items() if key.startswith(path + '/')])
+        else:
+            raw = R['canonical'](self.replies[path])
         if self.after_read:
             self.after_read(self, path)
         return raw
@@ -103,6 +111,16 @@ class EnvelopeTest(unittest.TestCase):
 
     def acquire(self):
         return E['envelope'](self.api.request, self.api)
+
+    def test_digest_named_tool_results_across_all_architectures_preserve_envelope(self):
+        self.api = ProgramGitLab(full=True)
+        expected = self.acquire()
+        for path in list(self.api.replies):
+            if '/artifacts/release-results/' in path:
+                row = self.api.replies.pop(path)
+                sha = hashlib.sha256(R['canonical'](row)).hexdigest()
+                self.api.replies[path[:-5] + '.sha256-' + sha + '.json'] = row
+        self.assertEqual(self.acquire(), expected)
 
     def test_three_distinct_executors_and_all_member_pairs_are_preserved(self):
         before = copy.deepcopy(self.api.request)
@@ -223,9 +241,7 @@ class EnvelopeTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             fake = root / 'glab'
-            fake.write_text('#!' + sys.executable + '\nimport json,sys\nr=' + repr(self.api.replies) +
-                            '\nprint(json.dumps(r[sys.argv[-1]],sort_keys=True,separators=(",",":")))\n')
-            fake.chmod(0o700)
+            F['F']['F']['fake_glab'](fake, {path: self.api.get(path) for path in set(self.api.reads)})
             request = root / 'request.json'
             request.write_bytes(R['canonical'](self.api.request))
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'], PYTHONDONTWRITEBYTECODE='1')

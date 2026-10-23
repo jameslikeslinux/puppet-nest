@@ -2,7 +2,9 @@
 """Offline exact-resource fixtures. No registry, builds, or production mutations."""
 
 import copy
+import base64
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -11,6 +13,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
+import zipfile
 from typing import Any
 from unittest.mock import patch
 
@@ -18,6 +22,33 @@ ROOT = Path(__file__).resolve().parents[2]
 BIND = runpy.run_path(str(ROOT / 'scripts/nest-release-bind.py'))
 MANIFEST = runpy.run_path(str(ROOT / 'spec/files/nest_release_manifest_test.py'))
 R = BIND['RELEASE']
+
+
+def result_archive(entries):
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, payload in entries:
+            archive.writestr(name, payload)
+    return stream.getvalue()
+
+
+def fake_glab(path, replies):
+    """Preserve binary archive replies in real subprocess fixtures."""
+    encoded = {key: base64.b64encode(value).decode() for key, value in replies.items()}
+    path.write_text('#!' + sys.executable + '\nimport base64,sys\nr=' + repr(encoded)
+                    + '\nsys.stdout.buffer.write(base64.b64decode(r[sys.argv[-1]]))\n')
+    path.chmod(0o700)
+
+
+def digest_results(artifacts):
+    """Use the hardened producers' exact naming and preserve the result bytes."""
+    for key in list(artifacts):
+        project, job, name = key
+        if name.startswith('release-results/'):
+            row = artifacts.pop(key)
+            payload = R['canonical'](row)
+            target = name[:-5] + '.sha256-' + hashlib.sha256(payload).hexdigest() + '.json'
+            artifacts[(project, job, target)] = row
 
 
 def receipt(expected, cpu='haswell'):
@@ -81,6 +112,13 @@ class FakeGitLab:
             row = dict(id=3 if project == 'nest/config' else 10, path_with_namespace=project)
         elif len(parts) == 4:
             row = self.jobs[(project, int(parts[3]))]
+        elif len(parts) == 5 and parts[4] == 'artifacts':
+            entries = [(name, R['canonical'](row)) for (p, j, name), row in self.artifacts.items()
+                       if p == project and j == int(parts[3])]
+            raw = result_archive(entries)
+            if self.mutate_after_result:
+                self.mutate_after_result(self)
+            return raw
         else:
             key = (project, int(parts[3]), '/'.join(parts[5:]))
             row = self.artifacts[key]
@@ -101,6 +139,63 @@ class ReleaseBindTest(unittest.TestCase):
 
     def bind(self):
         return BIND['bind'](self.api.request, self.api)
+
+    def test_digest_named_producer_result_preserves_binding_and_raw_hash(self):
+        expected = self.bind()
+        digest_results(self.api.artifacts)
+        self.assertEqual(self.bind(), expected)
+
+    def test_archive_result_selection_and_name_byte_hash_refusals(self):
+        payload = R['canonical'](self.api.result)
+        digest_name = 'release-results/stage0.sha256-' + hashlib.sha256(payload).hexdigest() + '.json'
+        legacy = 'release-results/stage0.json'
+
+        class Archive:
+            raw: bytes
+
+            def get(self, path):
+                self.path = path
+                return self.raw
+
+        api = Archive()
+        for entries in ([(digest_name, payload)], [(legacy, payload)],
+                        [(digest_name, payload), ('release-results/stage0.other.json', b'{}')]):
+            api.raw = result_archive(entries)
+            self.assertEqual(BIND['result_bytes'](api, 'nest/stage0', 101, 'stage0'), payload)
+        cases = [[], [(digest_name, payload), (legacy, payload)],
+                 [(legacy, payload), (legacy, payload)],
+                 [(digest_name.replace(hashlib.sha256(payload).hexdigest(), '0' * 64), payload)],
+                 [(digest_name, payload + b' ')], [(digest_name.replace('.sha256-', '.sha256-zz'), payload)],
+                 [('release-results/other.json', payload)], [(legacy, b'not JSON')],
+                 [(legacy, payload), ('../unsafe', b'{}')],
+                 [(legacy, payload), ('/absolute', b'{}')],
+                 [(legacy, payload), ('release-results/../unsafe', b'{}')],
+                 [(legacy, payload), ('back\\slash', b'{}')],
+                 [(legacy, payload)] + [('other-' + str(i), b'') for i in range(256)],
+                 [(legacy, b' ' * (R['LIMIT'] + 1))]]
+        for entries in cases:
+            with self.subTest(names=[name for name, _ in entries]):
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', UserWarning)
+                    api.raw = result_archive(entries)
+                with self.assertRaises(ValueError): BIND['result_bytes'](api, 'nest/stage0', 101, 'stage0')
+        for raw in (b'not ZIP', b'x' * (R['LIMIT'] + 1)):
+            api.raw = raw
+            with self.assertRaises(ValueError): BIND['result_bytes'](api, 'nest/stage0', 101, 'stage0')
+
+    def test_result_archive_rejects_links_and_checks_raw_not_canonical_bytes(self):
+        payload = json.dumps(self.api.result, indent=2).encode() + b'\n'
+        sha = hashlib.sha256(payload).hexdigest()
+        name = 'release-results/stage0.sha256-' + sha + '.json'
+        with patch.object(self.api, 'get', return_value=result_archive([(name, payload)])):
+            self.assertEqual(BIND['result_bytes'](self.api, 'nest/stage0', 101, 'stage0', sha), payload)
+            with self.assertRaises(ValueError):
+                BIND['result_bytes'](self.api, 'nest/stage0', 101, 'stage0', hashlib.sha256(R['canonical'](self.api.result)).hexdigest())
+        entry = zipfile.ZipInfo('release-results/stage0.json')
+        entry.create_system = 3
+        entry.external_attr = 0o120777 << 16
+        with patch.object(self.api, 'get', return_value=result_archive([(entry, payload)])):
+            with self.assertRaises(ValueError): BIND['result_bytes'](self.api, 'nest/stage0', 101, 'stage0')
 
     def test_actual_predecessor_pair_replaces_only_selected_bases_and_reseals(self):
         before = copy.deepcopy(self.api.request)
@@ -249,20 +344,17 @@ class ReleaseBindTest(unittest.TestCase):
             self.assertEqual(list(Path(directory).iterdir()), [source])
 
     def test_real_cli_success_retains_consumable_expectations_and_provenance_package(self):
+        digest_results(self.api.artifacts)
         expected, provenance = self.bind()
-        replies = {path: json.loads(self.api.get(path)) for path in set(self.api.reads)}
+        replies = {path: self.api.get(path) for path in set(self.api.reads)}
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             fixture_bin = root / 'bin'
             fixture_bin.mkdir()
             fake = fixture_bin / 'glab'
-            fake.write_text('#!' + sys.executable + '\n'
-                            'import json, os, sys\n'
-                            'assert sys.argv[1:4] == ["api", "--hostname", "gitlab.joyfullee.me"]\n'
-                            'print(json.dumps(json.load(open(os.environ["FIXTURE_REPLIES"]))[sys.argv[4]], sort_keys=True, separators=(",", ":")))\n')
-            fake.chmod(0o700)
+            fake_glab(fake, replies)
             reply_file = root / 'replies.json'
-            reply_file.write_text(json.dumps(replies))
+            reply_file.write_text(json.dumps({key: base64.b64encode(value).decode() for key, value in replies.items()}))
             source = root / 'binding.json'
             source.write_bytes(R['canonical'](self.api.request))
             output = root / 'output'

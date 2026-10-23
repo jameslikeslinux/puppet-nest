@@ -72,6 +72,12 @@ class AssemblyTest(unittest.TestCase):
     def assemble(self):
         return A['assemble'](self.api.request, self.api)
 
+    def test_digest_named_results_assemble_the_identical_candidate(self):
+        self.full_matrix()
+        expected = self.assemble()
+        F['F']['digest_results'](self.api.artifacts)
+        self.assertEqual(self.assemble(), expected)
+
     def test_complete_native_matrix_is_assembled_without_mutating_request(self):
         before = copy.deepcopy(self.api.request)
         result = self.assemble()
@@ -178,14 +184,14 @@ class AssemblyTest(unittest.TestCase):
 
     def test_changed_previously_read_member_is_reacquired_before_acceptance(self):
         def mutate(api, path):
-            if path.endswith('release-results/stage1.json'):
+            if path.endswith('/jobs/102/artifacts'):
                 api.result['output']['artifacts']['normal'] = F['F']['MANIFEST']['image'](502)
         self.api.after_read = mutate
         with self.assertRaises(ValueError): self.assemble()
 
     def test_executor_bytes_are_rechecked_even_if_job_identity_is_unchanged(self):
         def mutate(api, path):
-            if path.endswith('release-results/stage1.json'):
+            if path.endswith('/jobs/102/artifacts'):
                 changed = copy.deepcopy(api.executor)
                 changed['inputs']['modules'][0]['content_digest'] = 'sha256:' + 'c' * 64
                 api.artifacts[('nest/config', 901, 'executor-receipts/haswell.json')] = changed
@@ -200,14 +206,13 @@ class AssemblyTest(unittest.TestCase):
         with self.assertRaises(ValueError): self.assemble()
 
     def test_real_cli_retains_manifest_and_provenance_with_reopened_bytes(self):
+        F['F']['digest_results'](self.api.artifacts)
         result = self.assemble()
-        replies = {path: json.loads(self.api.get(path)) for path in set(self.api.native_reads)}
+        replies = {path: self.api.get(path) for path in set(self.api.native_reads)}
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             fake = root / 'glab'
-            fake.write_text('#!' + sys.executable + '\nimport json,sys\nr=' + repr(replies) +
-                            '\nprint(json.dumps(r[sys.argv[-1]],sort_keys=True,separators=(",",":")))\n')
-            fake.chmod(0o700)
+            F['F']['fake_glab'](fake, replies)
             request = root / 'request.json'
             request.write_bytes(R['canonical'](self.api.request))
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'], PYTHONDONTWRITEBYTECODE='1')

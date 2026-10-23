@@ -31,8 +31,7 @@ def acquire(expected, identifier, selector, executor_digest, api):
     R['expectations'](original)
     require(original['sources'] == expected['sources'] and original['release'] == expected['release']
             and original['executor'] == expected['executor'], 'different release source or executor closure')
-    result = B['artifact'](api, member['project'], resolved['job'], 'release-results/' + identifier + '.json',
-                           resolved['result_sha256'])
+    result = B['decode'](B['result_bytes'](api, member['project'], resolved['job'], identifier, resolved['result_sha256']))
     output = B['check_result'](original, result, resolved)
     require(R['digest'](result['executor_receipt']) == executor_digest,
             'member did not retain the selected executor receipt')
