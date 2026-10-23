@@ -52,7 +52,7 @@ def selected(env):
                 and not any(env.get(k) for k in KEYS[2:]), 'invalid graph compilation selection')
         return 'compile'
     require(env.get('RELEASE_GRAPH_NODE') == 'true' and env.get('RELEASE_INPUTS') == 'true'
-            and env.get('CI_PIPELINE_SOURCE') == 'pipeline'
+            and env.get('CI_PIPELINE_SOURCE') == 'parent_pipeline'
             and not env.get('RELEASE_GRAPH') and not env.get('RELEASE_GRAPH_FILE'), 'invalid graph node selection')
     R['match'](env.get('RELEASE_GRAPH_MEMBER'), R['TOKEN'], 'graph member')
     for key in ('RELEASE_GRAPH_INPUT_PIPELINE', 'RELEASE_GRAPH_INPUT_JOB', 'RELEASE_GRAPH_ROOT_PIPELINE'):
@@ -126,16 +126,24 @@ def compile_graph(request: Any, env):
     raw = R['canonical'](request)
     graph = {'workflow': {'rules': [{'if': '$CI_PIPELINE_SOURCE == "parent_pipeline"'}, {'when': 'never'}]},
              'stages': ['Candidates']}
+    image = 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
     for name in order:
-        graph['Release node ' + name] = {
+        freezer = 'Freeze release inputs ' + name
+        graph[freezer] = {
             'stage': 'Candidates', 'needs': ['Release node ' + p for p in sorted(dependencies[name])],
             'allow_failure': False, 'inherit': {'variables': False},
+            'image': image, 'tags': ['owl'],
+            'script': ['python3 scripts/nest-release-graph.py --freeze-node'],
             'variables': {'RELEASE_INPUTS': 'true', 'RELEASE_GRAPH_NODE': 'true', 'RELEASE_GRAPH_MEMBER': name,
                           'RELEASE_GRAPH_INPUT_PIPELINE': env['CI_PIPELINE_ID'],
                           'RELEASE_GRAPH_INPUT_JOB': env['CI_JOB_ID'],
                           'RELEASE_GRAPH_INPUT_SHA256': hashlib.sha256(raw).hexdigest(),
                           'RELEASE_GRAPH_ROOT_PIPELINE': '$CI_PIPELINE_ID'},
-            'trigger': {'project': 'nest/config', 'branch': 'main', 'strategy': 'mirror',
+            'artifacts': {'when': 'on_success', 'paths': ['release-inputs/']}}
+        graph['Release node ' + name] = {
+            'stage': 'Candidates', 'needs': [freezer],
+            'allow_failure': False, 'inherit': {'variables': False},
+            'trigger': {'include': [{'artifact': 'release-inputs/candidate.yml', 'job': freezer}], 'strategy': 'mirror',
                         'forward': {'yaml_variables': True, 'pipeline_variables': False}}}
     graph['Accept release graph'] = {
         'stage': 'Candidates', 'needs': ['Release node ' + name for name in order],
@@ -176,39 +184,58 @@ def publish(directory, records):
 
 
 def native_node(api, request: Any, root_id, name):
-    """Resolve the exact graph -> config node -> route child; never latest/ref lookup."""
+    """Resolve graph/freezer -> route child directly, without a config node layer."""
     sha = request['expectations']['sources']['nest/config']
     root = D['pipeline'](api, 'nest/config', root_id, sha, root=True)
     require(root['source'] == 'parent_pipeline', 'not a compiled graph child')
     bridge = D['selected'](D['listing'](api, 'nest/config', root_id, 'bridges'), 'Release node ' + name)
     require(bridge['pipeline']['id'] == root_id and bridge['pipeline']['sha'] == sha
             and bridge['pipeline']['project_id'] == root['project_id'], 'graph bridge parent mismatch')
-    node = D['pipeline'](api, 'nest/config', bridge['downstream_pipeline']['id'], sha)
-    require(all(bridge['downstream_pipeline'][k] == node[k] for k in ('id', 'project_id', 'sha', 'ref', 'status')),
-            'graph node moved')
-    routes = D['listing'](api, 'nest/config', node['id'], 'bridges')
-    require(len(routes) == 1, 'unexpected config node bridge')
-    route = D['selected'](routes, 'Route frozen candidate')
-    require(route['pipeline']['id'] == node['id'] and route['pipeline']['sha'] == sha
-            and route['pipeline']['project_id'] == node['project_id'], 'route parent mismatch')
-    child = D['pipeline'](api, 'nest/config', route['downstream_pipeline']['id'], sha, root=True)
+    child = D['pipeline'](api, 'nest/config', bridge['downstream_pipeline']['id'], sha, root=True)
     require(child['status'] == 'success' and child['source'] == 'parent_pipeline'
-            and all(route['downstream_pipeline'][k] == child[k] for k in ('id', 'project_id', 'sha', 'ref', 'status')),
+            and all(bridge['downstream_pipeline'][k] == child[k] for k in ('id', 'project_id', 'sha', 'ref', 'status')),
             'route child has not succeeded or moved')
-    jobs = D['listing'](api, 'nest/config', node['id'], 'jobs')
-    require(jobs and all(j['status'] == 'success' and j.get('allow_failure') is False for j in jobs),
-            'config node contains incomplete or tolerated jobs')
-    return dict(root_pipeline=child['id'], input_pipeline=node['id'], bridge='Build frozen member'), dict(
-        root=root, bridge=bridge, node=node, route=route, child=child,
-        jobs=[dict(id=j['id'], name=j['name']) for j in jobs])
+    routes = D['listing'](api, 'nest/config', child['id'], 'bridges')
+    require(len(routes) == 1 and routes[0]['name'] == 'Build frozen member', 'unexpected route child bridge')
+    jobs = D['listing'](api, 'nest/config', root_id, 'jobs')
+    names = B['input_job_names'](name)
+    inputs = [j for j in jobs if j['name'] in names]
+    require(len(inputs) == 1 and inputs[0]['name'] == 'Freeze release inputs ' + name,
+            'missing or ambiguous scoped graph freezer')
+    freezer = D['selected'](inputs, inputs[0]['name'])
+    observed = B['job'](api, 'nest/config', root_id, freezer['id'], sha)
+    require(observed['name'] == freezer['name'], 'graph freezer identity changed')
+    return dict(root_pipeline=child['id'], input_pipeline=root_id, bridge='Build frozen member'), dict(
+        root=root, bridge=bridge, child=child, freezer=observed)
+
+
+def active_freezer(api, root_id, name, env, source):
+    """Stable job identity only; duration, runner and user metadata are volatile."""
+    jobs = D['listing'](api, 'nest/config', root_id, 'jobs')
+    current = [j for j in jobs if j['name'] in B['input_job_names'](name)]
+    require(len(current) == 1, 'missing or ambiguous active graph freezer')
+    row = current[0]
+    require(row['name'] == env['CI_JOB_NAME'] and row['id'] == int(env['CI_JOB_ID'])
+            and row['status'] == 'running' and row.get('allow_failure') is False
+            and row.get('erased_at') is None, 'graph freezer is not the active required job')
+    parent = row['pipeline']
+    B['positive'](row['id'])
+    B['positive'](parent['id'])
+    B['positive'](parent['project_id'])
+    require(parent['id'] == root_id and parent['sha'] == source
+            and parent['project_id'] == 3 and row['commit']['id'] == source,
+            'active graph freezer identity mismatch')
+    return dict(id=row['id'], name=row['name'], status=row['status'],
+                pipeline=root_id, project_id=3, source=source)
 
 
 def freeze_node(env, api):
-    require(selected(env) == 'node' and env.get('CI_JOB_NAME') == 'Freeze release inputs', 'node not selected')
+    require(selected(env) == 'node'
+            and env.get('CI_JOB_NAME') == 'Freeze release inputs ' + env['RELEASE_GRAPH_MEMBER'], 'node not selected')
     source = I['identity'](env, Path(env.get('CI_PROJECT_DIR', '')))
     graph_pipeline, graph_job = int(env['RELEASE_GRAPH_INPUT_PIPELINE']), int(env['RELEASE_GRAPH_INPUT_JOB'])
     root_id = int(env['RELEASE_GRAPH_ROOT_PIPELINE'])
-    require(int(env['CI_PIPELINE_ID']) not in (graph_pipeline, root_id), 'graph recursion')
+    require(int(env['CI_PIPELINE_ID']) == root_id and root_id != graph_pipeline, 'wrong flattened graph pipeline')
     producer = B['job'](api, 'nest/config', graph_pipeline, graph_job, source)
     require(producer['name'] == 'Compile release graph', 'wrong graph publication job')
     path = B['prefix']('nest/config') + '/jobs/' + str(graph_job) + '/artifacts/release-graph/request.json'
@@ -219,19 +246,10 @@ def freeze_node(env, api):
     require(request['expectations']['sources']['nest/config'] == source, 'graph uses another source')
     name = env['RELEASE_GRAPH_MEMBER']
     require(name in nodes, 'unknown graph node')
-    # Bind this currently running node to the compiled root, not just supplied IDs.
+    # Bind the running freezer job to this graph, not a caller-supplied node pipeline.
     root = D['pipeline'](api, 'nest/config', root_id, source, root=True)
     require(root['source'] == 'parent_pipeline', 'wrong graph root source')
-    bridges = D['listing'](api, 'nest/config', root_id, 'bridges')
-    current = [b for b in bridges if b['name'] == 'Release node ' + name]
-    require(len(current) == 1 and current[0]['status'] == 'running' and current[0].get('allow_failure') is False,
-            'graph node is not the active required bridge')
-    active = current[0]
-    require(active['pipeline']['id'] == root_id and active['pipeline']['sha'] == source
-            and active['pipeline']['project_id'] == root['project_id']
-            and active['downstream_pipeline']['id'] == int(env['CI_PIPELINE_ID'])
-            and active['downstream_pipeline']['sha'] == source
-            and active['downstream_pipeline']['project_id'] == 3, 'active graph node identity mismatch')
+    active = active_freezer(api, root_id, name, env, source)
     # Prove the root is the compiler's artifact-backed child, not another graph.
     compiler_routes = D['listing'](api, 'nest/config', graph_pipeline, 'bridges')
     matches = [b for b in compiler_routes if b['name'] == 'Run release graph']
@@ -278,8 +296,8 @@ def freeze_node(env, api):
                     'predecessor changed before freeze')
         require(B['job'](api, 'nest/config', graph_pipeline, graph_job, source) == producer and api.get(path) == raw,
                 'graph publication changed during acquisition')
-        for pipeline_id, bridge_name, original in ((root_id, 'Release node ' + name, active),
-                                                  (graph_pipeline, 'Run release graph', matches[0])):
+        require(active_freezer(api, root_id, name, env, source) == active, 'active graph freezer changed')
+        for pipeline_id, bridge_name, original in ((graph_pipeline, 'Run release graph', matches[0]),):
             rows = D['listing'](api, 'nest/config', pipeline_id, 'bridges')
             found = [b for b in rows if b['name'] == bridge_name]
             require(len(found) == 1, 'active graph bridge disappeared')
@@ -381,13 +399,10 @@ def main():
         if args.check_selection:
             require(selected(os.environ) is not None, 'no graph selected')
         elif args.compile:
-            # Live nonpublishing pipelines 11573/11574 proved that GitLab
-            # rejects the generated same-project trigger:project node edge.
-            # A child replacement alone would exceed the two-child depth at
-            # the route layer. Keep standalone freezing/routing available,
-            # but do not publish an executing graph until it is flattened and
-            # the exact supported topology passes a live status exercise.
-            print('Release graph scheduling unavailable: unsupported same-project node topology; '
+            # The compiler/freezer/acceptance source now uses two child levels.
+            # Retain refusal until the exact contracts, not only the prior
+            # status-only nesting fixture, pass nonpublishing live acceptance.
+            print('Release graph scheduling unavailable: flattened graph acceptance pending; '
                   'use the existing standalone frozen-input route', file=sys.stderr)
             return 1
         elif args.accept:
