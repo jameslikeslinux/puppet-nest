@@ -5,8 +5,8 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Catalog routing repair; app MR 30, merged-main pipeline 11314.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:69c6ec23e8423bfeaeb4f356c267b98bf76f5e8b571b10e52544e53eeed7f107
+# Server-selected catalog privacy; app MR 31, merged-main pipeline 11370.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:0ffcc26acde46f6a969485564d3ce70ca7013a284d4c52e084720363096cc1a7
 affinity: {}
 tolerations: []
 resources:
