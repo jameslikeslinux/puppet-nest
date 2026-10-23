@@ -39,6 +39,21 @@ class nest::tool::pdk {
       command_rb => $build_command_rb,
     }
 
+    file { '/opt/pdk-offline-bundle.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_offline_bundle.rb',
+      mode   => '0644',
+    }
+    file { '/opt/pdk-cache-nest.rb':
+      source => 'puppet:///modules/nest/puppet/pdk_cache_nest.rb',
+      mode   => '0644',
+    }
+    file_line { 'pdk-offline-bundle':
+      path    => $build_bundler_rb,
+      line    => "require '/opt/pdk-offline-bundle'",
+      match   => '^require .*/opt/pdk-offline-bundle',
+      require => [Package['pdk'], File['/opt/pdk-offline-bundle.rb']],
+    }
+
     # JSON 3 is a valid PDK dependency but changes parse options to keywords.
     # Preserve OpenVox interoperability before dotfile refresh starts Puppet.
     file { '/opt/pdk-json-keywords.rb':

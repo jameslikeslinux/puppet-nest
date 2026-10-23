@@ -39,6 +39,7 @@ plan nest::build::pdk (
   $puppetcore_gem_source = system::env('GEM_SOURCE_PUPPETCORE')
   $puppet_forge_token    = system::env('PUPPET_FORGE_TOKEN')
   $puppetcore_env_vars   = {
+    'NEST_PDK_OFFLINE'                         => 'false',
     'BUNDLE_RUBYGEMS___PUPPETCORE__PUPPET__COM' => "forge-key:${puppet_forge_token}",
     'GEM_SOURCE_PUPPETCORE'                     => $puppetcore_gem_source,
     'PUPPET_FORGE_TOKEN'                        => $puppet_forge_token,
@@ -67,6 +68,12 @@ plan nest::build::pdk (
     run_command('sh -c "cd /module && pdk new class smoke && pdk new task smoke && bundle install && pdk validate && pdk test unit --tests=spec/classes/smoke_spec.rb"', $target, 'Resolve dependencies, validate class and task, and test generated class', _env_vars => $puppetcore_env_vars)
     run_command('rm -rf /module && mkdir /module', $target, 'Clean up test module')
 
+    # Resolve the actual supported module, not just the generated smoke module.
+    # The plan is run from the committed Nest project root by bin/build/CI.
+    run_command("bash -o pipefail -c 'git archive HEAD | podman cp - ${container}:/module'", 'localhost', 'Copy committed Nest module inputs')
+    run_command('sh -c "cd /module && NEST_PDK_OFFLINE=false ruby /opt/pdk-cache-nest.rb"', $target, 'Resolve and retain the Nest PDK closure and source lock', _env_vars => $puppetcore_env_vars)
+    run_command('rm -rf /module && mkdir /module', $target, 'Clean up Nest build inputs')
+
     run_command("podman stop ${container}", 'localhost', 'Stop build container')
   }
 
@@ -78,7 +85,7 @@ plan nest::build::pdk (
       build                 => false,
       tag                   => $tag,
       deploy                => true,
-      image_changes         => ['ENV=PDK_DISABLE_ANALYTICS=true', 'WORKDIR=/module'],
+      image_changes         => ['ENV=PDK_DISABLE_ANALYTICS=true', 'ENV=NEST_PDK_OFFLINE=true', 'WORKDIR=/module'],
       init                  => false,
       registry              => $registry,
       registry_username     => $registry_username,
