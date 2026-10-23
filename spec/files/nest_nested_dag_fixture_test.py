@@ -38,7 +38,7 @@ class NestedDagFixtureTest(unittest.TestCase):
             for mode in ('nested-stage1-pass', 'nested-stage1-fail', 'node-stage1-pass', 'node-stage1-fail',
                          'nested-stage1-true', 'nested-stage2-pass', 'nested-stage1-pass ', 'false', '', ' '):
                 expected = ((source in ('api', 'web') and mode in ('nested-stage1-pass', 'nested-stage1-fail')) or
-                            (source == 'pipeline' and mode in ('node-stage1-pass', 'node-stage1-fail')))
+                            (source == 'parent_pipeline' and mode in ('node-stage1-pass', 'node-stage1-fail')))
                 self.assertEqual(P['admitted'](dict(self.env, CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode)), expected)
 
     def test_every_conflict_including_whitespace_refuses_before_publication(self):
@@ -48,18 +48,15 @@ class NestedDagFixtureTest(unittest.TestCase):
                     P['compile_nested'](dict(self.env, **{key: value}))
         self.assertFalse((self.root / 'nested-dag-fixture').exists())
 
-    def test_root_child_is_required_config_bridge_with_only_fixed_fixture_mode(self):
+    def test_root_child_uses_local_include_not_invalid_same_project_trigger(self):
         receipt = P['compile_nested'](self.env)
         directory = self.root / 'nested-dag-fixture'
         raw = (directory / 'child.yml').read_bytes()
         child = json.loads(raw)
-        self.assertEqual(set(child), {'workflow', 'stages', 'Fixture config node'})
-        bridge = child['Fixture config node']
-        self.assertFalse(bridge['allow_failure'])
-        self.assertEqual(bridge['inherit'], {'variables': False})
-        self.assertEqual(bridge['variables'], {'NEST_DAG_FIXTURE': 'node-stage1-pass'})
-        self.assertEqual(bridge['trigger'], dict(project='nest/config', branch='main', strategy='mirror',
-                                               forward=dict(yaml_variables=True, pipeline_variables=False)))
+        self.assertEqual(set(child), {'workflow', 'include', 'variables', 'Run nested DAG fixture'})
+        self.assertEqual(child['include'], [{'local': '.gitlab-ci.yml'}])
+        self.assertEqual(child['variables'], {'NEST_DAG_FIXTURE': 'node-stage1-pass'})
+        self.assertEqual(child['Run nested DAG fixture'], {'variables': {'NEST_DAG_FIXTURE': 'node-stage1-pass'}})
         self.assertEqual(child['workflow']['rules'], [{'if': '$CI_PIPELINE_SOURCE == "parent_pipeline"'}, {'when': 'never'}])
         self.assertEqual(receipt, json.loads((directory / 'receipt.json').read_bytes()))
         self.assertEqual(receipt['child_sha256'], hashlib.sha256(raw).hexdigest())
@@ -70,7 +67,7 @@ class NestedDagFixtureTest(unittest.TestCase):
     def test_node_child_selects_only_existing_nonpublishing_leaf(self):
         for outcome in ('pass', 'fail'):
             with self.subTest(outcome=outcome):
-                env = dict(self.env, CI_PIPELINE_SOURCE='pipeline', NEST_DAG_FIXTURE='node-stage1-' + outcome)
+                env = dict(self.env, CI_PIPELINE_SOURCE='parent_pipeline', NEST_DAG_FIXTURE='node-stage1-' + outcome)
                 receipt = P['compile_nested'](env)
                 directory = self.root / 'nested-dag-fixture'
                 child = json.loads((directory / 'child.yml').read_bytes())

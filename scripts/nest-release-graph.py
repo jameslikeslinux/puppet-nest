@@ -381,7 +381,15 @@ def main():
         if args.check_selection:
             require(selected(os.environ) is not None, 'no graph selected')
         elif args.compile:
-            compile_graph(R['load'](os.environ['RELEASE_GRAPH_FILE']), os.environ)
+            # Live nonpublishing pipelines 11573/11574 proved that GitLab
+            # rejects the generated same-project trigger:project node edge.
+            # A child replacement alone would exceed the two-child depth at
+            # the route layer. Keep standalone freezing/routing available,
+            # but do not publish an executing graph until it is flattened and
+            # the exact supported topology passes a live status exercise.
+            print('Release graph scheduling unavailable: unsupported same-project node topology; '
+                  'use the existing standalone frozen-input route', file=sys.stderr)
+            return 1
         elif args.accept:
             accept_graph(os.environ, GitLab())
         else:
