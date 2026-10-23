@@ -66,6 +66,7 @@ stages:
     - 'python3 spec/files/nest_release_bind_test.py'
     - 'python3 spec/files/nest_release_discover_test.py'
     - 'python3 spec/files/nest_release_assemble_test.py'
+    - 'python3 spec/files/nest_release_envelope_test.py'
     - 'python3 spec/files/build_publish_image_test.py'
     - 'python3 spec/files/build_freeze_repos_test.py'
     - 'python3 spec/files/build_stage3_paths_test.py'
