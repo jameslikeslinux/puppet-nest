@@ -83,6 +83,7 @@ stages:
     - 'python3 spec/files/ci_release_build_test.py'
     - 'python3 spec/files/nest_release_inputs_test.py'
     - 'python3 spec/files/nest_release_route_test.py'
+    - 'python3 spec/files/nest_executor_bootstrap_test.py'
     - 'python3 spec/files/nest_executor_inputs_test.py'
 
 'Hermes install fixtures':
@@ -149,12 +150,14 @@ stages:
 .template:
   stage: 'Build'
   script:
+    - 'BOLT_BASE=$(python3 scripts/nest-executor-bootstrap.py --ci-base)'
     - 'mkdir empty'
     - 'mkdir -p executor-receipts'
     - 'EXECUTOR_IMAGE="${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:executor-${CI_PIPELINE_ID}-${CI_JOB_ID}-${CPU}"'
     - 'podman login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" <<< $CI_REGISTRY_PASSWORD'
-    - 'BOLT_BASE="${BOLT_IMAGE:-nest/tools/bolt}"; podman pull "$BOLT_BASE"'
+    - 'podman pull "$BOLT_BASE"'
     - 'BOLT_BASE_DIGEST=$(podman image inspect "$BOLT_BASE" --format "{{ index .RepoDigests 0 }}")'
+    - 'if [ "$EXECUTOR_BOOTSTRAP" = "true" ]; then test "$BOLT_BASE_DIGEST" = "$BOLT_BASE"; fi'
     - 'podman build
         --build-arg=BOLT_IMAGE="$BOLT_BASE_DIGEST"
         --build-arg=BRANCH="$CI_COMMIT_BRANCH"
@@ -169,16 +172,18 @@ stages:
         empty'
     - 'bash files/build/publish-image.sh "$EXECUTOR_IMAGE" > "executor-receipts/${CPU}.ref"'
     - 'python3 bin/ci-executor-receipt record "executor-receipts/${CPU}.ref" "executor-receipts/${CPU}.json"'
-    - 'podman tag "$EXECUTOR_IMAGE" "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"'
-    - 'podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"'
+    - 'if [ "$EXECUTOR_BOOTSTRAP" != "true" ]; then podman tag "$EXECUTOR_IMAGE" "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}" && podman push "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CPU}"; fi'
   artifacts:
-    paths: ['executor-receipts/']
+    paths: ['executor-receipts/', 'executor-bootstrap/']
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
     - if: '$RELEASE_INPUTS'
       when: never
     - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "trigger") && $CI_COMMIT_TAG == null && $EXECUTOR_BOOTSTRAP == "true" && $RELEASE_BOOTSTRAP_FILE && $EXECUTOR_ONLY == "true" && $BUILD == $CPU'
+    - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
       when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD == $CPU'
@@ -219,6 +224,8 @@ stages:
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
+    - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
+      when: never
     - if: '$RELEASE_INPUTS'
       when: never
     - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
@@ -245,6 +252,8 @@ stages:
   rules:
     - if: '$NEST_DAG_FIXTURE'
       when: never
+    - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
+      when: never
     - if: '$RELEASE_INPUTS'
       when: never
     - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
@@ -253,6 +262,17 @@ stages:
       when: never
     - if: '$EXECUTOR_ONLY == "true"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+'Check executor bootstrap selection':
+  stage: 'Test'
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  tags: ['owl']
+  script:
+    - 'python3 scripts/nest-executor-bootstrap.py --check-selection'
+  rules:
+    - if: '$NEST_DAG_FIXTURE'
+      when: never
+    - if: '$EXECUTOR_BOOTSTRAP =~ /[\s\S]/ || $RELEASE_BOOTSTRAP_FILE =~ /[\s\S]/'
 
 'Check release route selection':
   stage: 'Test'
