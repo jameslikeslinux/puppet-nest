@@ -17,7 +17,7 @@ CONFLICTS = (
 
 
 def admitted(env):
-    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail') and
+    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail', 'agent-pass', 'agent-fail') and
             env.get('CI_PIPELINE_SOURCE') in ('api', 'web') and
             not env.get('CI_COMMIT_TAG') and
             not any(env.get(key) for key in CONFLICTS))
