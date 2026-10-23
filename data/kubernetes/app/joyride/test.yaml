@@ -480,7 +480,7 @@ resources:
             - name: STRIPE_PRICE_ID
               value: price_1USr7ARxm5b9CJTLAsfCS7RO
             - name: OPS_SCOPES
-              value: status,diagnostics,deploy:test,member:read,release
+              value: status,diagnostics,deploy:test,member:read,member:admin,release
             - name: TEST_MAIL_ALLOWLIST
               value: joy@joyfullee.me,joyfulskater@gmail.com
             envFrom:
@@ -984,6 +984,8 @@ resources:
               app: joyride-test-access
         ports:
         - protocol: TCP
+          port: 8001
+        - protocol: TCP
           port: 8003
         - protocol: TCP
           port: 8002
@@ -1128,6 +1130,8 @@ resources:
             matchLabels:
               app: '%{nest::kubernetes::service}'
         ports:
+        - protocol: TCP
+          port: 8001
         - protocol: TCP
           port: 8003
         - protocol: TCP

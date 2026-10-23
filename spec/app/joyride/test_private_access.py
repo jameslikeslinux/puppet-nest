@@ -66,7 +66,7 @@ class PrivateAccess(unittest.TestCase):
         cls.upstream = cls.container + "-upstream"
         cls.network = cls.container + "-network"
         config = (ROOT / "files/app/joyride/test-access-nginx.conf").read_text()
-        for name, port in (("internal-web", 8003), ("trusted-test", 8002)):
+        for name, port in (("internal-web", 8003), ("trusted-test", 8002), ("ops", 8001)):
             config = config.replace(f"joyride-test-{name}.test.svc.cluster.local:{port}", f"{cls.upstream}:8000")
         (cls.path / "nginx.conf").write_text(config)
         run("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=joyride-test.eyrie", "-addext", "subjectAltName=DNS:joyride-test.eyrie", "-keyout", str(cls.path / "tls.key"), "-out", str(cls.path / "tls.crt"))
@@ -172,6 +172,20 @@ class PrivateAccess(unittest.TestCase):
                 self.assertEqual(self.request(path=path + suffix, method="POST")[0], 404)
             limit = 64 * 1024 * 1024 if kind == "content" else 32 * 1024 * 1024
             self.assertEqual(self.request(path=path, method="POST", extra=f"Content-Length: {limit + 1}\r\n")[0], 413)
+
+    def test_member_routes_preserve_bearer_and_idempotency_not_identity(self):
+        for method, suffix in (("GET", ""), ("GET", "/audit?before=fixture"), ("POST", "/waiver/reset")):
+            status, data = self.request(path="/ops/members/synthetic@example.invalid" + suffix, method=method, extra=(
+                "Authorization: Bearer synthetic-fixture\r\nIdempotency-Key: fixture-member-1\r\n"
+                "Content-Type: application/json\r\nX-Joyride-Trusted-Test: forged\r\n"
+                "Tailscale-User-Login: forged\r\nForwarded: forged\r\n"))
+            self.assertEqual(status, 200)
+            headers = json.loads(data)["headers"]
+            self.assertEqual(headers["Authorization"], "Bearer synthetic-fixture")
+            self.assertEqual(headers["Idempotency-Key"], "fixture-member-1")
+            self.assertEqual(headers["Content-Type"], "application/json")
+            self.assertNotIn(b"forged", data)
+        self.assertEqual(self.request(path="/ops/members/x", method="POST", extra="Content-Length: 8193\r\n")[0], 413)
 
     def test_isolated_status_is_token_free_and_strips_caller_identity(self):
         self.assertEqual(self.request(path="/ops/status")[0], 200)
