@@ -246,5 +246,109 @@ class ReleaseInputsTest(unittest.TestCase):
         self.assertNotEqual(self.cli().returncode, 0)
 
 
+    def native(self):
+        fixture = runpy.run_path(str(ROOT / 'spec/files/nest_release_discover_test.py'))
+        api = fixture['NativeGitLab']()
+        old = api.expected['sources']['nest/config']
+
+        def replace(value):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    value[key] = replace(child)
+            elif isinstance(value, list):
+                value[:] = [replace(child) for child in value]
+            elif value == old:
+                return self.sha
+            return value
+
+        for value in api.__dict__.values():
+            replace(value)
+        api.result['expectations_digest'] = RELEASE['digest'](api.expected)
+        self.input.write_bytes(RELEASE['canonical'](api.request))
+        return api, fixture['D']
+
+    def test_native_discovery_freezes_actual_predecessor_and_retains_provenance(self):
+        api, _ = self.native()
+        receipt = MODULE['publish'](self.input, self.env, discovery=True, api=api)
+        self.input.unlink()
+        base = self.checkout / 'release-inputs'
+        frozen = RELEASE['load'](base / 'expectations.json')
+        self.assertEqual(frozen['members'][0]['bases'], api.result['output']['artifacts'])
+        self.assertEqual(receipt['artifact_sha256'], hashlib.sha256((base / 'expectations.json').read_bytes()).hexdigest())
+        provenance = (base / 'discovery.json').read_bytes()
+        self.assertEqual(receipt['base_discovery']['artifact_sha256'], hashlib.sha256(provenance).hexdigest())
+        self.assertEqual(json.loads(provenance)['expectations'], frozen)
+        self.assertEqual(RELEASE['load'](base / 'receipt.json'), receipt)
+        self.assertFalse(receipt['promotion_authorized'])
+        self.assertEqual(receipt['resource_verification'], 'not_performed')
+
+    def test_native_failed_or_changed_predecessor_refuses_before_output(self):
+        for kind in ('failed', 'erased', 'changed'):
+            api, _ = self.native()
+            if kind == 'failed': api.child['status'] = 'failed'
+            if kind == 'erased': api.jobs[('nest/stage0', 101)]['erased_at'] = 'fixture'
+            if kind == 'changed': api.after_result = lambda a: a.bridge.update(id=701)
+            with self.assertRaises(ValueError):
+                MODULE['publish'](self.input, self.env, discovery=True, api=api)
+            self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_native_wrong_source_and_dirty_checkout_refuse_before_network(self):
+        for kind in ('source', 'dirty'):
+            api, _ = self.native()
+            if kind == 'source':
+                api.request['expectations']['sources']['nest/config'] = 'f' * 40
+                api.request['expectations']['executor']['source'] = 'f' * 40
+                self.input.write_bytes(RELEASE['canonical'](api.request))
+            else:
+                (self.checkout / 'tracked').write_text('modified')
+            with self.assertRaises(ValueError):
+                MODULE['publish'](self.input, self.env, discovery=True, api=api)
+            self.assertEqual(api.native_reads, [])
+            self.assertFalse((self.checkout / 'release-inputs').exists())
+
+    def test_ci_selection_requires_exactly_one_file_and_preserves_static_mode(self):
+        cmd = [sys.executable, str(SCRIPT), '--ci']
+        for selection in ({}, {'RELEASE_EXPECTATIONS_FILE': str(self.input), 'RELEASE_DISCOVERY_FILE': str(self.input)}):
+            env = dict(self.env)
+            env.pop('RELEASE_EXPECTATIONS_FILE', None)
+            env.pop('RELEASE_DISCOVERY_FILE', None)
+            env.update(selection)
+            result = subprocess.run(cmd, env=env, capture_output=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertFalse((self.checkout / 'release-inputs').exists())
+        env['RELEASE_DISCOVERY_FILE'] = ''
+        result = subprocess.run(cmd, env=env, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_real_native_ci_cli_reopens_actual_frozen_bytes_after_exit(self):
+        api, native = self.native()
+        expected = native['discover'](api.request, api)
+        replies = {path: json.loads(api.get(path)) for path in set(api.native_reads)}
+        fake = self.root / 'glab'
+        fake.write_text('#!' + sys.executable + '\nimport json,sys\nr=' + repr(replies) +
+                        '\nprint(json.dumps(r[sys.argv[-1]],sort_keys=True,ensure_ascii=True,separators=(",",":")))\n')
+        fake.chmod(0o700)
+        env = dict(self.env, PATH=str(self.root) + os.pathsep + self.env['PATH'],
+                   RELEASE_EXPECTATIONS_FILE='', RELEASE_DISCOVERY_FILE=str(self.input))
+        result = subprocess.run([sys.executable, str(SCRIPT), '--ci'], env=env, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.input.unlink()
+        base = self.checkout / 'release-inputs'
+        self.assertEqual(RELEASE['load'](base / 'expectations.json'), expected['expectations'])
+        self.assertEqual(RELEASE['load'](base / 'discovery.json'), expected)
+        self.assertTrue(json.loads(result.stdout)['readback_verified'])
+
+    def test_native_failed_provenance_readback_refuses(self):
+        api, _ = self.native()
+        original = Path.read_bytes
+
+        def read(path):
+            return b'changed' if path.name == 'discovery.json' else original(path)
+
+        with patch.object(Path, 'read_bytes', read):
+            with self.assertRaises(ValueError):
+                MODULE['publish'](self.input, self.env, discovery=True, api=api)
+
+
 if __name__ == '__main__':
     unittest.main()

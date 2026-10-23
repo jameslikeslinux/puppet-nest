@@ -63,15 +63,24 @@ def identity_trust(expected, checkout, source):
     return release["canonical"](policy)
 
 
-def publish(input_path, env):
+def publish(input_path, env, discovery=False, api=None):
     checkout = Path(env.get("CI_PROJECT_DIR", ""))
     source = identity(env, checkout)
     input_path = Path(input_path)
     require(input_path.is_file() and not input_path.is_symlink(), "invalid expectations file")
-    expected = release["load"](input_path)
+    submitted = release["load"](input_path)
+    expected = submitted['expectations'] if discovery else submitted
     release["expectations"](expected)
     require(expected["sources"]["nest/config"] == source, "expectations use another config source")
     trust = identity_trust(expected, checkout, source)
+    provenance = None
+    if discovery:
+        native = runpy.run_path(str(Path(__file__).with_name('nest-release-discover.py')))
+        provenance = native['discover'](submitted, native['GitLab']() if api is None else api)
+        expected = provenance['expectations']
+        release['expectations'](expected)
+        require(expected['sources']['nest/config'] == source, 'discovered config source changed')
+        require(identity_trust(expected, checkout, source) == trust, 'discovered identity trust changed')
     payload = release["canonical"](expected)
     require(len(payload) <= release["LIMIT"], "canonical expectations exceed size limit")
     raw_sha = hashlib.sha256(payload).hexdigest()
@@ -85,11 +94,20 @@ def publish(input_path, env):
     }
     # A fresh, private CI job directory is the publication boundary. Failure never
     # replaces an earlier artifact; on-success CI retention excludes partial output.
-    destination = checkout / "release-inputs"
-    destination.mkdir(mode=0o700)
     records = {"expectations.json": payload, "receipt.json": release["canonical"](receipt)}
+    if provenance is not None:
+        records['discovery.json'] = release['canonical'](provenance)
+        require(len(records['discovery.json']) <= release['LIMIT'], 'discovery artifact exceeds size limit')
+        receipt['base_discovery'] = {
+            'artifact': 'release-inputs/discovery.json',
+            'artifact_sha256': hashlib.sha256(records['discovery.json']).hexdigest(),
+            'edges': len(provenance['edges']),
+        }
+        records['receipt.json'] = release['canonical'](receipt)
     if trust is not None:
         records["trust.json"] = trust
+    destination = checkout / "release-inputs"
+    destination.mkdir(mode=0o700)
     for name, data in records.items():
         with (destination / name).open("xb") as stream:
             stream.write(data)
@@ -109,10 +127,18 @@ def publish(input_path, env):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--expectations", required=True)
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument('--expectations')
+    selection.add_argument('--discovery')
+    selection.add_argument('--ci', action='store_true', help='select exactly one CI input file variable')
     args = parser.parse_args()
     try:
-        receipt = publish(args.expectations, os.environ)
+        expected, discovery = args.expectations, args.discovery
+        if args.ci:
+            expected = os.environ.get('RELEASE_EXPECTATIONS_FILE')
+            discovery = os.environ.get('RELEASE_DISCOVERY_FILE')
+            require(bool(expected) != bool(discovery), 'select exactly one CI input file')
+        receipt = publish(discovery or expected, os.environ, discovery=bool(discovery))
         # Do not echo user text, paths, reasons or private diagnostics into job logs.
         print(release["canonical"]({"schema": 1, "kind": "nest_release_input_readback",
                                     "artifact_sha256": receipt["artifact_sha256"],
