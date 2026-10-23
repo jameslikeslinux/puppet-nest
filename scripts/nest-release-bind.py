@@ -91,6 +91,17 @@ def job(api, project, pipeline, identifier, source):
             'name': row['name'], 'archive_size': archive['size']}
 
 
+def input_job_names(member: Any) -> tuple[str, str]:
+    """Exact legacy or member-scoped producer names, never a caller pattern.
+
+    Flattened graphs need multiple freezers in one config child. Scope their
+    names to the already validated member, not an arbitrary CI variable. All
+    existing source, job, artifact and result checks remain mandatory.
+    """
+    match(member, RELEASE['TOKEN'], 'input member')
+    return ('Freeze release inputs', 'Freeze release inputs ' + member)
+
+
 def artifact(api, project, identifier, path, expected_sha=None):
     raw = api.get(prefix(project) + '/jobs/' + str(identifier) + '/artifacts/' + path)
     if expected_sha is not None:
@@ -272,7 +283,7 @@ def bind(request: Any, api):
         source = expected['sources'][selector['project']]
         actual_job = job(api, selector['project'], selector['pipeline'], selector['job'], source)
         input_job = job(api, 'nest/config', selector['input_pipeline'], selector['input_job'], config_source)
-        require(input_job['name'] == 'Freeze release inputs', 'wrong predecessor input job')
+        require(input_job['name'] in input_job_names(selector['member']), 'wrong predecessor input job')
         original = artifact(api, 'nest/config', selector['input_job'], 'release-inputs/expectations.json', selector['input_sha256'])
         require(original['sources'] == expected['sources'] and original['release'] == expected['release'],
                 'predecessor uses different release or source closure')

@@ -104,8 +104,13 @@ def edge(api, config_source, producer_source, selector):
             'member pipeline contains incomplete or tolerated jobs')
     member = selected(jobs, selector['job_name'])
     # The binder independently verifies these jobs, archives, sources and bytes.
-    inputs = selected(listing(api, 'nest/config', selector['input_pipeline'], 'jobs'), 'Freeze release inputs')
+    names = BIND['input_job_names'](selector['member'])
+    candidates = [row for row in listing(api, 'nest/config', selector['input_pipeline'], 'jobs')
+                  if row['name'] in names]
+    require(len(candidates) == 1, 'missing or ambiguous member input job')
+    inputs = selected(candidates, candidates[0]['name'])
     input_job = BIND['job'](api, 'nest/config', selector['input_pipeline'], inputs['id'], config_source)
+    require(input_job['name'] == inputs['name'], 'input job name changed during acquisition')
     member_job = BIND['job'](api, selector['project'], child['id'], member['id'], producer_source)
     raw_input = api.get(BIND['prefix']('nest/config') + '/jobs/' + str(inputs['id']) +
                         '/artifacts/release-inputs/expectations.json')
