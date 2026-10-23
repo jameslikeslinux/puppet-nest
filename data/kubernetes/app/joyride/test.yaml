@@ -5,8 +5,9 @@ service_name: '%{nest::kubernetes::service}'
 fqdn: '%{nest::kubernetes::service}.eyrie'
 runtime_environment: test
 ingress_class: contour-test
-# Audited TEST member administration; app MR 36, merged-main pipeline 11693.
-joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:e12ad8eb2da7eaabcac6add447c3cabe63426617e17900c7dafc5b0fb2fc249c
+# Verified basemap v2; app MR 37, merged-main pipeline 11710.
+# Source 589e98cabde3b688f7ce523d78d5c1955018ae38; merge 69aa277afeec89535aa0c20d5bbcb7291f2bcd09.
+joyride_image: registry.gitlab.joyfullee.me/joy/joyride/app@sha256:c0da446de17b5fa19f5cf7e8297844040bc2ca992f98629ee0843733e3d65e1d
 affinity: {}
 tolerations: []
 resources:
@@ -516,6 +517,14 @@ resources:
           - name: basemap
             image: '%{lookup(''joyride_image'')}'
             securityContext: *id001
+            # Stream immutable downloads to the PVC; full native z16 admission
+            # runs here, not a map rebuild. Preserve the old active release.
+            resources:
+              requests:
+                cpu: 250m
+                memory: 192Mi
+              limits:
+                memory: 768Mi
             env: *id002
             envFrom:
             - secretRef:
