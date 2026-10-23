@@ -25,7 +25,7 @@ parameters:
   chart_version:
     description: 'GitLab chart version'
     type: String
-    default: '10.4.3'
+    default: '10.5.1'
 
   hooks:
     description: 'Enable Helm hooks'
