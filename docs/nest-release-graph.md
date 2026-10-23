@@ -128,7 +128,7 @@ branch and expect it to execute as `main`.
 Artifact acquisition uses only fixed allowlisted GitLab GETs through existing
 `glab` authentication. Production runner job-token access and all required
 registry/private module/runner-local resources must be separately admitted;
-o user token is injected to make an inaccessible CI boundary look successful.
+no user token is injected to make an inaccessible CI boundary look successful.
 Stage 3 trust policy is source-checked before graph publication and again by
 the ordinary input publisher. No private identity bytes enter the graph.
 
@@ -150,3 +150,36 @@ readback/no-clobber and parent/result races. Real GitLab merged-YAML dry runs
 validate default isolation, whitespace guards, root/node source admission,
 fixture conflicts and generated child job/needs/trigger syntax without creating
 pipelines. These are not real candidate build/resource/host acceptance.
+
+## Nonpublishing nested topology exercise
+
+After this source is installed at `main`, the existing status fixture also
+accepts `NEST_DAG_FIXTURE=nested-stage1-pass` or `nested-stage1-fail` from API
+or web pipelines. Do not combine it with any build, route, bootstrap, graph,
+host or executor selector. False and whitespace conflict values also refuse.
+Only the selection check, nested compiler and required artifact-backed bridge
+are selected; ordinary tests, executor builds and deployments are suppressed.
+
+The compiler retains and reopens `nested-dag-fixture/child.yml` and a receipt
+bound to its actual checkout, pipeline, job and child bytes. Its config child
+contains one required native config bridge, forwarding only the fixed
+`node-stage1-pass` or `node-stage1-fail` fixture mode. That config pipeline
+compiles a second artifact-backed route child containing one native Stage 1
+bridge with the existing `RELEASE_DAG=true`, `RELEASE_VALIDATE_ONLY=true` and
+exact pass/fail fixture outcome. Node modes accept native downstream source
+only, so the nesting terminates rather than compiling another graph root.
+Every bridge uses `strategy: mirror`, forbids tolerated failure and disables
+caller pipeline-variable forwarding. No API launcher or retry loop is used.
+
+Read back the root -> child -> config node -> route child -> Stage 1 leaf
+resources and both compiler artifacts. Passing requires successful status at
+every layer. The failing fixture deliberately fails its Stage 1 leaf and must
+fail every bridge and root, with no builds, publications or host actions.
+Retain that intentional failed pipeline as test evidence, not a broken release
+or a reason to retry the leaf. A successful pipeline creation is not acceptance.
+
+This is a bounded topology/status exercise using the same bridge depth as the
+native graph. It does not execute the production graph's input discovery,
+lineage guards, candidate jobs, executor bootstrap, resource access or ISA/ABI
+checks, and must not be presented as those contracts' live acceptance. It
+does not replace the remaining full program or separately approved host canary.
