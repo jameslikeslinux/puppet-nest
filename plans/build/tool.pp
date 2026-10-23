@@ -72,7 +72,9 @@ plan nest::build::tool (
       fail('Frozen tool repositories require build, init and an exact base')
     }
     # An extra mount must not hide any part of the independently frozen tree.
-    unless $extra_volumes.empty {
+    # PDK's existing read-only build credential mount cannot hide repositories
+    # and is not copied into the committed image. No arbitrary override is safe.
+    unless $extra_volumes.empty or ($tool == 'pdk' and $extra_volumes == ['/etc/gemrc:/etc/gemrc:ro']) {
       fail('Frozen tool repositories do not support extra volume overrides')
     }
     $repos_volume_arg = "--volume=${container}-frozen-repos:/var/db/repos:nocopy"

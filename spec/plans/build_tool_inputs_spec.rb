@@ -50,6 +50,15 @@ RSpec.describe 'Generic tool frozen inputs and candidate publication' do
     end
   end
 
+  it 'allows only the exact read-only PDK credential mount with frozen repositories' do
+    expect_command(%r{podman }).not_be_called
+    [['/etc/gemrc:/etc/gemrc'], ['/etc/gemrc:/var/db/repos:ro'],
+     ['/etc/gemrc:/etc/gemrc:ro', '/unsafe:/var/db/repos'], ['/etc:/etc:ro']].each do |mounts|
+      expect(run_plan('nest::build::tool', options.merge('tool' => 'pdk', 'extra_volumes' => mounts)).ok?).to be(false)
+    end
+    expect(run_plan('nest::build::tool', options.merge('extra_volumes' => ['/etc/gemrc:/etc/gemrc:ro'])).ok?).to be(false)
+  end
+
   [false, true].each do |refresh|
     it "consumes exact isolated inputs and returns a candidate digest with refresh=#{refresh}" do
       prepare_mocks
