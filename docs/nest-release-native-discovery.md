@@ -46,7 +46,11 @@ The fields are exactly `schema`, `kind`, `expectations`, `executor_job`,
   Each selector has exactly `project`, `member`, `root_pipeline`, `bridge`,
   `job_name` and `input_pipeline`.
 - `project` is a supported Stage or tool project and `member` names its actual
-  `release-results/MEMBER.json`. `root_pipeline` is the explicit existing config
+  `release-results/MEMBER.json` or
+  `release-results/MEMBER.sha256-CONTENT_SHA256.json`. The bounded exact-job ZIP
+  selector documented in [base binding](nest-release-base-binding.md) requires
+  one unambiguous result and verifies any filename digest against the raw bytes.
+  `root_pipeline` is the explicit existing config
   pipeline ID containing the direct bridge named by `bridge`. `job_name` is the
   exact downstream candidate job name, not a pattern or a guessed latest job.
 - `input_pipeline` names the exact config pipeline containing that predecessor's

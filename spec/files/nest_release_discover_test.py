@@ -55,7 +55,7 @@ class NativeGitLab(F['FakeGitLab']):
                     row = [self.jobs[('nest/config', 801)]] if project == 'nest/config' else [self.jobs[('nest/stage0', 101)]] + self.extra_jobs
             return R['canonical'](row)
         result = super().get(path)
-        if path.endswith('release-results/stage0.json') and self.after_result:
+        if path.endswith('/jobs/101/artifacts') and self.after_result:
             self.after_result(self)
         return result
 
@@ -66,6 +66,11 @@ class DiscoverTest(unittest.TestCase):
 
     def discover(self):
         return D['discover'](self.api.request, self.api)
+
+    def test_digest_named_producer_is_discovered_and_independently_bound(self):
+        expected = self.discover()
+        F['digest_results'](self.api.artifacts)
+        self.assertEqual(self.discover(), expected)
 
     def test_native_bridge_discovers_exact_jobs_and_binds_actual_pair(self):
         before = copy.deepcopy(self.api.request)
@@ -178,14 +183,13 @@ class DiscoverTest(unittest.TestCase):
                 api.get('projects/nest%2Fconfig/pipelines/1/bridges?per_page=100&page=1')
 
     def test_real_cli_publishes_reopened_content_addressed_expectations(self):
+        F['digest_results'](self.api.artifacts)
         result = self.discover()
-        replies = {path: json.loads(self.api.get(path)) for path in set(self.api.native_reads)}
+        replies = {path: self.api.get(path) for path in set(self.api.native_reads)}
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             fake = root / 'glab'
-            fake.write_text('#!' + sys.executable + '\nimport json,sys\nr=' + repr(replies) +
-                            '\nprint(json.dumps(r[sys.argv[-1]],sort_keys=True,ensure_ascii=True,separators=(",",":")))\n')
-            fake.chmod(0o700)
+            F['fake_glab'](fake, replies)
             request = root / 'request.json'
             request.write_bytes(R['canonical'](self.api.request))
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'], PYTHONDONTWRITEBYTECODE='1')

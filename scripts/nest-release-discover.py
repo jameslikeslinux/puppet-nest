@@ -109,8 +109,7 @@ def edge(api, config_source, producer_source, selector):
     member_job = BIND['job'](api, selector['project'], child['id'], member['id'], producer_source)
     raw_input = api.get(BIND['prefix']('nest/config') + '/jobs/' + str(inputs['id']) +
                         '/artifacts/release-inputs/expectations.json')
-    raw_result = api.get(BIND['prefix'](selector['project']) + '/jobs/' + str(member['id']) +
-                         '/artifacts/release-results/' + selector['member'] + '.json')
+    raw_result = BIND['result_bytes'](api, selector['project'], member['id'], selector['member'])
     resolved = dict(project=selector['project'], member=selector['member'], pipeline=child['id'], job=member['id'],
                     input_pipeline=selector['input_pipeline'], input_job=inputs['id'],
                     input_sha256=hashlib.sha256(raw_input).hexdigest(),

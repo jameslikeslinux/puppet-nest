@@ -322,12 +322,12 @@ class ReleaseInputsTest(unittest.TestCase):
 
     def test_real_native_ci_cli_reopens_actual_frozen_bytes_after_exit(self):
         api, native = self.native()
+        fixture = runpy.run_path(str(ROOT / 'spec/files/nest_release_bind_test.py'))
+        fixture['digest_results'](api.artifacts)
         expected = native['discover'](api.request, api)
-        replies = {path: json.loads(api.get(path)) for path in set(api.native_reads)}
+        replies = {path: api.get(path) for path in set(api.native_reads)}
         fake = self.root / 'glab'
-        fake.write_text('#!' + sys.executable + '\nimport json,sys\nr=' + repr(replies) +
-                        '\nprint(json.dumps(r[sys.argv[-1]],sort_keys=True,ensure_ascii=True,separators=(",",":")))\n')
-        fake.chmod(0o700)
+        fixture['fake_glab'](fake, replies)
         env = dict(self.env, PATH=str(self.root) + os.pathsep + self.env['PATH'],
                    RELEASE_EXPECTATIONS_FILE='', RELEASE_DISCOVERY_FILE=str(self.input))
         result = subprocess.run([sys.executable, str(SCRIPT), '--ci'], env=env, capture_output=True)

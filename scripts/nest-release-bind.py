@@ -7,6 +7,7 @@ Read-only by default. Does not build, trigger, promote, or authorize a release.
 import argparse
 import copy
 import hashlib
+import io
 import json
 
 from pathlib import Path
@@ -14,6 +15,9 @@ import re
 import runpy
 import subprocess
 import sys
+import stat
+import zipfile
+import zlib
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,9 +45,9 @@ class GitLab:
 
     def get(self, path):
         require(re.fullmatch(r'projects/nest(?:%2F[a-z0-9._-]+)+(?:/jobs/[1-9][0-9]{0,19}'
-                             r'(?:/artifacts/(?:release-inputs/expectations\.json|'
+                             r'(?:/artifacts(?:/(?:release-inputs/expectations\.json|'
                              r'executor-receipts/(?:haswell|cortex-a53|sifive-u74)\.json|'
-                             r'release-results/[a-z0-9][a-z0-9._-]{0,127}\.json))?)?', path) is not None,
+                             r'release-results/[a-z0-9][a-z0-9._-]{0,127}\.json))?)?)?', path) is not None,
                 'unsupported GitLab read')
         result = subprocess.run(['glab', 'api', '--hostname', HOST, path], capture_output=True,
                                 timeout=60, check=False)
@@ -102,6 +106,55 @@ def check_executor(row, expected, cpu):
                          (expected['executor']['source'], row['pipeline'], row['image'].split('@')[0]))
     require(row['image'] == expected['executor']['image'], 'wrong executor image')
     return architecture
+
+
+def result_bytes(api, project, identifier, member, expected_sha=None):
+    """Select exactly one legacy or digest-named result from a bounded job ZIP.
+
+    Never extract paths or choose a newest result. A legacy/digest pair is
+    ambiguous even when its bytes match. Other members cannot supply this one.
+    """
+    positive(identifier)
+    match(member, RELEASE['TOKEN'], 'result member')
+    raw = api.get(prefix(project) + '/jobs/' + str(identifier) + '/artifacts')
+    require(len(raw) <= RELEASE['LIMIT'], 'oversized result archive')
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            entries = archive.infolist()
+            require(len(entries) <= 256 and sum(e.file_size for e in entries) <= RELEASE['LIMIT'],
+                    'oversized result archive inventory')
+            names = [e.filename for e in entries]
+            require(len(names) == len(set(names)), 'duplicate archive paths')
+            matches = []
+            for entry in entries:
+                name = entry.filename
+                require(not name.startswith('/') and '\\' not in name
+                        and all(p not in ('', '.', '..') for p in name.rstrip('/').split('/')),
+                        'unsafe archive path')
+                mode = entry.external_attr >> 16
+                require(not mode or stat.S_IFMT(mode) in (0, stat.S_IFREG, stat.S_IFDIR),
+                        'nonregular archive entry')
+                if name == 'release-results/' + member + '.json' or name.startswith('release-results/' + member + '.sha256-'):
+                    found = re.fullmatch(r'release-results/' + re.escape(member)
+                                         + r'(?:\.sha256-([0-9a-f]{64}))?\.json', name)
+                    if found is None or entry.is_dir():
+                        raise ValueError('malformed member result name')
+                    matches.append((entry, found.group(1)))
+            require(len(matches) == 1, 'missing or ambiguous member result')
+            entry, named_sha = matches[0]
+            require(not entry.flag_bits & 1, 'encrypted member result')
+            with archive.open(entry) as stream:
+                payload = stream.read(RELEASE['LIMIT'] + 1)
+            require(len(payload) <= RELEASE['LIMIT'], 'oversized member result')
+    except (zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error) as error:
+        raise ValueError('invalid result archive') from error
+    actual_sha = hashlib.sha256(payload).hexdigest()
+    require(named_sha is None or named_sha == actual_sha, 'result filename digest mismatch')
+    if expected_sha is not None:
+        match(expected_sha, r'[0-9a-f]{64}', 'result digest')
+        require(expected_sha == actual_sha, 'result artifact digest mismatch')
+    decode(payload)
+    return payload
 
 
 def check_result(expected, row, selector):
@@ -223,8 +276,7 @@ def bind(request: Any, api):
         original = artifact(api, 'nest/config', selector['input_job'], 'release-inputs/expectations.json', selector['input_sha256'])
         require(original['sources'] == expected['sources'] and original['release'] == expected['release'],
                 'predecessor uses different release or source closure')
-        row = artifact(api, selector['project'], selector['job'], 'release-results/' + selector['member'] + '.json',
-                       selector['result_sha256'])
+        row = decode(result_bytes(api, selector['project'], selector['job'], selector['member'], selector['result_sha256']))
         outputs[name] = check_result(original, row, selector)
         observations.extend(((actual_job, selector['result_sha256']), (input_job, selector['input_sha256'])))
     changes = []

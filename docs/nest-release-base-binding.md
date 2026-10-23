@@ -59,7 +59,10 @@ existing supported Stage or tool project. Pipeline/job values are positive
 integers, not latest-success selectors. The input job belongs to `nest/config`
 and must be named `Freeze release inputs`; it supplies the predecessor's own
 `release-inputs/expectations.json`. The two bare lowercase SHA256 values bind
-those exact artifact bytes and `release-results/MEMBER.json`, respectively.
+those exact input and result bytes, respectively. Results may use the historical
+`release-results/MEMBER.json` name or the hardened tool producers' name
+`release-results/MEMBER.sha256-CONTENT_SHA256.json`. The result digest always
+hashes the original file bytes, not reserialized JSON or the enclosing archive.
 Select identities and digests from the actual successful bridge/job readbacks;
 this helper does not discover or choose the latest pipeline for the caller.
 
@@ -76,8 +79,9 @@ and rebinding a `reuse` consumer refuse.
 
 All reads use the fixed GitLab host through `glab api` without a shell. Paths
 are limited to supported project metadata, exact jobs and the three supported
-artifact namespaces. No caller URL, job trace, latest-success endpoint, private
-root or identity payload is fetched. Native stderr is captured, not republished.
+artifact namespaces and exact job ZIP downloads. No caller URL, job trace or
+latest-success endpoint is fetched. Only the selected producer job archive is
+downloaded, not a private identity source. Native stderr is captured, not republished.
 This entrypoint uses normal existing glab authentication; it does not inject
 credentials or claim that a CI job token has equivalent API permissions.
 
@@ -90,6 +94,18 @@ new template. The result's original expectations digest, exact member,
 producer source/pipeline/job, schema-2 executor receipt and ordinary output
 schema must match. Missing debug outputs, stale executors, changed artifact
 bytes, cross-source reuse and moved or failed producer resources refuse.
+
+Member result acquisition inspects the selected job ZIP in memory without
+extracting any paths. It requires exactly one result for the exact member;
+legacy plus digest-named results, duplicate ZIP paths, multiple digests, malformed
+digest suffixes, unsafe paths, links, corrupt/encrypted selected entries and
+filename/content digest mismatches refuse. Even identical duplicate results
+are ambiguous. Other members never substitute for the selected member. ZIP
+downloads and total declared uncompressed bytes are each limited to 4 MiB,
+with at most 256 entries, and selected result reads are independently bounded.
+The existing full result schema, raw-byte pin and job/source checks still apply.
+These bounds cover the current result-only producer archives, not arbitrary
+image bundles. No archive is extracted or rewritten; old results remain valid.
 
 The descendant executor is acquired separately from the exact successful
 `Build haswell`, `Build cortex-a53` or `Build sifive-u74` job. Its own receipt
