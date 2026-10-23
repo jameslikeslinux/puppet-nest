@@ -63,7 +63,7 @@ def identity_trust(expected, checkout, source):
     return release["canonical"](policy)
 
 
-def publish(input_path, env, discovery=False, api=None):
+def publish(input_path, env, discovery=False, api=None, before_publication=None):
     checkout = Path(env.get("CI_PROJECT_DIR", ""))
     source = identity(env, checkout)
     routing = runpy.run_path(str(Path(__file__).with_name('nest-release-route.py')))
@@ -119,6 +119,8 @@ def publish(input_path, env, discovery=False, api=None):
         records['receipt.json'] = release['canonical'](receipt)
     if trust is not None:
         records["trust.json"] = trust
+    if before_publication is not None:
+        before_publication()
     destination = checkout / "release-inputs"
     destination.mkdir(mode=0o700)
     for name, data in records.items():

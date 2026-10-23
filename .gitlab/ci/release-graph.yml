@@ -1,0 +1,45 @@
+---
+# Graph execution is a build-only operator selection, never a source-event effect.
+'Check release graph selection':
+  stage: 'Test'
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  tags: ['owl']
+  script:
+    - 'python3 scripts/nest-release-graph.py --check-selection'
+  rules:
+    - if: '$NEST_DAG_FIXTURE'
+      when: never
+    - if: '$RELEASE_GRAPH =~ /[\s\S]/ || $RELEASE_GRAPH_FILE =~ /[\s\S]/ || $RELEASE_GRAPH_NODE =~ /[\s\S]/ || $RELEASE_GRAPH_MEMBER =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_PIPELINE =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_JOB =~ /[\s\S]/ || $RELEASE_GRAPH_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_GRAPH_ROOT_PIPELINE =~ /[\s\S]/'
+
+'Compile release graph':
+  stage: 'Build'
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  tags: ['owl']
+  script:
+    - 'python3 scripts/nest-release-graph.py --compile'
+  artifacts:
+    when: on_success
+    paths: ['release-graph/']
+  rules:
+    - if: '$NEST_DAG_FIXTURE || $CI_COMMIT_TAG'
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "trigger") && $RELEASE_GRAPH == "true" && $RELEASE_GRAPH_FILE'
+
+'Run release graph':
+  stage: 'Deploy'
+  needs: ['Compile release graph']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    include:
+      - artifact: 'release-graph/graph.yml'
+        job: 'Compile release graph'
+    strategy: mirror
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: '$NEST_DAG_FIXTURE || $CI_COMMIT_TAG'
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "trigger") && $RELEASE_GRAPH == "true" && $RELEASE_GRAPH_FILE'
