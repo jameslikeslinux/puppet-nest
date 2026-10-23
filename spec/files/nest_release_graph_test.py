@@ -162,7 +162,8 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(route['variables']['RELEASE_INPUT_SHA256'], receipt['artifact_sha256'])
         self.assertEqual(route['variables']['RELEASE_EXECUTOR_JOB_ID'], '901')
         self.assertNotIn('RELEASE_GRAPH_NODE', route['variables'])
-        self.assertIn('base_discovery', receipt)
+        self.assertIn('base_discovery', R['load'](directory / 'provenance.json'))
+        self.assertNotIn('base_discovery', receipt)
         with self.assertRaises(FileExistsError): G['freeze_node'](self.node_env, self.api)
 
     def test_root_node_uses_reviewed_pinned_bases_without_predecessor_acquisition(self):

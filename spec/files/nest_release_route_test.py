@@ -47,7 +47,24 @@ class ReleaseRouteTest(unittest.TestCase):
         receipt = self.publish()
         self.f.input.unlink()
         raw = (self.f.checkout / 'release-inputs/candidate.yml').read_bytes()
-        self.assertEqual(hashlib.sha256(raw).hexdigest(), receipt['candidate_route']['artifact_sha256'])
+        directory = self.f.checkout / 'release-inputs'
+        sidecar = R['load'](directory / 'provenance.json')
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), sidecar['candidate_route']['artifact_sha256'])
+        self.assertEqual(sidecar['input_receipt_sha256'], hashlib.sha256((directory / 'receipt.json').read_bytes()).hexdigest())
+        self.assertEqual(sidecar['kind'], 'nest_release_input_provenance')
+        self.assertEqual(sidecar['schema'], 1)
+        self.assertNotIn('candidate_route', receipt)
+        self.assertEqual(R['load'](directory / 'receipt.json'), receipt)
+        # Match the strict downstream schema, not a subset of publisher fields.
+        # An additive routing/discovery key used to make dispatch fail here.
+        self.assertEqual(receipt, {
+            'schema': 1, 'kind': 'nest_release_input_publication',
+            'release': self.f.expected['release'], 'expectations_digest': R['digest'](self.f.expected),
+            'artifact': 'release-inputs/expectations.json',
+            'artifact_sha256': hashlib.sha256((directory / 'expectations.json').read_bytes()).hexdigest(),
+            'producer': {'project': 'nest/config', 'sha': self.f.sha, 'pipeline': 901, 'job': 902},
+            'resource_verification': 'not_performed', 'promotion_authorized': False,
+        })
         graph = json.loads(raw)
         job = graph['Build frozen member']
         self.assertEqual(job['trigger'], dict(project='nest/stage0', branch='main', strategy='mirror',
@@ -65,7 +82,7 @@ class ReleaseRouteTest(unittest.TestCase):
         self.assertNotIn('RELEASE_VARIANT', variables)  # Stage 0 explicitly forbids it.
         self.assertFalse(any(key in variables for key in ROUTE['ROUTE_KEYS']))
         self.assertNotIn(b'fixture-private-token', raw)
-        self.assertEqual(receipt['candidate_route']['execution'], 'not_started')
+        self.assertEqual(sidecar['candidate_route']['execution'], 'not_started')
         self.assertFalse(receipt['promotion_authorized'])
         self.assertEqual(self.f.expected['members'][0]['bases'], self.f.member['bases'])
 
@@ -103,7 +120,9 @@ class ReleaseRouteTest(unittest.TestCase):
                 self.publish(CI_PIPELINE_SOURCE='parent_pipeline', CI_JOB_NAME=name)
         self.assertEqual(self.api.reads, [])
         receipt = self.publish(CI_PIPELINE_SOURCE='parent_pipeline', CI_JOB_NAME='Freeze release inputs ' + member)
-        self.assertEqual(receipt['candidate_route']['member'], member)
+        sidecar = R['load'](self.f.checkout / 'release-inputs/provenance.json')
+        self.assertEqual(sidecar['candidate_route']['member'], member)
+        self.assertNotIn('candidate_route', receipt)
 
     def test_unknown_reuse_and_unimplemented_tool_refuse(self):
         with self.assertRaises(ValueError): self.publish(RELEASE_ROUTE_MEMBER='absent')
@@ -205,14 +224,25 @@ class ReleaseRouteTest(unittest.TestCase):
         self.assertEqual(json.loads(frozen)['members'][0]['bases'], api.result['output']['artifacts'])
         variables = json.loads((directory / 'candidate.yml').read_bytes())['Build frozen member']['variables']
         self.assertEqual(variables['RELEASE_INPUT_SHA256'], hashlib.sha256(frozen).hexdigest())
-        self.assertIn('base_discovery', receipt)
-        self.assertIn('candidate_route', receipt)
+        sidecar = R['load'](directory / 'provenance.json')
+        self.assertEqual(set(sidecar), {'schema', 'kind', 'input_receipt_sha256', 'base_discovery', 'candidate_route'})
+        self.assertNotIn('base_discovery', receipt)
+        self.assertNotIn('candidate_route', receipt)
 
     def test_failed_candidate_readback_cannot_report_success_or_overwrite(self):
         original = Path.read_bytes
 
         def read(path):
             return b'changed' if path.name == 'candidate.yml' else original(path)
+
+        with patch.object(Path, 'read_bytes', read), self.assertRaises(ValueError): self.publish()
+        with self.assertRaises(FileExistsError): self.publish()
+
+    def test_failed_routing_provenance_readback_cannot_report_success_or_overwrite(self):
+        original = Path.read_bytes
+
+        def read(path):
+            return b'changed' if path.name == 'provenance.json' else original(path)
 
         with patch.object(Path, 'read_bytes', read), self.assertRaises(ValueError): self.publish()
         with self.assertRaises(FileExistsError): self.publish()

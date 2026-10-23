@@ -163,9 +163,12 @@ then freezes the actual bound bases. Failed, erased, moved, incomplete or
 cross-source resources refuse before a publication directory is created.
 Original predecessor artifacts are never rewritten. After successful acquisition,
 the job retains the ordinary `expectations.json`, `receipt.json`, optional public
-`trust.json`, and complete `discovery.json` provenance. The receipt's additive
-`base_discovery` field binds the provenance artifact SHA256 and observed edge
-count. All retained bytes are fsynced and reopened; CI uploads this directory
+`trust.json`, and complete `discovery.json` provenance. The ordinary schema-1
+receipt stays exact for existing consumers. A separate `provenance.json`
+(`schema=1`, `kind=nest_release_input_provenance`) binds the input receipt bytes
+with `input_receipt_sha256`; its `base_discovery` field binds the discovery
+artifact SHA256 and observed edge count. All retained bytes are fsynced and
+reopened; CI uploads this directory
 only on success. The input job name and ordinary expectations artifact path stay
 unchanged for existing consumers and the assembler.
 
