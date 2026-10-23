@@ -26,9 +26,9 @@ if os.environ.get('FAIL_BUILD'):
 if os.environ.get('CHANGE_MODULE'):
     (pathlib.Path(os.environ['EXECUTOR']) / '.modules/stdlib/data').write_text('changed')
 stage = sys.argv[3].split('::')[-1]
-repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool', 'bolt', 'agent', 'firefox', 'camofox') else '')
+repo = os.environ['CI_REGISTRY_IMAGE'] + ('/' + p['variant'] if stage not in ('stage0', 'tool', 'bolt', 'agent', 'firefox', 'camofox', 'pdk') else '')
 row = ({'normal': repo + '@sha256:' + 'c' * 64, 'debug': repo + '/debug@sha256:' + 'd' * 64}
-       if stage not in ('stage2', 'tool', 'bolt', 'agent', 'firefox', 'camofox') else {'image': repo + '@sha256:' + 'c' * 64})
+       if stage not in ('stage2', 'tool', 'bolt', 'agent', 'firefox', 'camofox', 'pdk') else {'image': repo + '@sha256:' + 'c' * 64})
 if stage == 'stage3':
     row = {'root': {'path': p['hostroot'], 'dataset_guid': '456', 'content_digest': 'sha256:' + 'c' * 64}}
     bad = os.environ.get('BAD_ROOT')
@@ -253,6 +253,43 @@ class CandidateBuildTest(unittest.TestCase):
             self.assertEqual(self.cli().returncode, 1)
         self.assertEqual(self.calls(), [])
 
+    def test_pdk_candidate_dispatches_specialized_wrapper_and_preserves_input_identity(self):
+        for cpu in ("haswell", "cortex-a53", "sifive-u74"):
+            for mode in ("fresh", "refresh"):
+                self.select("tool", mode, "pdk")
+                self.expected["members"][0]["cpu"] = cpu
+                self.output = self.root / ("pdk-" + cpu + "-" + mode)
+                self.output.mkdir()
+                result = self.cli()
+                self.assertEqual(result.returncode, 0, result.stderr)
+                call = self.calls()[-1]
+                self.assertEqual(call["args"][2], "nest::build::pdk")
+                params = call["params"]
+                self.assertEqual(params["cpu"], cpu)
+                self.assertEqual(params["refresh"], mode == "refresh")
+                self.assertEqual(params["from_image"], self.expected["members"][0]["bases"]["image"])
+                self.assertEqual(params["repo_revisions"], {"gentoo": "b" * 40, "nest": "a" * 40, "haskell": "c" * 40})
+                for key in ("tag", "tool", "base_variant", "registry_password"):
+                    self.assertNotIn(key, params)
+                row = json.loads((self.output / "fixture-member.json").read_text())
+                self.assertEqual(row["output"]["artifacts"], {"image": "registry.example/nest/tools/pdk@sha256:" + "c" * 64})
+                MANIFEST["validate"](self.expected, {"schema": 1, "kind": "nest_release_candidate",
+                                                  "release": self.expected["release"],
+                                                  "expectations_digest": row["expectations_digest"], "outputs": [row["output"]]})
+
+    def test_pdk_wrong_cpu_variant_and_failed_publication_refuse(self):
+        self.select("tool", tool="pdk")
+        for cpu, variant in (("zen5", "server"), ("haswell", "workstation")):
+            self.expected["members"][0].update(cpu=cpu, variant=variant)
+            self.assertEqual(self.cli().returncode, 1)
+        self.assertEqual(self.calls(), [])
+        self.expected["members"][0].update(cpu="haswell", variant="server")
+        self.assertEqual(self.cli(FAIL_BUILD="1").returncode, 1)
+        self.assertFalse((self.output / "fixture-member.json").exists())
+        count = len(self.calls())
+        self.assertEqual(self.cli().returncode, 1)
+        self.assertEqual(len(self.calls()), count)
+
     def test_agent_candidate_preserves_wrapper_mode_and_retained_digest(self):
         for mode in ("fresh", "refresh"):
             self.select("tool", mode, "agent")
@@ -361,7 +398,7 @@ class CandidateBuildTest(unittest.TestCase):
         self.expected["members"][0]["variant"] = "workstation"
         self.assertEqual(self.cli().returncode, 1)
         self.expected["members"][0]["variant"] = "server"
-        for tool in ("pdk", "r10k", "whisper.cpp"):
+        for tool in ("r10k", "whisper.cpp"):
             project = "nest/tools/" + tool
             member = self.expected["members"][0]
             member["project"] = project

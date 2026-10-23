@@ -43,9 +43,9 @@ def prepare(expected, member_id, receipt, placement=None):
     require(stage in ("stage0", "stage1", "stage2", "stage3", "tool"))
     # Specialized wrappers must retain their own smoke and image contracts.
     tool_variants = {"nest/tools/llama.cpp": "server", "nest/tools/bolt": "server", "nest/tools/agent": "server",
-                     "nest/tools/firefox": "workstation", "nest/tools/camofox": "server"}
+                     "nest/tools/firefox": "workstation", "nest/tools/camofox": "server", "nest/tools/pdk": "server"}
     require(stage != "tool" or tool_variants.get(member["project"]) == member["variant"])
-    require(member["project"] != "nest/tools/bolt" or member["cpu"] in ("haswell", "cortex-a53", "sifive-u74"))
+    require(member["project"] not in ("nest/tools/bolt", "nest/tools/pdk") or member["cpu"] in ("haswell", "cortex-a53", "sifive-u74"))
     require(member["project"] != "nest/tools/agent" or member["cpu"] == "zen5")
     require(member["project"] not in ("nest/tools/firefox", "nest/tools/camofox") or member["cpu"] == "zen5")
     require(stage == "stage3" or placement is None)
