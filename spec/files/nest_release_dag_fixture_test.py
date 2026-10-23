@@ -23,10 +23,10 @@ class ReleaseDagFixtureTest(unittest.TestCase):
 
     def test_exact_operator_modes_only(self):
         for source in ('api', 'web', 'push', 'merge_request_event', 'schedule', 'pipeline', 'parent_pipeline', 'trigger', ''):
-            for mode in ('pass', 'fail', 'false', 'true', '', 'PASS'):
+            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'false', 'true', '', 'PASS'):
                 with self.subTest(source=source, mode=mode):
                     self.assertEqual(POLICY['admitted'](dict(CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode)),
-                                     source in ('api', 'web') and mode in ('pass', 'fail'))
+                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail'))
 
     def test_every_conflict_and_tag_refuses(self):
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
@@ -39,7 +39,8 @@ class ReleaseDagFixtureTest(unittest.TestCase):
 
     def test_real_cli_exits_no_files_no_private_values(self):
         with tempfile.TemporaryDirectory() as temp:
-            for source, mode, code in (('api', 'pass', 0), ('web', 'fail', 0), ('push', 'pass', 1), ('api', 'false', 1)):
+            for source, mode, code in (('api', 'pass', 0), ('web', 'fail', 0), ('api', 'stage1-pass', 0),
+                                       ('web', 'stage1-fail', 0), ('push', 'stage1-pass', 1), ('push', 'pass', 1), ('api', 'false', 1)):
                 env = dict(PATH=os.defpath, CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode,
                            CI_JOB_TOKEN='fixture-private-token', PYTHONDONTWRITEBYTECODE='1')
                 result = subprocess.run([sys.executable, str(SCRIPT)], cwd=temp, env=env,
@@ -61,21 +62,25 @@ class ReleaseDagFixtureTest(unittest.TestCase):
             self.assertEqual(rules[0], {'if': '$NEST_DAG_FIXTURE', 'when': 'never'}, name)
 
     def test_native_bridge_has_no_command_or_inherited_pipeline_variables(self):
-        job = self.fixture['Stage 0 release DAG fixture']
+        for stage, prefix in (('stage0', ''), ('stage1', 'stage1-')):
+            self.check_bridge(stage, prefix)
+
+    def check_bridge(self, stage, prefix):
+        job = self.fixture['Stage ' + stage[-1] + ' release DAG fixture']
         self.assertNotIn('script', job)
         self.assertNotIn('variables', job)  # No executing flags during rule evaluation.
         self.assertEqual(job['inherit'], {'variables': False})
         self.assertFalse(job['allow_failure'])
         self.assertEqual(job['needs'], ['Check release DAG fixture selection'])
-        self.assertEqual(job['trigger'], dict(project='nest/stage0', branch='main', strategy='mirror',
+        self.assertEqual(job['trigger'], dict(project='nest/' + stage, branch='main', strategy='mirror',
                                              forward=dict(yaml_variables=True, pipeline_variables=False)))
         guard = job['rules'][0]
         self.assertEqual(guard['when'], 'never')
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
-            self.assertIn('$' + key, guard['if'].split(' || '))
+            self.assertIn('$' + key + r' =~ /[\s\S]/', guard['if'].split(' || '))
         for rule, mode in zip(job['rules'][1:], ('pass', 'fail')):
             self.assertEqual(rule['variables'], dict(RELEASE_DAG='true', RELEASE_VALIDATE_ONLY='true', RELEASE_DAG_FIXTURE=mode))
-            self.assertIn('$NEST_DAG_FIXTURE == "' + mode + '"', rule['if'])
+            self.assertIn('$NEST_DAG_FIXTURE == "' + prefix + mode + '"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "api"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "web"', rule['if'])
         self.assertEqual(len(job['rules']), 3)
