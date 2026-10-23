@@ -66,6 +66,8 @@ def identity_trust(expected, checkout, source):
 def publish(input_path, env, discovery=False, api=None):
     checkout = Path(env.get("CI_PROJECT_DIR", ""))
     source = identity(env, checkout)
+    routing = runpy.run_path(str(Path(__file__).with_name('nest-release-route.py')))
+    route_selected = routing['selected'](env)
     input_path = Path(input_path)
     require(input_path.is_file() and not input_path.is_symlink(), "invalid expectations file")
     submitted = release["load"](input_path)
@@ -95,6 +97,17 @@ def publish(input_path, env, discovery=False, api=None):
     # A fresh, private CI job directory is the publication boundary. Failure never
     # replaces an earlier artifact; on-success CI retention excludes partial output.
     records = {"expectations.json": payload, "receipt.json": release["canonical"](receipt)}
+    if route_selected:
+        graph = routing['compile_bridge'](expected, receipt, env,
+                                          routing['B']['GitLab']() if api is None else api)
+        records['candidate.yml'] = release['canonical'](graph)
+        receipt['candidate_route'] = {
+            'artifact': 'release-inputs/candidate.yml',
+            'artifact_sha256': hashlib.sha256(records['candidate.yml']).hexdigest(),
+            'member': env['RELEASE_ROUTE_MEMBER'],
+            'execution': 'not_started',
+        }
+        records['receipt.json'] = release['canonical'](receipt)
     if provenance is not None:
         records['discovery.json'] = release['canonical'](provenance)
         require(len(records['discovery.json']) <= release['LIMIT'], 'discovery artifact exceeds size limit')

@@ -1,0 +1,23 @@
+---
+# Failed freezing cannot launch a candidate. Both bridge layers mirror required
+# downstream status, with no caller pipeline variables forwarded to the child.
+'Route frozen candidate':
+  stage: 'Deploy'
+  needs: ['Freeze release inputs']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    include:
+      - artifact: 'release-inputs/candidate.yml'
+        job: 'Freeze release inputs'
+    strategy: mirror
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: '$NEST_DAG_FIXTURE'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "trigger") && $RELEASE_INPUTS == "true" && $RELEASE_ROUTE == "true"'

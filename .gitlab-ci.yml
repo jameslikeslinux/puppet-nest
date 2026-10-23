@@ -4,6 +4,7 @@ default:
 
 include:
   - local: '.gitlab/ci/release-dag-fixture.yml'
+  - local: '.gitlab/ci/release-routing.yml'
 
 stages:
   - 'Test'
@@ -81,6 +82,7 @@ stages:
     - 'python3 spec/files/ci_executor_identity_test.py'
     - 'python3 spec/files/ci_release_build_test.py'
     - 'python3 spec/files/nest_release_inputs_test.py'
+    - 'python3 spec/files/nest_release_route_test.py'
     - 'python3 spec/files/nest_executor_inputs_test.py'
 
 'Hermes install fixtures':
@@ -176,6 +178,8 @@ stages:
       when: never
     - if: '$RELEASE_INPUTS'
       when: never
+    - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
+      when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD == $CPU'
     - if: '$EXECUTOR_ONLY == "true" && $BUILD'
@@ -217,6 +221,8 @@ stages:
       when: never
     - if: '$RELEASE_INPUTS'
       when: never
+    - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
+      when: never
     - if: '$EXECUTOR_ONLY == "true"'
       when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -241,10 +247,23 @@ stages:
       when: never
     - if: '$RELEASE_INPUTS'
       when: never
+    - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
+      when: never
     - if: '$EXECUTOR_ONLY == "true" && $BUILD'
       when: never
     - if: '$EXECUTOR_ONLY == "true"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+'Check release route selection':
+  stage: 'Test'
+  image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'
+  tags: ['owl']
+  script:
+    - 'python3 scripts/nest-release-route.py --check-selection'
+  rules:
+    - if: '$NEST_DAG_FIXTURE'
+      when: never
+    - if: '$RELEASE_ROUTE =~ /[\s\S]/ || $RELEASE_ROUTE_MEMBER =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_PIPELINE =~ /[\s\S]/ || $RELEASE_ROUTE_EXECUTOR_JOB =~ /[\s\S]/ || $RELEASE_ROUTE_PLACEMENT =~ /[\s\S]/'
 
 'Freeze release inputs':
   image: 'registry.gitlab.joyfullee.me/nest/tools/agent@sha256:820cc8a130309a07db90685958bb9cac87d8376ab63f2d45457e87431ad93e34'

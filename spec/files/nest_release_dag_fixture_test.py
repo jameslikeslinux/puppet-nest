@@ -116,6 +116,33 @@ class ReleaseDagFixtureTest(unittest.TestCase):
                                 env=env, capture_output=True, check=False)
         self.assertEqual(result.returncode, 0)
 
+    def test_frozen_candidate_route_is_artifact_backed_required_and_explicit(self):
+        route = yaml.safe_load((ROOT / '.gitlab/ci/release-routing.yml').read_text())['Route frozen candidate']
+        self.assertEqual(route['needs'], ['Freeze release inputs'])
+        self.assertFalse(route['allow_failure'])
+        self.assertEqual(route['inherit'], {'variables': False})
+        self.assertEqual(route['trigger'], {
+            'include': [{'artifact': 'release-inputs/candidate.yml', 'job': 'Freeze release inputs'}],
+            'strategy': 'mirror', 'forward': {'yaml_variables': False, 'pipeline_variables': False}})
+        self.assertNotIn('script', route)
+        selection = route['rules'][-1]['if']
+        self.assertIn('$RELEASE_INPUTS == "true"', selection)
+        self.assertIn('$RELEASE_ROUTE == "true"', selection)
+        for source in ('api', 'web', 'pipeline', 'trigger'):
+            self.assertIn('$CI_PIPELINE_SOURCE == "' + source + '"', selection)
+
+    def test_any_routing_field_prevents_default_executor_build_and_deployment(self):
+        routing = runpy.run_path(str(ROOT / 'scripts/nest-release-route.py'))
+        for name in ('.template', 'Deploy image', 'Deploy environment'):
+            rules = self.config[name]['rules']
+            guards = [rule['if'] for rule in rules if rule.get('when') == 'never']
+            for key in routing['ROUTE_KEYS']:
+                self.assertTrue(any('$' + key + r' =~ /[\s\S]/' in guard for guard in guards), (name, key))
+        check = self.config['Check release route selection']
+        self.assertEqual(check['stage'], 'Test')
+        self.assertEqual(check['script'], ['python3 scripts/nest-release-route.py --check-selection'])
+        self.assertEqual(check['rules'][0], {'if': '$NEST_DAG_FIXTURE', 'when': 'never'})
+
 
 if __name__ == '__main__':
     unittest.main()
