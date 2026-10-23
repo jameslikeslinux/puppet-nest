@@ -1,5 +1,18 @@
 # Native same-source release graph
 
+Current admission: executing graph compilation is disabled. Actual
+nonpublishing pipelines 11573 and 11574 reached the generated config child,
+then its same-project `trigger: project: nest/config` failed with
+`invalid_bridge_trigger` before any leaf job. GitLab supports same-project
+child pipelines, not that multi-project form. Replacing only that edge with
+a child would put the existing route at a forbidden third child level.
+Lint accepted this syntax but did not prove scheduling. The CLI now refuses
+`--compile` before publishing graph artifacts; standalone frozen-input routes
+remain available. The scheduling description below is retained design and
+offline coverage, not a working production topology. Remove this refusal
+only after flattening freezer jobs into a supported two-child graph and
+verifying its exact native lineage and nonpublishing pass/fail propagation.
+
 `scripts/nest-release-graph.py` extends the existing frozen-input publisher,
 base discovery/binder, candidate route and final assembler. It is a GitLab CI
 compiler, not an agent shell scheduler or a new update service. It does not
@@ -161,25 +174,27 @@ Only the selection check, nested compiler and required artifact-backed bridge
 are selected; ordinary tests, executor builds and deployments are suppressed.
 
 The compiler retains and reopens `nested-dag-fixture/child.yml` and a receipt
-bound to its actual checkout, pipeline, job and child bytes. Its config child
-contains one required native config bridge, forwarding only the fixed
-`node-stage1-pass` or `node-stage1-fail` fixture mode. That config pipeline
-compiles a second artifact-backed route child containing one native Stage 1
+bound to its actual checkout, pipeline, job and child bytes. Its native config
+child includes the same reviewed local CI with only the fixed
+`node-stage1-pass` or `node-stage1-fail` fixture mode. That child contains the
+freezer job directly, not another same-project multi-project bridge. It
+compiles the second and final artifact-backed route child with one Stage 1
 bridge with the existing `RELEASE_DAG=true`, `RELEASE_VALIDATE_ONLY=true` and
-exact pass/fail fixture outcome. Node modes accept native downstream source
-only, so the nesting terminates rather than compiling another graph root.
+exact pass/fail fixture outcome. Node modes accept `parent_pipeline` source
+only, so the nesting terminates
+rather than compiling another graph root or a third same-project child.
 Every bridge uses `strategy: mirror`, forbids tolerated failure and disables
 caller pipeline-variable forwarding. No API launcher or retry loop is used.
 
-Read back the root -> child -> config node -> route child -> Stage 1 leaf
+Read back the root -> config child/freezer -> route child -> Stage 1 leaf
 resources and both compiler artifacts. Passing requires successful status at
 every layer. The failing fixture deliberately fails its Stage 1 leaf and must
 fail every bridge and root, with no builds, publications or host actions.
 Retain that intentional failed pipeline as test evidence, not a broken release
 or a reason to retry the leaf. A successful pipeline creation is not acceptance.
 
-This is a bounded topology/status exercise using the same bridge depth as the
-native graph. It does not execute the production graph's input discovery,
+This is a bounded supported-topology/status exercise. It is not acceptance
+of the disabled graph compiler. It does not execute its input discovery,
 lineage guards, candidate jobs, executor bootstrap, resource access or ISA/ABI
 checks, and must not be presented as those contracts' live acceptance. It
 does not replace the remaining full program or separately approved host canary.

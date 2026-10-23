@@ -28,7 +28,7 @@ CONFLICTS = (
 
 def nested_mode(env):
     mode = env.get('NEST_DAG_FIXTURE', '')
-    for prefix, sources in (('nested-stage1-', ('api', 'web')), ('node-stage1-', ('pipeline',))):
+    for prefix, sources in (('nested-stage1-', ('api', 'web')), ('node-stage1-', ('parent_pipeline',))):
         if mode in (prefix + 'pass', prefix + 'fail') and env.get('CI_PIPELINE_SOURCE') in sources:
             return ('root' if prefix.startswith('nested') else 'node', mode.rsplit('-', 1)[1])
     return None
@@ -59,19 +59,23 @@ def compile_nested(env):
         value = env.get(key, '')
         if not value.isascii() or not value.isdecimal() or int(value) <= 0:
             raise ValueError('invalid nested fixture resource identity')
-    variables = ({'NEST_DAG_FIXTURE': 'node-stage1-' + outcome} if layer == 'root' else
-                 {'RELEASE_DAG': 'true', 'RELEASE_VALIDATE_ONLY': 'true', 'RELEASE_DAG_FIXTURE': outcome})
-    graph = {
-        'workflow': {'rules': [{'if': '$CI_PIPELINE_SOURCE == "parent_pipeline"'}, {'when': 'never'}]},
-        'stages': ['Fixture'],
-        ('Fixture config node' if layer == 'root' else 'Fixture Stage 1 leaf'): {
+    graph: dict = {'workflow': {'rules': [{'if': '$CI_PIPELINE_SOURCE == "parent_pipeline"'}, {'when': 'never'}]}}
+    if layer == 'root':
+        # A same-project trigger:project is invalid in GitLab. Use a native
+        # child and keep the freezer in that child, leaving depth two for its
+        # artifact-backed route. Never add a third same-project child layer.
+        graph.update({'include': [{'local': '.gitlab-ci.yml'}],
+                      'variables': {'NEST_DAG_FIXTURE': 'node-stage1-' + outcome},
+                      # This bridge disables YAML inheritance. Keep its fixed
+                      # selection explicit at job scope; forwarding stays off.
+                      'Run nested DAG fixture': {'variables': {'NEST_DAG_FIXTURE': 'node-stage1-' + outcome}}})
+    else:
+        graph.update({'stages': ['Fixture'], 'Fixture Stage 1 leaf': {
             'stage': 'Fixture', 'allow_failure': False, 'inherit': {'variables': False},
-            'variables': variables,
-            'trigger': {'project': 'nest/config' if layer == 'root' else 'nest/stage1',
-                        'branch': 'main', 'strategy': 'mirror',
+            'variables': {'RELEASE_DAG': 'true', 'RELEASE_VALIDATE_ONLY': 'true', 'RELEASE_DAG_FIXTURE': outcome},
+            'trigger': {'project': 'nest/stage1', 'branch': 'main', 'strategy': 'mirror',
                         'forward': {'yaml_variables': True, 'pipeline_variables': False}},
-        },
-    }
+        }})
     raw = (json.dumps(graph, sort_keys=True, indent=2) + '\n').encode()
     receipt = dict(schema=1, kind='nest_nested_dag_status_fixture', source=source,
                    pipeline=int(env['CI_PIPELINE_ID']), job=int(env['CI_JOB_ID']),

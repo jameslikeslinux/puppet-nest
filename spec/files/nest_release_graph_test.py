@@ -111,6 +111,13 @@ class GraphTest(unittest.TestCase):
                              RELEASE_GRAPH_INPUT_SHA256=hashlib.sha256(R['canonical'](self.request)).hexdigest(),
                              RELEASE_GRAPH_ROOT_PIPELINE='650')
 
+    def test_public_compile_refuses_unsupported_topology_without_publication(self):
+        completed = subprocess.run([sys.executable, str(ROOT / 'scripts/nest-release-graph.py'), '--compile'],
+                                   cwd=self.f.checkout, env=self.env, capture_output=True, text=True, check=False)
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn('unsupported same-project node topology', completed.stderr)
+        self.assertFalse((self.f.checkout / 'release-graph').exists())
+
     def test_compiles_exact_native_dependencies_and_reopens_no_clobber_artifacts(self):
         before = copy.deepcopy(self.request)
         self.env['CI_JOB_TOKEN'] = 'fixture-private-value'

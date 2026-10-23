@@ -313,7 +313,7 @@
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'fail'
 
-# Exercise config child -> config node -> route child -> native leaf without
+# Exercise config child/freezer -> route child -> native leaf without
 # candidate selection, using only the existing Stage 1 status fixture.
 'Compile nested DAG fixture':
   stage: 'Build'
@@ -331,7 +331,7 @@
     - if: *host_conflicts
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && ($NEST_DAG_FIXTURE == "nested-stage1-pass" || $NEST_DAG_FIXTURE == "nested-stage1-fail")'
-    - if: '$CI_PIPELINE_SOURCE == "pipeline" && ($NEST_DAG_FIXTURE == "node-stage1-pass" || $NEST_DAG_FIXTURE == "node-stage1-fail")'
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($NEST_DAG_FIXTURE == "node-stage1-pass" || $NEST_DAG_FIXTURE == "node-stage1-fail")'
 
 'Run nested DAG fixture':
   stage: 'Deploy'
