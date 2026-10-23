@@ -117,7 +117,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
 
     def test_frozen_candidate_route_is_artifact_backed_required_and_explicit(self):
-        route = self.config['Route frozen candidate']
+        route = yaml.safe_load((ROOT / '.gitlab/ci/release-routing.yml').read_text())['Route frozen candidate']
         self.assertEqual(route['needs'], ['Freeze release inputs'])
         self.assertFalse(route['allow_failure'])
         self.assertEqual(route['inherit'], {'variables': False})
