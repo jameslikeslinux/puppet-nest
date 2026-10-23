@@ -1,5 +1,31 @@
 # Joyride private TEST deployment
 
+## Basemap v2 runtime baseline
+
+The TEST pin follows application MR 37, source
+`589e98cabde3b688f7ce523d78d5c1955018ae38`, merged-main revision
+`69aa277afeec89535aa0c20d5bbcb7291f2bcd09`, pipeline 11710 (build 48238).
+The immutable multiarchitecture image is
+`sha256:c0da446de17b5fa19f5cf7e8297844040bc2ca992f98629ee0843733e3d65e1d`.
+This retains the audited member administration from MR 36. There are no new
+database migrations relative to that baseline. Production pins remain unchanged.
+
+The basemap initializer requests 250 millicores and 192 MiB, with a 768 MiB
+memory limit and no CPU limit. It streams the fixed archive and retained original
+sources directly to the existing PVC, verifies hashes before atomic rename,
+then performs full native z16 admission before registration. It does not rebuild
+tiles or stage these downloads in the shared 1 GiB temporary volume. The existing
+600-second deployment progress budget remains; full admission measured about
+9.3 seconds independently, excluding downloads. Admission failure must retain
+the prior serving pod, not weaken validation or delete existing map data.
+
+Installing v2 does not promote it over an active map. Preserve the registered
+`dc-md-va-20261018` archive and active flag, all release history, and the latest
+frontend/content ActiveRelease pointers. Explicit map promotion and external
+content/cache/range acceptance belong to the original basemap request, not this
+managed runtime install. Both web mounts remain read-only. The previous runtime
+image is `sha256:e12ad8eb2da7eaabcac6add447c3cabe63426617e17900c7dafc5b0fb2fc249c`.
+
 ## Compatible image rollout availability
 
 TEST uses one steady-state pod plus at most one surge pod: `RollingUpdate`,
