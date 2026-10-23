@@ -11,12 +11,13 @@ CONFLICTS = (
     'RELEASE_INPUT_JOB_ID', 'RELEASE_INPUT_SHA256', 'RELEASE_EXECUTOR_JOB_ID',
     'RELEASE_EXECUTOR_IMAGE', 'FROM_GENTOO', 'STAGE0_RESUME', 'REFRESH',
     'NEST_LEGACY_BUILD', 'RELEASE_PLATFORM', 'PLATFORM', 'RELEASE_VARIANT',
-    'VARIANT', 'RELEASE_MODE',
+    'VARIANT', 'RELEASE_MODE', 'RELEASE_HOST', 'RELEASE_STAGE3_PLACEMENT_FILE',
+    'HOSTNAME', 'CLUSTER', 'PROFILE',
 )
 
 
 def admitted(env):
-    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail') and
+    return (env.get('NEST_DAG_FIXTURE') in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail') and
             env.get('CI_PIPELINE_SOURCE') in ('api', 'web') and
             not env.get('CI_COMMIT_TAG') and
             not any(env.get(key) for key in CONFLICTS))

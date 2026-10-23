@@ -13,7 +13,8 @@ On a reviewed config branch or main, create an untagged web/API pipeline with
 exactly `NEST_DAG_FIXTURE=pass` or `NEST_DAG_FIXTURE=fail`. These select only the
 config admission job and one native Stage 0 bridge. Use `stage1-pass` or
 `stage1-fail` for the equivalent Stage 1 edge, or `stage2-pass` and `stage2-fail`
-for Stage 2. Each selector runs only its matching bridge. Every destination is
+for Stage 2, or `stage3-pass` and `stage3-fail` for Stage 3. Each selector runs
+only its matching bridge. Every destination is
 fixed in source, not caller-supplied. The fail mode intentionally
 fails its downstream job; a successful parent would be a regression. It does not
 inject an OS failure. Ordinary push/MR/tag pipelines never execute this bridge.
@@ -24,7 +25,7 @@ fixture with legacy, executor, release, runner smoke or build selectors.
 Only three literal variables are forwarded: `RELEASE_DAG=true`,
 `RELEASE_VALIDATE_ONLY=true`, and the selected `RELEASE_DAG_FIXTURE=pass|fail`.
 Default and caller pipeline variables are not forwarded. The destination is the
-fixed `nest/stage0`, `nest/stage1` or `nest/stage2` main branch, never a
+fixed `nest/stage0`, `nest/stage1`, `nest/stage2` or `nest/stage3` main branch, never a
 user-provided project/ref/command. Observe
 and record its actual SHA and job identities; main is not an immutable build pin.
 The config admission command is `python3 scripts/nest-release-dag-fixture.py`.

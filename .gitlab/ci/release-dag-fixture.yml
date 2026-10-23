@@ -34,6 +34,8 @@
   rules:
     - if: &fixture_conflicts '$CI_COMMIT_TAG =~ /[\s\S]/ || $RELEASE_INPUTS =~ /[\s\S]/ || $EXECUTOR_ONLY =~ /[\s\S]/ || $BUILD =~ /[\s\S]/ || $CPU =~ /[\s\S]/ || $RUNNER_SMOKE_TAG =~ /[\s\S]/ || $RELEASE_CANDIDATE =~ /[\s\S]/ || $RELEASE_DAG =~ /[\s\S]/ || $RELEASE_DAG_FIXTURE =~ /[\s\S]/ || $RELEASE_VALIDATE_ONLY =~ /[\s\S]/ || $RELEASE_CPU =~ /[\s\S]/ || $RELEASE_MEMBER =~ /[\s\S]/ || $RELEASE_INPUT_JOB_ID =~ /[\s\S]/ || $RELEASE_INPUT_SHA256 =~ /[\s\S]/ || $RELEASE_EXECUTOR_JOB_ID =~ /[\s\S]/ || $RELEASE_EXECUTOR_IMAGE =~ /[\s\S]/ || $FROM_GENTOO =~ /[\s\S]/ || $STAGE0_RESUME =~ /[\s\S]/ || $REFRESH =~ /[\s\S]/ || $NEST_LEGACY_BUILD =~ /[\s\S]/ || $RELEASE_PLATFORM =~ /[\s\S]/ || $PLATFORM =~ /[\s\S]/ || $RELEASE_VARIANT =~ /[\s\S]/ || $VARIANT =~ /[\s\S]/ || $RELEASE_MODE =~ /[\s\S]/'
       when: never
+    - if: &host_conflicts '$RELEASE_HOST =~ /[\s\S]/ || $RELEASE_STAGE3_PLACEMENT_FILE =~ /[\s\S]/ || $HOSTNAME =~ /[\s\S]/ || $CLUSTER =~ /[\s\S]/ || $PROFILE =~ /[\s\S]/'
+      when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "pass"'
       variables:
         RELEASE_DAG: 'true'
@@ -60,6 +62,8 @@
       pipeline_variables: false
   rules:
     - if: *fixture_conflicts
+      when: never
+    - if: *host_conflicts
       when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage1-pass"'
       variables:
@@ -88,12 +92,43 @@
   rules:
     - if: *fixture_conflicts
       when: never
+    - if: *host_conflicts
+      when: never
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage2-pass"'
       variables:
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'pass'
     - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage2-fail"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'fail'
+
+'Stage 3 release DAG fixture':
+  stage: 'Build'
+  needs: ['Check release DAG fixture selection']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    project: 'nest/stage3'
+    branch: 'main'
+    strategy: mirror
+    forward:
+      yaml_variables: true
+      pipeline_variables: false
+  rules:
+    - if: *fixture_conflicts
+      when: never
+    - if: *host_conflicts
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage3-pass"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'pass'
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "stage3-fail"'
       variables:
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'

@@ -23,10 +23,10 @@ class ReleaseDagFixtureTest(unittest.TestCase):
 
     def test_exact_operator_modes_only(self):
         for source in ('api', 'web', 'push', 'merge_request_event', 'schedule', 'pipeline', 'parent_pipeline', 'trigger', ''):
-            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'false', 'true', '', 'PASS'):
+            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'stage4-pass', 'false', 'true', '', 'PASS'):
                 with self.subTest(source=source, mode=mode):
                     self.assertEqual(POLICY['admitted'](dict(CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode)),
-                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail'))
+                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail'))
 
     def test_every_conflict_and_tag_refuses(self):
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
@@ -41,6 +41,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             for source, mode, code in (('api', 'pass', 0), ('web', 'fail', 0), ('api', 'stage1-pass', 0),
                                        ('web', 'stage1-fail', 0), ('api', 'stage2-pass', 0), ('web', 'stage2-fail', 0),
+                                       ('api', 'stage3-pass', 0), ('web', 'stage3-fail', 0), ('push', 'stage3-pass', 1),
                                        ('push', 'stage2-pass', 1), ('push', 'stage1-pass', 1), ('push', 'pass', 1), ('api', 'false', 1)):
                 env = dict(PATH=os.defpath, CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode,
                            CI_JOB_TOKEN='fixture-private-token', PYTHONDONTWRITEBYTECODE='1')
@@ -63,7 +64,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
             self.assertEqual(rules[0], {'if': '$NEST_DAG_FIXTURE', 'when': 'never'}, name)
 
     def test_native_bridge_has_no_command_or_inherited_pipeline_variables(self):
-        for stage, prefix in (('stage0', ''), ('stage1', 'stage1-'), ('stage2', 'stage2-')):
+        for stage, prefix in (('stage0', ''), ('stage1', 'stage1-'), ('stage2', 'stage2-'), ('stage3', 'stage3-')):
             self.check_bridge(stage, prefix)
 
     def check_bridge(self, stage, prefix):
@@ -75,16 +76,17 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         self.assertEqual(job['needs'], ['Check release DAG fixture selection'])
         self.assertEqual(job['trigger'], dict(project='nest/' + stage, branch='main', strategy='mirror',
                                              forward=dict(yaml_variables=True, pipeline_variables=False)))
-        guard = job['rules'][0]
-        self.assertEqual(guard['when'], 'never')
+        guards = job['rules'][:2]
+        self.assertTrue(all(guard['when'] == 'never' for guard in guards))
+        conditions = ' || '.join(guard['if'] for guard in guards).split(' || ')
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
-            self.assertIn('$' + key + r' =~ /[\s\S]/', guard['if'].split(' || '))
-        for rule, mode in zip(job['rules'][1:], ('pass', 'fail')):
+            self.assertIn('$' + key + r' =~ /[\s\S]/', conditions)
+        for rule, mode in zip(job['rules'][2:], ('pass', 'fail')):
             self.assertEqual(rule['variables'], dict(RELEASE_DAG='true', RELEASE_VALIDATE_ONLY='true', RELEASE_DAG_FIXTURE=mode))
             self.assertIn('$NEST_DAG_FIXTURE == "' + prefix + mode + '"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "api"', rule['if'])
             self.assertIn('$CI_PIPELINE_SOURCE == "web"', rule['if'])
-        self.assertEqual(len(job['rules']), 3)
+        self.assertEqual(len(job['rules']), 4)
         self.assertEqual(self.fixture['Check release DAG fixture selection']['rules'], [{'if': '$NEST_DAG_FIXTURE'}])
 
 
