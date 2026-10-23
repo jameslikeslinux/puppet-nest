@@ -116,6 +116,23 @@ class ReleaseDagFixtureTest(unittest.TestCase):
                                 env=env, capture_output=True, check=False)
         self.assertEqual(result.returncode, 0)
 
+    def test_artifact_backed_nested_bridges_disable_all_caller_forwarding(self):
+        compile_job = self.fixture['Compile nested DAG fixture']
+        bridge = self.fixture['Run nested DAG fixture']
+        self.assertEqual(compile_job['needs'], ['Check release DAG fixture selection'])
+        self.assertEqual(compile_job['script'], ['env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py --compile-nested'])
+        self.assertEqual(compile_job['artifacts'], {'when': 'on_success', 'paths': ['nested-dag-fixture/']})
+        self.assertEqual(bridge['needs'], ['Compile nested DAG fixture'])
+        self.assertEqual(bridge['inherit'], {'variables': False})
+        self.assertFalse(bridge['allow_failure'])
+        self.assertEqual(bridge['trigger'], dict(include=[dict(artifact='nested-dag-fixture/child.yml',
+                                                              job='Compile nested DAG fixture')],
+                                               strategy='mirror', forward=dict(yaml_variables=False, pipeline_variables=False)))
+        self.assertEqual(bridge['rules'], compile_job['rules'])
+        self.assertNotIn('variables', bridge)
+        for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
+            self.assertTrue(any('$' + key + r' =~ /[\s\S]/' in rule['if'] for rule in bridge['rules'][:2]), key)
+
     def test_frozen_candidate_route_is_artifact_backed_required_and_explicit(self):
         route = yaml.safe_load((ROOT / '.gitlab/ci/release-routing.yml').read_text())['Route frozen candidate']
         self.assertEqual(route['needs'], ['Freeze release inputs'])
