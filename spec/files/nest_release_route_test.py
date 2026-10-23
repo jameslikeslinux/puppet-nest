@@ -86,6 +86,70 @@ class ReleaseRouteTest(unittest.TestCase):
         self.assertFalse(receipt['promotion_authorized'])
         self.assertEqual(self.f.expected['members'][0]['bases'], self.f.member['bases'])
 
+    def multi_member(self):
+        sibling = copy.deepcopy(self.f.member)
+        sibling.update(id='sibling-stage0', cpu='cortex-a53')
+        self.f.expected['members'].append(sibling)
+        self.f.expected['consumers'][-1]['members'].append(sibling['id'])
+        self.save()
+
+    def test_routed_projection_keeps_complete_closure_and_source_pins_without_mutation(self):
+        self.multi_member()
+        original = copy.deepcopy(self.f.expected)
+        receipt = self.publish()
+        directory = self.f.checkout / 'release-inputs'
+        frozen = R['load'](directory / 'expectations.json')
+        self.assertEqual(frozen['members'], [self.f.member])
+        self.assertEqual(frozen['sources'], original['sources'])
+        self.assertEqual(frozen['executor'], original['executor'])
+        self.assertEqual(frozen['consumers'][-1]['members'], [self.f.member['id']])
+        self.assertEqual(R['load'](directory / 'closure.json'), original)
+        self.assertEqual(self.f.expected, original)
+        self.assertEqual(receipt['expectations_digest'], R['digest'](frozen))
+        self.assertNotEqual(receipt['expectations_digest'], R['digest'](original))
+        sidecar = R['load'](directory / 'provenance.json')
+        self.assertEqual(sidecar['member_projection'], {
+            'artifact': 'release-inputs/closure.json',
+            'artifact_sha256': hashlib.sha256((directory / 'closure.json').read_bytes()).hexdigest(),
+            'member': self.f.member['id'], 'expectations_digest': R['digest'](frozen),
+        })
+        self.assertEqual(R['load'](directory / 'candidate.yml')['Build frozen member']['variables']['RELEASE_INPUT_SHA256'],
+                         hashlib.sha256((directory / 'expectations.json').read_bytes()).hexdigest())
+
+    def test_projection_preserves_inactive_policy_and_defers_other_active_members_only(self):
+        expected, _ = BIND['MANIFEST']['fixture']()
+        original = copy.deepcopy(expected)
+        selected = expected['members'][0]
+        projected = INPUTS['MODULE']['project_member'](expected, selected['id'])
+        self.assertEqual(expected, original)
+        self.assertEqual(projected['members'], [selected])
+        for before, after in zip(original['consumers'], projected['consumers']):
+            self.assertEqual(after['reason'], before['reason'])
+            if before['project'] == selected['project']:
+                self.assertEqual(after['decision'], 'rebuild')
+                self.assertEqual(after['members'], [selected['id']])
+            else:
+                self.assertEqual(after['members'], [])
+                self.assertEqual(after['decision'], 'defer' if before['decision'] in ('rebuild', 'reuse') else before['decision'])
+        R['expectations'](projected)
+
+    def test_unrouted_multi_member_publication_remains_complete_and_unprojected(self):
+        self.multi_member()
+        plain = {k: v for k, v in self.f.env.items() if k not in ROUTE['ROUTE_KEYS']}
+        INPUTS['MODULE']['publish'](self.f.input, plain)
+        directory = self.f.checkout / 'release-inputs'
+        self.assertEqual(R['load'](directory / 'expectations.json'), self.f.expected)
+        self.assertFalse((directory / 'closure.json').exists())
+        self.assertFalse((directory / 'provenance.json').exists())
+
+    def test_failed_full_closure_readback_refuses_and_does_not_replay(self):
+        self.multi_member()
+        original = Path.read_bytes
+        def read(path):
+            return b'changed' if path.name == 'closure.json' else original(path)
+        with patch.object(Path, 'read_bytes', read), self.assertRaises(ValueError): self.publish()
+        with self.assertRaises(FileExistsError): self.publish()
+
     def test_absent_route_is_compatible_but_any_partial_or_malformed_selection_refuses(self):
         plain = {k: v for k, v in self.f.env.items() if k not in ROUTE['ROUTE_KEYS']}
         self.assertFalse(ROUTE['selected'](plain))
@@ -225,7 +289,7 @@ class ReleaseRouteTest(unittest.TestCase):
         variables = json.loads((directory / 'candidate.yml').read_bytes())['Build frozen member']['variables']
         self.assertEqual(variables['RELEASE_INPUT_SHA256'], hashlib.sha256(frozen).hexdigest())
         sidecar = R['load'](directory / 'provenance.json')
-        self.assertEqual(set(sidecar), {'schema', 'kind', 'input_receipt_sha256', 'base_discovery', 'candidate_route'})
+        self.assertEqual(set(sidecar), {'schema', 'kind', 'input_receipt_sha256', 'base_discovery', 'candidate_route', 'member_projection'})
         self.assertNotIn('base_discovery', receipt)
         self.assertNotIn('candidate_route', receipt)
 

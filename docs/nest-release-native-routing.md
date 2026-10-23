@@ -76,8 +76,19 @@ directory is created. This uses the existing `glab` authentication path. A CI jo
 without equivalent read access must fail; do not inject a user token or treat
 fixture success as production job-token admission.
 
-After any predecessor discovery, the publisher hashes the actual final frozen
-`expectations.json` bytes. It emits `release-inputs/candidate.yml` as JSON (valid
+After any predecessor discovery, an executing route projects `expectations.json`
+to exactly its selected `rebuild` member. Source and executor pins, member content
+and policy reasons are unchanged. Other active consumers become deferred with no
+members in this execution projection; existing inactive decisions remain intact.
+The complete post-discovery matrix and all original decisions are retained in
+`release-inputs/closure.json`. The provenance sidecar's `member_projection` binds
+that artifact's SHA256, selected member and projected expectations digest. Graph
+acceptance reconstructs this exact projection from the original request and actual
+predecessor outputs; it does not accept arbitrary leaf input reductions. Plain
+input-only publication remains unprojected and has no closure sidecar.
+
+The publisher hashes the actual projected `expectations.json` bytes. It emits
+`release-inputs/candidate.yml` as JSON (valid
 YAML), alongside the existing input artifacts. The schema-1 input `receipt.json`
 remains unchanged: downstream consumers compare its exact fields. A separate
 `provenance.json` (`schema=1`, `kind=nest_release_input_provenance`) binds the
@@ -114,7 +125,7 @@ For subsequent discovery/assembly, distinguish the two config pipelines:
   native candidate job name. The ordinary discovery/binder checks all identities
   and original bytes, including when the input and bridge pipelines differ.
 
-A route may freeze a complete matrix but executes only its explicit member.
+A route retains a complete matrix but sends only its explicit member to execution.
 Unrouted members are not completed outputs. No future digest is predicted and no
 predecessor input/result is rewritten. The route does not advance a release
 alias, reset/reboot a host, retry a candidate, perform backup/restore or clean up
