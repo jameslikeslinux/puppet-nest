@@ -30,7 +30,8 @@ def acquire(expected, identifier, selector, executor_digest, api):
                              resolved['input_sha256'])
     R['expectations'](original)
     require(original['sources'] == expected['sources'] and original['release'] == expected['release']
-            and original['executor'] == expected['executor'], 'different release source or executor closure')
+            and original['schema'] == expected['schema'] and original['executor'] == expected['executor'],
+            'different release source or executor closure')
     result = B['decode'](B['result_bytes'](api, member['project'], resolved['job'], identifier, resolved['result_sha256']))
     output = B['check_result'](original, result, resolved)
     require(R['digest'](result['executor_receipt']) == executor_digest,
@@ -61,7 +62,7 @@ def assemble(request: Any, api) -> dict[str, Any]:
     selected = request['executor_job']
 
     def executor():
-        job = B['job'](api, 'nest/config', selected['pipeline'], selected['job'], expected['sources']['nest/config'])
+        job = B['job'](api, 'nest/config', selected['pipeline'], selected['job'], expected['executor']['source'])
         require(job['name'] == 'Build ' + architecture, 'wrong assembly executor job')
         receipt = B['artifact'](api, 'nest/config', selected['job'], 'executor-receipts/' + architecture + '.json')
         B['check_executor'](receipt, expected, next(iter(indexed.values()))['cpu'])

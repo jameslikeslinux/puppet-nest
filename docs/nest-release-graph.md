@@ -169,6 +169,13 @@ promotion receipt or a host acceptance record.
 
 ## Source, access and rollback boundaries
 
+Opt-in [expectations schema 2](nest-release-source-contract.md) separates the
+config orchestration/input source from the exact executor build source. Schema
+1 retains the same-source rule. Native graph lineage always binds the actual
+config orchestration checkout; build plans/modules still come from the pinned
+executor. This does not make old schema-1-only images or consumers support
+schema 2, and does not enable the executing graph.
+
 Compilation requires the actual clean `main` checkout at the graph's config
 source. Native config/Stage/tool targets use their existing `main` routes;
 if a branch moves away from the frozen source, the checkout/source contract

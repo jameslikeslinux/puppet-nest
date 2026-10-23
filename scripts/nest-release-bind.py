@@ -266,7 +266,7 @@ def bind(request: Any, api):
     fields(request['executor_job'], 'pipeline job', 'executor job')
     executor_selector = request['executor_job']
     config_source = expected['sources']['nest/config']
-    executor_job = job(api, 'nest/config', executor_selector['pipeline'], executor_selector['job'], config_source)
+    executor_job = job(api, 'nest/config', executor_selector['pipeline'], executor_selector['job'], expected['executor']['source'])
     architecture = next(iter(architectures))
     require(executor_job['name'] == 'Build ' + architecture, 'wrong executor job')
     executor = artifact(api, 'nest/config', executor_selector['job'], 'executor-receipts/' + architecture + '.json')
@@ -285,7 +285,8 @@ def bind(request: Any, api):
         input_job = job(api, 'nest/config', selector['input_pipeline'], selector['input_job'], config_source)
         require(input_job['name'] in input_job_names(selector['member']), 'wrong predecessor input job')
         original = artifact(api, 'nest/config', selector['input_job'], 'release-inputs/expectations.json', selector['input_sha256'])
-        require(original['sources'] == expected['sources'] and original['release'] == expected['release'],
+        require(original['sources'] == expected['sources'] and original['release'] == expected['release']
+                and original['schema'] == expected['schema'] and original['executor'] == expected['executor'],
                 'predecessor uses different release or source closure')
         row = decode(result_bytes(api, selector['project'], selector['job'], selector['member'], selector['result_sha256']))
         outputs[name] = check_result(original, row, selector)
