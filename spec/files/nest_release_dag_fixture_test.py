@@ -23,10 +23,10 @@ class ReleaseDagFixtureTest(unittest.TestCase):
 
     def test_exact_operator_modes_only(self):
         for source in ('api', 'web', 'push', 'merge_request_event', 'schedule', 'pipeline', 'parent_pipeline', 'trigger', ''):
-            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail', 'agent-pass', 'agent-fail', 'firefox-pass', 'firefox-fail', 'stage4-pass', 'false', 'true', '', 'PASS'):
+            for mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail', 'agent-pass', 'agent-fail', 'firefox-pass', 'firefox-fail', 'camofox-pass', 'camofox-fail', 'stage4-pass', 'false', 'true', '', 'PASS'):
                 with self.subTest(source=source, mode=mode):
                     self.assertEqual(POLICY['admitted'](dict(CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode)),
-                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail', 'agent-pass', 'agent-fail', 'firefox-pass', 'firefox-fail'))
+                                     source in ('api', 'web') and mode in ('pass', 'fail', 'stage1-pass', 'stage1-fail', 'stage2-pass', 'stage2-fail', 'stage3-pass', 'stage3-fail', 'bolt-pass', 'bolt-fail', 'pdk-pass', 'pdk-fail', 'agent-pass', 'agent-fail', 'firefox-pass', 'firefox-fail', 'camofox-pass', 'camofox-fail'))
 
     def test_every_conflict_and_tag_refuses(self):
         for key in POLICY['CONFLICTS'] + ('CI_COMMIT_TAG',):
@@ -46,6 +46,7 @@ class ReleaseDagFixtureTest(unittest.TestCase):
                                        ('api', 'pdk-pass', 0), ('web', 'pdk-fail', 0), ('push', 'pdk-pass', 1),
                                        ('api', 'agent-pass', 0), ('web', 'agent-fail', 0), ('push', 'agent-pass', 1),
                                        ('api', 'firefox-pass', 0), ('web', 'firefox-fail', 0), ('push', 'firefox-pass', 1),
+                                       ('api', 'camofox-pass', 0), ('web', 'camofox-fail', 0), ('push', 'camofox-pass', 1),
                                        ('push', 'stage2-pass', 1), ('push', 'stage1-pass', 1), ('push', 'pass', 1), ('api', 'false', 1)):
                 env = dict(PATH=os.defpath, CI_PIPELINE_SOURCE=source, NEST_DAG_FIXTURE=mode,
                            CI_JOB_TOKEN='fixture-private-token', PYTHONDONTWRITEBYTECODE='1')
@@ -74,9 +75,10 @@ class ReleaseDagFixtureTest(unittest.TestCase):
         self.check_bridge('tools/pdk', 'pdk-')
         self.check_bridge('tools/agent', 'agent-')
         self.check_bridge('tools/firefox', 'firefox-')
+        self.check_bridge('tools/camofox', 'camofox-')
 
     def check_bridge(self, stage, prefix):
-        name = {'tools/bolt': 'OpenBolt', 'tools/pdk': 'PDK', 'tools/agent': 'Agent', 'tools/firefox': 'Firefox'}.get(stage, 'Stage ' + stage[-1])
+        name = {'tools/bolt': 'OpenBolt', 'tools/pdk': 'PDK', 'tools/agent': 'Agent', 'tools/firefox': 'Firefox', 'tools/camofox': 'Camofox'}.get(stage, 'Stage ' + stage[-1])
         job = self.fixture[name + ' release DAG fixture']
         self.assertNotIn('script', job)
         self.assertNotIn('variables', job)  # No executing flags during rule evaluation.

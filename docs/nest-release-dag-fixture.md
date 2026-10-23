@@ -3,7 +3,7 @@
 These are isolated real multi-project status edges for R07, not the complete
 release DAG and not a release build. Each accepted Stage or tool entry runs
 its admitted source/policy tests and one exclusive deterministic fixture job.
-PDK, Agent and Firefox status modes exclude executor-backed adapter tests, so they pull no executor.
+PDK, Agent, Firefox and Camofox status modes exclude executor-backed adapter tests, so they pull no executor.
 Config uses GitLab `strategy: mirror`; a red child must make the parent bridge
 and pipeline red. There is no `allow_failure`, detached API trigger, outgoing
 Stage trigger, executor rebuild, alias promotion, or host rollout in this mode.
@@ -17,7 +17,8 @@ config admission job and one native Stage 0 bridge. Use `stage1-pass` or
 for Stage 2, or `stage3-pass` and `stage3-fail` for Stage 3. Use `bolt-pass` or
 `bolt-fail` for the specialized OpenBolt entry, or `pdk-pass` and `pdk-fail`
 for the specialized PDK entry, `agent-pass` and `agent-fail` for Agent, or
-`firefox-pass` and `firefox-fail` for the specialized Firefox entry.
+`firefox-pass` and `firefox-fail` for the specialized Firefox entry, or
+`camofox-pass` and `camofox-fail` for the specialized Camofox entry.
 Each selector runs
 only its matching bridge. Every destination is
 fixed in source, not caller-supplied. The fail mode intentionally
@@ -37,7 +38,7 @@ check. Direct CLI calls with a nonempty HOSTNAME still refuse. No chosen host,
 placement, arbitrary command or other runtime environment is forwarded.
 Default and caller pipeline variables are not forwarded. The destination is the
 fixed `nest/stage0`, `nest/stage1`, `nest/stage2`, `nest/stage3` or
-`nest/tools/bolt`, `nest/tools/pdk`, `nest/tools/agent` or `nest/tools/firefox`
+`nest/tools/bolt`, `nest/tools/pdk`, `nest/tools/agent`, `nest/tools/firefox` or `nest/tools/camofox`
 main branch, never a
 user-provided project/ref/command. Observe
 and record its actual SHA and job identities; main is not an immutable build pin.

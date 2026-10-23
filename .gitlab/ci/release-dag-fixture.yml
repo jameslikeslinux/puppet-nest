@@ -253,3 +253,32 @@
         RELEASE_DAG: 'true'
         RELEASE_VALIDATE_ONLY: 'true'
         RELEASE_DAG_FIXTURE: 'fail'
+
+'Camofox release DAG fixture':
+  stage: 'Build'
+  needs: ['Check release DAG fixture selection']
+  allow_failure: false
+  inherit:
+    variables: false
+  trigger:
+    project: 'nest/tools/camofox'
+    branch: 'main'
+    strategy: mirror
+    forward:
+      yaml_variables: true
+      pipeline_variables: false
+  rules:
+    - if: *fixture_conflicts
+      when: never
+    - if: *host_conflicts
+      when: never
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "camofox-pass"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'pass'
+    - if: '($CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web") && $NEST_DAG_FIXTURE == "camofox-fail"'
+      variables:
+        RELEASE_DAG: 'true'
+        RELEASE_VALIDATE_ONLY: 'true'
+        RELEASE_DAG_FIXTURE: 'fail'
