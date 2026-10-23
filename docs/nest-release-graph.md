@@ -73,6 +73,41 @@ retire decisions, and no new compatibility claim is made for those consumers.
 
 ## Native topology and failure handling
 
+### Member-scoped freezer compatibility
+
+The accepted input-producer naming contract is now either the exact legacy
+name `Freeze release inputs` or `Freeze release inputs MEMBER`, where MEMBER
+is the exact validated result member ID. There is no caller-supplied job-name
+override, prefix match, wildcard or fallback to another member. For example,
+the input for member `stage0-haswell` may use
+`Freeze release inputs stage0-haswell`, but never the freezer for
+`stage0-cortex-a53`.
+
+Config's binder, native discovery and distinct-source OpenBolt bootstrap
+share this contract. Discovery requires exactly one matching legacy/scoped
+producer in the selected input pipeline. A legacy/scoped pair is ambiguous,
+even if the bytes match. Sibling member freezers may be running: discovery
+selects only this member's successful, required resource. Job names are
+rechecked between the pipeline listing and exact job acquisition. All existing
+source SHA, project/pipeline/job, artifact hash, result member, executor and
+prepublication race checks still apply. Artifact paths and schemas are unchanged.
+
+This is a compatibility prerequisite, not scheduler enablement. The planned
+supported topology is root compiler -> config graph child containing distinct
+member freezer jobs -> per-member route child -> Stage/tool native pipeline.
+Each freezer waits only for its predecessor route bridges. There is no separate
+config node pipeline. Each job's isolated workspace can keep the existing
+`release-inputs/` artifact paths. Native discovery and final acceptance must
+resolve that flattened lineage rather than the old node layer.
+
+Stage/tool repository consumers must implement the same exact member-scoped
+name admission in reviewed source before the executing graph is enabled. Their
+current legacy-name checks are not bypassed by this config change. The CLI
+remains disabled until the flattened compiler, lineage/freezer/acceptance checks,
+consumer admission and actual nonpublishing pass/fail exercise are complete.
+Do not replay the previously accepted status fixtures as proof of those new
+contracts, and do not use real candidate builds merely to test scheduling.
+
 The compiler job writes, fsyncs and reopens `release-graph/request.json`,
 `graph.yml` and `receipt.json`. The receipt binds their byte hashes and exact
 source/pipeline/job, with execution explicitly not started. Existing CI retains

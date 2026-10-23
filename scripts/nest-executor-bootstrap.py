@@ -108,7 +108,7 @@ def acquire(request, source, cpu, api) -> dict[str, Any]:
     require(next(row['decision'] for row in expected['consumers'] if row['project'] == 'nest/tools/bolt') == 'rebuild',
             'bootstrap requires a newly produced OpenBolt result')
     input_job = B['job'](api, 'nest/config', selector['input_pipeline'], selector['input_job'], old_source)
-    require(input_job['name'] == 'Freeze release inputs', 'wrong OpenBolt input job')
+    require(input_job['name'] in B['input_job_names'](selector['member']), 'wrong OpenBolt input job')
     producer = B['job'](api, 'nest/tools/bolt', selector['pipeline'], selector['job'],
                         expected['sources']['nest/tools/bolt'])
     observed_leaf = leaf(api, selector, expected['sources']['nest/tools/bolt'])
