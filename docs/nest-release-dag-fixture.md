@@ -3,7 +3,7 @@
 These are isolated real multi-project status edges for R07, not the complete
 release DAG and not a release build. Each accepted Stage or tool entry runs
 its admitted source/policy tests and one exclusive deterministic fixture job.
-PDK status mode excludes executor-backed adapter tests, so it pulls no executor.
+PDK and Agent status modes exclude executor-backed adapter tests, so they pull no executor.
 Config uses GitLab `strategy: mirror`; a red child must make the parent bridge
 and pipeline red. There is no `allow_failure`, detached API trigger, outgoing
 Stage trigger, executor rebuild, alias promotion, or host rollout in this mode.
@@ -16,7 +16,8 @@ config admission job and one native Stage 0 bridge. Use `stage1-pass` or
 `stage1-fail` for the equivalent Stage 1 edge, or `stage2-pass` and `stage2-fail`
 for Stage 2, or `stage3-pass` and `stage3-fail` for Stage 3. Use `bolt-pass` or
 `bolt-fail` for the specialized OpenBolt entry, or `pdk-pass` and `pdk-fail`
-for the specialized PDK entry. Each selector runs
+for the specialized PDK entry, or `agent-pass` and `agent-fail` for Agent.
+Each selector runs
 only its matching bridge. Every destination is
 fixed in source, not caller-supplied. The fail mode intentionally
 fails its downstream job; a successful parent would be a regression. It does not
@@ -35,7 +36,7 @@ check. Direct CLI calls with a nonempty HOSTNAME still refuse. No chosen host,
 placement, arbitrary command or other runtime environment is forwarded.
 Default and caller pipeline variables are not forwarded. The destination is the
 fixed `nest/stage0`, `nest/stage1`, `nest/stage2`, `nest/stage3` or
-`nest/tools/bolt` or `nest/tools/pdk` main branch, never a
+`nest/tools/bolt`, `nest/tools/pdk` or `nest/tools/agent` main branch, never a
 user-provided project/ref/command. Observe
 and record its actual SHA and job identities; main is not an immutable build pin.
 The config admission command is `env -u HOSTNAME python3 scripts/nest-release-dag-fixture.py`.
