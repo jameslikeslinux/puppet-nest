@@ -257,6 +257,25 @@ there is no fallback to transfer or unbound legacy reset. Full-content reads may
 be significant I/O. This observation is not a lease, A/B continuity proof or
 reset-capacity admission; the native CLI still rechecks its own identity, shared
 state and capacity contracts before mutation.
+Both seal observations now require the existing supervisor generation-report
+retainer through the same `output_dir`. A successful native verification without
+a sealed, host/release-bound, reopened retention receipt stops preparation before
+the affected reset. All selected preflight receipts are returned in
+`generation_preflight`, in bound input order; each wave transaction receipt adds
+its `generation_verification` initiation receipt. Observation mode returns an
+empty preflight array and null initiation receipt without generation contact.
+
+The retained document projects the native generation-policy digest, pool and
+destination GUIDs, state/current/boot identities and transfer-receipt digest.
+The content-addressed publisher fsyncs and reopens exact bytes. It does not
+contain a transaction ID or wave-policy digest: the enclosing result associates
+the generation observation with its transaction and stage. Identical observations
+may share one retained file; that is not evidence of distinct observation times.
+Retain that enclosing association as well as the reopened reports before final
+handoff. Neither record is an approval, source-resource verification, storage
+lease, capacity admission or A/B continuity proof. A retention failure never
+triggers another verification, transfer or reset to recover a missing report.
+Standalone read-only staging callers without `output_dir` remain unchanged.
 The exact canonical preparation map also has a separate `inputs_sha256`, checked
 again at final admission even if native argv is unchanged. It binds all supplied
 generation-policy bytes; it is not a signature or authorization.
