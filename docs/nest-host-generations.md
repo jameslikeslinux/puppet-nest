@@ -143,3 +143,43 @@ never make it writable or reuse its identity. No live transfer, real ZFS seal,
 A/B boot, finite-limit reset admission or fleet acceptance is proven by unit
 fixtures. Tests use disposable ordinary directories and fake ZFS observations;
 real rsync, hardlinks/xattrs, flock and atomic receipt publication are exercised.
+
+## Read-only verification of a previously sealed generation
+
+Use the same exact policy with `verify_only=true` on
+`nest::host::stage_generation`. Leave `check=true` (the default); the plan
+refuses `verify_only=true check=false` before any target command. The installed
+helper's corresponding mode is `--verify`, mutually exclusive with `--check`.
+Ordinary placement checking and explicit transfer behavior remain unchanged.
+
+This mode validates the sealed local dataset's current host, pool, GUID,
+creation TXG, native properties and exact read-only mount, and the current
+shared-state dataset/GUID. It securely reopens both root-owned mode-0600,
+single-link, canonical and size-bounded `.started`/`.complete` records. Their
+policy and policy digest must match, and completion must be exactly the
+started record with `sealed=true`. The local root's complete content digest
+and required package/kernel/module paths are checked again. Native identity
+and both receipts are reopened after the digest read to reject observed drift.
+
+No source-publication mount, directory or network access is required. The
+recorded publication mount remains historical transfer evidence, not a newly
+verified source observation. A changed current A/B or boot ID since transfer
+is allowed only with the same freshly checked host/pool/generation/shared-state
+bindings; the report contains the current BE and boot, not stale transfer values.
+This permits inspection after a boot change, but is not proof that an actual
+A/B switch or startup mounting has been tested.
+
+The JSON kind is `nest_generation_verification_report`, schema 1. It includes
+the exact policy, policy digest, current `generation` observation and SHA256 of
+the retained complete receipt. `read_only` and `sealed` are true;
+`reset_authorized` and `reset_capacity_admitted` are always false. Historical
+transfer free-space observations are not republished as current capacity.
+Run the separate native reset planner for actual reset-capacity admission.
+
+Verification creates no lock or receipt and performs no copy, property change,
+mount, dataset provisioning, cleanup or repair. It neither takes nor breaks a
+busy transaction lock: this is a bounded observation, not a lease against later
+mutation or authorization to proceed with a reset. Full digest reads can still
+be significant I/O. Missing/ambiguous receipts, wrong ownership/mode, links,
+special files, changed identities or corrupt content refuse; do not recopy,
+relax checks or fabricate a complete receipt to obtain a passing result.

@@ -44,6 +44,39 @@ RSpec.describe 'nest::host::stage_generation' do
     expect(result.value).to eq(transferred)
   end
 
+  it 'verifies a sealed local generation without selecting the transfer path' do
+    verified = report.merge('kind' => 'nest_generation_verification_report', 'sealed' => true, 'reset_capacity_admitted' => false)
+    expect_command("#{command(false)} --verify").with_targets('fixture-host').always_return('stdout' => verified.to_json)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true)
+
+    expect(result.ok?).to be(true)
+    expect(result.value).to eq(verified)
+  end
+
+  it 'refuses contradictory verification and transfer inputs before any command' do
+    allow_any_command.not_be_called
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true, 'check' => false)
+
+    expect(result.ok?).to be(false)
+  end
+
+  [
+    { 'kind' => 'nest_generation_transfer_report' },
+    { 'read_only' => false },
+    { 'sealed' => false },
+    { 'reset_authorized' => true },
+    { 'reset_capacity_admitted' => true },
+    { 'reset_capacity_admitted' => nil },
+  ].each do |change|
+    it "refuses contradictory sealed verification result #{change} without retry" do
+      verified = report.merge('kind' => 'nest_generation_verification_report', 'sealed' => true, 'reset_capacity_admitted' => false).merge(change)
+      expect_command("#{command(false)} --verify").with_targets('fixture-host').always_return('stdout' => verified.to_json)
+      result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true)
+
+      expect(result.ok?).to be(false)
+    end
+  end
+
   ['other', 'fixture-host.nest', 'fixture-console', 'fixture-console.nest', 'control1.nest'].each do |name|
     it "refuses nonmatching or excluded inventory scope #{name} before any command" do
       allow_any_command.not_be_called
