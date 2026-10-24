@@ -34,9 +34,7 @@ plan nest::kubernetes::reconcile_control_plane (
   $patches             = '/etc/kubernetes/patches'
   $manifest            = '/etc/kubernetes/manifests/kube-apiserver.yaml'
   $lock_name           = 'nest-control-plane-reconcile-lock'
-  $member_names_string = $etcd_member_names.shellquote
-  $member_name_quoted  = $member_name.shellquote
-  $endpoint_csv_quoted = $endpoint_csv.shellquote
+
   $patches_quoted      = $patches.shellquote
   $manifest_quoted     = $manifest.shellquote
   $lock_name_quoted    = $lock_name.shellquote
@@ -71,39 +69,12 @@ plan nest::kubernetes::reconcile_control_plane (
     "--server=https://${member_name}:6443", 'get', '--raw=/readyz?verbose',
   ].shellquote
 
-  $etcd_gate_template = @(COMMAND/L)
-    set -eu
-    tmpdir="$(mktemp -d /tmp/nest-etcd-gate.XXXXXX)"
-    trap 'rm -rf "$tmpdir"' EXIT
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system exec etcd-__MEMBER__ -- \
-      etcdctl --endpoints=__ENDPOINTS__ \
-      --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-      --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
-      --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
-      endpoint health --cluster --write-out=table
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system exec etcd-__MEMBER__ -- \
-      etcdctl --endpoints=__ENDPOINTS__ \
-      --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-      --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
-      --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
-      endpoint status --cluster --write-out=json > "$tmpdir/status.json"
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system exec etcd-__MEMBER__ -- \
-      etcdctl --endpoints=__ENDPOINTS__ \
-      --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-      --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
-      --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
-      member list --write-out=json > "$tmpdir/members.json"
-    /usr/local/sbin/validate-etcd-cluster "$tmpdir/status.json" "$tmpdir/members.json" 1000 __MEMBER_NAMES__
-    | COMMAND
-  $etcd_gate_command = $etcd_gate_template
-    .regsubst('__MEMBER__', $member_name_quoted, 'G')
-    .regsubst('__ENDPOINTS__', $endpoint_csv_quoted, 'G')
-    .regsubst('__MEMBER_NAMES__', $member_names_string, 'G')
-
   run_command($ready_command, 'localhost', 'Require Kubernetes API readiness')
-  run_command($etcd_gate_command, $member, 'Require exact healthy synchronized etcd topology', {
-    _run_as => 'root',
-  })
+  run_plan('nest::kubernetes::check_etcd',
+    target            => $member,
+    etcd_servers      => $etcd_servers,
+    etcd_member_names => $etcd_member_names,
+  )
   run_command("test -d ${patches_quoted} && test -x /usr/local/sbin/reconcile-kubeadm-cluster-config && test -x /usr/local/sbin/validate-etcd-cluster", $member, 'Require managed kubeadm assets', {
     _run_as => 'root',
   })
@@ -268,9 +239,11 @@ plan nest::kubernetes::reconcile_control_plane (
       _run_as => 'root',
     })
     run_command($ready_command, 'localhost', 'Recheck Kubernetes API readiness')
-    run_command($etcd_gate_command, $member, 'Recheck exact healthy synchronized etcd topology', {
-      _run_as => 'root',
-    })
+    run_plan('nest::kubernetes::check_etcd',
+      target            => $member,
+      etcd_servers      => $etcd_servers,
+      etcd_member_names => $etcd_member_names,
+    )
   }
 
   if $transaction =~ Error {
@@ -317,9 +290,11 @@ plan nest::kubernetes::reconcile_control_plane (
         _run_as => 'root',
       })
       run_command($ready_command, 'localhost', 'Require restored Kubernetes API readiness')
-      run_command($etcd_gate_command, $member, 'Require restored exact healthy synchronized etcd topology', {
-        _run_as => 'root',
-      })
+      run_plan('nest::kubernetes::check_etcd',
+        target            => $member,
+        etcd_servers      => $etcd_servers,
+        etcd_member_names => $etcd_member_names,
+      )
     }
   } else {
     $config_restore   = undef
