@@ -16,7 +16,7 @@ def current_time():
 
 def prepare(policy: Any, targets: Any, inputs: Any):
     result = plan(policy, targets)
-    require(policy['schema'] == 2)
+    require(policy['schema'] == 3)
     start, end = preparation_window(policy['preparation_window'])
     require(start <= current_time() < end)
     require(type(inputs) is dict and set(inputs) == {host['name'] for host in policy['hosts']})

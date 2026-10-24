@@ -29,11 +29,11 @@ refuses before any host command. The separate explicit `mode=prepare` described
 below invokes native transactions but never reboots. Never change mode to legacy to execute a computed wave:
 legacy execution does not enforce this policy, release or transaction identity.
 
-## Policy schemas 1 and 2
+## Policy schemas 1, 2 and 3
 
 The policy has exactly these fields; unknown fields refuse:
 
-- `schema`: integer 1 or 2; `kind`: `nest_update_wave_policy`.
+- `schema`: integer 1, 2 or 3; `kind`: `nest_update_wave_policy`.
 - `release`: exact `sha256:` plus 64 lowercase hexadecimal digits, identifying
   the reviewed release manifest, not a mutable alias or a build name.
 - `config_source`: exact 40-character lowercase Git SHA selected for subsequent
@@ -61,20 +61,50 @@ allow uppercase, plus and hyphen. The complete stdin document is bounded to
 256 KiB; duplicate JSON keys refuse. Task metadata keys beginning with `_` are
 not interpreted as policy, approval or release identity.
 
-Schema 2 additionally requires exactly one `preparation_window` object, with
+Schemas 2 and 3 additionally require exactly one `preparation_window` object, with
 exactly `not_before` and `not_after`. Both values use real UTC calendar timestamps
 in the strict spelling `YYYY-MM-DDTHH:MM:SSZ`, without fractional seconds, offsets
 or leap seconds. The end must be later than the start and at most 24 hours later.
 The entire window is included in `policy_sha256`; changing it creates a different
 policy identity. There is no default or automatic extension.
 
-Schema 1 remains supported for planning and stored-status observation, with its
-original digest and output. It no longer admits transactional preparation.
-Schema 2 planning and observation remain available before or after the window;
+Schemas 1 and 2 remain supported for planning and stored-status observation, with
+their original digests and output. Neither admits transactional preparation.
+Planning and observation remain available before or after the window;
 they validate the window structurally but never turn its presence into approval.
 Schema-2 planner output adds `policy_schema: 2` and the exact window; its result
 schema remains 1. This is a preparation-initiation window, not a general reboot,
 acceptance, cleanup or maintenance authorization policy.
+
+Schema 3 also requires `backup_requirements`, an exact map keyed by every selected
+host name. Each value is an array of zero through eight checks. An explicit empty
+array declares that this host has no Hermes backup prerequisite; it is not a
+backup-discovery result or proof that every application is recoverable. The
+release owner must review coverage, including application state hosted elsewhere.
+Omitting a host, adding an unknown host or duplicating a generation check refuses.
+
+Each check has exactly these fields:
+
+- `kind`: `hermes`; other backup implementations are not supported by this gate.
+- `target`: exact inventory name of the backup host, not a URI or selector.
+- `user`: backup account, lowercase letter/underscore first, then lowercase
+  alphanumeric/underscore/hyphen, at most 32 characters.
+- `backup_dir`: canonical absolute path spelling on the backup host, at most
+  255 characters, with alphanumeric/underscore/dot/slash/hyphen only. Root, empty
+  components, traversal and trailing slash refuse. Native filesystem trust and
+  permissions remain the existing verifier's responsibility.
+- `checkpoint`: exact existing generation, alphanumeric first, then
+  alphanumeric/underscore/dot/hyphen, at most 128 characters.
+- `expected_sha256`: exact bare lowercase 64-character archive digest.
+- `max_age_seconds`: integer from 1 through 604800, not a boolean or float.
+- `required_profiles`: nonempty unique array of at most 128 profile names, each
+  using the checkpoint token grammar.
+
+Every field, including explicit empty arrays and profile order, is bound into
+`policy_sha256`. Schema-3 planner output adds `policy_schema: 3`, the exact window
+and `backup_requirements`; its result schema stays 1. Planning validates metadata
+only, never opens an archive or claims it is current. See
+`hermes-backup-verification.md` for the existing verification contract and limits.
 
 The resolved inventory target set must equal the complete policy host set.
 Missing/extra targets, duplicates, a broad selector that includes an excluded
@@ -185,7 +215,7 @@ remains separately Joy-gated. This interface does not provision or transfer a
 generation, relax quotas, select a release alias, reboot, apply a main catalog,
 accept, finalize or clean up a boot environment.
 
-Pass the same complete schema-2 `policy`, `targets`, an existing canonical supervisor
+Pass the same complete schema-3 `policy`, `targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
 Each entry has exactly `transaction`, `root_generation`, and `capacity_policy`.
 The transaction is a native CLI ID (alphanumeric first, then alphanumeric,
@@ -197,6 +227,24 @@ responsibilities; syntactic input validation does not claim they passed.
 Inventory names must equal the actual native report hostname; aliases are not
 silently translated. Each host may use its own explicit generation and policy.
 
+Preparation invokes the existing `nest::app::hermes::backup` plan with only the
+declared fields (minus `kind`) and `verify_only=true`. All declared generations
+must verify before any native reset starts. After controller admission it repeats
+the affected host's checks immediately before the final window admission and
+native command. Missing, changed, stale, future-dated, busy or unreadable backups
+stop preparation without capture, initialization, pruning, cleanup or restore.
+No failure triggers a fallback or a new checkpoint. An unrelated host with an
+explicit empty list requires no backup-host contact at its initiation.
+
+The existing helper holds a shared nonblocking retention lock while checking
+full bytes and required members, and samples publication age after hashing. It
+releases that lock before returning; the result is not a storage lease, restore
+validation, application-consistency recheck or source-capture timestamp. Ordinary
+backup retention can subsequently remove a generation. Required durable retention
+through the whole release remains unfinished and must not be inferred here.
+Native verifier results appear in Bolt output, not in the sanitized transaction
+receipt; durable recovery-evidence retention remains a lifecycle integration task.
+
 Preparation checks the supervisor's current UTC time at full input validation
 and again immediately before each host command, after destination and controller
 maintenance checks. Admission requires `not_before <= now < not_after`. Earlier
@@ -207,12 +255,12 @@ window or starts a later wave automatically. Use observation after ambiguity.
 An ordinary, accurate supervisor clock is a prerequisite; this is not a trusted
 time service, clock-rollback detector or a lease covering task/transport latency.
 
-A schema-2 input is still not proof of Joy's approval, backup freshness, verified
-rollback or supported generation/capacity. Scope/window policy must be reviewed
+A schema-3 input is still not proof of Joy's approval, verified rollback or
+supported generation/capacity. Scope/window and backup coverage must be reviewed
 under the separate disruptive authorization before the first real canary. Full
 rollback/retention and live acceptance integration remain unfinished; there is
-no new cleanup or reboot path in this change. Do not attach window fields to a
-schema-1 policy or fall back to legacy execution to bypass an expired window.
+no new cleanup or reboot path in this change. Do not attach new fields to an
+older schema or fall back to legacy execution to bypass failed admission.
 
 Before any host command, the supervisor validates the full inventory/policy/input
 scope and every report destination. No missing member is silently skipped.

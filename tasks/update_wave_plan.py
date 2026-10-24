@@ -59,11 +59,42 @@ def preparation_window(value):
     return times
 
 
+def backup_requirements(value: Any, selected: Any):
+    # Explicit empty lists mean no Hermes prerequisite for that host. This is
+    # reviewed application scope, not discovery or a general data-safety claim.
+    require(type(value) is dict and set(value) == set(selected))
+    for checks in value.values():
+        require(type(checks) is list and len(checks) <= 8)
+        seen = set()
+        for check in checks:
+            fields(check, 'kind target user backup_dir checkpoint expected_sha256 max_age_seconds required_profiles')
+            require(check['kind'] == 'hermes')
+            token(check['target'])
+            token(check['user'], r'[a-z_][a-z0-9_-]{0,31}')
+            path = token(check['backup_dir'], r'/[A-Za-z0-9_./-]{1,254}')
+            require(not any(part in ('', '.', '..') for part in path.split('/')[1:]))
+            token(check['checkpoint'], r'[A-Za-z0-9][A-Za-z0-9_.-]{0,127}')
+            token(check['expected_sha256'], r'[0-9a-f]{64}')
+            age = check['max_age_seconds']
+            require(type(age) is int and 1 <= age <= 604800)
+            profiles = check['required_profiles']
+            require(type(profiles) is list and 1 <= len(profiles) <= 128)
+            for profile in profiles:
+                token(profile, r'[A-Za-z0-9][A-Za-z0-9_.-]{0,127}')
+            require(len(profiles) == len(set(profiles)))
+            identity = (check['target'], check['user'], path, check['checkpoint'])
+            require(identity not in seen)
+            seen.add(identity)
+    return value
+
+
 def plan(policy: Any, targets: Any):
-    require(type(policy) is dict and type(policy.get('schema')) is int and policy['schema'] in (1, 2))
-    extra = ' preparation_window' if policy['schema'] == 2 else ''
+    require(type(policy) is dict and type(policy.get('schema')) is int and policy['schema'] in (1, 2, 3))
+    extra = ' preparation_window' if policy['schema'] in (2, 3) else ''
+    if policy['schema'] == 3:
+        extra += ' backup_requirements'
     fields(policy, 'schema kind release config_source max_parallel domains hosts excluded canaries' + extra)
-    if policy['schema'] == 2:
+    if policy['schema'] in (2, 3):
         # Structural validation only: future/expired policies remain inspectable.
         # A window is a bound on initiation, not proof of owner authorization.
         preparation_window(policy['preparation_window'])
@@ -101,6 +132,8 @@ def plan(policy: Any, targets: Any):
     # turn an approved multi-host scope into a different run. Re-freeze policy.
     require(set(selected) == set(indexed) and set(canaries) <= set(indexed))
     require([row["name"] for row in hosts[:len(canaries)]] == canaries)
+    if policy['schema'] == 3:
+        backup_requirements(policy['backup_requirements'], selected)
 
     waves = [[name] for name in canaries]
     remaining = [row["name"] for row in hosts if row["name"] not in canaries]
@@ -125,8 +158,10 @@ def plan(policy: Any, targets: Any):
         "preparation_observed": False, "reboot_eligible": [],
         "execution_authorized": False, "acceptance_recorded": False,
     }
-    if policy['schema'] == 2:
-        result.update(policy_schema=2, preparation_window=policy['preparation_window'])
+    if policy['schema'] in (2, 3):
+        result.update(policy_schema=policy['schema'], preparation_window=policy['preparation_window'])
+    if policy['schema'] == 3:
+        result['backup_requirements'] = policy['backup_requirements']
     return result
 
 
