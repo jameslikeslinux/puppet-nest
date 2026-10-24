@@ -113,6 +113,128 @@ class ManagerHealthTest(unittest.TestCase):
         self.assertNotIn("failures", result["system_failures"])
         self.assertEqual(result["result"], "fail")
 
+    def test_system_failure_appearing_during_user_collection_is_not_green(self):
+        runner = Fixture()
+        def run(args):
+            if args[0] == "user-fixture":
+                runner.system = [unit("new.service", "failed", "failed")]
+            return runner(args)
+        result = self.collect(run)
+        self.assertEqual(result["result"], "fail")
+        self.assertFalse(result["system_failures"]["inventory_complete"])
+        self.assertEqual(result["system_failures"]["reason"], "system_failure_inventory_changed")
+        self.assertEqual(result["system_failures"]["failures_after"][0]["identity"], "new.service")
+
+    def test_user_failure_change_during_other_manager_collection_is_not_green(self):
+        runner = Fixture(managers=[unit("user@1000.service"), unit("user@1001.service")])
+        def run(args):
+            if args[:2] == ["user-fixture", "1001"]:
+                runner.user[1000] = [unit("new-app.service", "failed", "failed")]
+            return runner(args)
+        result = self.collect(run, processes=lambda: {1000: 42, 1001: 43})
+        self.assertEqual(result["result"], "fail")
+        self.assertFalse(result["user_managers"]["inventory_complete"])
+        manager = result["user_managers"]["managers"][0]
+        self.assertEqual(manager["reason"], "user_failure_inventory_changed")
+        self.assertEqual(manager["failures_after"][0]["identity"], "new-app.service")
+
+    def test_disappearing_failure_retains_both_observations_without_explanation(self):
+        runner = Fixture(system=[unit("old.service", "failed", "failed")])
+        def run(args):
+            if args[0] == "user-fixture":
+                runner.system = []
+            return runner(args)
+        result = self.collect(run)
+        self.assertEqual(result["system_failures"]["failures"][0]["identity"], "old.service")
+        self.assertEqual(result["system_failures"]["failures_after"], [])
+        self.assertFalse(result["system_failures"]["inventory_complete"])
+        self.assertEqual(result["result"], "fail")
+
+    def test_second_system_failure_query_unavailable_is_not_green(self):
+        runner = Fixture()
+        def run(args):
+            if args[0] == "user-fixture":
+                runner.system = health.Unavailable("command_failed")
+            return runner(args)
+        result = self.collect(run)
+        self.assertEqual(result["result"], "fail")
+        self.assertEqual(result["system_failures"]["availability"], "unavailable")
+        self.assertEqual(result["system_failures"]["failures"], [])
+
+    def test_second_user_failure_query_unavailable_is_not_green(self):
+        runner = Fixture()
+        def run(args):
+            value = runner(args)
+            if args[0] == "user-fixture":
+                runner.user[1000] = health.Unavailable("command_failed")
+            return value
+        result = self.collect(run)
+        self.assertEqual(result["result"], "fail")
+        self.assertFalse(result["user_managers"]["inventory_complete"])
+        self.assertEqual(result["user_managers"]["managers"][0]["failures"], [])
+
+    def test_disappearing_user_failure_is_retained_and_unavailable(self):
+        runner = Fixture(user={1000: [unit("old-app.service", "failed", "failed")]})
+        def run(args):
+            value = runner(args)
+            if args[0] == "user-fixture":
+                runner.user[1000] = []
+            return value
+        result = self.collect(run)
+        manager = result["user_managers"]["managers"][0]
+        self.assertEqual(manager["failures"][0]["identity"], "old-app.service")
+        self.assertEqual(manager["failures_after"], [])
+        self.assertEqual(manager["availability"], "unavailable")
+        self.assertEqual(result["result"], "fail")
+
+    def test_bus_disappearing_at_recheck_is_not_green(self):
+        calls = []
+        def prefix(uid):
+            calls.append(uid)
+            if len(calls) > 1:
+                raise health.Unavailable("user_bus_unavailable")
+            return ["user-fixture", str(uid)]
+        result = self.collect(prefix=prefix)
+        self.assertEqual(result["result"], "fail")
+        manager = result["user_managers"]["managers"][0]
+        self.assertFalse(manager["inventory_complete"])
+        self.assertEqual(manager["reason"], "user_bus_unavailable")
+
+    def test_actual_command_runner_with_inert_systemctl_processes(self):
+        script = '''import json, pathlib, sys
+root = pathlib.Path(__file__).parent
+args = sys.argv[1:]
+with (root / "calls").open("a") as output:
+    output.write(json.dumps(args) + "\\n")
+assert "list-units" in args
+mode = (root / "mode").read_text()
+user = "--user" in args
+if "--state=failed" not in args:
+    value = [{"unit":"user@1000.service","load":"loaded","active":"active","sub":"running"}]
+else:
+    repeat = (root / ("user-seen" if user else "system-seen")).exists()
+    (root / ("user-seen" if user else "system-seen")).touch()
+    if repeat and mode == "unavailable" and not user:
+        sys.exit(91)
+    failed = (mode == "system" and not user and repeat) or (mode == "user" and user and repeat)
+    value = [{"unit":"new.service","load":"loaded","active":"failed","sub":"failed"}] if failed else []
+print(json.dumps(value))
+'''
+        for mode in ("stable", "system", "user", "unavailable"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                executable = root / "systemctl"
+                executable.write_text("#!" + sys.executable + "\n" + script)
+                executable.chmod(0o700)
+                (root / "mode").write_text(mode)
+                with patch.dict(health.ENV, {"PATH": directory}):
+                    result = self.collect(health.Commands(), prefix=lambda uid: ["systemctl", "--user"])
+                self.assertEqual(result["result"], "pass" if mode == "stable" else "fail")
+                self.assertFalse(result["acceptance_recorded"])
+                calls = [json.loads(line) for line in (root / "calls").read_text().splitlines()]
+                self.assertEqual(len(calls), 6)
+                self.assertTrue(all("list-units" in args for args in calls))
+
     def test_transitional_failed_duplicate_and_invalid_managers_refuse(self):
         for rows in ([unit("user@1000.service", "activating", "start")],
                      [unit("user@1000.service", "failed", "failed")],
