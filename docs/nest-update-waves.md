@@ -239,7 +239,16 @@ Maintenance inputs supplied to planning, observation, non-controller-only
 preparation or legacy execution refuse. Read-only status observation does not
 require live service readiness, so a failed maintenance gate never prevents
 inspection of an existing transaction. Legacy controller updates now refuse
-instead of bypassing the bound service-aware path. Non-controller legacy
+instead of bypassing the bound service-aware path, including qualified names
+such as `control2.nest`. A mixed selection refuses as a whole before host actions.
+Preparation requires the canonical inventory names `control1`, `control2` and
+`control3`; qualified controller names refuse before any task or host command,
+rather than silently losing maintenance admission or rewriting bound transaction
+identity. Planning and stored-status observation remain read-only and do not
+rewrite names. Similarly prefixed names such as `control3-extra` are not classified
+as controllers. An unrelated inventory alias cannot be identified by this
+name-based floor; review exact inventory scope and do not use aliases to evade
+the canonical controller contract. Non-controller legacy
 behavior and the explicit no-reboot default are unchanged. Preparation remains
 mutating and separately authorized: these additional point-in-time checks do
 not supply that authority, withdraw an advertiser, or enable transactional
