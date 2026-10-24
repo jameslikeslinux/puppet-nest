@@ -1,0 +1,15 @@
+{
+  "description": "Validate and retain live native A/B finalization status and outcomes without issuing host commands",
+  "input_method": "stdin",
+  "supports_noop": false,
+  "files": ["nest/tasks/retain_update_report.py"],
+  "parameters": {
+    "action": { "type": "Enum['check', 'admit', 'preview', 'complete']" },
+    "transaction": { "type": "Pattern[/\\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\\z/]" },
+    "release": { "type": "Pattern[/\\Asha256:[0-9a-f]{64}\\z/]" },
+    "hostname": { "type": "String[1]" },
+    "output_dir": { "type": "Stdlib::Absolutepath", "description": "Existing persistent supervisor directory" },
+    "status": { "type": "Optional[String[1]]", "description": "Exact live native status stdout; required except for check" },
+    "report": { "type": "Optional[String[1]]", "description": "Exact native finalize stdout; required for preview or complete" }
+  }
+}
