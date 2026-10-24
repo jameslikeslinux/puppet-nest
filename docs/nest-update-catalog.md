@@ -88,13 +88,68 @@ attested module bytes or a clean server checkout. Report digest readback does
 not authenticate catalog content. Real invocation provenance and served module
 identity must still be bound by lifecycle integration.
 
-The existing apply/repeat plan is not yet wired to capture a report under the
-agent lock. A separate task read cannot prove that a concurrent agent did not
+The legacy apply/repeat path without expectations does not capture a report
+under the agent lock. A separate task read cannot prove that a concurrent agent did not
 replace a report before the first observation. Callers must supply an actually
 retained invocation UUID/window, not adopt the current report as proof of their
 own run. This task therefore does not change `served_source_verified: false` in
 the apply/repeat plan, satisfy release acceptance, or substitute for the remaining
 boot/release binding, atomic invocation capture and durable report integration.
+
+## Invocation-bound apply and repeat
+
+For a reviewed real catalog operation, pass an `expectations` hash to
+`nest::host::update_catalog`, or invoke `nest::update_catalog_apply` directly
+with ordinary inventory-backed Bolt root escalation. This is MUTATING and
+Linux-only; it is not an installation check and does not support noop. The four
+required expectations are exact `hostname`, `certname`, current `boot_id`, and
+full `configuration_version` SHA. The plan still requires exactly one host.
+Without expectations the previous unbound interface is unchanged.
+
+The task invokes the same managed shell wrapper, not an alternate agent or
+deployment mechanism. Each apply gets a newly created mode-0700 directory in
+the agent's root-owned, non-group/world-writable `statedir`, with separate native
+`--lastrunreport` and `--lastrunfile` paths passed as argv, never reparsed shell
+text. Native report storage writes directly to that unique location before the
+agent exits. A concurrent later run cannot overwrite it by publishing its own
+ordinary last report. The task observes the native transaction UUID from this
+invocation-private file rather than accepting a UUID guessed by the caller or
+adopting the shared last report. It requires different UUIDs across the pair.
+
+For each successful native exit, the existing safe YAML scalar parser checks
+exact host, full source, main environment, start window, status consistent with
+exit 0/2, completion, non-noop and no cache reuse. Report bytes are reread before
+proceeding. Boot identity is checked before the first apply, between applies and
+after the repeat. A failed exit, missing or invalid report, changed boot or
+wrong source stops without another apply. There is at most one repeat, and
+only repeat exit 0 with a bound report is converged. Failed report binding
+retains its known native exit; unknown/signal exits remain null.
+
+The result has kind `nest_update_catalog_bound`, sanitized `main` and optional
+`repeat` receipts with `native_exit`, `report_bound` and selected report scalars,
+plus `repeat_attempted` and `converged`. Inspect `result`, not just Bolt's exit:
+known failed convergence returns a structured failure. Transport or invocation
+ambiguity must be inspected before manually rerunning; neither plan nor task
+automatically retries it. The task does not timeout/kill a running native apply.
+Private local report/summary/log files are removed after collection, not copied
+to public output. Server-side native reporting remains configured normally;
+these invocations intentionally do not overwrite the shared local last report
+or summary. After an interrupted task, private remnants can remain in statedir;
+never blindly replay an apply based on those remnants or a transport timeout.
+
+The wrapper still holds its existing lock per apply, not across the pair. A
+failed blocking flock now refuses instead of proceeding unlocked. Missing
+`flock` retains the legacy wrapper behavior; Puppet's native agent coordination
+is not bypassed. Build/skip-module fact overrides and extra argument overrides
+are removed for the bound task. Native report isolation proves invocation
+provenance without requiring a lock to remain held during later readback.
+
+This is still NOT release acceptance: the task does not independently attest
+served module bytes, a clean server checkout, the prepared release/root/BE,
+historical failure dispositions or service/hardware/physical UX. Consequently
+`served_source_verified` and `acceptance_recorded` remain false. Lifecycle
+integration must retain these receipts durably with real release/boot evidence
+before accept/finalize. No real host catalog was applied to validate this code.
 
 ## Wrapper compatibility and rollback
 

@@ -91,7 +91,7 @@ run_puppet() {
     return $?
   fi
   # shellcheck disable=SC2086
-  "$puppet_bin" agent --test $puppet_extra_args
+  "$puppet_bin" agent --test $puppet_extra_args "$@"
 }
 
 # Accepted Agent Request follow-through can fan out into multiple workers.
@@ -102,11 +102,11 @@ if command -v flock >/dev/null 2>&1; then
   exec 9>"$lock_file"
   if ! flock -n 9; then
     echo "Waiting for Puppet agent lock: $lock_file" >&2
-    flock 9
+    flock 9 || exit 1
   fi
 fi
 
-run_puppet
+run_puppet "$@"
 status=$?
 
 if [ "$status" -eq 2 ] && [ "$preserve_detailed_exit" = false ]; then
