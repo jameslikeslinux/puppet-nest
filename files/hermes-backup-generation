@@ -25,6 +25,9 @@ ARCHIVE_RE = re.compile(r"\Ahermes-home-([A-Za-z0-9][A-Za-z0-9_.-]*)\.zip\Z")
 LEGACY_RE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9_.-]*-hermes-\d{8}-\d{6}\.zip\Z")
 DEFAULT_PROFILES = ("talon", "star", "beryl", "quill")
 REQUIRED_SHARED = ("config.yaml", "auth.json", "kanban.db")
+HOLD_RE = re.compile(r"\A\.generation-hold-([A-Za-z0-9][A-Za-z0-9_-]{0,63})\.json\Z")
+HOLD_FIELDS = {'schema', 'kind', 'hold_id', 'release', 'checkpoint', 'archive', 'sha256',
+               'bytes', 'members', 'required_profiles'}
 
 
 def _archive_for(backup_dir: Path, checkpoint: str) -> Path:
@@ -78,7 +81,7 @@ def _verify_archive(
     }
 
 
-def _atomic_json(path: Path, payload: dict[str, object]) -> None:
+def _atomic_json(path: Path, payload: dict[str, object], *, replace: bool = True) -> None:
     fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     temporary = Path(temporary_name)
     try:
@@ -88,7 +91,11 @@ def _atomic_json(path: Path, payload: dict[str, object]) -> None:
             output.write("\n")
             output.flush()
             os.fsync(output.fileno())
-        os.replace(temporary, path)
+        if replace:
+            os.replace(temporary, path)
+        else:
+            os.link(temporary, path)
+            temporary.unlink()
         _sync_directory(path.parent)
     finally:
         temporary.unlink(missing_ok=True)
@@ -157,7 +164,9 @@ def _prune(backup_dir: Path, retain: int, protect: Path | None = None) -> list[s
     if retain < 1:
         raise ValueError("retain must be at least 1")
     archives = _generation_archives(backup_dir)
-    keep = set(archives[:retain])
+    # Validate every hold before deleting anything. A damaged or dangling hold
+    # is an operator-visible refusal, never permission to prune its generation.
+    keep = set(archives[:retain]) | _held_archives(backup_dir)
     if protect is not None:
         keep.add(protect)
     removed: list[str] = []
@@ -257,9 +266,8 @@ def prune_generations(args: argparse.Namespace) -> dict[str, object]:
         return {"action": "pruned", "removed": _prune(backup_dir, args.retain)}
 
 
-def verify_generation(args: argparse.Namespace) -> dict[str, object]:
-    """Read an exact published generation under the existing retention lock."""
-    if not 1 <= args.max_age_seconds <= 604800:
+def _verification_paths(args: argparse.Namespace, *, require_age: bool = True) -> tuple[Path, tuple[Path, ...]]:
+    if require_age and not 1 <= args.max_age_seconds <= 604800:
         raise ValueError('max age must be between 1 and 604800 seconds')
     if not re.fullmatch(r'[0-9a-f]{64}', args.expected_sha256):
         raise ValueError('expected SHA256 must be an exact lowercase digest')
@@ -276,43 +284,172 @@ def verify_generation(args: argparse.Namespace) -> dict[str, object]:
         info = path.lstat()
         if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) & 0o077:
             raise RuntimeError('generation files must be private regular files owned by the backup account')
+    return backup_dir, paths
+
+
+def verify_generation(args: argparse.Namespace) -> dict[str, object]:
+    """Read an exact published generation under the existing retention lock."""
+    _backup_dir, paths = _verification_paths(args)
     with paths[0].open('rb') as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
-        metadata = _read_completed_metadata(archive, args.checkpoint)
-        if not isinstance(metadata, dict) or metadata.get('format') != 'full-hermes-home-v1' or metadata.get('verified') is not True:
-            raise RuntimeError('missing completed full-home generation receipt')
-        if metadata.get('sha256') != args.expected_sha256:
-            raise RuntimeError('generation receipt does not match the expected SHA256')
-        created_text = metadata.get('created_at')
-        if not isinstance(created_text, str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z', created_text):
-            raise ValueError('generation receipt requires a strict UTC publication timestamp')
-        created = datetime.strptime(created_text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-        verification = _verify_archive(archive, tuple(args.required_profile))
-        if any(type(metadata.get(key)) is not int or metadata[key] != verification[key] for key in ('bytes', 'members')):
-            raise RuntimeError('generation receipt counts do not match the archive')
-        profiles = metadata.get('required_profiles')
-        if not isinstance(profiles, list) or not all(isinstance(profile, str) for profile in profiles):
-            raise RuntimeError('generation receipt requires a profile list')
-        if metadata.get('required_shared') != list(REQUIRED_SHARED) or not set(args.required_profile) <= set(profiles):
-            raise RuntimeError('generation receipt does not cover the required shared state and profiles')
-        if _sha256(archive) != args.expected_sha256:
-            raise RuntimeError('generation archive digest mismatch')
-        # Hashing can take time. Evaluate freshness after the complete readback,
-        # never use a pre-hash sample as an admission lease.
-        checked = datetime.now(timezone.utc)
-        age = (checked - created).total_seconds()
-        if not 0 <= age <= args.max_age_seconds:
-            raise RuntimeError('generation publication is future-dated or older than the required limit')
-        if _read_completed_metadata(archive, args.checkpoint) != metadata:
-            raise RuntimeError('generation receipt changed during verification')
-        return {
-            'schema': 1, 'kind': 'nest_hermes_generation_verification', 'action': 'verified',
-            'checkpoint': args.checkpoint, 'sha256': args.expected_sha256,
-            'archive': archive.name, 'bytes': verification['bytes'], 'members': verification['members'],
-            'required_profiles': list(args.required_profile), 'created_at': created_text,
-            'checked_at': checked.strftime('%Y-%m-%dT%H:%M:%SZ'), 'max_age_seconds': args.max_age_seconds,
-            'restore_verified': False, 'execution_authorized': False,
-        }
+        return _verify_generation_locked(args, paths[1])
+
+
+def _verify_generation_locked(args: argparse.Namespace, archive: Path) -> dict[str, object]:
+    # Caller owns the existing generation lock throughout verification and,
+    # for hold creation, through atomic publication and readback.
+    metadata = _read_completed_metadata(archive, args.checkpoint)
+    if not isinstance(metadata, dict) or metadata.get('format') != 'full-hermes-home-v1' or metadata.get('verified') is not True:
+        raise RuntimeError('missing completed full-home generation receipt')
+    if metadata.get('sha256') != args.expected_sha256:
+        raise RuntimeError('generation receipt does not match the expected SHA256')
+    created_text = metadata.get('created_at')
+    if not isinstance(created_text, str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z', created_text):
+        raise ValueError('generation receipt requires a strict UTC publication timestamp')
+    created = datetime.strptime(created_text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+    verification = _verify_archive(archive, tuple(args.required_profile))
+    if any(type(metadata.get(key)) is not int or metadata[key] != verification[key] for key in ('bytes', 'members')):
+        raise RuntimeError('generation receipt counts do not match the archive')
+    profiles = metadata.get('required_profiles')
+    if not isinstance(profiles, list) or not all(isinstance(profile, str) for profile in profiles):
+        raise RuntimeError('generation receipt requires a profile list')
+    if metadata.get('required_shared') != list(REQUIRED_SHARED) or not set(args.required_profile) <= set(profiles):
+        raise RuntimeError('generation receipt does not cover the required shared state and profiles')
+    if _sha256(archive) != args.expected_sha256:
+        raise RuntimeError('generation archive digest mismatch')
+    # Hashing can take time. Evaluate freshness after the complete readback,
+    # never use a pre-hash sample as an admission lease.
+    checked = datetime.now(timezone.utc)
+    age = (checked - created).total_seconds()
+    if not 0 <= age <= args.max_age_seconds:
+        raise RuntimeError('generation publication is future-dated or older than the required limit')
+    if _read_completed_metadata(archive, args.checkpoint) != metadata:
+        raise RuntimeError('generation receipt changed during verification')
+    return {
+        'schema': 1, 'kind': 'nest_hermes_generation_verification', 'action': 'verified',
+        'checkpoint': args.checkpoint, 'sha256': args.expected_sha256,
+        'archive': archive.name, 'bytes': verification['bytes'], 'members': verification['members'],
+        'required_profiles': list(args.required_profile), 'created_at': created_text,
+        'checked_at': checked.strftime('%Y-%m-%dT%H:%M:%SZ'), 'max_age_seconds': args.max_age_seconds,
+        'restore_verified': False, 'execution_authorized': False,
+    }
+
+
+def _unique_fields(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('duplicate hold field')
+        result[key] = value
+    return result
+
+
+def _hold_path(backup_dir: Path, hold_id: str) -> Path:
+    if not isinstance(hold_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', hold_id):
+        raise ValueError('invalid retention hold ID')
+    return backup_dir / f'.generation-hold-{hold_id}.json'
+
+
+def _read_hold(path: Path) -> dict[str, object]:
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as source:
+        info = path.lstat()
+        opened = os.fstat(source.fileno())
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or
+                stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1 or
+                (info.st_dev, info.st_ino) != (opened.st_dev, opened.st_ino)):
+            raise RuntimeError('retention hold must be a private single-link regular file')
+        raw = source.read(16385)
+        if len(raw) > 16384:
+            raise ValueError('retention hold exceeds size bound')
+        after = os.fstat(source.fileno())
+        if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (
+                opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+            raise RuntimeError('retention hold changed while reading')
+    hold = json.loads(raw, object_pairs_hook=_unique_fields)
+    if (not isinstance(hold, dict) or set(hold) != HOLD_FIELDS or type(hold['schema']) is not int or
+            hold['schema'] != 1 or hold['kind'] != 'nest_hermes_generation_hold' or
+            _hold_path(path.parent, hold['hold_id']) != path or
+            not isinstance(hold['release'], str) or not re.fullmatch(r'sha256:[0-9a-f]{64}', hold['release']) or
+            not isinstance(hold['sha256'], str) or not re.fullmatch(r'[0-9a-f]{64}', hold['sha256'])):
+        raise ValueError('invalid retention hold identity')
+    if not isinstance(hold['checkpoint'], str):
+        raise ValueError('invalid retention checkpoint')
+    archive = _archive_for(path.parent, hold['checkpoint'])
+    if hold['archive'] != archive.name or any(type(hold[key]) is not int or hold[key] <= 0 for key in ('bytes', 'members')):
+        raise ValueError('invalid retention hold generation')
+    profiles = hold['required_profiles']
+    if (not isinstance(profiles, list) or not profiles or len(profiles) > 128 or
+            any(not isinstance(profile, str) or not GENERATION_RE.fullmatch(profile) for profile in profiles) or
+            len(set(profiles)) != len(profiles)):
+        raise ValueError('invalid retention hold profile coverage')
+    return hold
+
+
+def _held_archives(backup_dir: Path) -> set[Path]:
+    protected = set()
+    for path in backup_dir.iterdir():
+        if not path.name.startswith('.generation-hold-'):
+            continue
+        if not HOLD_RE.fullmatch(path.name):
+            raise ValueError('unrecognized retention hold file; refusing prune')
+        hold = _read_hold(path)
+        archive = _archive_for(backup_dir, hold['checkpoint'])
+        for member in (archive, _metadata_for(archive)):
+            info = member.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) & 0o077:
+                raise RuntimeError('held generation is missing or unsafe; refusing prune')
+        metadata = _read_completed_metadata(archive, hold['checkpoint'])
+        if (metadata is None or metadata.get('verified') is not True or metadata.get('format') != 'full-hermes-home-v1' or
+                any(metadata.get(key) != hold[key] for key in ('archive', 'checkpoint', 'sha256', 'bytes', 'members')) or
+                not set(hold['required_profiles']) <= set(metadata.get('required_profiles', []))):
+            raise RuntimeError('held generation receipt differs; refusing prune')
+        protected.add(archive)
+    return protected
+
+
+def retain_generation(args: argparse.Namespace) -> dict[str, object]:
+    """Persist/recheck/release one exact hold, serialized with ordinary pruning."""
+    if not re.fullmatch(r'sha256:[0-9a-f]{64}', args.release):
+        raise ValueError('invalid retention release digest')
+    if (not 1 <= len(args.required_profile) <= 128 or len(set(args.required_profile)) != len(args.required_profile) or
+            any(len(profile) > 128 for profile in args.required_profile)):
+        raise ValueError('invalid retention profile coverage')
+    backup_dir, paths = _verification_paths(args, require_age=args.command != 'release-hold')
+    path = _hold_path(backup_dir, args.hold_id)
+    with paths[0].open('rb') as lock:
+        shared = args.command == 'check-hold'
+        fcntl.flock(lock.fileno(), (fcntl.LOCK_SH if shared else fcntl.LOCK_EX) | fcntl.LOCK_NB)
+        if args.command == 'hold':
+            verified = _verify_generation_locked(args, paths[1])
+            hold = {key: verified[key] for key in ('checkpoint', 'archive', 'sha256', 'bytes', 'members', 'required_profiles')}
+            hold.update(schema=1, kind='nest_hermes_generation_hold', hold_id=args.hold_id, release=args.release)
+            if path.exists() or path.is_symlink():
+                if _read_hold(path) != hold:
+                    raise RuntimeError('retention ID already binds another generation or release')
+            else:
+                _atomic_json(path, hold, replace=False)
+            if _read_hold(path) != hold:
+                raise RuntimeError('retention hold readback mismatch')
+        else:
+            hold = _read_hold(path)
+            if (hold['release'] != args.release or hold['checkpoint'] != args.checkpoint or
+                    hold['sha256'] != args.expected_sha256 or hold['required_profiles'] != args.required_profile):
+                raise RuntimeError('retention hold does not match exact requested scope')
+            if shared:
+                verified = _verify_generation_locked(args, paths[1])
+                if any(hold[key] != verified[key] for key in ('bytes', 'members', 'archive')):
+                    raise RuntimeError('held generation differs')
+            else:
+                # Explicit release removes only this exact hold, not the archive,
+                # another release's hold, or any receipt. It never invokes prune.
+                path.unlink()
+                _sync_directory(backup_dir)
+                if path.exists() or path.is_symlink():
+                    raise RuntimeError('retention hold release readback mismatch')
+        return {'schema': 1, 'kind': 'nest_hermes_generation_retention', 'action': args.command,
+                'hold': hold, 'held': args.command != 'release-hold', 'readback_verified': True,
+                'restore_verified': False, 'execution_authorized': False}
 
 
 def _cleanup_legacy_locked(args: argparse.Namespace, backup_dir: Path) -> dict[str, object]:
@@ -397,6 +534,17 @@ def parser() -> argparse.ArgumentParser:
     verify.add_argument('--expected-sha256', required=True)
     verify.add_argument('--max-age-seconds', type=int, required=True)
     verify.set_defaults(handler=verify_generation)
+
+    for action in ('hold', 'check-hold', 'release-hold'):
+        retention = subparsers.add_parser(action)
+        common(retention)
+        retention.add_argument('--checkpoint', required=True)
+        retention.add_argument('--expected-sha256', required=True)
+        if action != 'release-hold':
+            retention.add_argument('--max-age-seconds', type=int, required=True)
+        retention.add_argument('--hold-id', required=True)
+        retention.add_argument('--release', required=True)
+        retention.set_defaults(handler=retain_generation)
 
     prune = subparsers.add_parser("prune")
     common(prune)
