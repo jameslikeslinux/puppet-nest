@@ -1,0 +1,15 @@
+{
+  "description": "Check the supervisor destination or retain sanitized boot, manager and requested network observations; never accept an update",
+  "input_method": "stdin",
+  "supports_noop": false,
+  "files": ["nest/tasks/retain_update_report.py", "nest/tasks/update_boot_health.py", "nest/tasks/update_network_health.py"],
+  "parameters": {
+    "action": { "type": "Enum['check', 'retain']" },
+    "expectations": { "type": "Hash[String, String]", "description": "Exact native boot-health expectations, not independently verified preparation" },
+    "endpoints": { "type": "Array[Hash]", "description": "Exact requested network endpoint policy, or an empty array" },
+    "transaction": { "type": "Pattern[/\\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\\z/]", "description": "Requested transaction association, not acceptance" },
+    "release": { "type": "Pattern[/\\Asha256:[0-9a-f]{64}\\z/]", "description": "Requested release digest, not verified release membership" },
+    "output_dir": { "type": "Stdlib::Absolutepath", "description": "Existing canonical directory on persistent supervisor storage" },
+    "report": { "type": "Optional[String[1]]", "description": "Exact update_health JSON, required only for retention" }
+  }
+}
