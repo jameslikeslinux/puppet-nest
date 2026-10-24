@@ -219,17 +219,35 @@ The separate [host-local generation producer](nest-host-generations.md) can copy
 an exact versioned read-only mounted publication into a preprovisioned empty
 local dataset and seal it. Its default check is read-only; explicit transfer
 does not authorize preparation or satisfy the native reset-capacity policy.
-The update plan does not invoke that producer automatically.
+The update plan never invokes its transfer path automatically. Preparation now
+requires the producer's exact sealed-generation policy and invokes only its
+read-only `verify_only=true` path before any reset and again at host initiation.
 
 Pass the same complete schema-3 `policy`, `targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
-Each entry has exactly `transaction`, `root_generation`, and `capacity_policy`.
+Each entry has exactly `transaction`, `root_generation`, `capacity_policy` and
+`generation_policy`. The last field is the complete exact schema-1 policy from
+the [generation producer](nest-host-generations.md), not its returned report.
+Its `hostname`, `release` and `destination` must equal this inventory host, the
+wave release and `root_generation`, respectively. Older three-field preparation
+inputs refuse; read-only planning and stored-status observation are unchanged.
+The producer's installed verifier validates its full policy and local seal.
 The transaction is a native CLI ID (alphanumeric first, then alphanumeric,
 underscore or hyphen, at most 64 characters). Both paths are absolute canonical
 path spellings on that target, not on the supervisor. Empty components, dot
 components, traversal, shell text and the mutable `/nest/hosts/` alias refuse.
-Realpath, ownership, source identity and capacity validation are native CLI
-responsibilities; syntactic input validation does not claim they passed.
+The generation verifier checks realpath, ownership, complete sealed content,
+native dataset identity and retained producer receipts without publication
+access, copying, locking or repair. All selected generations must verify before
+the first reset; after maintenance/backup checks each affected generation is
+verified again before final UTC admission. Any refusal stops new commands;
+there is no fallback to transfer or unbound legacy reset. Full-content reads may
+be significant I/O. This observation is not a lease, A/B continuity proof or
+reset-capacity admission; the native CLI still rechecks its own identity, shared
+state and capacity contracts before mutation.
+The exact canonical preparation map also has a separate `inputs_sha256`, checked
+again at final admission even if native argv is unchanged. It binds all supplied
+generation-policy bytes; it is not a signature or authorization.
 Inventory names must equal the actual native report hostname; aliases are not
 silently translated. Each host may use its own explicit generation and policy.
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bind native preparation commands to the complete wave scope; never execute."""
 
+import hashlib
 import json
 from datetime import datetime, timezone
 import sys
@@ -21,19 +22,26 @@ def prepare(policy: Any, targets: Any, inputs: Any):
     require(start <= current_time() < end)
     require(type(inputs) is dict and set(inputs) == {host['name'] for host in policy['hosts']})
     commands = {}
-    for name, entry in inputs.items():
-        fields(entry, 'transaction root_generation capacity_policy')
+    for name in inputs:
+        entry: Any = inputs[name]
+        fields(entry, 'transaction root_generation capacity_policy generation_policy')
         transaction = token(entry['transaction'], r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}')
         for key in ('root_generation', 'capacity_policy'):
             path = token(entry[key], r'/[A-Za-z0-9_./-]{1,254}')
             require(not any(part in ('', '.', '..') for part in path.split('/')[1:]))
             require(path != '/' and not path.startswith('/nest/hosts/'))
+        # The installed verifier owns the full producer schema and native
+        # checks. Bind its exact input before ANY host reset can start.
+        generation: Any = entry['generation_policy']
+        require(type(generation) is dict and generation.get('hostname') == name
+                and generation.get('release') == result['release']
+                and generation.get('destination') == entry['root_generation'])
         commands[name] = ['nest', 'reset', '--transaction', transaction, '--release', result['release'],
                           '--root-generation', entry['root_generation'], '--capacity-policy', entry['capacity_policy'],
                           '--format=json']
-    # Inputs are explicit local paths, not proof that a release has been transferred
-    # or sealed. Native CLI validates identity, shared state and capacity before use.
-    return dict(result, kind='nest_update_prepare_inputs', inputs=inputs, commands=commands)
+    # No host observation occurs here. Native CLI still owns reset admission.
+    return dict(result, kind='nest_update_prepare_inputs', inputs=inputs, commands=commands,
+                inputs_sha256=hashlib.sha256(canonical(inputs)).hexdigest())
 
 
 def main():

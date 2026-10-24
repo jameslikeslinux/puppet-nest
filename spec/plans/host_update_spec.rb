@@ -285,8 +285,72 @@ RSpec.describe 'nest::host::update' do
     before :each do
       allow_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
       bound['backup_requirements'] = targets.each_with_object({}) { |name, entries| entries[name] = [] }
+      bound['inputs_sha256'] = 'c' * 64
+      inputs.each do |name, entry|
+        entry['generation_policy'] = { 'hostname' => name, 'release' => bound['release'], 'destination' => '/fixture/root' }
+      end
+      allow_plan('nest::host::stage_generation').always_return('sealed' => true)
       expect_plan('nest::host::reboot').not_be_called
       expect_plan('nest::puppet::run').not_be_called
+    end
+
+    context 'sealed local generation prerequisites' do
+      before :each do
+        allow_task('nest::retain_update_report').always_return('state' => 'prepared')
+      end
+
+      it 'checks every exact seal before reset and repeats each affected check at initiation' do
+        checked = Hash.new(0)
+        inputs.each do |name, entry|
+          verify = { 'targets' => name, 'policy' => entry['generation_policy'], 'verify_only' => true }
+          expect_plan('nest::host::stage_generation').with_params(verify).be_called_times(2).return do |**_options|
+            checked[name] += 1
+            Bolt::PlanResult.new({ 'sealed' => true }, 'success')
+          end
+        end
+        commands.each do |name, argv|
+          expect_command(argv.join(' ')).return do |targets:, command:, **_options|
+            expect(checked.values).to all(be >= 1)
+            expect(checked[name]).to eq(2)
+            values = { 'stdout' => 'report', 'stderr' => '', 'exit_code' => 0 }
+            Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, values, 'command', command, []) })
+          end
+        end
+
+        expect(run_plan('nest::host::update', params).ok?).to be(true)
+      end
+
+      it 'refuses the canary when a later selected generation fails preflight' do
+        verify = { 'targets' => 'update-failed', 'policy' => inputs['update-failed']['generation_policy'], 'verify_only' => true }
+        expect_plan('nest::host::stage_generation').with_params(verify).error_with('kind' => 'fixture/seal', 'msg' => 'Corrupt generation')
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'refuses reset when a seal changes between preflight and initiation' do
+        checks = 0
+        verify = { 'targets' => 'update-good', 'policy' => inputs['update-good']['generation_policy'], 'verify_only' => true }
+        expect_plan('nest::host::stage_generation').with_params(verify).be_called_times(2).return do |**_options|
+          checks += 1
+          (checks == 1) ? Bolt::PlanResult.new({}, 'success') : Bolt::PlanResult.new(Bolt::Error.new('Changed seal', 'fixture/seal'), 'failure')
+        end
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'rechecks exact preparation input identity even when native argv is unchanged' do
+        calls = 0
+        expect_task('nest::update_prepare_inputs').be_called_times(2).return do |targets:, **_options|
+          calls += 1
+          value = (calls == 1) ? bound : bound.merge('inputs_sha256' => 'd' * 64)
+          Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_task(target, JSON.generate(value), '', 0, 'nest::update_prepare_inputs', []) })
+        end
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
     end
 
     context 'existing backup prerequisites' do
