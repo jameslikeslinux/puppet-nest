@@ -63,6 +63,7 @@ stages:
   script:
     - 'python3 spec/tasks/retain_update_report_test.py'
     - 'python3 spec/tasks/update_manager_health_test.py'
+    - 'python3 spec/tasks/update_boot_health_test.py'
     - 'python3 spec/files/nest_update_state_test.py'
     - 'python3 spec/files/nest_release_manifest_test.py'
     - 'python3 spec/files/nest_release_source_contract_test.py'
