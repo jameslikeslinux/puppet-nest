@@ -134,6 +134,53 @@ class RetainUpdateReportTest(unittest.TestCase):
             retained = json.loads(Path(receipt["path"]).read_text())
             self.assertFalse(retained["acceptance_independently_verified"])
 
+    def test_live_status_is_retained_without_independent_acceptance(self):
+        data = fixture()
+        for changed in (False, True):
+            current = data['host']['target'] if changed else data['host']['current']
+            boot = '22345678-1234-1234-1234-123456789abc' if changed else data['host']['boot_id']
+            data['observation'] = {'boot_id': boot, 'boot_changed': changed, 'current': current,
+                                   'next_boot': data['host']['target'], 'expected_target_booted': changed,
+                                   'accepted': False, 'private': 'private sentinel'}
+            result = self.run_task(self.arguments(data))
+            self.assertEqual(result.returncode, 0, result.stdout)
+            receipt = json.loads(result.stdout)
+            self.assertTrue(receipt['observation_retained'])
+            retained = json.loads(Path(receipt['path']).read_bytes())
+            self.assertEqual(retained['observation']['boot_changed'], changed)
+            self.assertEqual(retained['observation']['expected_target_booted'], changed)
+            self.assertFalse(retained['acceptance_independently_verified'])
+            self.assertNotIn('private sentinel', Path(receipt['path']).read_text())
+        self.assertEqual(len(list(self.supervisor.glob('*.json'))), 2)
+
+    def test_bad_live_observations_cannot_publish(self):
+        baseline = {'boot_id': fixture()['host']['boot_id'], 'boot_changed': False,
+                    'current': fixture()['host']['current'], 'next_boot': fixture()['host']['target'],
+                    'expected_target_booted': False, 'accepted': False}
+        for change in ({'boot_changed': True}, {'boot_changed': 0}, {'boot_id': 'private sentinel'},
+                       {'current': 'fixture/crypt/ROOT/unknown'}, {'expected_target_booted': True},
+                       {'expected_target_booted': None}, {'accepted': True}, {'accepted': 0}):
+            data = fixture()
+            data['observation'] = dict(baseline, **change)
+            with self.subTest(change=change):
+                result = self.run_task(self.arguments(data))
+                self.assertEqual(result.returncode, 1)
+                self.assertNotIn('private sentinel', result.stdout + result.stderr)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+
+    def test_pending_observation_without_target_is_not_a_boot_success(self):
+        data = fixture()
+        data.update(state='pending', success=False, target_tree=None, phases=[])
+        data['observation'] = {'boot_id': data['host']['boot_id'], 'boot_changed': False,
+                               'current': data['host']['current'], 'next_boot': data['host']['next_boot'],
+                               'expected_target_booted': None, 'accepted': False}
+        result = self.run_task(self.arguments(data))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        receipt = json.loads(result.stdout)
+        retained = json.loads(Path(receipt['path']).read_bytes())
+        self.assertIsNone(retained['observation']['expected_target_booted'])
+        self.assertFalse(retained['prepared'])
+
     def test_bad_input_error_does_not_repeat_private_payload(self):
         args = self.arguments()
         for raw in ("private sentinel", "{}", "[]", "x" * 262145):

@@ -4,29 +4,46 @@
 # @param $reset Update using reset method
 # @param $reboot Reboot the system after updating
 # @param $run_puppet Run Puppet to complete update (only if rebooted)
-# @param $mode Legacy execution, read-only planning or explicit transaction preparation
-# @param $policy Complete wave policy for plan/prepare modes
+# @param $mode Legacy execution, planning, stored transaction observation or explicit preparation
+# @param $policy Complete wave policy for plan/observe/prepare modes
 # @param $preparation Exact per-host native transaction, root generation and capacity policy paths
-# @param $output_dir Existing canonical supervisor directory for preparation reports
+# @param $observations Exact per-host stored transaction identities for read-only status
+# @param $output_dir Existing canonical supervisor directory for retained reports
 plan nest::host::update (
-  TargetSpec                        $targets,
-  Boolean                           $reset       = true,
-  Boolean                           $reboot      = false,
-  Boolean                           $run_puppet  = true,
-  Enum['legacy', 'plan', 'prepare'] $mode        = 'legacy',
-  Optional[Hash]                    $policy      = undef,
-  Optional[Hash]                    $preparation = undef,
-  Optional[Stdlib::Absolutepath]    $output_dir  = undef,
+  TargetSpec                                   $targets,
+  Boolean                                      $reset        = true,
+  Boolean                                      $reboot       = false,
+  Boolean                                      $run_puppet   = true,
+  Enum['legacy', 'plan', 'observe', 'prepare'] $mode         = 'legacy',
+  Optional[Hash]                               $policy       = undef,
+  Optional[Hash]                               $preparation  = undef,
+  Optional[Hash]                               $observations = undef,
+  Optional[Stdlib::Absolutepath]               $output_dir   = undef,
 ) {
-  if $mode == 'prepare' {
-    if $policy == undef or $preparation == undef or $output_dir == undef or $reboot or !$reset {
-      fail_plan('Preparation requires policy, preparation, output_dir, reset=true and reboot=false', 'nest/update-prepare-inputs')
+  if $mode in ['prepare', 'observe'] {
+    if $policy == undef or $output_dir == undef or $reboot or !$reset {
+      fail_plan('Transaction modes require policy, output_dir, reset=true and reboot=false', 'nest/update-prepare-inputs')
+    }
+    if $mode == 'prepare' {
+      if $preparation == undef or $observations != undef {
+        fail_plan('Prepare mode requires preparation and refuses observation inputs', 'nest/update-prepare-inputs')
+      }
+      $input_task = 'nest::update_prepare_inputs'
+      $inputs = $preparation
+      $result_kind = 'nest_update_preparation'
+    } else {
+      if $observations == undef or $preparation != undef {
+        fail_plan('Observe mode requires observations and refuses preparation inputs', 'nest/update-observe-inputs')
+      }
+      $input_task = 'nest::update_observe_inputs'
+      $inputs = $observations
+      $result_kind = 'nest_update_observation'
     }
     $nodes = get_targets($targets)
-    $bound = run_task('nest::update_prepare_inputs', 'localhost', {
+    $bound = run_task($input_task, 'localhost', {
       'policy'  => $policy,
       'targets' => $nodes.map |$node| { $node.name },
-      'inputs'  => $preparation,
+      'inputs'  => $inputs,
     }).results[0].value
     # Check ALL supervisor destinations before the first native reset. This is
     # read-only validation, not a promise of future disk space or writeability.
@@ -44,7 +61,7 @@ plan nest::host::update (
       # next wave starts. A failure never starts the next wave or a reboot.
       parallelize($wave) |$name| {
         $node = $nodes.filter |$candidate| { $candidate.name == $name }[0]
-        $native = run_command($bound['commands'][$name].shellquote, $node, 'Prepare exact native update transaction once', {
+        $native = run_command($bound['commands'][$name].shellquote, $node, 'Run exact native transaction command', {
           '_run_as'       => 'root',
           '_catch_errors' => true,
         })
@@ -58,14 +75,17 @@ plan nest::host::update (
           'hostname'    => $name,
           'output_dir'  => $output_dir,
         }).results[0].value
-        if !$native.ok or $receipt['state'] != 'prepared' {
+        if $mode == 'prepare' and (!$native.ok or $receipt['state'] != 'prepared') {
           fail_plan('Preparation failed or did not produce a prepared receipt; inspect retained state, never replay automatically', 'nest/update-prepare-failed')
+        }
+        if $mode == 'observe' and (!$native.ok or $receipt['observation_retained'] != true) {
+          fail_plan('Native status did not produce a retained live observation', 'nest/update-observe-failed')
         }
         $receipt
       }
     }
     return({
-      'kind'                => 'nest_update_preparation',
+      'kind'                => $result_kind,
       'schema'              => 1,
       'policy_sha256'       => $bound['policy_sha256'],
       'waves'               => $waves,
@@ -73,8 +93,8 @@ plan nest::host::update (
       'acceptance_recorded' => false,
     })
   }
-  if $preparation != undef or $output_dir != undef {
-    fail_plan('Preparation inputs are supported only in explicit prepare mode', 'nest/update-prepare-inputs')
+  if $preparation != undef or $observations != undef or $output_dir != undef {
+    fail_plan('Transaction inputs require their explicit prepare or observe mode', 'nest/update-prepare-inputs')
   }
   if $mode == 'plan' {
     if $policy == undef or $reboot or !$reset {
