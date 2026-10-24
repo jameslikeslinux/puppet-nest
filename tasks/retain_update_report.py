@@ -111,7 +111,7 @@ def project(raw, transaction, release, hostname):
                 "missing target root identity")
         require(all(row["dataset"] == host_result["target"] or row["dataset"].startswith(host_result["target"] + "/")
                     for row in target_tree), "unrelated target tree member")
-    return {
+    result = {
         "schema": 1, "kind": "nest_update_retained_report", "cli_schema": data["schema"],
         "id": transaction, "release": release, "state": state, "host": host_result,
         "host_identity_sha256": token(data["host_identity_sha256"], DIGEST),
@@ -128,6 +128,27 @@ def project(raw, transaction, release, hostname):
         "acceptance_independently_verified": False,
         "transport_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
     }
+    if "observation" in data:
+        observed = data["observation"]
+        require(isinstance(observed, dict), "invalid observation")
+        boot_id = token(observed["boot_id"], r"[0-9a-f-]{36}")
+        current = token(observed["current"], r"[A-Za-z0-9_.:/-]{1,255}")
+        next_boot = token(observed["next_boot"], r"[A-Za-z0-9_.:/-]{1,255}")
+        require(type(observed["boot_changed"]) is bool and
+                observed["boot_changed"] == (boot_id != host_result["boot_id"]), "inconsistent boot observation")
+        expected = observed["expected_target_booted"]
+        require(type(expected) is bool or expected is None, "invalid target observation")
+        require(current in (host_result["current"], host_result["target"]), "unknown observed current")
+        require(expected == (current == host_result["target"]) if target_tree is not None else expected is None,
+                "inconsistent target observation")
+        require(type(observed["accepted"]) is bool and (not observed["accepted"] or lifecycle),
+                "invalid observed acceptance")
+        result["observation"] = {
+            "boot_id": boot_id, "boot_changed": observed["boot_changed"],
+            "current": current, "next_boot": next_boot,
+            "expected_target_booted": expected, "cli_accepted_current_boot": observed["accepted"],
+        }
+    return result
 
 
 def output_directory(directory):
@@ -177,7 +198,8 @@ def publish(report, directory):
     receipt = publish_document(report, directory, report["host"]["hostname"] + "-" + report["id"])
     return dict(receipt, id=report["id"], release=report["release"], hostname=report["host"]["hostname"],
                 phase_count=len(report["phases"]), state=report["state"],
-                cli_accepted=report["cli_accepted"], cli_finalized=report["cli_finalized"])
+                cli_accepted=report["cli_accepted"], cli_finalized=report["cli_finalized"],
+                observation_retained="observation" in report)
 
 
 def main():

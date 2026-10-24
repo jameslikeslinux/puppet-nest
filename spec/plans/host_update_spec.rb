@@ -95,6 +95,73 @@ RSpec.describe 'nest::host::update' do
     expect(run_plan('nest::host::update', 'targets' => targets, 'mode' => 'plan', 'policy' => {}).ok?).to be(false)
   end
 
+  context 'read-only native observation' do
+    let(:inputs) { { 'update-good' => { 'transaction' => 'good' }, 'update-failed' => { 'transaction' => 'failed' } } }
+    let(:bound) do
+      { 'release' => "sha256:#{'a' * 64}", 'policy_sha256' => 'b' * 64, 'inputs' => inputs,
+        'commands' => { 'update-good' => ['nest', 'reset', 'status', 'good', '--format=json'], 'update-failed' => ['nest', 'reset', 'status', 'failed', '--format=json'] },
+        'waves' => [['update-good'], ['update-failed']] }
+    end
+    let(:params) { { 'targets' => targets, 'mode' => 'observe', 'policy' => {}, 'observations' => inputs, 'output_dir' => '/fixture' } }
+
+    before :each do
+      expect_task('nest::update_observe_inputs').with_targets('localhost').always_return(bound)
+      expect_task('nest::update_prepare_inputs').not_be_called
+      expect_plan('nest::host::reboot').not_be_called
+      expect_plan('nest::puppet::run').not_be_called
+      expect_command('nest reset').not_be_called
+    end
+
+    def expect_observation_preflight
+      { 'update-good' => 'good', 'update-failed' => 'failed' }.each do |host, id|
+        expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => id, 'release' => bound['release'], 'hostname' => host, 'output_dir' => '/fixture')
+      end
+    end
+
+    it 'retains observed stopped and prepared states without mutation or reboot eligibility' do
+      expect_observation_preflight
+      { 'update-good' => 'good', 'update-failed' => 'failed' }.each do |host, id|
+        expect_command("nest reset status #{id} --format=json").with_targets(host).always_return('stdout' => "#{id} status")
+        retain_params = { 'report' => "#{id} status", 'transaction' => id, 'release' => bound['release'], 'hostname' => host, 'output_dir' => '/fixture' }
+        expect_task('nest::retain_update_report').with_params(retain_params).always_return('state' => 'stopped', 'observation_retained' => true)
+      end
+
+      result = run_plan('nest::host::update', params)
+
+      expect(result.ok?).to be(true)
+      expect(result.value['kind']).to eq('nest_update_observation')
+      expect(result.value['reboot_eligible']).to eq([])
+      expect(result.value['acceptance_recorded']).to be(false)
+    end
+
+    it 'refuses a historical export lacking live observation without continuing' do
+      expect_observation_preflight
+      expect_command('nest reset status good --format=json').always_return('stdout' => 'historical report')
+      retain_params = { 'report' => 'historical report', 'transaction' => 'good', 'release' => bound['release'], 'hostname' => 'update-good', 'output_dir' => '/fixture' }
+      expect_task('nest::retain_update_report').with_params(retain_params).always_return('state' => 'prepared', 'observation_retained' => false)
+      expect_command('nest reset status failed --format=json').not_be_called
+
+      expect(run_plan('nest::host::update', params).ok?).to be(false)
+    end
+  end
+
+  [
+    { 'mode' => 'observe', 'policy' => {}, 'output_dir' => '/fixture' },
+    { 'mode' => 'observe', 'policy' => {}, 'observations' => {}, 'preparation' => {}, 'output_dir' => '/fixture' },
+    { 'mode' => 'observe', 'policy' => {}, 'observations' => {}, 'output_dir' => '/fixture', 'reboot' => true },
+    { 'mode' => 'plan', 'policy' => {}, 'observations' => {} },
+    { 'observations' => {} },
+  ].each do |options|
+    it "refuses incompatible observation options #{options} before host action" do
+      expect_task('nest::update_observe_inputs').not_be_called
+      expect_task('nest::update_prepare_inputs').not_be_called
+      expect_command('nest reset').not_be_called
+      expect_plan('nest::host::reboot').not_be_called
+
+      expect(run_plan('nest::host::update', options.merge('targets' => targets)).ok?).to be(false)
+    end
+  end
+
   context 'explicit native preparation' do
     let(:inputs) { { 'update-good' => { 'transaction' => 'good' }, 'update-failed' => { 'transaction' => 'failed' } } }
     let(:commands) { { 'update-good' => ['nest', 'reset', '--transaction', 'good'], 'update-failed' => ['nest', 'reset', '--transaction', 'failed'] } }

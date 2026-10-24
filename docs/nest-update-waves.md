@@ -112,6 +112,46 @@ Rollback stops supplying `mode=plan` and `policy`; it preserves all existing
 reports and transactions. It does not authorize falling back to unbound legacy
 reset, replacing a prepared release or replaying an ambiguous phase.
 
+## Read-only stored transaction observation
+
+`mode=observe` contacts the exact inventory hosts using ordinary Bolt root
+escalation and runs only `nest reset status ID --format=json`. Unlike `mode=plan`,
+this mode reads live host/ZFS identities; unlike `mode=prepare`, it cannot create,
+resume or repair a transaction. Use it after an ambiguous prepare result or
+reboot disconnect rather than replaying either operation. The installed CLI
+must support the native status interface. Missing state, identity disagreement,
+transport failure or malformed output refuses without fallback.
+
+Supply the same complete `policy`, `targets`, an existing canonical supervisor
+`output_dir`, and `observations`: a map keyed by every exact inventory hostname.
+Each entry has exactly `transaction`, using the native ID grammar below. No
+generation/capacity paths or preparation options belong in this read-only input.
+`preparation`, `reboot=true` and `reset=false` refuse in observation mode. Observation
+inputs supplied to any other mode also refuse. All inputs and supervisor
+destinations validate before the first status command. The existing bounded
+failure-domain waves are retained, with no new host service or controller.
+
+The result is `nest_update_observation`, schema 1, with `policy_sha256` and waves
+of durable sanitized report receipts. Each successful receipt has
+`observation_retained=true`. The retained document adds `observation` with live
+boot ID, `boot_changed`, current/next BE, `expected_target_booted` and
+`cli_accepted_current_boot`. Unknown target identity remains null when no target
+tree was recorded; it is not a successful boot. The CLI rechecks current/target
+GUIDs and host/shared-state binding, but this is a point-in-time native
+observation, not a lease or permission to reboot. The release expectation is
+checked against the stored report; it is not independent served-release proof.
+
+A valid pending/stopped transaction is retained and returned as observed, not
+misrepresented as a preparation failure of this read-only command. Exported
+historical reports lacking live observations cannot satisfy observation mode.
+Observed boot IDs must agree with the changed flag and expected current/target
+relationship. Unknown/private fields are discarded. Every content-addressed
+observation is fsynced and reopened without replacing prior phase reports.
+Transport/validation/publication failure stops later waves; it never triggers
+reset, resume, reboot, Puppet, acceptance or finalize. Reboot eligibility remains
+empty and independent acceptance remains false, even when the native CLI has an
+accepted record. No live transaction is fabricated to test the interface.
+
 ## Explicit transactional preparation
 
 `mode=prepare` is MUTATING, unlike `mode=plan`. Use only within an independently
