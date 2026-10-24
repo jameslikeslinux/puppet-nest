@@ -32,7 +32,7 @@ plan nest::kubernetes::init (
     }
   }
   $excluded_vip_nodes = $nodes - $vip_nodes
-  if !$excluded_vip_nodes.empty and ($vip_maintenance == undef or
+  if (!$excluded_vip_nodes.empty or !$etcd_servers.empty) and ($vip_maintenance == undef or
     $vip_maintenance.keys.sort != ['advertisers', 'ceph_fsid', 'client', 'physical_domains']) {
     fail_plan('Excluded VIP withdrawal requires reviewed maintenance inputs before cluster initialization', 'nest/maintenance-scope')
   }
@@ -89,15 +89,6 @@ plan nest::kubernetes::init (
     _run_as => 'root',
   })
 
-  if !$etcd_servers.empty {
-    $nodes.each |$node| {
-      run_plan('nest::kubernetes::reconcile_control_plane', {
-        targets      => $node,
-        etcd_servers => $etcd_servers,
-      })
-    }
-  }
-
   run_plan('nest::kubernetes::generate_kube_vip_manifest', {
     targets => $join_nodes,
     vip     => $vip,
@@ -117,6 +108,18 @@ plan nest::kubernetes::init (
   run_command($wait_vip_pods_command.shellquote, $init_node, 'Require intended kube-vip mirror Pods before withdrawal', {
     _run_as => 'root',
   })
+  # A survivor-qualified reconciliation cannot precede creation/readiness of
+  # the joining advertisers. Preserve local-etcd bootstrap until they exist.
+  if !$etcd_servers.empty {
+    $nodes.each |$node| {
+      $survivor_node = ($vip_nodes - $node)[0]
+      run_plan('nest::kubernetes::reconcile_control_plane', {
+        targets      => $node,
+        etcd_servers => $etcd_servers,
+        maintenance  => $vip_maintenance + { 'survivor' => $survivor_node.name },
+      })
+    }
+  }
   $vip_nodes.each |$node| {
     $observer = ($nodes - $node)[0]
     $route_command = [

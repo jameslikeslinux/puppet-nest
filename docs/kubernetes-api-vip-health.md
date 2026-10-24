@@ -292,6 +292,14 @@ forwards that same parameter before its first step. Fresh bootstrap still needs
 an independently configured external client with the correct cluster CA and
 route. Do not bootstrap or rebuild a cluster to exercise the guard.
 
+Bootstrap creates and waits for joining VIP advertisers before serial final API
+reconciliation, selecting a different member from the intended advertiser set
+and forwarding the same reviewed maintenance input. It must not try to certify
+a survivor whose manifest has not yet been generated. `upgrade_node` requires
+the exact per-controller `maintenance` map before repository synchronization or
+package installation and forwards each entry to reconciliation. Its worker-only
+path remains unchanged; no implicit supervisor or root-SSH repair is added.
+
 Successful output contains the exact target, API observation, sanitized storage
 identities and warning names. `reboot_eligible=[]` and
 `acceptance_recorded=false` remain mandatory. This is not a prepared-transaction

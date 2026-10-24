@@ -1,11 +1,13 @@
 # Upgrade Kubernetes and kubelet
 #
 # @param targets Nodes to upgrade
+# @param maintenance Exact per-controller survivor, client, physical and storage admission inputs
 plan nest::kubernetes::upgrade_node (
-  TargetSpec    $targets,
-  Array[String] $etcd_servers     = [],
-  Boolean       $sync             = true,
-  Boolean       $upgrade_kubelet  = true,
+  TargetSpec     $targets,
+  Array[String]  $etcd_servers     = [],
+  Boolean        $sync             = true,
+  Boolean        $upgrade_kubelet  = true,
+  Optional[Hash] $maintenance      = undef,
 ) {
   $nodes = get_targets($targets)
   $control_plane_nodes = $nodes.filter |$target| {
@@ -16,6 +18,20 @@ plan nest::kubernetes::upgrade_node (
   if !$control_plane_nodes.empty and $etcd_servers.empty {
     $control_plane_names = $control_plane_nodes.map |$target| { $target.name }
     fail("Control-plane upgrade for ${control_plane_names.join(', ')} requires explicit final etcd_servers for strict reconciliation")
+  }
+  $controllers = $control_plane_nodes.map |$target| { $target.name }
+  if !$controllers.empty {
+    if $maintenance == undef or $maintenance.keys.sort != $controllers.sort or
+      !$maintenance.values.all |$entry| {
+        $entry =~ Hash and $entry.keys.sort == ['advertisers', 'ceph_fsid', 'client', 'physical_domains', 'survivor']
+      } {
+      fail_plan('Controller upgrades require exact per-controller maintenance inputs before synchronization or installation', 'nest/maintenance-scope')
+    }
+    $controllers.each |$name| {
+      run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
+    }
+  } elsif $maintenance != undef {
+    fail_plan('Maintenance inputs require a classified controller', 'nest/maintenance-scope')
   }
 
   if $sync {
@@ -37,6 +53,7 @@ plan nest::kubernetes::upgrade_node (
         targets            => $target,
         etcd_servers       => $etcd_servers,
         upgrade_components => true,
+        maintenance        => $maintenance[$target.name],
       })
       run_command('kubeadm upgrade node --ignore-preflight-errors=SystemVerification --patches=/etc/kubernetes/patches --skip-phases=control-plane', $target, {
         _run_as => 'root',
