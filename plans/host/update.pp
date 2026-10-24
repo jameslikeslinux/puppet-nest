@@ -92,6 +92,20 @@ plan nest::host::update (
         if $mode == 'prepare' and $name in $controllers {
           run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
         }
+        if $mode == 'prepare' {
+          # Initial admission is not a lease. Maintenance, destination checks
+          # and earlier waves may outlast the exact preparation window. Recheck
+          # on the supervisor immediately before EACH host command, not only
+          # once per wave. Never interrupt or replay an already started reset.
+          $admitted = run_task('nest::update_prepare_inputs', 'localhost', {
+            'policy'  => $policy,
+            'targets' => $nodes.map |$candidate| { $candidate.name },
+            'inputs'  => $inputs,
+          }).results[0].value
+          if $admitted['policy_sha256'] != $bound['policy_sha256'] or $admitted['commands'][$name] != $bound['commands'][$name] {
+            fail_plan('Preparation policy changed during admission; no new host command started', 'nest/update-prepare-inputs')
+          }
+        }
         $native = run_command($bound['commands'][$name].shellquote, $node, 'Run exact native transaction command', {
           '_run_as'       => 'root',
           '_catch_errors' => true,

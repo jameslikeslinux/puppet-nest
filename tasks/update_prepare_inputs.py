@@ -2,15 +2,23 @@
 """Bind native preparation commands to the complete wave scope; never execute."""
 
 import json
+from datetime import datetime, timezone
 import sys
 from typing import Any
 
 sys.dont_write_bytecode = True
-from update_wave_plan import LIMIT, canonical, fields, plan, require, token, unique_object
+from update_wave_plan import LIMIT, canonical, fields, plan, preparation_window, require, token, unique_object
+
+
+def current_time():
+    return datetime.now(timezone.utc)
 
 
 def prepare(policy: Any, targets: Any, inputs: Any):
     result = plan(policy, targets)
+    require(policy['schema'] == 2)
+    start, end = preparation_window(policy['preparation_window'])
+    require(start <= current_time() < end)
     require(type(inputs) is dict and set(inputs) == {host['name'] for host in policy['hosts']})
     commands = {}
     for name, entry in inputs.items():

@@ -283,9 +283,40 @@ RSpec.describe 'nest::host::update' do
     end
 
     before :each do
-      expect_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
+      allow_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
       expect_plan('nest::host::reboot').not_be_called
       expect_plan('nest::puppet::run').not_be_called
+    end
+
+    it 'rechecks admission after destination preflight and stops before the next host when its window expires' do
+      admissions = 0
+      expect_task('nest::update_prepare_inputs').with_targets('localhost').be_called_times(3).return do |targets:, **_options|
+        admissions += 1
+        if admissions < 3
+          value = bound
+          status = 0
+        else
+          value = { '_error' => { 'kind' => 'nest/update-prepare-inputs', 'msg' => 'Expired window' } }
+          status = 1
+        end
+        Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_task(target, JSON.generate(value), '', status, 'nest::update_prepare_inputs', []) })
+      end
+      ['good', 'failed'].each do |id|
+        host = (id == 'good') ? 'update-good' : 'update-failed'
+        expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => id, 'release' => bound['release'], 'hostname' => host, 'output_dir' => '/fixture')
+      end
+      expect_command('nest reset --transaction good').return do |targets:, command:, **_options|
+        expect(admissions).to eq(2)
+        Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, { 'stdout' => 'good report', 'stderr' => '', 'exit_code' => 0 }, 'command', command, []) })
+      end
+      retain = { 'report' => 'good report', 'transaction' => 'good', 'release' => bound['release'], 'hostname' => 'update-good', 'output_dir' => '/fixture' }
+      expect_task('nest::retain_update_report').with_params(retain).always_return('state' => 'prepared')
+      expect_command('nest reset --transaction failed').not_be_called
+
+      result = run_plan('nest::host::update', params)
+
+      expect(result.ok?).to be(false)
+      expect(admissions).to eq(3)
     end
 
     it 'preflights every destination and retains each successful native transaction without reboot eligibility' do

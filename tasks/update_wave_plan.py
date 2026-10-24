@@ -2,6 +2,7 @@
 """Plan exact inventory-backed update waves; never execute or authorize them."""
 
 import hashlib
+from datetime import datetime, timedelta, timezone
 import json
 import re
 import sys
@@ -48,9 +49,24 @@ def unique_object(pairs):
     return result
 
 
+def preparation_window(value):
+    fields(value, 'not_before not_after')
+    times = []
+    for key in ('not_before', 'not_after'):
+        text = token(value[key], r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+        times.append(datetime.strptime(text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc))
+    require(timedelta(0) < times[1] - times[0] <= timedelta(days=1))
+    return times
+
+
 def plan(policy: Any, targets: Any):
-    fields(policy, "schema kind release config_source max_parallel domains hosts excluded canaries")
-    require(type(policy["schema"]) is int and policy["schema"] == 1)
+    require(type(policy) is dict and type(policy.get('schema')) is int and policy['schema'] in (1, 2))
+    extra = ' preparation_window' if policy['schema'] == 2 else ''
+    fields(policy, 'schema kind release config_source max_parallel domains hosts excluded canaries' + extra)
+    if policy['schema'] == 2:
+        # Structural validation only: future/expired policies remain inspectable.
+        # A window is a bound on initiation, not proof of owner authorization.
+        preparation_window(policy['preparation_window'])
     require(policy["kind"] == "nest_update_wave_policy")
     token(policy["release"], DIGEST)
     token(policy["config_source"], SHA)
@@ -99,7 +115,7 @@ def plan(policy: Any, targets: Any):
         require(wave)
         waves.append(wave)
         remaining = [name for name in remaining if name not in wave]
-    return {
+    result = {
         "schema": 1, "kind": "nest_update_wave_plan", "result": "pass",
         "release": policy["release"], "config_source": policy["config_source"],
         "policy_sha256": hashlib.sha256(canonical(policy)).hexdigest(),
@@ -109,6 +125,9 @@ def plan(policy: Any, targets: Any):
         "preparation_observed": False, "reboot_eligible": [],
         "execution_authorized": False, "acceptance_recorded": False,
     }
+    if policy['schema'] == 2:
+        result.update(policy_schema=2, preparation_window=policy['preparation_window'])
+    return result
 
 
 def main():
