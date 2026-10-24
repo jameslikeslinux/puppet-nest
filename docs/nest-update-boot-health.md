@@ -122,9 +122,78 @@ binding even when each individual observation passed. This conservative result
 is not permission to reset/reboot or to keep retrying until a green sample.
 Acquisition is not an atomic snapshot, and state can change after it returns.
 
-This integration is not `nest reset accept` evidence. It does not collect
-network/DNS/trust, main catalog apply/convergence, service/hardware/physical UX,
+This integration is not `nest reset accept` evidence. Without explicit endpoint
+policy it does not collect network/name-resolution/trust. It never collects
+main catalog apply/convergence, service/hardware/physical UX,
 transaction/shared-state continuity or policy-owned historical dispositions.
 The remaining lifecycle collector must bind those gates to real preparation
 and release receipts and retain the resulting report before acceptance.
 Rollback stops calling the composed plan; no host state was changed.
+
+## Bounded client network and trust observation
+
+`nest::host::update_network_health` takes one `target` and an `endpoints` array
+of one to four reviewed nonsecret HTTPS endpoints. Each endpoint has exactly:
+
+- `hostname`: a lowercase dotted DNS name, without a port or IP literal.
+- `addresses`: one to eight unique canonical unicast IP addresses. The complete
+  system-resolved address set must match, not merely contain one expected IP.
+- `path`: an absolute path without query, fragment, credentials or `..` segments.
+- `status`: the exact expected successful HTTP status, from 200 through 299.
+
+Use real release/service policy, not these documentation example identities:
+
+```json
+{
+  "target": "fixture-host",
+  "endpoints": [{
+    "hostname": "service.example",
+    "addresses": ["192.0.2.1"],
+    "path": "/readyz",
+    "status": 200
+  }]
+}
+```
+
+```sh
+bolt plan run nest::host::update_network_health --params @network-observation.json
+```
+
+The task runs without root escalation. It observes `getent ahosts` and the
+client kernel's `ip -json route get` for every resolved destination, then sends
+one HTTPS GET using ordinary system trust and hostname verification. Curl user
+configuration and proxy/custom-CA environment are not inherited. Redirects,
+credentials, arbitrary curl options and trust bypasses are not supported. The
+actual remote IP must belong to the exact reviewed/resolved set. Resolution
+and route observations are reacquired afterward; changed observations refuse.
+The host and boot ID must remain stable throughout collection.
+
+Output is schema 1, kind `nest_update_network_health`, with bound hostname and
+boot ID, individual endpoint outcomes and `acceptance_recorded: false`. Failed
+HTTP status remains an available failed observation. Missing tools, failed TLS,
+DNS/NSS failures, malformed output, incomplete or changed routes/resolution and
+timeouts remain unavailable/failed; empty inventories never pass. Error output
+contains fixed reason codes, not response bodies, command stderr or exceptions.
+No network configuration, host trust, unit state or update receipt is changed.
+
+Commands share a thirty-second budget with at most six seconds per command;
+curl additionally has a three-second connect and five-second request limit.
+Loopback, unspecified, multicast and link-local addresses, including link-local
+gateways, are unsupported and refuse. These constraints are explicit, not an
+IPv6 fallback or an assertion that a refused network is broken. System lookup
+uses the host's NSS policy, so it is not proof that a particular DNS server
+answered or that the resolver has no hosts-file/cache entry. Route acquisition
+and HTTPS are not an atomic network snapshot. The check proves only these
+bounded client paths/statuses and system TLS trust, not service semantics,
+mutual TLS, SSH recovery, Puppet environment identity, quorum or storage health.
+
+The composed `nest::host::update_health` also accepts `endpoints`, defaulting to
+an empty array for compatibility. Nonempty policy collects network observations
+after managers and before the final boot observation. Network schema, kind,
+hostname, boot and acceptance flags must bind to that same boot bracket; a
+failed network component fails the composite. Without policy it makes no network
+requests and returns `network: null`, `network_requested: false`. A passing
+legacy partial composite does not imply network coverage or full acceptance.
+With policy the complete network observation is retained under `network` and
+`network_requested` is true. This is still not lifecycle acceptance evidence.
+Rollback omits the endpoint policy or stops calling the new read-only plan.

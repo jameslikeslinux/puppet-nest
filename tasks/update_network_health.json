@@ -1,0 +1,11 @@
+{
+  "description": "Observe bounded client routes, exact system name resolution and ordinary HTTPS system trust without accepting or changing an update",
+  "input_method": "stdin",
+  "supports_noop": true,
+  "parameters": {
+    "endpoints": {
+      "description": "One to four reviewed nonsecret HTTPS endpoints with exact hostname, addresses, path and successful status. No implicit defaults, credentials, redirects or trust bypass.",
+      "type": "Array[Hash]"
+    }
+  }
+}
