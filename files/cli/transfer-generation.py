@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""Transfer a versioned mounted publication into an empty host-local ZFS generation."""
+
+import argparse
+import fcntl
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import socket
+import stat
+import subprocess
+import sys
+import tempfile
+from typing import Any
+
+sys.dont_write_bytecode = True
+SPEC = importlib.util.spec_from_file_location('stage3_root', Path(__file__).with_name('check-stage3-root.py'))
+assert SPEC is not None and SPEC.loader is not None
+ROOT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(ROOT)
+require = ROOT.require
+STATE = Path('/var/lib/nest/updates')
+ENV = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LC_ALL': 'C'}
+
+
+def unique(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result)
+        result[key] = value
+    return result
+
+
+def policy(raw):
+    require(len(raw.encode('utf-8')) <= 16384)
+    value: Any = json.loads(raw, object_pairs_hook=unique)
+    names = {'schema', 'kind', 'source', 'build_release', 'release', 'content_digest', 'hostname',
+             'host_identity_sha256', 'pool_guid', 'destination', 'destination_guid',
+             'write_budget_bytes', 'physical_reserve_bytes'}
+    require(type(value) is dict and set(value) == names)
+    require(type(value['schema']) is int and value['schema'] == 1 and value['kind'] == 'nest_generation_transfer')
+    patterns = {'hostname': r'[a-z0-9][a-z0-9-]{0,62}', 'build_release': ROOT.TOKEN,
+                'release': ROOT.DIGEST, 'content_digest': ROOT.DIGEST,
+                'host_identity_sha256': r'[0-9a-f]{64}', 'pool_guid': ROOT.GUID, 'destination_guid': ROOT.GUID}
+    for key, pattern in patterns.items():
+        require(type(value[key]) is str and re.fullmatch(pattern, value[key]) is not None)
+    require(value['source'] == '/nest/releases/' + value['build_release'] + '/hosts/' + value['hostname'])
+    destination: Any = value['destination']
+    require(type(destination) is str and re.fullmatch(r'/[A-Za-z0-9_./-]{1,254}', destination) is not None)
+    require(not any(part in ('', '.', '..') for part in destination.split('/')[1:]))
+    require(destination == '/var/lib/nest/generations/' + value['release'].split(':')[1])
+    for key in ('write_budget_bytes', 'physical_reserve_bytes'):
+        require(type(value[key]) is int and 0 <= value[key] <= 2 ** 63 - 1)
+    require(value['write_budget_bytes'] > 0)
+    return value
+
+
+def command(args, timeout=60):
+    # Captured stderr and all content/file identities stay private on failure.
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=True, env=ENV).stdout.strip()
+
+
+def property_value(dataset, name):
+    return command(['zfs', 'get', '-Hp', '-o', 'value', name, dataset])
+
+
+def mounts():
+    rows = json.loads(command(['findmnt', '--json', '--list', '--all', '-o', 'SOURCE,TARGET,FSTYPE,OPTIONS']))['filesystems']
+    require(type(rows) is list and all(type(row) is dict and
+            all(type(row.get(key)) is str for key in ('source', 'target', 'fstype', 'options')) for row in rows))
+    return rows
+
+
+def exact(path, inventory, writable):
+    rows = [row for row in inventory if row['target'] == str(path)]
+    require(len(rows) == 1 and rows[0]['fstype'] == 'zfs')
+    row = rows[0]
+    require(('rw' if writable else 'ro') in row['options'].split(','))
+    require(not any(Path(row['target']) != path and path in Path(row['target']).parents for row in inventory))
+    dataset = row['source']
+    require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]*(?:/[A-Za-z0-9_.:-]+)*', dataset) is not None)
+    require(property_value(dataset, 'mountpoint') == str(path))
+    require(property_value(dataset, 'readonly') == ('off' if writable else 'on'))
+    require(command(['zfs', 'list', '-H', '-t', 'filesystem,volume', '-r', '-o', 'name', dataset]).splitlines() == [dataset])
+    return dataset
+
+
+def source_mount(path, inventory):
+    # A pre-existing read-only NFS publication export is supported. No network
+    # mount, remote shell, mutable host alias or source-side write is performed.
+    candidates = [row for row in inventory if Path(row['target']) == path or Path(row['target']) in path.parents]
+    require(candidates)
+    length = max(len(row['target']) for row in candidates)
+    selected = [row for row in candidates if len(row['target']) == length]
+    require(len(selected) == 1 and selected[0]['fstype'] in ('nfs', 'nfs4', 'zfs'))
+    require('ro' in selected[0]['options'].split(','))
+    require(not any(path in Path(row['target']).parents for row in inventory))
+    return selected[0]
+
+
+def identity(value, writable):
+    require(os.geteuid() == 0 and socket.gethostname() == value['hostname'])
+    machine = Path('/etc/machine-id').read_text().strip()
+    require(re.fullmatch(r'[0-9a-f]{32}', machine) is not None)
+    require(hashlib.sha256(machine.encode('ascii')).hexdigest() == value['host_identity_sha256'])
+    source, destination = Path(value['source']), Path(value['destination'])
+    for path in (source, destination, STATE):
+        ROOT.safe_ancestors(path)
+    for first, second in ((source, destination), (source, STATE), (destination, STATE)):
+        require(first != second and first not in second.parents and second not in first.parents)
+    require(stat.S_IMODE(STATE.stat().st_mode) == 0o700)
+    inventory: Any = mounts()
+    root: Any = [row for row in inventory if row['target'] == '/']
+    require(len(root) == 1 and root[0]['fstype'] == 'zfs')
+    require(re.fullmatch(r'[^/]+(?:/[^/]+)*/ROOT/[AB]', root[0]['source']) is not None)
+    pool = root[0]['source'].split('/')[0]
+    require(command(['zpool', 'get', '-Hp', '-o', 'value', 'guid', pool]) == value['pool_guid'])
+    require(property_value(pool, 'org.nest:host-id') == machine)
+    state = exact(STATE, inventory, True)
+    target = exact(destination, inventory, writable)
+    require(state.split('/')[0] == target.split('/')[0] == pool)
+    require('ROOT' not in state.split('/') and 'ROOT' not in target.split('/'))
+    require(state != target and not state.startswith(target + '/') and not target.startswith(state + '/'))
+    require(property_value(target, 'guid') == value['destination_guid'])
+    require(property_value(target, 'origin') == '-')
+    require(command(['zfs', 'list', '-H', '-t', 'snapshot', '-r', '-o', 'name', target]) == '')
+    for name, expected in {'exec': 'off', 'setuid': 'off', 'devices': 'off', 'canmount': 'on'}.items():
+        require(property_value(target, name) == expected)
+    txg = property_value(target, 'createtxg')
+    require(re.fullmatch(ROOT.GUID, txg) is not None)
+    expected = {'org.nest:host': value['hostname'], 'org.nest:release': value['release'],
+                'org.nest:build-release': value['build_release'], 'org.nest:content-digest': value['content_digest']}
+    for name, content in expected.items():
+        require(property_value(target, name) == ('-' if writable else content))
+    state_guid = property_value(state, 'guid')
+    require(re.fullmatch(ROOT.GUID, state_guid) is not None)
+    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    require(re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot) is not None)
+    return {'dataset': target, 'creation_txg': txg, 'state_dataset': state, 'current': root[0]['source'],
+            'boot_id': boot, 'state_guid': state_guid, 'source_mount': source_mount(source, inventory)}
+
+
+def admission(value, observed):
+    target = observed['dataset']
+    available = property_value(target, 'available')
+    free = command(['zpool', 'get', '-Hp', '-o', 'value', 'free', target.split('/')[0]])
+    require(available.isdecimal() and free.isdecimal())
+    output = command(['du', '--apparent-size', '--block-size=1', '--summarize', '--one-file-system', '--', value['source']], 3600)
+    apparent, path = output.split('\t')
+    require(apparent.isdecimal() and path == value['source'])
+    require(value['write_budget_bytes'] >= int(apparent))
+    require(int(available) >= value['write_budget_bytes'])
+    require(int(free) >= value['write_budget_bytes'] + value['physical_reserve_bytes'])
+    return {'apparent_bytes': int(apparent), 'available_bytes': int(available), 'physical_free_bytes': int(free)}
+
+
+def fsync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def retain(path, row):
+    raw = ROOT.canonical(row)
+    descriptor, temporary = tempfile.mkstemp(prefix='.generation-', dir=path.parent)
+    try:
+        with os.fdopen(descriptor, 'wb') as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        # Atomic no-clobber publication. Never replace a previous generation's
+        # reservation/receipt, including one from an interrupted invocation.
+        os.link(temporary, path, follow_symlinks=False)
+        os.unlink(temporary)
+        fsync_directory(path.parent)
+        info = path.lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == 0 and info.st_nlink == 1
+                and stat.S_IMODE(info.st_mode) == 0o600 and path.read_bytes() == raw)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def contained_paths(root):
+    for relative in ('var/db/pkg', 'usr/src/linux', 'lib/modules'):
+        resolved = (root / relative).resolve(strict=True)
+        require(root in resolved.parents and resolved.is_dir())
+
+
+def transfer(value, check=False):
+    observed = identity(value, True)
+    destination = Path(value['destination'])
+    require(not os.listdir(destination))
+    started = STATE / ('generation-' + value['destination_guid'] + '.started')
+    completed = STATE / ('generation-' + value['destination_guid'] + '.complete')
+    require(not started.exists() and not started.is_symlink() and not completed.exists() and not completed.is_symlink())
+    capacity = admission(value, observed)
+    contained_paths(Path(value['source']))
+    require(ROOT.content_digest(Path(value['source'])) == value['content_digest'])
+    require(identity(value, True) == observed)
+    binding = {'schema': 1, 'kind': 'nest_generation_transfer_report', 'policy': value,
+               'policy_sha256': hashlib.sha256(ROOT.canonical(value)).hexdigest(), 'source': observed, 'capacity': capacity,
+               'read_only': check, 'sealed': False, 'reset_authorized': False}
+    if check:
+        return binding
+    # Share the native transaction lock. Never unlink it, wait, or break a lock.
+    fd = os.open(STATE / '.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    try:
+        info = os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == 0 and info.st_nlink == 1 and stat.S_IMODE(info.st_mode) == 0o600)
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        require(identity(value, True) == observed and not os.listdir(destination))
+        capacity = admission(value, observed)
+        binding['capacity'] = capacity
+        retain(started, binding)  # Survives every failed/ambiguous copy; never replay.
+        command(['rsync', '--archive', '--acls', '--hard-links', '--xattrs', '--numeric-ids', '--modify-window=-1',
+                 '--one-file-system', '--', value['source'] + '/', str(destination) + '/'], 86400)
+        require(identity(value, True) == observed)
+        require(ROOT.content_digest(Path(value['source'])) == value['content_digest'])
+        require(ROOT.content_digest(destination) == value['content_digest'])
+        contained_paths(destination)
+        command(['zpool', 'sync', observed['dataset'].split('/')[0]], 3600)
+        # Property publication is not atomic; a failed set/seal is retained as an
+        # ambiguous started generation, never made writable or automatically retried.
+        command(['zfs', 'set', 'org.nest:host=' + value['hostname'], 'org.nest:release=' + value['release'],
+                 'org.nest:build-release=' + value['build_release'],
+                 'org.nest:content-digest=' + value['content_digest'], 'readonly=on', observed['dataset']])
+        require(identity(value, False) == observed)
+        require(ROOT.content_digest(destination) == value['content_digest'])
+        contained_paths(destination)
+        result = dict(binding, read_only=False, sealed=True)
+        retain(completed, result)
+        return result
+    finally:
+        os.close(fd)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('policy', help='Exact JSON policy; never include secrets')
+    parser.add_argument('--check', action='store_true', help='Read-only placement/content/budget checks; no lock or receipt creation')
+    args = parser.parse_args()
+    try:
+        print(json.dumps(transfer(policy(args.policy), args.check), sort_keys=True))
+        return 0
+    except (OSError, ValueError, TypeError, KeyError, IndexError, RuntimeError, subprocess.SubprocessError):
+        print('Generation transfer refused or stopped; retain the dataset and native receipts; never replay automatically', file=sys.stderr)
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

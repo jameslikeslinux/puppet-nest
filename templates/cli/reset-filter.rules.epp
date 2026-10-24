@@ -31,6 +31,8 @@ P /var/lib/bluetooth/**
 P /var/lib/misc/dnsmasq.leases
 # Shared host transaction state must never be copied or deleted by legacy reset.
 - /var/lib/nest/updates/***
+# Immutable generations are host-local mounts, never part of the BE payload.
+- /var/lib/nest/generations/***
 P /var/log/**
 P /var/tmp/**
 
