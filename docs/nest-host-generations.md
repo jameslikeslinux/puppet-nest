@@ -69,7 +69,12 @@ the correct identities; this helper never invents or promotes them.
 Before invoking the helper, provide the existing shared `/var/lib/nest/updates`
 contract: a root-owned mode-0700 exact writable ZFS mount outside all `ROOT`
 trees, on the current root's pool, whose `org.nest:host-id` equals the actual
-machine-id. Missing/unsafe state refuses. State must be shared across A/B;
+machine-id. The pool and state dataset must each carry that host binding, and
+the state dataset must retain the managed `canmount=noauto` startup contract.
+Both state and generation datasets must have no other observed mount aliases.
+Missing/unsafe state refuses in every mode, including sealed verification;
+the helper never repairs properties or mounts to make the check pass.
+State must be shared across A/B;
 source checks on one boot do not prove the second boot's mount ordering.
 
 The destination must already be an empty exact writable ZFS filesystem with

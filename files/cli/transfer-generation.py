@@ -82,6 +82,7 @@ def exact(path, inventory, writable):
     require(not any(Path(row['target']) != path and path in Path(row['target']).parents for row in inventory))
     dataset = row['source']
     require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]*(?:/[A-Za-z0-9_.:-]+)*', dataset) is not None)
+    require(not any(other['source'] == dataset and other['target'] != str(path) for other in inventory))
     require(property_value(dataset, 'mountpoint') == str(path))
     require(property_value(dataset, 'readonly') == ('off' if writable else 'on'))
     require(command(['zfs', 'list', '-H', '-t', 'filesystem,volume', '-r', '-o', 'name', dataset]).splitlines() == [dataset])
@@ -120,6 +121,10 @@ def identity(value, writable, local=False):
     require(command(['zpool', 'get', '-Hp', '-o', 'value', 'guid', pool]) == value['pool_guid'])
     require(property_value(pool, 'org.nest:host-id') == machine)
     state = exact(STATE, inventory, True)
+    # Match the explicitly provisioned state contract, not just a filesystem
+    # mounted at the right path on a host-bound pool. Never repair or rebind it.
+    require(property_value(state, 'org.nest:host-id') == machine)
+    require(property_value(state, 'canmount') == 'noauto')
     target = exact(destination, inventory, writable)
     require(state.split('/')[0] == target.split('/')[0] == pool)
     require('ROOT' not in state.split('/') and 'ROOT' not in target.split('/'))
