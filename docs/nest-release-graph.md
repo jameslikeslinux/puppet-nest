@@ -164,6 +164,13 @@ all rebuilt member outputs, unique producers, paired normal/debug images,
 source/compatibility/root identities and changed resources across acquisition.
 Final graph lineage and original compiler bytes are read again. The job then
 fsyncs and reopens `release-graph-acceptance/receipt.json`, retained on success.
+The acceptance writer must itself be the unique running, required, unerased
+`Accept release graph` job in that exact graph pipeline, bound to the caller's
+job ID and the config source in both pipeline and commit observations. It is
+reacquired immediately before publication; a missing, replaced, retried,
+tolerated or completed writer refuses without publishing a receipt. Unrelated
+sibling jobs and volatile display metadata do not affect this identity. The
+receipt records `acceptance_job` alongside `graph_pipeline` for exact readback.
 It includes the complete original graph, the assembled rebuilt subset and
 explicit unbuilt consumer decisions. It is not an accepted complete release
 including reused artifacts, an image existence/ISA/ABI certificate, an alias

@@ -428,8 +428,71 @@ class GraphTest(unittest.TestCase):
                                      producer=dict(project='nest/stage1', sha=frozen['sources']['nest/stage1'], pipeline=2, job=102),
                                      artifacts=dict(normal=F['MANIFEST']['image'](501), debug=F['MANIFEST']['image'](502))))
         self.api.artifacts[('nest/stage1', 102, 'release-results/stage1.json')] = self.leaf
+        acceptance = self.api.make_job('nest/config', 650, 699, 'Accept release graph')
+        acceptance.update(status='running', allow_failure=False)
+        self.api.pipeline_jobs[650].append(acceptance)
         env = {k: v for k, v in self.node_env.items() if k not in ('RELEASE_GRAPH_NODE', 'RELEASE_GRAPH_MEMBER')}
         return dict(env, CI_PIPELINE_SOURCE='parent_pipeline', CI_PIPELINE_ID='650', CI_JOB_ID='699', CI_JOB_NAME='Accept release graph')
+
+    def test_acceptance_requires_its_exact_running_required_native_job(self):
+        env = self.completed()
+        jobs = self.api.pipeline_jobs[650]
+        original = copy.deepcopy(jobs)
+        for change in ('missing', 'duplicate', 'job', 'name', 'status', 'tolerated', 'erased',
+                       'pipeline', 'project', 'source', 'commit', 'caller'):
+            jobs[:] = copy.deepcopy(original)
+            row = jobs[-1]
+            caller = dict(env)
+            if change == 'missing': jobs.pop()
+            if change == 'duplicate': jobs.append(copy.deepcopy(row))
+            if change == 'job': row['id'] = 700
+            if change == 'name': row['name'] += ' sibling'
+            if change == 'status': row['status'] = 'success'
+            if change == 'tolerated': row['allow_failure'] = True
+            if change == 'erased': row['erased_at'] = 'fixture'
+            if change == 'pipeline': row['pipeline']['id'] = 651
+            if change == 'project': row['pipeline']['project_id'] = 10
+            if change == 'source': row['pipeline']['sha'] = 'f' * 40
+            if change == 'commit': row['commit']['id'] = 'f' * 40
+            if change == 'caller': caller['CI_JOB_ID'] = '700'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                G['accept_graph'](caller, self.api)
+            self.assertFalse((self.f.checkout / 'release-graph-acceptance').exists())
+
+    def test_acceptance_job_race_refuses_before_publication(self):
+        env = self.completed()
+        jobs = self.api.pipeline_jobs[650]
+        original = copy.deepcopy(jobs)
+        for change in ('missing', 'duplicate', 'job', 'status', 'tolerated', 'erased', 'source'):
+            jobs[:] = copy.deepcopy(original)
+            def after(path):
+                if '/jobs/102/artifacts' not in path: return
+                self.api.after_get = None
+                row = jobs[-1]
+                if change == 'missing': jobs.pop()
+                if change == 'duplicate': jobs.append(copy.deepcopy(row))
+                if change == 'job': row['id'] = 700
+                if change == 'status': row['status'] = 'canceled'
+                if change == 'tolerated': row['allow_failure'] = True
+                if change == 'erased': row['erased_at'] = 'fixture'
+                if change == 'source': row['commit']['id'] = 'f' * 40
+            self.api.after_get = after
+            with self.subTest(change=change), self.assertRaises(ValueError): G['accept_graph'](env, self.api)
+            self.assertFalse((self.f.checkout / 'release-graph-acceptance').exists())
+
+    def test_acceptance_job_ignores_volatile_metadata_and_unrelated_siblings(self):
+        env = self.completed()
+        self.api.pipeline_jobs[650].append(dict(id=999, name='Unrelated sibling', status='running'))
+        def after(path):
+            if '/pipelines/650/jobs?' in path:
+                row = self.api.pipeline_jobs[650][-2]
+                row['duration'] = row.get('duration', 0) + 1
+                row['runner'] = dict(contacted_at=str(row['duration']))
+                row['user'] = dict(last_activity_on=str(row['duration']))
+        self.api.after_get = after
+        receipt = G['accept_graph'](env, self.api)
+        self.assertEqual(receipt['acceptance_job'], 699)
+        self.assertEqual(receipt['graph_pipeline'], 650)
 
     def test_final_acceptance_checks_all_leaf_bytes_and_reopens_complete_rebuilt_manifest(self):
         env = self.completed()
@@ -437,6 +500,7 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(receipt['rebuilt']['manifest']['candidate']['outputs'][1], self.leaf['output'])
         self.assertEqual(receipt['rebuilt']['manifest']['expectations']['members'][1]['bases'], self.api.result['output']['artifacts'])
         self.assertFalse(receipt['promotion_authorized'])
+        self.assertEqual(receipt['acceptance_job'], 699)
         self.assertEqual(R['load'](self.f.checkout / 'release-graph-acceptance/receipt.json'), receipt)
         with self.assertRaises(FileExistsError): G['accept_graph'](env, self.api)
 
@@ -450,6 +514,32 @@ class GraphTest(unittest.TestCase):
         self.api.after_get = after
         receipt = G['accept_graph'](env, self.api)
         self.assertEqual(len(receipt['rebuilt']['manifest']['candidate']['outputs']), 2)
+
+    def test_real_acceptance_cli_requires_the_bound_native_writer(self):
+        env = self.completed()
+        replies = {}
+        original = self.api.get
+        def get(path):
+            result = original(path)
+            replies[path] = result
+            return result
+        with patch.object(self.api, 'get', get): G['accept_graph'](env, self.api)
+        import shutil
+        directory = self.f.checkout / 'release-graph-acceptance'
+        shutil.rmtree(directory)
+        binary = self.f.root / 'bin'
+        binary.mkdir()
+        F['fake_glab'](binary / 'glab', replies)
+        cli_env = dict(env, PATH=str(binary) + os.pathsep + env['PATH'])
+        for identifier, expected_exit in (('700', 1), ('699', 0)):
+            completed = subprocess.run([sys.executable, str(ROOT / 'scripts/nest-release-graph.py'), '--accept'],
+                                       env=dict(cli_env, CI_JOB_ID=identifier), capture_output=True, check=False)
+            self.assertEqual(completed.returncode, expected_exit, completed.stderr)
+            self.assertNotIn(b'Traceback', completed.stderr)
+            if expected_exit:
+                self.assertFalse(directory.exists())
+            else:
+                self.assertEqual(R['load'](directory / 'receipt.json')['acceptance_job'], 699)
 
     def test_self_consistent_leaf_cannot_change_projection_policy_sources_or_dependency_bases(self):
         env = self.completed()

@@ -216,24 +216,28 @@ def native_node(api, request: Any, root_id, name):
         root=root, bridge=stable_bridge, child=child, freezer=observed)
 
 
-def active_freezer(api, root_id, name, env, source):
+def active_job(api, root_id, names, env, source):
     """Stable job identity only; duration, runner and user metadata are volatile."""
     jobs = D['listing'](api, 'nest/config', root_id, 'jobs')
-    current = [j for j in jobs if j['name'] in B['input_job_names'](name)]
-    require(len(current) == 1, 'missing or ambiguous active graph freezer')
+    current = [j for j in jobs if j['name'] in names]
+    require(len(current) == 1, 'missing or ambiguous active graph job')
     row = current[0]
     require(row['name'] == env['CI_JOB_NAME'] and row['id'] == int(env['CI_JOB_ID'])
             and row['status'] == 'running' and row.get('allow_failure') is False
-            and row.get('erased_at') is None, 'graph freezer is not the active required job')
+            and row.get('erased_at') is None, 'graph job is not the active required job')
     parent = row['pipeline']
     B['positive'](row['id'])
     B['positive'](parent['id'])
     B['positive'](parent['project_id'])
     require(parent['id'] == root_id and parent['sha'] == source
             and parent['project_id'] == 3 and row['commit']['id'] == source,
-            'active graph freezer identity mismatch')
+            'active graph job identity mismatch')
     return dict(id=row['id'], name=row['name'], status=row['status'],
                 pipeline=root_id, project_id=3, source=source)
+
+
+def active_freezer(api, root_id, name, env, source):
+    return active_job(api, root_id, B['input_job_names'](name), env, source)
 
 
 def freeze_node(env, api):
@@ -328,6 +332,7 @@ def accept_graph(env, api):
     graph_pipeline, graph_job = int(env['RELEASE_GRAPH_INPUT_PIPELINE']), int(env['RELEASE_GRAPH_INPUT_JOB'])
     root_id = int(env['RELEASE_GRAPH_ROOT_PIPELINE'])
     require(root_id == int(env['CI_PIPELINE_ID']) and root_id != graph_pipeline, 'wrong acceptance pipeline')
+    active = active_job(api, root_id, ('Accept release graph',), env, source)
     producer = B['job'](api, 'nest/config', graph_pipeline, graph_job, source)
     require(producer['name'] == 'Compile release graph', 'wrong graph publication')
     path = B['prefix']('nest/config') + '/jobs/' + str(graph_job) + '/artifacts/release-graph/request.json'
@@ -385,8 +390,10 @@ def accept_graph(env, api):
         require(fresh[0]['pipeline'][key] == routes[0]['pipeline'][key]
                 and fresh[0]['downstream_pipeline'][key] == routes[0]['downstream_pipeline'][key],
                 'graph compiler lineage changed')
+    require(active_job(api, root_id, ('Accept release graph',), env, source) == active,
+            'active graph acceptance job changed')
     receipt = dict(schema=1, kind='nest_release_graph_acceptance', graph_sha256=hashlib.sha256(raw).hexdigest(),
-                   graph_pipeline=root_id, inputs=request, rebuilt=assembled,
+                   graph_pipeline=root_id, acceptance_job=active['id'], inputs=request, rebuilt=assembled,
                    unbuilt_decisions=[c for c in request['expectations']['consumers'] if c['decision'] != 'rebuild'],
                    resource_verification='successful_native_jobs_and_exact_artifact_bytes_only',
                    image_compatibility_verification='not_performed', promotion_authorized=False)
