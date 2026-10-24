@@ -1,6 +1,11 @@
 ---
 description: 'Build the eyrie Kubernetes cluster'
 
+parameters:
+  vip_maintenance:
+    type: Hash
+    description: 'Reviewed external client, advertisers, physical domains and nullable Ceph identity for VIP withdrawal'
+
 steps:
   - description: 'Pull Kubernetes images'
     plan: nest::kubernetes::pull_images
@@ -12,6 +17,7 @@ steps:
       name: eyrie
       control_plane_endpoint: control-plane.eyrie
       vip: 172.21.255.255
+      vip_maintenance: $vip_maintenance
       vip_advertisers:
         - control1
         - control2

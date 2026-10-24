@@ -4,14 +4,16 @@
 # @param vip Virtual IP address to advertise
 # @param advertise Whether the targets should advertise the control-plane VIP
 # @param survivor Healthy advertiser that must survive withdrawal or replacement
+# @param maintenance External client, advertisers, physical domains and Ceph identity for maintenance admission
 #
 # @see https://kube-vip.io/docs/installation/static/
 plan nest::kubernetes::generate_kube_vip_manifest (
   TargetSpec              $targets,
   Stdlib::IP::Address::V4 $vip,
-  String                  $version   = 'v1.2.4',
-  Boolean                 $advertise = true,
-  Optional[String]        $survivor  = undef,
+  String                  $version     = 'v1.2.4',
+  Boolean                 $advertise   = true,
+  Optional[String]        $survivor    = undef,
+  Optional[Hash]          $maintenance = undef,
 ) {
   $nodes = get_targets($targets)
   $existing = run_command('if test -s /etc/kubernetes/manifests/kube-vip.yaml; then printf present; else printf absent; fi', $nodes, 'Classify existing VIP manifests before mutation', {
@@ -21,21 +23,13 @@ plan nest::kubernetes::generate_kube_vip_manifest (
     if $nodes.length != 1 or !($survivor in ['control1', 'control2', 'control3']) or $survivor == $nodes[0].name {
       fail('VIP withdrawal or replacement requires exactly one target and a different explicit control-plane survivor')
     }
-    $survivor_ready_command = [
-      'curl', '--fail', '--silent', '--show-error', '--max-time', '5',
-      '--cacert', '/etc/kubernetes/pki/ca.crt', "https://${survivor}:6443/readyz",
-    ].shellquote
-    run_command("test -s /etc/kubernetes/manifests/kube-vip.yaml && ${survivor_ready_command}", $survivor, 'Require healthy surviving API advertiser before withdrawal', {
-      _run_as => 'root',
-    })
-    $survivor_ip = $survivor ? {
-      'control1' => '172.22.4.7',
-      'control2' => '172.22.4.8',
-      'control3' => '172.22.4.9',
+    if $maintenance == undef or $maintenance.keys.sort != ['advertisers', 'ceph_fsid', 'client', 'physical_domains'] {
+      fail_plan('VIP maintenance requires exact client, advertiser, physical-domain and Ceph inputs', 'nest/maintenance-scope')
     }
-    $survivor_route = ['birdc', 'show', 'route', 'for', "${vip}/32", 'protocol', $survivor, 'all'].shellquote
-    run_command("${survivor_route} | grep -F -- ${("BGP.next_hop: ${survivor_ip}").shellquote}", $nodes[0], 'Require surviving advertiser route with its own next hop', {
-      _run_as => 'root',
+    run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance + {
+      'target'   => $nodes[0].name,
+      'survivor' => $survivor,
+      'vip'      => $vip,
     })
   }
 

@@ -213,6 +213,30 @@ readiness, kernel/platform acceptance or permission to reboot. In particular,
 reopen reports on the notification host when its filesystem differs; wrapper
 supervisor paths under `/modules/nest` correspond to the mounted project path.
 
+### Controller admission
+
+For `control1`, `control2` or `control3`, preparation additionally requires
+`maintenance`, keyed by exactly the selected controller names. Each value has
+exactly `survivor`, `client`, `advertisers`, `physical_domains` and `ceph_fsid`
+as documented in `kubernetes-api-vip-health.md`. The target is always taken
+from the resolved transaction host, never from an unbound maintenance field.
+Every controller preflight must pass before any host preparation begins and is
+rechecked immediately before that controller's native command. Admission failure
+cannot start reset, resume, reboot or a later wave. Each controller must be alone
+in its preparation wave, even if incomplete scheduling domains would otherwise
+permit parallelism; unrelated independent-host waves retain bounded concurrency.
+
+Maintenance inputs supplied to planning, observation, non-controller-only
+preparation or legacy execution refuse. Read-only status observation does not
+require live service readiness, so a failed maintenance gate never prevents
+inspection of an existing transaction. Legacy controller updates now refuse
+instead of bypassing the bound service-aware path. Non-controller legacy
+behavior and the explicit no-reboot default are unchanged. Preparation remains
+mutating and separately authorized: these additional point-in-time checks do
+not supply that authority, withdraw an advertiser, or enable transactional
+reboot. All physical declarations must reflect reviewed real dependencies;
+synthetic test singleton domains are not production evidence.
+
 Rollback removes use of explicit prepare mode while retaining all native state,
 prepared BEs and reports. Do not fall back to legacy execution or invent a new
 transaction ID to bypass an unresolved prior transaction. The remaining lifecycle,

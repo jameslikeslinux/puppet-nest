@@ -63,18 +63,21 @@ bridge creation does not exercise this regression.
 ## Planned maintenance
 
 Replace or withdraw one existing advertiser at a time. The Bolt plan refuses
-bulk replacement/withdrawal and requires an explicit different survivor. Before
-publication/removal it checks the survivor's installed VIP manifest, strict
-CA-verified API readiness and a BGP route with that survivor's own next hop from
-the target. A reflected route to another origin is not sufficient evidence.
+bulk replacement/withdrawal and requires an explicit different survivor plus
+complete `maintenance` inputs described below. Before publication/removal it
+now calls `nest::kubernetes::check_control_plane_maintenance`: actual external
+client kernel path and TLS, observed API-client-bound advancing quorum, relevant
+etcd backing pools, Ceph availability and declared physical independence. The
+former target-side BIRD RIB/direct-curl checks are not an alternative admission path.
 
-For example, after independently verifying Control1 and its route:
+Use an independently reviewed private parameter file, not the old survivor-only
+command. It must include the complete maintenance input; these examples do not
+authorize a production change:
 
-    bolt plan run nest::kubernetes::generate_kube_vip_manifest targets=control2 vip=172.21.255.255 survivor=control1
+    bolt plan run nest::kubernetes::generate_kube_vip_manifest --params @/absolute/path/vip-maintenance.json
 
-To withdraw an advertiser intentionally:
-
-    bolt plan run nest::kubernetes::generate_kube_vip_manifest targets=control3 vip=172.21.255.255 advertise=false survivor=control2
+For intentional withdrawal, the same document sets `advertise=false` and the
+exact single target. Missing admission fields refuse before manifest mutation.
 
 After each change, wait for actual static-Pod turnover if content changed,
 BGP session convergence and the client's kernel next-hop set. An old mirror Pod
@@ -212,12 +215,98 @@ observations are mode-private and removed on normal success/failure. Results
 contain sanitized identities only, with `reboot_eligible=[]` and
 `acceptance_recorded=false`.
 
-This is bounded observation, not proof of withdrawal, route persistence through
-a bridge change, ongoing availability or full maintenance admission. It does
-not mutate the existing VIP maintenance plan, withdraw the target, verify
-storage or physical/USB power independence, bind a prepared update transaction,
-or authorize an outage. Those integration and separately approved live-canary
-obligations remain. No production route or bridge is changed for this check.
+This observer alone remains bounded evidence, not withdrawal, route persistence
+through a bridge change, ongoing availability or outage authority. The existing
+mutation/preparation paths now consume it through the integrated preflight below.
+No production route or bridge is changed for the observation.
+
+### Integrated maintenance preflight
+
+`nest::kubernetes::check_control_plane_maintenance` is the read-only composition
+called by existing VIP replacement/withdrawal, control-plane reconciliation and
+transactional controller preparation. It accepts `target`, `survivor`, `client`,
+`advertisers`, `physical_domains`, `ceph_fsid`, optional `vip` and optional
+`expected_servers`. The first four identity/advertiser inputs retain the observer
+semantics above. `ceph_fsid` is the independently reviewed exact Ceph UUID, not a
+newly generated identifier or permission to accept whichever cluster responds.
+API/VIP-only operations may explicitly pass null when Ceph availability is not
+a dependency of their scope (including initial bootstrap before Ceph exists).
+The result then records `not_requested_api_only`, not a successful Ceph check.
+Controller root preparation always requires a valid non-null FSID and cannot
+use this API-only option. No operation on a Ceph/storage host is implemented here.
+
+`physical_domains` maps inventory names to nonempty unique arrays of physical,
+power and USB dependency tokens. Every controller, every member of the resolved
+`eyrie-storage` group and the external client must have an explicit entry. Each
+token uses lowercase alphanumeric, underscore, dot or hyphen, at most 128
+characters. Do not supply hypothetical singleton memberships to make a real
+check pass. Include transitively shared physical dependencies, not service/quorum
+roles. The target must share no declared physical token with any remaining
+voter, storage member or client. Shared memberships among protected hosts are
+allowed. The known Kestrel/Control1/Control2/Storage2 USB topology must not be
+erased; a conflicting scope refuses rather than inventing independence. Such a
+refusal is conservative, not proof of an electrical root cause or permission to
+reset the coupled device. Directed/partial impact exceptions are not supported.
+
+Physical memberships are reviewed policy, not discovered electrical evidence.
+The output explicitly says `physical_independence=declared_policy_only`; it
+cannot verify omitted or misdeclared dependencies. Inventory resolution uses
+ordinary Bolt and may contact PuppetDB; there is no implicit root SSH fallback.
+
+Before and after the actual survivor observation, bounded native reads inspect
+each voter's `/var/lib/etcd` backing ZFS dataset, its pool GUID, ONLINE status and
+native `zpool status -x` health. Non-ZFS, missing/ambiguous mount evidence,
+permanent pool errors, timeout or changed dataset/pool identity refuse. An
+unrelated retired pool is not automatically made an etcd availability dependency.
+No filesystem snapshot, scrub, checksum scan, replication or capacity rehearsal
+is run. This is pool availability, not copy/promotion capacity admission.
+
+The same external client reads native Ceph status through the existing
+`rook-ceph-tools` deployment with bounded kubectl/exec timeouts. The selected
+FSID must agree; all monitors must be in quorum, all OSDs up/in, every PG active
+and clean (ordinary/deep scrubbing is allowed), no remapped PGs, and manager/MDS
+availability must be known. Unsupported or missing native fields refuse. Ceph
+warnings `OSD_NEARFULL`, `POOL_NEARFULL`, `RECENT_CRASH` and
+`RECENT_MGR_MODULE_CRASH` are retained as warning names, not cleared or treated
+as current availability failures. Other checks, including slow operations,
+degraded/full states and unknown warnings, refuse conservatively. This narrow
+warning classification does not admit a new write workload or waive release
+capacity policy. Sanitized cluster/quorum/OSD/PG/warning identities must remain
+unchanged over the observation. No raw daemon metadata or credentials are emitted.
+
+VIP `maintenance` has exactly `client`, `advertisers`, `physical_domains` and
+`ceph_fsid`; its target, survivor and VIP are bound by the existing plan's own
+parameters. Reconciliation `maintenance` additionally requires `survivor`; its
+target is bound by the one resolved member. Reconciliation rechecks the same
+preflight after lock acquisition before uploading configuration; failure releases
+the lock without starting the cluster mutation. Existing API-only kubeadm/tool,
+backup, independent rollback and postcheck semantics are preserved. Fresh VIP
+manifest creation with no existing advertiser retains its bootstrap path; it is
+not a way to replace or withdraw an existing manifest without admission.
+
+All these paths fail closed if a deployed caller still supplies only the old
+`survivor` input. In particular, `nest::kubernetes::init` forwards the required
+`vip_maintenance` inputs for excluded-advertiser withdrawal and rejects their
+absence before starting/stopping any service. `nest::eyrie::build` requires and
+forwards that same parameter before its first step. Fresh bootstrap still needs
+an independently configured external client with the correct cluster CA and
+route. Do not bootstrap or rebuild a cluster to exercise the guard.
+
+Bootstrap creates and waits for joining VIP advertisers before serial final API
+reconciliation, selecting a different member from the intended advertiser set
+and forwarding the same reviewed maintenance input. It must not try to certify
+a survivor whose manifest has not yet been generated. `upgrade_node` requires
+the exact per-controller `maintenance` map before repository synchronization or
+package installation and forwards each entry to reconciliation. Its worker-only
+path remains unchanged; no implicit supervisor or root-SSH repair is added.
+
+Successful output contains the exact target, API observation, sanitized storage
+identities and warning names. `reboot_eligible=[]` and
+`acceptance_recorded=false` remain mandatory. This is not a prepared-transaction
+proof, release/window authorization, target withdrawal/postwithdrawal route
+proof, live host/storage disruption permission or ongoing service guarantee.
+The first real reset/reboot and disruptive failover exercises remain separately
+owner-gated. Do not use a successful standalone preflight as a reusable lease.
 
 ## Heavy control-plane work
 

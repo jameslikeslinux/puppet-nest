@@ -31,18 +31,19 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
 
   it 'refuses bulk or unqualified maintenance withdrawal before mutation' do
     validation = vip_plan.index('VIP withdrawal or replacement requires exactly one target')
-    peer = vip_plan.index('Require healthy surviving API advertiser before withdrawal')
-    route = vip_plan.index('Require surviving advertiser route with its own next hop')
+    inputs = vip_plan.index('VIP maintenance requires exact client, advertiser, physical-domain and Ceph inputs')
+    admission = vip_plan.index("run_plan('nest::kubernetes::check_control_plane_maintenance'")
     withdrawal = vip_plan.index('Stop advertising kube-vip from excluded member')
-    expect([validation, peer, route].max).to be < withdrawal
-    expect(init_plan).to include('survivor  => $vip_nodes[0].name')
+    expect([validation, inputs, admission].max).to be < withdrawal
+    expect(vip_plan).not_to include('birdc')
+    expect(init_plan).to match(%r{survivor\s+=> \$vip_nodes\[0\].name})
   end
 
   it 'proves replacement Pods, BGP routes, and VIP readiness before withdrawal' do
     pod_gate = init_plan.index('Require intended kube-vip mirror Pods before withdrawal')
     route_gate = init_plan.index('kube-vip BGP route from peer observer')
     ready_gate = init_plan.index('Require API VIP readiness before advertiser withdrawal')
-    withdrawal = init_plan.index('advertise => false')
+    withdrawal = init_plan.index(%r{advertise\s+=> false})
 
     expect([pod_gate, route_gate, ready_gate].max).to be < withdrawal
     expect(init_plan).to include('Wait for kube-vip BGP route withdrawal')
@@ -66,6 +67,8 @@ RSpec.describe 'nest::kubernetes::init safety ordering' do
 
     expect(bootstrap).to be < join
     expect(join).to be < reconcile
+    expect(init_plan.index('Require intended kube-vip mirror Pods before withdrawal')).to be < reconcile
+    expect(init_plan).to include("maintenance  => $vip_maintenance + { 'survivor' => $survivor_node.name }")
     expect(init_plan).to include('$nodes.each |$node|')
   end
 

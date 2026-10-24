@@ -9,6 +9,7 @@
 # @param $preparation Exact per-host native transaction, root generation and capacity policy paths
 # @param $observations Exact per-host stored transaction identities for read-only status
 # @param $output_dir Existing canonical supervisor directory for retained reports
+# @param $maintenance Exact per-controller survivor/storage/physical admission inputs for preparation
 plan nest::host::update (
   TargetSpec                                   $targets,
   Boolean                                      $reset        = true,
@@ -19,6 +20,7 @@ plan nest::host::update (
   Optional[Hash]                               $preparation  = undef,
   Optional[Hash]                               $observations = undef,
   Optional[Stdlib::Absolutepath]               $output_dir   = undef,
+  Optional[Hash]                               $maintenance  = undef,
 ) {
   if $mode in ['prepare', 'observe'] {
     if $policy == undef or $output_dir == undef or $reboot or !$reset {
@@ -45,6 +47,26 @@ plan nest::host::update (
       'targets' => $nodes.map |$node| { $node.name },
       'inputs'  => $inputs,
     }).results[0].value
+    $controllers = $nodes.filter |$node| { $node.name in ['control1', 'control2', 'control3'] }.map |$node| { $node.name }
+    if $mode == 'prepare' and !$controllers.empty {
+      if $maintenance == undef or $maintenance.keys.sort != $controllers.sort or
+        !$maintenance.values.all |$entry| {
+          $entry =~ Hash and $entry.keys.sort == ['advertisers', 'ceph_fsid', 'client', 'physical_domains', 'survivor'] and
+            $entry['ceph_fsid'] =~ Pattern[/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/]
+        } {
+        fail_plan('Controller preparation requires exact complete per-controller maintenance inputs', 'nest/maintenance-scope')
+      }
+      if $bound['waves'].any |$wave| { $wave.any |$name| { $name in $controllers } and $wave.length != 1 } {
+        fail_plan('Controller preparation must be isolated from every concurrent host preparation', 'nest/maintenance-wave')
+      }
+      # Validate every controller before preparing any host. Repeat immediately
+      # before each affected native command: an earlier sample is not a lease.
+      $controllers.each |$name| {
+        run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
+      }
+    } elsif $maintenance != undef {
+      fail_plan('Maintenance inputs apply only to controller preparation', 'nest/maintenance-scope')
+    }
     # Check ALL supervisor destinations before the first native reset. This is
     # read-only validation, not a promise of future disk space or writeability.
     $bound['inputs'].each |$name, $input| {
@@ -61,6 +83,9 @@ plan nest::host::update (
       # next wave starts. A failure never starts the next wave or a reboot.
       parallelize($wave) |$name| {
         $node = $nodes.filter |$candidate| { $candidate.name == $name }[0]
+        if $mode == 'prepare' and $name in $controllers {
+          run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
+        }
         $native = run_command($bound['commands'][$name].shellquote, $node, 'Run exact native transaction command', {
           '_run_as'       => 'root',
           '_catch_errors' => true,
@@ -93,7 +118,7 @@ plan nest::host::update (
       'acceptance_recorded' => false,
     })
   }
-  if $preparation != undef or $observations != undef or $output_dir != undef {
+  if $preparation != undef or $observations != undef or $output_dir != undef or $maintenance != undef {
     fail_plan('Transaction inputs require their explicit prepare or observe mode', 'nest/update-prepare-inputs')
   }
   if $mode == 'plan' {
@@ -109,6 +134,9 @@ plan nest::host::update (
   }
   if $policy != undef {
     fail_plan('Wave policy is planning-only; it cannot authorize legacy execution', 'nest/update-wave-policy')
+  }
+  if get_targets($targets).any |$node| { $node.name in ['control1', 'control2', 'control3'] } {
+    fail_plan('Legacy updates cannot admit a control-plane outage; use explicit bound preparation and maintenance policy', 'nest/maintenance-scope')
   }
   if $reset {
     $verb = 'reset'
