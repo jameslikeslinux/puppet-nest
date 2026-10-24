@@ -29,11 +29,11 @@ refuses before any host command. The separate explicit `mode=prepare` described
 below invokes native transactions but never reboots. Never change mode to legacy to execute a computed wave:
 legacy execution does not enforce this policy, release or transaction identity.
 
-## Policy schema 1
+## Policy schemas 1 and 2
 
 The policy has exactly these fields; unknown fields refuse:
 
-- `schema`: integer 1; `kind`: `nest_update_wave_policy`.
+- `schema`: integer 1 or 2; `kind`: `nest_update_wave_policy`.
 - `release`: exact `sha256:` plus 64 lowercase hexadecimal digits, identifying
   the reviewed release manifest, not a mutable alias or a build name.
 - `config_source`: exact 40-character lowercase Git SHA selected for subsequent
@@ -60,6 +60,21 @@ arrays are bounded to 128 entries. Exact kernel release strings additionally
 allow uppercase, plus and hyphen. The complete stdin document is bounded to
 256 KiB; duplicate JSON keys refuse. Task metadata keys beginning with `_` are
 not interpreted as policy, approval or release identity.
+
+Schema 2 additionally requires exactly one `preparation_window` object, with
+exactly `not_before` and `not_after`. Both values use real UTC calendar timestamps
+in the strict spelling `YYYY-MM-DDTHH:MM:SSZ`, without fractional seconds, offsets
+or leap seconds. The end must be later than the start and at most 24 hours later.
+The entire window is included in `policy_sha256`; changing it creates a different
+policy identity. There is no default or automatic extension.
+
+Schema 1 remains supported for planning and stored-status observation, with its
+original digest and output. It no longer admits transactional preparation.
+Schema 2 planning and observation remain available before or after the window;
+they validate the window structurally but never turn its presence into approval.
+Schema-2 planner output adds `policy_schema: 2` and the exact window; its result
+schema remains 1. This is a preparation-initiation window, not a general reboot,
+acceptance, cleanup or maintenance authorization policy.
 
 The resolved inventory target set must equal the complete policy host set.
 Missing/extra targets, duplicates, a broad selector that includes an excluded
@@ -170,7 +185,7 @@ remains separately Joy-gated. This interface does not provision or transfer a
 generation, relax quotas, select a release alias, reboot, apply a main catalog,
 accept, finalize or clean up a boot environment.
 
-Pass the same complete `policy`, `targets`, an existing canonical supervisor
+Pass the same complete schema-2 `policy`, `targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
 Each entry has exactly `transaction`, `root_generation`, and `capacity_policy`.
 The transaction is a native CLI ID (alphanumeric first, then alphanumeric,
@@ -181,6 +196,23 @@ Realpath, ownership, source identity and capacity validation are native CLI
 responsibilities; syntactic input validation does not claim they passed.
 Inventory names must equal the actual native report hostname; aliases are not
 silently translated. Each host may use its own explicit generation and policy.
+
+Preparation checks the supervisor's current UTC time at full input validation
+and again immediately before each host command, after destination and controller
+maintenance checks. Admission requires `not_before <= now < not_after`. Earlier
+waves and readiness checks do not reserve time for later hosts. Expiration stops
+new commands; already started transactions finish and their reports are retained.
+The plan neither kills a native reset at the deadline nor resumes it, extends the
+window or starts a later wave automatically. Use observation after ambiguity.
+An ordinary, accurate supervisor clock is a prerequisite; this is not a trusted
+time service, clock-rollback detector or a lease covering task/transport latency.
+
+A schema-2 input is still not proof of Joy's approval, backup freshness, verified
+rollback or supported generation/capacity. Scope/window policy must be reviewed
+under the separate disruptive authorization before the first real canary. Full
+rollback/retention and live acceptance integration remain unfinished; there is
+no new cleanup or reboot path in this change. Do not attach window fields to a
+schema-1 policy or fall back to legacy execution to bypass an expired window.
 
 Before any host command, the supervisor validates the full inventory/policy/input
 scope and every report destination. No missing member is silently skipped.

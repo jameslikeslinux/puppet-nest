@@ -1,5 +1,5 @@
 {
-  "description": "Validate the complete exact wave policy and explicit host-local preparation inputs without executing a host command",
+  "description": "Validate exact schema-2 policy, current supervisor UTC preparation window and complete host-local inputs without executing a host command",
   "input_method": "stdin",
   "supports_noop": true,
   "files": ["nest/tasks/update_wave_plan.py"],

@@ -2,6 +2,7 @@
 """Offline native preparation input contracts; never execute a reset."""
 
 import copy
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import subprocess
@@ -20,9 +21,20 @@ def inputs(selected):
                    'capacity_policy': '/etc/nest/fixture-capacity.json'} for name in selected}
 
 
+def preparation_policy():
+    value = policy()
+    now = datetime.now(timezone.utc)
+    value['schema'] = 2
+    value['preparation_window'] = {
+        'not_before': (now - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'not_after': (now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    }
+    return value
+
+
 class PrepareInputsTest(unittest.TestCase):
     def setUp(self):
-        self.policy = policy()
+        self.policy = preparation_policy()
         self.targets = [host['name'] for host in self.policy['hosts']]
         self.inputs = inputs(self.targets)
 
