@@ -13,9 +13,13 @@ FAKE = '''#!/bin/sh
 printf '%s\\n' "${0##*/} $*" >> "$FIXTURE_CALLS"
 case "${0##*/}" in
   uname) printf '%s\\n' Linux ;;
-  puppet) exit "$FIXTURE_EXIT" ;;
+  puppet)
+    if [ -n "${FIXTURE_ARGV:-}" ]; then
+      printf '%s\\n' "$@" > "$FIXTURE_ARGV"
+    fi
+    exit "$FIXTURE_EXIT" ;;
   systemctl) exit 1 ;;
-  flock) exit 0 ;;
+  flock) exit "${FIXTURE_FLOCK_EXIT:-0}" ;;
   *) exit 99 ;;
 esac
 '''
@@ -32,13 +36,14 @@ class NativePuppetExitTest(unittest.TestCase):
             path.write_text(FAKE)
             path.chmod(0o700)
 
-    def invoke(self, native, preserve=None):
+    def invoke(self, native, preserve=None, args=(), flock_exit=0):
         self.calls.write_text("")
         env = {"PATH": str(self.root), "FIXTURE_CALLS": str(self.calls),
+               "FIXTURE_ARGV": str(self.root / "argv"), "FIXTURE_FLOCK_EXIT": str(flock_exit),
                "FIXTURE_EXIT": str(native), "PUPPET_AGENT_LOCK_FILE": str(self.root / "lock")}
         if preserve is not None:
             env["PUPPET_PRESERVE_DETAILED_EXIT"] = preserve
-        result = subprocess.run(["/bin/sh", str(SCRIPT)], env=env, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(["/bin/sh", str(SCRIPT), *args], env=env, capture_output=True, text=True, timeout=10)
         return result, self.calls.read_text().splitlines()
 
     def test_legacy_and_explicit_false_keep_zero_two_success_mapping(self):
@@ -64,6 +69,17 @@ class NativePuppetExitTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertEqual(calls, [])
                 self.assertFalse((self.root / "lock").exists())
+
+    def test_private_report_arguments_are_forwarded_without_shell_reparsing(self):
+        args = ["--lastrunreport", "/private path/$(must-not-execute).yaml", "--tags="]
+        result, _calls = self.invoke(0, "true", args=args)
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual((self.root / "argv").read_text().splitlines(), ["agent", "--test", *args])
+
+    def test_failed_blocking_lock_never_runs_native_agent(self):
+        result, calls = self.invoke(0, "true", flock_exit=1)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(any(call.startswith("puppet ") for call in calls))
 
 
 if __name__ == "__main__":

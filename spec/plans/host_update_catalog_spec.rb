@@ -71,4 +71,20 @@ RSpec.describe 'nest::host::update_catalog' do
     expect_script('nest/run_puppet.sh').not_be_called
     expect(run_plan('nest::host::update_catalog', 'target' => ['one', 'two']).ok?).to be(false)
   end
+
+  it 'routes explicit invocation expectations to the mutating bound task exactly once' do
+    expected = { 'hostname' => 'fixture', 'certname' => 'fixture.nest',
+                 'boot_id' => '11111111-1111-4111-8111-111111111111', 'configuration_version' => 'a' * 40 }
+    expect_script('nest/run_puppet.sh').not_be_called
+    expect_task('nest::update_catalog_apply').be_called_times(1).return do |targets:, params:, **_others|
+      expect(targets.map(&:name)).to eq(['fixture-host'])
+      expect(params).to include('expectations' => expected, '_run_as' => 'root')
+      Bolt::ResultSet.new(targets.map do |target|
+        Bolt::Result.new(target, value: { 'schema' => 1, 'kind' => 'nest_update_catalog_bound', 'result' => 'fail', 'acceptance_recorded' => false })
+      end)
+    end
+    result = run_plan('nest::host::update_catalog', 'target' => 'fixture-host', 'expectations' => expected)
+    expect(result.ok?).to be(true)
+    expect(result.value).to include('kind' => 'nest_update_catalog_bound', 'result' => 'fail', 'acceptance_recorded' => false)
+  end
 end

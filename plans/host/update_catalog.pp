@@ -1,10 +1,18 @@
 # Execute normal main catalogs, retaining detailed native exits without acceptance.
 plan nest::host::update_catalog (
-  TargetSpec $target,
+  TargetSpec                   $target,
+  Optional[Hash[String, Data]] $expectations = undef,
 ) {
   $nodes = get_targets($target)
   if $nodes.length != 1 {
     fail_plan('Catalog convergence requires exactly one host', 'nest/update-catalog-target')
+  }
+  if $expectations != undef {
+    $bound = run_task('nest::update_catalog_apply', $nodes[0], {
+      'expectations' => $expectations,
+      '_run_as'     => 'root',
+    })
+    return($bound.results[0].value)
   }
   # Never use a cached catalog, noop, a build fact or a tagged kernel-only apply
   # as evidence of normal served main convergence. Source identity still needs

@@ -1,0 +1,12 @@
+{
+  "description": "MUTATING: apply one normal main catalog and at most one unchanged repeat, capturing invocation-private native reports; does not record update acceptance",
+  "input_method": "stdin",
+  "supports_noop": false,
+  "files": ["nest/tasks/update_catalog_report.rb", "nest/scripts/run_puppet.sh"],
+  "parameters": {
+    "expectations": {
+      "description": "Exact hostname, certname, current boot_id UUID and full configuration_version Git SHA from the reviewed release. Linux and root escalation required. Completion ambiguity must be inspected, never automatically retried.",
+      "type": "Hash[String, Data]"
+    }
+  }
+}
