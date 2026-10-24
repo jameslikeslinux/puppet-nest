@@ -106,6 +106,15 @@ and `backup_requirements`; its result schema stays 1. Planning validates metadat
 only, never opens an archive or claims it is current. See
 `hermes-backup-verification.md` for the existing verification contract and limits.
 
+Schema 4 retains the same scope/window fields and adds mandatory `hold_id` to
+each nonempty Hermes backup requirement. The token is alphanumeric first, then
+alphanumeric/underscore/hyphen, at most 64 characters; all bytes are bound into
+the policy digest. Preparation requires schema 4. Schemas 1 through 3 remain
+inspectable through planning and stored observation but cannot initiate a reset.
+An empty prerequisite array remains an explicit reviewed coverage decision, not
+an implicit backup discovery or a claim of recoverability. Hold creation is a
+separate explicit release action, never an automatic preparation side effect.
+
 The resolved inventory target set must equal the complete policy host set.
 Missing/extra targets, duplicates, a broad selector that includes an excluded
 host, and unknown domain names all refuse. To select a smaller scope, deliberately
@@ -223,7 +232,7 @@ The update plan never invokes its transfer path automatically. Preparation now
 requires the producer's exact sealed-generation policy and invokes only its
 read-only `verify_only=true` path before any reset and again at host initiation.
 
-Pass the complete retained `release_manifest` as well as the schema-3 `policy`,
+Pass the complete retained `release_manifest` as well as the schema-4 `policy`,
 `targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
 The supervisor first validates the entire manifest using the existing release
@@ -308,8 +317,9 @@ exact transactions, never replay. The subplan itself does not validate the full
 release manifest or content seal; those are separate enclosing-plan gates. No
 real capacity budget, storage change, A/B switch or reboot is proven by fixtures.
 
-Preparation invokes the existing `nest::app::hermes::backup` plan with only the
-declared fields (minus `kind`) and `verify_only=true`. All declared generations
+Preparation invokes `nest::host::check_update_backup`, which checks the exact
+requirement and supervisor destination before calling the existing retention
+plan with `action=check-hold` and the wave's exact release. All declared generations
 must verify before any native reset starts. After controller admission it repeats
 the affected host's checks immediately before the final window admission and
 native command. Missing, changed, stale, future-dated, busy or unreadable backups
@@ -321,21 +331,26 @@ The existing helper holds a shared nonblocking retention lock while checking
 full bytes and required members, and samples publication age after hashing. It
 releases that lock before returning; the result is not a storage lease, restore
 validation, application-consistency recheck or source-capture timestamp. Ordinary
-backup retention can subsequently remove a generation. Required durable retention
-through the whole release remains unfinished and must not be inferred here.
-Preparation now requires supervisor retention of each native backup verification,
-both at all-host preflight and again at host initiation. The existing backup plan
-receives `verification_retention` with the exact transaction, release, host,
+hold-aware pruning preserves the exact existing durable hold until an explicit
+matching release action. This relies on adoption by ALL pruning writers and the
+trusted backup account; a readback does not independently establish that adoption.
+Preparation requires supervisor retention of each native hold/backup observation,
+both at all-host preflight and again at host initiation. The check subplan
+receives `retention` with the exact transaction, release, host,
 wave-policy SHA256, stage (`preflight` or `initiation`) and `output_dir`. Its
 destination/input check runs before remote helper upload or verification. The
 retainer validates native schema/outcome, exact checkpoint/archive digest/profile
 requirements, positive byte/member counts and consistent publication/check times.
+It also requires the native `check-hold` action, held/readback booleans and exact
+hold ID, release, checkpoint, digest, counts and profile agreement. A plain
+verification or hold-creation receipt cannot satisfy this gate. Both observations
+come from the same native shared-lock interval without another archive scan.
 Malformed or mismatched output and failed retention stop preparation; no capture,
 prune, retry or restore substitutes for a missing report.
 
 The public `nest_update_backup_verification` document contains those bound
 identities, requested backup inventory target, requirement digest, known verification
-fields and a transport digest. Account paths, arbitrary native output and archive
+fields, allowlisted hold identity and a transport digest. Account paths, arbitrary native output and archive
 payloads are omitted. Requested placement is not independent remote host identity.
 The existing atomic content-addressed publisher fsyncs and reopens the exact bytes.
 `backup_preflight` in the preparation result retains per-host receipt arrays in
@@ -346,8 +361,10 @@ retention is accepted only with `verify_only=true` and returns a supervisor rece
 
 These records preserve a verification observation, not a retention lease, current
 age guarantee after return, SQLite/restore exercise or application recovery proof.
-`retention_lease` and `restore_verified` remain false. Later ordinary backup pruning
-can still remove a generation; release-long retention policy remains unfinished.
+`retention_lease` and `restore_verified` remain false; `hold_checked` must be true.
+An old pruning writer can ignore holds, and an authorized account can release
+them. Source-floor adoption and release-wide retirement/rollback policy remain
+unfinished; native observation is not a continuing lock across reset.
 Before enclosing completion, reopen caller-side report paths, verify digest and
 bindings and retain the real files through the task artifact surface. A supervisor
 directory inside an ephemeral container is still not durable host storage. A
@@ -365,7 +382,7 @@ window or starts a later wave automatically. Use observation after ambiguity.
 An ordinary, accurate supervisor clock is a prerequisite; this is not a trusted
 time service, clock-rollback detector or a lease covering task/transport latency.
 
-A schema-3 input is still not proof of Joy's approval, verified rollback or
+A schema-4 input is still not proof of Joy's approval, verified rollback or
 supported generation/capacity. Scope/window and backup coverage must be reviewed
 under the separate disruptive authorization before the first real canary. Full
 rollback/retention and live acceptance integration remain unfinished; there is

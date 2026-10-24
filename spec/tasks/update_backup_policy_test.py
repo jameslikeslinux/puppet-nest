@@ -20,7 +20,7 @@ def check():
     return {'kind': 'hermes', 'target': 'fixture-backup', 'user': 'joy',
             'backup_dir': '/fixture/backups', 'checkpoint': 'fixture',
             'expected_sha256': 'c' * 64, 'max_age_seconds': 3600,
-            'required_profiles': ['talon', 'star', 'beryl', 'quill']}
+            'required_profiles': ['talon', 'star', 'beryl', 'quill'], 'hold_id': 'release-fixture'}
 
 
 class BackupPolicyTest(unittest.TestCase):
@@ -64,7 +64,7 @@ class BackupPolicyTest(unittest.TestCase):
         first = plan(self.policy, self.targets)['policy_sha256']
         changes = {'target': 'other-backup', 'user': 'other', 'backup_dir': '/other/backups',
                    'checkpoint': 'next', 'expected_sha256': 'd' * 64,
-                   'max_age_seconds': 1800, 'required_profiles': ['talon']}
+                   'max_age_seconds': 1800, 'required_profiles': ['talon'], 'hold_id': 'other-hold'}
         for key, value in changes.items():
             candidate = copy.deepcopy(self.policy)
             candidate['backup_requirements']['canary'][0][key] = value

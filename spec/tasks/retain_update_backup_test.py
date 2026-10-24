@@ -2,6 +2,7 @@
 """Disposable supervisor retention; no live archive, backup host or reset."""
 
 import hashlib
+import copy
 import json
 from pathlib import Path
 import subprocess
@@ -137,6 +138,50 @@ class RetentionTest(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stderr)
         self.assertTrue(json.loads(run.stdout)['destination_checked'])
         self.assertEqual(list(self.directory.iterdir()), [])
+
+
+    def hold_observation(self):
+        self.check['hold_id'] = 'release-fixture'
+        hold = {key: self.row[key] for key in ('checkpoint', 'archive', 'sha256', 'bytes', 'members', 'required_profiles')}
+        hold.update(schema=1, kind='nest_hermes_generation_hold', hold_id='release-fixture', release=self.retention['release'])
+        return dict(schema=1, kind='nest_hermes_generation_retention', action='check-hold', hold=hold,
+                    held=True, readback_verified=True, restore_verified=False, execution_authorized=False,
+                    verification=self.row, private='private-sentinel')
+
+    def test_exact_hold_and_verification_are_retained_together(self):
+        row = self.hold_observation()
+        result = self.project(row)
+        self.assertTrue(result['hold_checked'])
+        self.assertEqual(result['hold'], row['hold'])
+        self.assertNotIn('private-sentinel', json.dumps(result))
+        task = Path(__file__).resolve().parents[2] / 'tasks/retain_update_backup.py'
+        params = dict(check=self.check, retention=self.retention, report=json.dumps(row))
+        run = subprocess.run([sys.executable, str(task)], input=json.dumps(params), capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        receipt = json.loads(run.stdout)
+        self.assertTrue(receipt['hold_checked'])
+        self.assertEqual(json.loads(Path(receipt['path']).read_text()), result)
+
+    def test_plain_verification_cannot_satisfy_hold_requirement(self):
+        self.hold_observation()
+        with self.assertRaises(ValueError):
+            self.project()
+
+    def test_hold_refuses_wrong_action_identity_counts_coverage_or_authority(self):
+        original = self.hold_observation()
+        changes = dict(schema=True, kind='wrong', action='hold', held=False, readback_verified=False,
+                       restore_verified=True, execution_authorized=True, verification=None)
+        for key, value in changes.items():
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.project(dict(original, **{key: value}))
+        changes = dict(schema=True, kind='wrong', hold_id='other', release='sha256:' + 'd' * 64,
+                       checkpoint='wrong', archive='wrong.zip', sha256='d' * 64, bytes=True, members=0,
+                       required_profiles=['star'], extra=True)
+        for key, value in changes.items():
+            row = copy.deepcopy(original)
+            row['hold'][key] = value
+            with self.subTest(hold_key=key), self.assertRaises(ValueError):
+                self.project(row)
 
 
 if __name__ == '__main__':

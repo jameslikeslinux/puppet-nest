@@ -17,7 +17,9 @@ def current_time():
 
 def prepare(policy: Any, targets: Any, inputs: Any):
     result = plan(policy, targets)
-    require(policy['schema'] == 3)
+    # Old policies remain inspectable but cannot initiate another reset without
+    # explicitly binding release-long retention for every backup prerequisite.
+    require(policy['schema'] == 4)
     start, end = preparation_window(policy['preparation_window'])
     require(start <= current_time() < end)
     require(type(inputs) is dict and set(inputs) == {host['name'] for host in policy['hosts']})

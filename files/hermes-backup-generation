@@ -447,9 +447,14 @@ def retain_generation(args: argparse.Namespace) -> dict[str, object]:
                 _sync_directory(backup_dir)
                 if path.exists() or path.is_symlink():
                     raise RuntimeError('retention hold release readback mismatch')
-        return {'schema': 1, 'kind': 'nest_hermes_generation_retention', 'action': args.command,
-                'hold': hold, 'held': args.command != 'release-hold', 'readback_verified': True,
-                'restore_verified': False, 'execution_authorized': False}
+        result = {'schema': 1, 'kind': 'nest_hermes_generation_retention', 'action': args.command,
+                  'hold': hold, 'held': args.command != 'release-hold', 'readback_verified': True,
+                  'restore_verified': False, 'execution_authorized': False}
+        if args.command == 'check-hold':
+            # Bind freshness and archive bytes to the exact existing hold under
+            # the same shared lock, without another expensive archive scan.
+            result['verification'] = verified
+        return result
 
 
 def _cleanup_legacy_locked(args: argparse.Namespace, backup_dir: Path) -> dict[str, object]:
