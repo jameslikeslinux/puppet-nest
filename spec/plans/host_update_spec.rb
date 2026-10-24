@@ -300,11 +300,46 @@ RSpec.describe 'nest::host::update' do
         entry['generation_policy'] = { 'hostname' => name, 'release' => bound['release'], 'destination' => '/fixture/root' }
       end
       allow_plan('nest::host::stage_generation').always_return('sealed' => true)
+      allow_plan('nest::host::check_update_capacity').always_return('capacity_admitted' => true, 'readback_verified' => true)
       expect_plan('nest::host::reboot').not_be_called
       expect_plan('nest::puppet::run').not_be_called
     end
 
     context 'sealed local generation prerequisites' do
+      it 'preflights every selected native capacity before the first reset and retains the receipts' do
+        checked = []
+        inputs.each do |name, input|
+          capacity = { 'target' => name, 'release' => bound['release'], 'inputs' => input, 'output_dir' => '/fixture' }
+          expect_plan('nest::host::check_update_capacity').with_params(capacity).return do |**_options|
+            checked << name
+            Bolt::PlanResult.new({ 'capacity_admitted' => true, 'readback_verified' => true }, 'success')
+          end
+        end
+        commands.each_value do |argv|
+          expect_command(argv.join(' ')).return do |targets:, command:, **_options|
+            expect(checked).to eq(inputs.keys)
+            Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, { 'stdout' => 'report', 'stderr' => '', 'exit_code' => 0 }, 'command', command, []) })
+          end
+        end
+        result = run_plan('nest::host::update', params)
+        expect(result.ok?).to be(true)
+        expect(result.value['capacity_preflight'].length).to eq(2)
+      end
+
+      it 'does not start even the canary when a later selected host has unknown capacity' do
+        capacity = { 'target' => 'update-failed', 'release' => bound['release'], 'inputs' => inputs['update-failed'], 'output_dir' => '/fixture' }
+        expect_plan('nest::host::check_update_capacity').with_params(capacity).error_with('kind' => 'fixture/capacity', 'msg' => 'Unknown finite limit')
+        allow_any_command.not_be_called
+        expect_plan('nest::app::hermes::backup').not_be_called
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'refuses an admitted capacity result without supervisor readback' do
+        expect_plan('nest::host::check_update_capacity').always_return('capacity_admitted' => true, 'readback_verified' => false)
+        allow_any_command.not_be_called
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
       it 'requires the complete manifest before any host action' do
         allow_any_command.not_be_called
         expect_task('nest::update_prepare_inputs').not_be_called

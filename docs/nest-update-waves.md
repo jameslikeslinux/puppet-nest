@@ -263,6 +263,32 @@ generation-policy bytes; it is not a signature or authorization.
 Inventory names must equal the actual native report hostname; aliases are not
 silently translated. Each host may use its own explicit generation and policy.
 
+After all local seals verify, preparation runs the installed native read-only
+`nest reset --plan --release ... --root-generation ... --capacity-policy ...
+--format=json` for EVERY selected host before starting any reset. The existing
+`nest::host::check_update_capacity` subplan uses ordinary inventory/Bolt root
+escalation, not a transport fallback. A missing/failed native plan, unknown or
+denied capacity, unsupported accounting contract, mismatched host/pool/generation
+or invalid supervisor retention stops the whole selection before its canary.
+It does not relax quotas, allocate storage, rehearse copying or delete rollback.
+
+The supervisor retains an allowlisted `nest_update_capacity_preflight` document
+with exact boot/A-B/shared-state/generation identities, native CLI/filter,
+capacity-policy and accounting digests, and accounting contract 2. Native raw
+pool inventories, arbitrary output and private host fields are not copied into
+that public document. The existing content-addressed publisher fsyncs and reopens
+the exact bytes. Successful preparation returns these receipts in
+`capacity_preflight`; read-only stored observation returns an empty array.
+Native refusal produces a failed plan, not an invented admitted receipt.
+
+These observations are NOT a reservation, approval, capacity algebra implemented
+by Bolt, or a lease across later waves. The CLI remains authoritative and repeats
+its locked admission before preparation and its critical native effects. A late
+failure may therefore still leave earlier hosts prepared; stop and observe the
+exact transactions, never replay. The subplan itself does not validate the full
+release manifest or content seal; those are separate enclosing-plan gates. No
+real capacity budget, storage change, A/B switch or reboot is proven by fixtures.
+
 Preparation invokes the existing `nest::app::hermes::backup` plan with only the
 declared fields (minus `kind`) and `verify_only=true`. All declared generations
 must verify before any native reset starts. After controller admission it repeats

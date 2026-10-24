@@ -112,6 +112,20 @@ plan nest::host::update (
           'verify_only' => true,
         })
       }
+      # A seal is not reset capacity. Admit ALL hosts through the native read-only
+      # planner before any reset; these observations are never execution leases.
+      $capacity_preflight = $bound['inputs'].map |$name, $input| {
+        $retained = run_plan('nest::host::check_update_capacity', {
+          'target'     => $name,
+          'release'    => $bound['release'],
+          'inputs'     => $input,
+          'output_dir' => $output_dir,
+        })
+        if $retained['capacity_admitted'] != true or $retained['readback_verified'] != true {
+          fail_plan('Native capacity admission was not retained; no reset started', 'nest/update-capacity-preflight')
+        }
+        $retained
+      }
       # Verify every declared existing generation before ANY native reset, then
       # repeat affected checks at initiation. Never capture or prune on failure.
       $bound['backup_requirements'].each |$name, $checks| {
@@ -119,6 +133,8 @@ plan nest::host::update (
           run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
         }
       }
+    } else {
+      $capacity_preflight = []
     }
     $waves = $bound['waves'].map |$wave| {
       # parallelize waits for the whole wave, including retention, before the
@@ -182,6 +198,7 @@ plan nest::host::update (
       'schema'              => 1,
       'policy_sha256'       => $bound['policy_sha256'],
       'waves'               => $waves,
+      'capacity_preflight'  => $capacity_preflight,
       'reboot_eligible'     => [],
       'acceptance_recorded' => false,
     })

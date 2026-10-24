@@ -1,0 +1,12 @@
+{
+  "description": "Validate and retain a sanitized native read-only reset-capacity preflight on the supervisor; never authorize reset",
+  "input_method": "stdin",
+  "files": ["nest/tasks/retain_update_report.py", "nest/tasks/update_wave_plan.py"],
+  "parameters": {
+    "report": { "type": "String[1]" },
+    "hostname": { "type": "String[1]" },
+    "release": { "type": "String[1]" },
+    "inputs": { "type": "Hash" },
+    "output_dir": { "type": "Stdlib::Absolutepath" }
+  }
+}
