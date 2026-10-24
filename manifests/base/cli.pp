@@ -24,5 +24,18 @@ class nest::base::cli {
     '/etc/nest/reset-test-filter.rules':
       source => 'puppet:///modules/nest/cli/reset-test-filter.rules',
     ;
+
+    '/usr/libexec/nest':
+      ensure => directory,
+      mode   => '0755',
+    ;
+
+    '/usr/libexec/nest/transfer-generation.py':
+      source => 'puppet:///modules/nest/cli/transfer-generation.py',
+    ;
+
+    '/usr/libexec/nest/check-stage3-root.py':
+      source => 'puppet:///modules/nest/build/check-stage3-root.py',
+    ;
   }
 }

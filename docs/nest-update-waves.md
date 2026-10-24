@@ -215,6 +215,12 @@ remains separately Joy-gated. This interface does not provision or transfer a
 generation, relax quotas, select a release alias, reboot, apply a main catalog,
 accept, finalize or clean up a boot environment.
 
+The separate [host-local generation producer](nest-host-generations.md) can copy
+an exact versioned read-only mounted publication into a preprovisioned empty
+local dataset and seal it. Its default check is read-only; explicit transfer
+does not authorize preparation or satisfy the native reset-capacity policy.
+The update plan does not invoke that producer automatically.
+
 Pass the same complete schema-3 `policy`, `targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
 Each entry has exactly `transaction`, `root_generation`, and `capacity_policy`.
