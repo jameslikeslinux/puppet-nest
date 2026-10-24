@@ -4,23 +4,34 @@
 # of --profile.  Profile/service parameters remain accepted for compatibility
 # with old callers, but never label or multiply full-home archives.
 plan nest::app::hermes::backup (
-  TargetSpec           $target               = 'owl',
-  String[1]            $backup_dir           = '/nest/backup/hermes',
-  String[1]            $stage_dir            = '/var/tmp/nest-hermes-backup',
-  Boolean              $preserve_existing    = false,
-  Boolean              $quick                = false,
-  Boolean              $prune_only           = false,
-  Boolean              $cleanup_legacy       = false,
-  Boolean              $apply_legacy_cleanup = false,
-  Optional[String[1]]  $checkpoint           = undef,
+  TargetSpec                          $target               = 'owl',
+  String[1]                           $backup_dir           = '/nest/backup/hermes',
+  String[1]                           $stage_dir            = '/var/tmp/nest-hermes-backup',
+  Boolean                             $preserve_existing    = false,
+  Boolean                             $verify_only          = false,
+  Optional[String[64, 64]]            $expected_sha256      = undef,
+  Optional[Integer[1, 604800]]        $max_age_seconds      = undef,
+  Boolean                             $quick                = false,
+  Boolean                             $prune_only           = false,
+  Boolean                             $cleanup_legacy       = false,
+  Boolean                             $apply_legacy_cleanup = false,
+  Optional[String[1]]                 $checkpoint           = undef,
   # Account used to run Hermes and own the backup directory.
-  String[1]            $user                 = 'joy',
-  Integer[1]           $retain               = 24,
-  Array[String[1], 1]  $required_profiles    = ['talon', 'star', 'beryl', 'quill'],
+  String[1]                           $user                 = 'joy',
+  Integer[1]                          $retain               = 24,
+  Array[String[1], 1]                 $required_profiles    = ['talon', 'star', 'beryl', 'quill'],
   # Deprecated compatibility inputs. Full backups are deliberately unscoped.
-  Optional[String[1]]  $service_name         = undef,
-  Optional[String[1]]  $profile              = undef,
+  Optional[String[1]]                 $service_name         = undef,
+  Optional[String[1]]                 $profile              = undef,
 ) {
+  if $verify_only {
+    if $quick or $prune_only or $cleanup_legacy or $apply_legacy_cleanup or $preserve_existing or
+      $checkpoint == undef or $expected_sha256 !~ Pattern[/\A[0-9a-f]{64}\z/] or $max_age_seconds == undef {
+      fail_plan('verify_only requires exact checkpoint, expected_sha256 and max_age_seconds; refuses all capture and cleanup modes')
+    }
+  } elsif $expected_sha256 != undef or $max_age_seconds != undef {
+    fail_plan('expected_sha256 and max_age_seconds require verify_only=true')
+  }
   if $quick and ($prune_only or $cleanup_legacy) {
     fail_plan('quick, prune_only, and cleanup_legacy are mutually exclusive')
   }
@@ -69,7 +80,16 @@ plan nest::app::hermes::backup (
   $required_profile_args = $required_profiles.map |$required_profile| {
     ['--required-profile', $required_profile]
   }.flatten
-  if $prune_only {
+  if $verify_only {
+    $helper_args = [
+      $helper, 'verify',
+      '--backup-dir', $backup_dir,
+      '--checkpoint', $checkpoint,
+      '--expected-sha256', $expected_sha256,
+      '--max-age-seconds', String($max_age_seconds),
+    ] + $required_profile_args
+    $description = 'Verify exact existing Hermes generation without capture or pruning'
+  } elsif $prune_only {
     $helper_args = [
       $helper, 'prune',
       '--backup-dir', $backup_dir,
@@ -108,10 +128,14 @@ plan nest::app::hermes::backup (
     $description = 'Create or reuse Hermes full-home backup generation'
   }
 
+  $initialize_directory = $verify_only ? {
+    true    => 'true',
+    default => ['install', '-d', '-m', '0700', '-o', $user, '-g', $user, $backup_dir].shellquote,
+  }
   $command = @("COMMAND"/L)
     set -euo pipefail
     trap 'rm -f ${helper}' EXIT HUP INT TERM
-    install -d -m 0700 -o ${user.shellquote} -g ${user.shellquote} ${backup_dir.shellquote}
+    ${initialize_directory}
     chown ${user.shellquote}:${user.shellquote} ${helper.shellquote}
     chmod 0700 ${helper.shellquote}
     # Rootless Podman overlay files are owned by subordinate host UIDs. Enter
