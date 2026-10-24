@@ -9,7 +9,7 @@ describe 'Hermes broker runtime deployment boundary' do
   let(:tag) { "tag         => 'hermes_agent_request_broker_runtime'" }
 
   it 'pins the merged broker independently of the Hermes core' do
-    expect(owl.fetch('nest::app::hermes::broker_git_ref')).to eq('b9e259a931079e055534c9a0389bef5c43a895c3')
+    expect(owl.fetch('nest::app::hermes::broker_git_ref')).to eq('9b30659e7f98885a37ce7932fc8c65f52b26ff83')
     expect(owl.fetch('nest::app::hermes::git_ref')).to eq('nest')
     expect(owl.fetch('nest::app::hermes::git_commit')).to eq('24f541e4e0a022a76d9e3913968ec59db29cc73d')
   end
