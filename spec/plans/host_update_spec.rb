@@ -53,6 +53,20 @@ RSpec.describe 'nest::host::update' do
     expect(run_plan('nest::host::update', 'targets' => 'control2', 'reboot' => true).ok?).to be(false)
   end
 
+  ['fixture-console', 'fixture-console.nest'].each do |console|
+    [true, false].each do |reset|
+      it "refuses the entire legacy selection containing #{console} with reset=#{reset} before any host action" do
+        allow_any_command.not_be_called
+        expect_plan('nest::host::reboot').not_be_called
+        expect_plan('nest::puppet::run').not_be_called
+
+        result = run_plan('nest::host::update', 'targets' => ['update-good', console], 'reset' => reset, 'reboot' => true)
+
+        expect(result.ok?).to be(false)
+      end
+    end
+  end
+
   it 'reboots only after all requested preparations succeed' do
     expect_command('nest update').with_targets(targets)
     expect_plan('nest::host::reboot').with_params('targets' => targets)

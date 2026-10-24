@@ -135,7 +135,11 @@ plan nest::host::update (
   if $policy != undef {
     fail_plan('Wave policy is planning-only; it cannot authorize legacy execution', 'nest/update-wave-policy')
   }
-  if get_targets($targets).any |$node| { $node.name in ['control1', 'control2', 'control3'] } {
+  $legacy_nodes = get_targets($targets)
+  if $legacy_nodes.any |$node| { $node.name =~ Pattern[/\A[^.]*-console(?:\.|\z)/] } {
+    fail_plan('Recovery consoles are excluded from operating system updates; no host in this selection was updated', 'nest/update-excluded-console')
+  }
+  if $legacy_nodes.any |$node| { $node.name in ['control1', 'control2', 'control3'] } {
     fail_plan('Legacy updates cannot admit a control-plane outage; use explicit bound preparation and maintenance policy', 'nest/maintenance-scope')
   }
   if $reset {
@@ -146,13 +150,14 @@ plan nest::host::update (
 
   # Fail the plan on any preparation error. Never replay an ambiguous reset
   # with legacy --resume, or allow a failed target into the reboot phase.
-  run_command("nest ${verb}", $targets, "${verb.capitalize} the operating system")
+  run_command("nest ${verb}", $legacy_nodes, "${verb.capitalize} the operating system")
 
   if $reboot {
-    run_plan('nest::host::reboot', $targets, _description => 'Reboot the system')
+    $legacy_names = $legacy_nodes.map |$node| { $node.name }
+    run_plan('nest::host::reboot', $legacy_names, _description => 'Reboot the system')
 
     if $run_puppet {
-      run_plan('nest::puppet::run', $targets, _description => 'Run Puppet to complete update')
+      run_plan('nest::puppet::run', $legacy_names, _description => 'Run Puppet to complete update')
     }
   }
 }

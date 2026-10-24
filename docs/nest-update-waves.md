@@ -4,8 +4,17 @@
 failure-domain waves from exact inventory names on the Bolt supervisor. It does
 not contact target hosts, run reset/update/Puppet, inspect transaction state,
 reboot, record acceptance or authorize any of those operations. Inventory
-resolution can contact PuppetDB. The default `mode=legacy` remains unchanged,
+resolution can contact PuppetDB. The default remains `mode=legacy`,
 including its explicit `reboot=false` default and fail-closed preparation.
+
+Recovery console names ending in `-console` (also before a DNS suffix) are
+excluded from every mode, including legacy reset and package updates. Legacy
+execution resolves inventory once and rejects the entire selection before any
+host command if it contains a console; it never silently filters one out and
+updates the remaining hosts. Subsequent legacy actions use that resolved target
+set. Transactional modes enforce the same exclusion in their bound wave policy.
+This name-based floor cannot identify a console hidden behind an unrelated
+inventory alias; inventory names and explicit exclusions still require review.
 
 Pass a private JSON parameter file to avoid shell/JSON quoting mistakes:
 
