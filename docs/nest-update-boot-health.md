@@ -52,6 +52,14 @@ belong to the expected current tree at their canonical paths; wrong-BE or
 stacked private children refuse. Ordinary shared mounts outside ROOT are not
 reclassified as private BE data.
 
+Linux subtree bind mounts (including Kubernetes volume subpaths) backed by the
+current `/var` or a canonically mounted current private child are not new ZFS
+datasets at their target paths. They retain their exact backing source and
+subtree in the repeated observation. Wrong-BE sources, missing canonical child
+mounts, duplicate private targets and read-only private binds still refuse.
+Whole-dataset mounts with mount root `/` must retain the canonical dataset/path
+relationship; this observer does not waive that rule for whole-dataset binds.
+
 Mount topology and storage identities are independently reacquired after the
 complete first acquisition. Hostname, kernel and boot ID are checked again at
 the end. Missing commands, malformed/incomplete inventories, changed identities,

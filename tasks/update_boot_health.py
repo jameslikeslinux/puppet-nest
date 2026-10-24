@@ -81,17 +81,26 @@ def topology(raw, expected):
     require(0 < len(lines) <= 16384, "mount_inventory_limit")
     selected = {"/": [], "/var": []}
     private_var = {}
+    private_binds = {}
     for line in lines:
         parts = line.split(" - ")
         require(len(parts) == 2, "invalid_mount_inventory")
         left, right = parts[0].split(), parts[1].split()
         require(len(left) >= 6 and len(right) == 3, "invalid_mount_inventory")
         if left[4].startswith("/var/") and right[0] == "zfs" and "ROOT" in right[1].split("/"):
-            require(left[4] not in private_var and left[3] == "/"
-                    and right[1] == expected["current"] + left[4]
-                    and "rw" in left[5].split(",") and "rw" in right[2].split(","),
+            require(left[4] not in private_var and left[4] not in private_binds
+                    and "rw" in left[5].split(",") and "ro" not in left[5].split(",")
+                    and "rw" in right[2].split(",") and "ro" not in right[2].split(","),
                     "wrong_private_var_mount")
-            private_var[left[4]] = right[1]
+            if left[3] == "/":
+                require(right[1] == expected["current"] + left[4], "wrong_private_var_mount")
+                private_var[left[4]] = right[1]
+            else:
+                # Linux reports a bind's backing dataset, not a new dataset at
+                # its target. Keep the subtree in the repeated observation.
+                require(left[3].startswith("/") and (right[1] == expected["current"] + "/var"
+                        or right[1].startswith(expected["current"] + "/var/")), "wrong_private_var_mount")
+                private_binds[left[4]] = {"source": right[1], "root": left[3]}
         if left[4] in selected:
             selected[left[4]].append((left[3], right[0], right[1], left[5].split(","), right[2].split(",")))
     result = {}
@@ -104,6 +113,9 @@ def topology(raw, expected):
                 and "ro" not in super_options, "wrong_or_read_only_mount")
         result[path] = source
     result.update(private_var)
+    for path, bind in private_binds.items():
+        require(bind["source"] in result.values(), "missing_private_bind_source")
+        result[path] = bind
     return result
 
 
