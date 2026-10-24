@@ -104,6 +104,35 @@ class BootHealthTest(unittest.TestCase):
             return MOUNTS if not runner.calls else MOUNTS.replace("/B/var", "/A/var")
         self.assertEqual(self.collect(runner, mounts=mounts)["result"], "fail")
 
+    def test_current_var_kubernetes_subtree_bind_is_not_a_private_dataset(self):
+        bind = ("3 2 0:2 /lib/kubelet/pods/fixture/volumes/config/data /var/lib/kubelet/pods/fixture/volume-subpaths/config/app/0 "
+                "rw,noatime shared:103 - zfs rpool/crypt/ROOT/B/var rw,xattr\n")
+        result = self.collect(mounts=lambda: MOUNTS + bind)
+        self.assertEqual(result["result"], "pass")
+        observed = result["checks"]["mounts"]["observation"]
+        self.assertEqual(observed[bind.split()[4]], {"source": EXPECTED["current"] + "/var",
+                                                    "root": bind.split()[3]})
+        for invalid in (bind.replace("ROOT/B", "ROOT/A"), bind.replace("/B/var", "/B/debug"),
+                        bind.replace(" rw,noatime", " ro,noatime"), bind.replace(" rw,xattr", " ro,xattr"),
+                        bind.replace("0:2 /lib", "0:2 lib"), bind + bind):
+            with self.subTest(invalid=invalid):
+                self.assertEqual(self.collect(mounts=lambda: MOUNTS + invalid)["result"], "fail")
+
+    def test_private_child_bind_requires_its_canonical_current_dataset_mount(self):
+        child = "3 2 0:3 / /var/lib rw - zfs rpool/crypt/ROOT/B/var/lib rw\n"
+        bind = "4 3 0:3 /kubelet/subtree /var/bound rw - zfs rpool/crypt/ROOT/B/var/lib rw\n"
+        self.assertEqual(self.collect(mounts=lambda: MOUNTS + bind)["result"], "fail")
+        self.assertEqual(self.collect(mounts=lambda: MOUNTS + child + bind)["result"], "pass")
+        self.assertEqual(self.collect(mounts=lambda: MOUNTS + bind + child)["result"], "pass")
+
+    def test_current_var_bind_subtree_changes_and_target_stacking_refuse(self):
+        bind = "3 2 0:2 /lib/subtree /var/bound rw - zfs rpool/crypt/ROOT/B/var rw\n"
+        observations = iter((MOUNTS + bind, MOUNTS + bind.replace("/lib/subtree", "/lib/other")))
+        self.assertEqual(self.collect(mounts=lambda: next(observations))["result"], "fail")
+        child = "4 2 0:3 / /var/bound rw - zfs rpool/crypt/ROOT/B/var/bound rw\n"
+        for extra in (bind + child, child + bind):
+            self.assertEqual(self.collect(mounts=lambda: MOUNTS + extra)["result"], "fail")
+
     def test_every_pool_must_be_online_and_root_guid_is_exact(self):
         for pools in ("rpool\t10\tONLINE\nother\t20\tDEGRADED\n", "rpool\t99\tONLINE\n",
                       "rpool\t10\tONLINE\nrpool\t10\tONLINE\n", "", "malformed\n"):

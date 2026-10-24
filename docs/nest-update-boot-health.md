@@ -52,6 +52,14 @@ belong to the expected current tree at their canonical paths; wrong-BE or
 stacked private children refuse. Ordinary shared mounts outside ROOT are not
 reclassified as private BE data.
 
+Linux subtree bind mounts (including Kubernetes volume subpaths) backed by the
+current `/var` or a canonically mounted current private child are not new ZFS
+datasets at their target paths. They retain their exact backing source and
+subtree in the repeated observation. Wrong-BE sources, missing canonical child
+mounts, duplicate private targets and read-only private binds still refuse.
+Whole-dataset mounts with mount root `/` must retain the canonical dataset/path
+relationship; this observer does not waive that rule for whole-dataset binds.
+
 Mount topology and storage identities are independently reacquired after the
 complete first acquisition. Hostname, kernel and boot ID are checked again at
 the end. Missing commands, malformed/incomplete inventories, changed identities,
@@ -82,3 +90,41 @@ interface. They never allocate datasets, mount an inactive BE, change bootfs or
 reboot a host. Source/CI verification is distinct from installed/live readback;
 a separately authorized real boot canary remains required for lifecycle proof.
 Rollback stops calling this observation plan. No host state needs undoing.
+
+## Bound boot and manager collection
+
+`nest::host::update_health` accepts the same single `target` and `expectations`
+parameters. It composes the existing boot and actual-manager observation plans,
+in this order: boot, managers, boot. The second boot observation must exactly
+match the first, including the observed mount/storage checks. Both must have
+the expected hostname and a well-formed boot ID; the manager observation must
+carry that same host and boot ID. Schema/kind substitutions or any component
+claiming transaction acceptance refuse the binding. Task or transport errors
+fail the plan instead of manufacturing empty healthy inventories.
+
+```sh
+bolt plan run nest::host::update_health --params @boot-observation.json
+```
+
+Output is schema 1, kind `nest_update_health`, containing `boot_before`,
+`managers`, `boot_after`, `observations_bound`, `result` and
+`acceptance_recorded: false`. A passing result requires stable bound identities
+and passing results from both existing collectors. A bound observation can
+still fail: missing user buses, unexplained or retained historical failures,
+wrong kernel/BE or an unchanged boot ID stay failed. The full manager result
+is retained without clearing units, changing failure explanations or converting
+unavailable checks to zero. Callers must inspect `result`, not the Bolt exit.
+
+Collection is deliberately single-host and bounded by the component command
+budgets: two boot observations and one manager inventory, not a fleet scan or
+continuous observer. A changing Kubernetes bind-mount inventory can reject
+binding even when each individual observation passed. This conservative result
+is not permission to reset/reboot or to keep retrying until a green sample.
+Acquisition is not an atomic snapshot, and state can change after it returns.
+
+This integration is not `nest reset accept` evidence. It does not collect
+network/DNS/trust, main catalog apply/convergence, service/hardware/physical UX,
+transaction/shared-state continuity or policy-owned historical dispositions.
+The remaining lifecycle collector must bind those gates to real preparation
+and release receipts and retain the resulting report before acceptance.
+Rollback stops calling the composed plan; no host state was changed.
