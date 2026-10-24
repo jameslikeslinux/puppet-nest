@@ -46,6 +46,56 @@ This interface is intentionally not composed into the read-only
 `nest::host::update_health` plan; doing so would silently turn observation into
 host mutation. No live full catalog was applied to test this interface.
 
+## Read-only native report binding
+
+`nest::update_catalog_report` is a separate read-only task. Run it with the
+ordinary inventory-backed Bolt transport and root escalation, using a private
+JSON parameter file: `bolt task run nest::update_catalog_report --targets HOST
+--run-as root --params @PARAMS.json`. The file has one `expectations` object:
+
+- `hostname`: exact Linux hostname, and `certname`: exact Puppet certname.
+  These are independent identities; neither is inferred from the target alias.
+- `boot_id`: expected current Linux boot UUID.
+- `configuration_version`: exact full forty-character lowercase Git SHA.
+- `transaction_uuid`: actual native Puppet transaction UUID for this invocation,
+  not the Nest update transaction ID or a newly invented UUID.
+- `status`: `changed` or `unchanged`, consistent with the retained native exit.
+- `not_before` and `not_after`: integer epoch bounds on the native report's start
+  time, spanning at most one day. Choose them from actual invocation evidence,
+  not merely from the age of whatever report happens to exist.
+
+The task reads the agent-configured `lastrunreport`, using the installed agent's
+settings and certname. It requires a root-owned regular non-group/world-writable
+file, refuses symlinks, reads at most 32 MiB and has a thirty-second collection
+deadline. It parses the native YAML syntax tree without deserializing Ruby
+objects, following aliases or returning resource/log bodies. Missing fields,
+wrong source/host/boot/transaction/time/status, incomplete transactions, noop,
+cached catalogs, duplicate keys and changed report bytes or boot IDs all refuse.
+JSON-formatted reports are not supported and fail closed rather than guessed.
+
+Successful output has schema 1, kind `nest_update_catalog_report`, a sanitized
+`report` object with selected native scalars and `report_sha256`, the observed
+hostname and boot ID, and `acceptance_recorded: false`. Task failure returns a
+generic error without leaking the report. Native `catalog_uuid` is also retained.
+This observes one report; it never applies a catalog, repeats an apply, clears a
+failure, changes a transaction, or records acceptance.
+
+The managed environment now emits the complete Git configuration version, not
+an abbreviated commit. Older abbreviated reports deliberately fail exact-source
+binding. This does not require replaying an apply just to test installation.
+The version describes the server's configured Git revision, not independently
+attested module bytes or a clean server checkout. Report digest readback does
+not authenticate catalog content. Real invocation provenance and served module
+identity must still be bound by lifecycle integration.
+
+The existing apply/repeat plan is not yet wired to capture a report under the
+agent lock. A separate task read cannot prove that a concurrent agent did not
+replace a report before the first observation. Callers must supply an actually
+retained invocation UUID/window, not adopt the current report as proof of their
+own run. This task therefore does not change `served_source_verified: false` in
+the apply/repeat plan, satisfy release acceptance, or substitute for the remaining
+boot/release binding, atomic invocation capture and durable report integration.
+
 ## Wrapper compatibility and rollback
 
 Ordinary `nest::puppet::run` callers still receive the historical wrapper mapping
