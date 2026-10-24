@@ -64,6 +64,7 @@ stages:
   script:
     - 'python3 spec/tasks/retain_update_report_test.py'
     - 'python3 spec/tasks/retain_update_preflight_test.py'
+    - 'python3 spec/tasks/retain_update_backup_test.py'
     - 'python3 spec/tasks/retain_generation_report_test.py'
     - 'python3 spec/tasks/retain_update_catalog_test.py'
     - 'python3 spec/tasks/update_manager_health_test.py'

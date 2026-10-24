@@ -1,0 +1,11 @@
+{
+  "description": "Validate and retain a bound public Hermes backup verification on the supervisor without a payload, restore claim or retention lease",
+  "input_method": "stdin",
+  "files": ["nest/tasks/retain_update_report.py", "nest/tasks/update_wave_plan.py"],
+  "parameters": {
+    "action": { "type": "Enum['check', 'retain']", "default": "retain" },
+    "check": { "type": "Hash" },
+    "retention": { "type": "Hash" },
+    "report": { "type": "Optional[String[1]]" }
+  }
+}

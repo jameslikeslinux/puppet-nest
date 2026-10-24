@@ -304,8 +304,37 @@ releases that lock before returning; the result is not a storage lease, restore
 validation, application-consistency recheck or source-capture timestamp. Ordinary
 backup retention can subsequently remove a generation. Required durable retention
 through the whole release remains unfinished and must not be inferred here.
-Native verifier results appear in Bolt output, not in the sanitized transaction
-receipt; durable recovery-evidence retention remains a lifecycle integration task.
+Preparation now requires supervisor retention of each native backup verification,
+both at all-host preflight and again at host initiation. The existing backup plan
+receives `verification_retention` with the exact transaction, release, host,
+wave-policy SHA256, stage (`preflight` or `initiation`) and `output_dir`. Its
+destination/input check runs before remote helper upload or verification. The
+retainer validates native schema/outcome, exact checkpoint/archive digest/profile
+requirements, positive byte/member counts and consistent publication/check times.
+Malformed or mismatched output and failed retention stop preparation; no capture,
+prune, retry or restore substitutes for a missing report.
+
+The public `nest_update_backup_verification` document contains those bound
+identities, requested backup inventory target, requirement digest, known verification
+fields and a transport digest. Account paths, arbitrary native output and archive
+payloads are omitted. Requested placement is not independent remote host identity.
+The existing atomic content-addressed publisher fsyncs and reopens the exact bytes.
+`backup_preflight` in the preparation result retains per-host receipt arrays in
+bound input order; each wave's transaction receipt adds `backup_verification` for
+its initiation observations. Observation mode returns empty backup arrays.
+Standalone backup callers without retention keep their existing result interface;
+retention is accepted only with `verify_only=true` and returns a supervisor receipt.
+
+These records preserve a verification observation, not a retention lease, current
+age guarantee after return, SQLite/restore exercise or application recovery proof.
+`retention_lease` and `restore_verified` remain false. Later ordinary backup pruning
+can still remove a generation; release-long retention policy remains unfinished.
+Before enclosing completion, reopen caller-side report paths, verify digest and
+bindings and retain the real files through the task artifact surface. A supervisor
+directory inside an ephemeral container is still not durable host storage. A
+retention failure after verification never repeats the native operation merely to
+recover evidence. Stop this interface to roll back while preserving all reports
+and existing complete backups; do not use legacy reset to bypass the gate.
 
 Preparation checks the supervisor's current UTC time at full input validation
 and again immediately before each host command, after destination and controller

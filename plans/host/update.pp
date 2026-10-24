@@ -128,13 +128,27 @@ plan nest::host::update (
       }
       # Verify every declared existing generation before ANY native reset, then
       # repeat affected checks at initiation. Never capture or prune on failure.
-      $bound['backup_requirements'].each |$name, $checks| {
-        $checks.each |$check| {
-          run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
+      $backup_preflight = $bound['backup_requirements'].map |$name, $checks| {
+        $checks.map |$check| {
+          run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + {
+            'verify_only' => true,
+            'verification_retention' => {
+              'transaction'   => $bound['inputs'][$name]['transaction'],
+              'release'       => $bound['release'],
+              'hostname'      => $name,
+              'policy_sha256' => $bound['policy_sha256'],
+              'stage'         => 'preflight',
+              'output_dir'    => $output_dir,
+            },
+          })
         }
+      }
+      if !$backup_preflight.flatten.all |$receipt| { $receipt['verification_retained'] == true and $receipt['readback_verified'] == true } {
+        fail_plan('Backup verification was not retained; no reset started', 'nest/update-backup-retention')
       }
     } else {
       $capacity_preflight = []
+      $backup_preflight = []
     }
     $waves = $bound['waves'].map |$wave| {
       # parallelize waits for the whole wave, including retention, before the
@@ -145,8 +159,21 @@ plan nest::host::update (
           run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
         }
         if $mode == 'prepare' {
-          $bound['backup_requirements'][$name].each |$check| {
-            run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
+          $backup_verification = $bound['backup_requirements'][$name].map |$check| {
+            run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + {
+              'verify_only' => true,
+              'verification_retention' => {
+                'transaction'   => $bound['inputs'][$name]['transaction'],
+                'release'       => $bound['release'],
+                'hostname'      => $name,
+                'policy_sha256' => $bound['policy_sha256'],
+                'stage'         => 'initiation',
+                'output_dir'    => $output_dir,
+              },
+            })
+          }
+          if !$backup_verification.all |$receipt| { $receipt['verification_retained'] == true and $receipt['readback_verified'] == true } {
+            fail_plan('Backup verification was not retained; no new reset started', 'nest/update-backup-retention')
           }
           # A seal observation is not a lease. Repeat after readiness/backup
           # work, then re-admit time and exact inputs before native initiation.
@@ -169,6 +196,8 @@ plan nest::host::update (
             $admitted['commands'][$name] != $bound['commands'][$name] {
             fail_plan('Preparation policy changed during admission; no new host command started', 'nest/update-prepare-inputs')
           }
+        } else {
+          $backup_verification = []
         }
         $native = run_command($bound['commands'][$name].shellquote, $node, 'Run exact native transaction command', {
           '_run_as'       => 'root',
@@ -190,7 +219,7 @@ plan nest::host::update (
         if $mode == 'observe' and (!$native.ok or $receipt['observation_retained'] != true) {
           fail_plan('Native status did not produce a retained live observation', 'nest/update-observe-failed')
         }
-        $receipt
+        $receipt + { 'backup_verification' => $backup_verification }
       }
     }
     return({
@@ -199,6 +228,7 @@ plan nest::host::update (
       'policy_sha256'       => $bound['policy_sha256'],
       'waves'               => $waves,
       'capacity_preflight'  => $capacity_preflight,
+      'backup_preflight'    => $backup_preflight,
       'reboot_eligible'     => [],
       'acceptance_recorded' => false,
     })

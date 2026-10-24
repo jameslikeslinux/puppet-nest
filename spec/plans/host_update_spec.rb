@@ -419,7 +419,15 @@ RSpec.describe 'nest::host::update' do
         { 'kind' => 'hermes', 'target' => 'fixture-backup', 'user' => 'joy', 'backup_dir' => '/fixture/backups',
           'checkpoint' => 'fixture', 'expected_sha256' => 'c' * 64, 'max_age_seconds' => 3600, 'required_profiles' => ['talon'] }
       end
-      let(:verify_params) { backup_check.reject { |key, _value| key == 'kind' }.merge('verify_only' => true) }
+      let(:backup_receipt) { { 'verification_retained' => true, 'readback_verified' => true, 'retention_lease' => false } }
+
+      def verify_params(stage, host = 'update-good')
+        backup_check.reject { |key, _value| key == 'kind' }.merge(
+          'verify_only' => true,
+          'verification_retention' => { 'transaction' => inputs[host]['transaction'], 'release' => bound['release'],
+                                        'hostname' => host, 'policy_sha256' => bound['policy_sha256'], 'stage' => stage, 'output_dir' => '/fixture' },
+        )
+      end
 
       before :each do
         bound['backup_requirements']['update-good'] = [backup_check]
@@ -428,9 +436,11 @@ RSpec.describe 'nest::host::update' do
 
       it 'checks the full backup scope before any reset and repeats the affected prerequisite before initiation' do
         checks = 0
-        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
-          checks += 1
-          Bolt::PlanResult.new({}, 'success')
+        ['preflight', 'initiation'].each do |stage|
+          expect_plan('nest::app::hermes::backup').with_params(verify_params(stage)).return do |**_options|
+            checks += 1
+            Bolt::PlanResult.new(backup_receipt, 'success')
+          end
         end
         commands.each_value do |argv|
           expect_command(argv.join(' ')).return do |targets:, command:, **_options|
@@ -439,24 +449,24 @@ RSpec.describe 'nest::host::update' do
           end
         end
 
-        expect(run_plan('nest::host::update', params).ok?).to be(true)
+        result = run_plan('nest::host::update', params)
+        expect(result.ok?).to be(true)
+        expect(result.value['backup_preflight']).to eq([[backup_receipt], []])
+        expect(result.value['waves'][0][0]['backup_verification']).to eq([backup_receipt])
       end
 
       it 'does not start even the canary when a later host backup preflight fails' do
         bound['backup_requirements']['update-good'] = []
         bound['backup_requirements']['update-failed'] = [backup_check]
-        expect_plan('nest::app::hermes::backup').with_params(verify_params).error_with('kind' => 'fixture/backup', 'msg' => 'Stale generation')
+        expect_plan('nest::app::hermes::backup').with_params(verify_params('preflight', 'update-failed')).error_with('kind' => 'fixture/backup', 'msg' => 'Stale generation')
         allow_any_command.not_be_called
 
         expect(run_plan('nest::host::update', params).ok?).to be(false)
       end
 
       it 'does not reset after a previously valid backup becomes unavailable at initiation' do
-        checks = 0
-        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
-          checks += 1
-          (checks == 1) ? Bolt::PlanResult.new({}, 'success') : Bolt::PlanResult.new(Bolt::Error.new('Busy backup', 'fixture/backup'), 'failure')
-        end
+        expect_plan('nest::app::hermes::backup').with_params(verify_params('preflight')).always_return(backup_receipt)
+        expect_plan('nest::app::hermes::backup').with_params(verify_params('initiation')).error_with('kind' => 'fixture/backup', 'msg' => 'Busy backup')
         allow_any_command.not_be_called
 
         expect(run_plan('nest::host::update', params).ok?).to be(false)
@@ -464,9 +474,11 @@ RSpec.describe 'nest::host::update' do
 
       it 'rechecks the preparation window after backup readback rather than treating it as a lease' do
         checks = 0
-        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
-          checks += 1
-          Bolt::PlanResult.new({}, 'success')
+        ['preflight', 'initiation'].each do |stage|
+          expect_plan('nest::app::hermes::backup').with_params(verify_params(stage)).return do |**_options|
+            checks += 1
+            Bolt::PlanResult.new(backup_receipt, 'success')
+          end
         end
         expect_task('nest::update_prepare_inputs').be_called_times(2).return do |targets:, **_options|
           value = (checks == 2) ? { '_error' => { 'kind' => 'nest/update-prepare-inputs', 'msg' => 'Expired window' } } : bound
@@ -476,6 +488,18 @@ RSpec.describe 'nest::host::update' do
         allow_any_command.not_be_called
 
         expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      ['preflight', 'initiation'].each do |stage|
+        it "refuses reset when #{stage} verification has no retained readback" do
+          if stage == 'initiation'
+            expect_plan('nest::app::hermes::backup').with_params(verify_params('preflight')).always_return(backup_receipt)
+          end
+          expect_plan('nest::app::hermes::backup').with_params(verify_params(stage)).always_return('verification_retained' => true, 'readback_verified' => false)
+          allow_any_command.not_be_called
+
+          expect(run_plan('nest::host::update', params).ok?).to be(false)
+        end
       end
     end
 

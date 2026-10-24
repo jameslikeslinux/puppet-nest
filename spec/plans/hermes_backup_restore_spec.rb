@@ -30,7 +30,7 @@ RSpec.describe 'Hermes full-home backup generations' do
   end
 
   it 'passes local staging and an explicit non-pruning capture option' do
-    expect(backup_plan).to include("$stage_dir            = '/var/tmp/nest-hermes-backup'")
+    expect(backup_plan).to include("$stage_dir              = '/var/tmp/nest-hermes-backup'")
     expect(backup_plan).to include("'--stage-dir', $stage_dir")
     expect(backup_plan).to include('$preserve_existing ? {')
     expect(backup_plan).to include("['--no-prune']")
