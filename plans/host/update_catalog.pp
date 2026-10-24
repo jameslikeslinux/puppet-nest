@@ -2,17 +2,35 @@
 plan nest::host::update_catalog (
   TargetSpec                   $target,
   Optional[Hash[String, Data]] $expectations = undef,
+  Optional[Hash[String, Data]] $retention    = undef,
 ) {
   $nodes = get_targets($target)
   if $nodes.length != 1 {
     fail_plan('Catalog convergence requires exactly one host', 'nest/update-catalog-target')
+  }
+  if $retention != undef {
+    if $expectations == undef or $retention.keys.sort != ['output_dir', 'release', 'transaction'] {
+      fail_plan('Catalog retention requires bound expectations and exact transaction, release and output_dir fields', 'nest/update-catalog-retention')
+    }
+    $retain_params = $retention + { 'expectations' => $expectations }
+    # Validate the supervisor destination before the first MUTATING host apply.
+    # This check creates nothing and does not promise later writeability/capacity.
+    run_task('nest::retain_update_catalog', 'localhost', $retain_params + { 'action' => 'check' })
   }
   if $expectations != undef {
     $bound = run_task('nest::update_catalog_apply', $nodes[0], {
       'expectations' => $expectations,
       '_run_as'     => 'root',
     })
-    return($bound.results[0].value)
+    $outcome = $bound.results[0].value
+    if $retention != undef {
+      $retained = run_task('nest::retain_update_catalog', 'localhost', $retain_params + {
+        'action' => 'retain',
+        'report' => $outcome.to_json,
+      })
+      return($outcome + { 'retained_report' => $retained.results[0].value })
+    }
+    return($outcome)
   }
   # Never use a cached catalog, noop, a build fact or a tagged kernel-only apply
   # as evidence of normal served main convergence. Source identity still needs

@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'puppet/transaction/report'
 require 'tmpdir'
+require 'open3'
 require_relative '../../tasks/update_catalog_apply'
 
 RSpec.describe NestUpdateCatalogApply do
@@ -109,6 +110,25 @@ RSpec.describe NestUpdateCatalogApply do
     expect {
       described_class.run(expected, state_dir: 'not-created', certname: 'other', runner: ->(*) { raise 'must not apply' })
     }.to raise_error(NestUpdateCatalogReport::Unavailable)
+  end
+
+  it 'retains the actual native-report producer result through the supervisor stdin task' do
+    [0, 2, 4].each do |second|
+      result, = invoke([2, second])
+      Dir.mktmpdir('retained-catalog-spec-') do |dir|
+        params = { 'action' => 'retain', 'expectations' => expected, 'transaction' => 'fixture-cycle',
+                   'release' => "sha256:#{'b' * 64}", 'output_dir' => dir, 'report' => JSON.generate(result) }
+        stdout, stderr, status = Open3.capture3('python3', File.expand_path('../../tasks/retain_update_catalog.py', __dir__), stdin_data: JSON.generate(params))
+        expect(status.exitstatus).to eq(0), stderr + stdout
+        receipt = JSON.parse(stdout)
+        raw = File.read(receipt['path'])
+        expect(receipt['sha256']).to eq(Digest::SHA256.hexdigest(raw))
+        expect(receipt['readback_verified']).to be(true)
+        document = JSON.parse(raw)
+        expect(document['catalog']).to eq(result)
+        expect(document).to include('release_binding_verified' => false, 'acceptance_recorded' => false, 'served_source_verified' => false)
+      end
+    end
   end
 
   it 'uses argv paths and does not inherit build or extra argument overrides' do

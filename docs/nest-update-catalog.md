@@ -151,6 +151,59 @@ historical failure dispositions or service/hardware/physical UX. Consequently
 integration must retain these receipts durably with real release/boot evidence
 before accept/finalize. No real host catalog was applied to validate this code.
 
+## Durable supervisor retention for bound invocations
+
+For a reviewed real catalog operation, `nest::host::update_catalog` also accepts
+optional `retention`, with exactly `transaction`, `release` and `output_dir`.
+It requires the four invocation `expectations`; it cannot be combined with the
+unbound compatibility path. The transaction is a bounded native Nest ID and
+release is `sha256:` plus the full release-manifest digest. These are requested
+context, NOT independently verified preparation or release acceptance.
+
+Precreate `output_dir` on persistent supervisor storage. With the Nest Bolt
+container wrapper use a path under `/modules/nest/rollout-evidence/ROUND`, backed
+by the caller's project directory. A container-local temporary directory is not
+durable outside that container. The plan first invokes
+`nest::retain_update_catalog action=check` on `localhost` to validate the complete
+context and canonical existing directory, before any host apply. This read-only
+check creates no directory or lock and does not guarantee future writeability,
+free space or exclusive ownership. It does not itself execute a catalog.
+
+After the bound task returns, the plan passes its exact JSON result to
+`nest::retain_update_catalog action=retain` on that same supervisor. The task
+validates host, boot, full source, certname, native UUIDs and detailed exits,
+completion/non-noop/non-cache flags and outcome consistency. It rejects unknown
+fields rather than copying arbitrary logs or private resource data. Valid failed
+or unknown native exits, changed repeats and explicit identity-binding failures
+are retained as failures, not silently discarded or promoted to success.
+
+The retained schema-1 `nest_update_retained_catalog` contains the sanitized
+invocation result, exact expectations, requested transaction/release context and
+transport digest. `release_binding_verified`, `served_source_verified` and
+`acceptance_recorded` are all false. This validates the transported selected
+native scalars; it cannot rehash already removed private raw YAML, authenticate
+catalog content or prove the served module bytes. The raw-report digest remains
+the actual producer observation, not a newly verified raw-report digest here.
+
+Publication reuses the existing report helper's fsync, no-clobber hard link and
+exact-byte/JSON readback. The public allowlisted document is mode 0644 with a
+content-addressed `catalog-TRANSACTION-DIGEST.json` name. Equal concurrent copies
+are idempotent; changed observations retain distinct files; conflicting bytes or
+symlinks at the exact target refuse without replacement. There is no pruning.
+The plan adds `retained_report` containing the exact path, digest, byte count,
+readback flag and outcome. A successful return with `result: fail` is still a
+failed catalog outcome. Destination or publication failure fails the plan;
+it never repeats a host apply to recover a missing artifact. After a transport
+or retention error, inspect the real invocation before any manual replay.
+
+Before task completion, reopen the corresponding caller-side path, compare the
+returned digest, context and result, and retain the file through the existing
+task artifact API. Supervisor readback is not notification-host delivery. This
+integration does not call `nest reset accept`, finalize a transaction, add a
+background supervisor or turn the read-only health plan into a mutating plan.
+No real host catalog was applied to test retention. Rollback omits `retention`,
+preserving existing evidence and all ambiguity; it cannot undo prior applies.
+
 ## Wrapper compatibility and rollback
 
 Ordinary `nest::puppet::run` callers still receive the historical wrapper mapping
