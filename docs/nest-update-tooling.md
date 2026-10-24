@@ -358,6 +358,18 @@ boot continuity. A missing bus, failed command, orphan process, transitioning
 manager, changed inventory or unsupported JSON output is unavailable, never zero.
 An empty available inventory requires both successful unit and process scans.
 
+System failed-unit inventory is sampled before and after the complete user
+collection. Each available user bus is queried again after all initial bus
+queries, before the final manager-unit/process cross-check. A changed failed-unit
+set, including a disappearance, makes that observation unavailable/incomplete
+and the combined result fail. The original sanitized `failures` array remains;
+`failures_after` is added when a successful repeat differs. An unavailable
+repeat also fails without replacing the initial evidence with an empty array.
+No record is automatically explained, reset or cleared. These bounded samples
+detect observed turnover, not transient failures between samples, a new incident
+with an identical unit/state tuple, or future health. They are not a monitoring
+lease, journal-based historical disposition or live acceptance.
+
 Each command is bounded to five seconds within a sixty-second command budget;
 inventories are capped at 128 units/managers. Failed observations remain in the
 returned report, and all discovered managers are attempted even if one bus fails.

@@ -138,6 +138,19 @@ def boot_id():
     return value
 
 
+def recheck_failures(run, prefix, observation, changed_reason):
+    """Keep initial evidence, but never certify a changed or unavailable repeat."""
+    if not observation["inventory_complete"]:
+        return
+    try:
+        after = units(run, prefix, failed=True)
+        if after != observation["failures"]:
+            observation["failures_after"] = after
+            raise Unavailable(changed_reason)
+    except Unavailable as error:
+        observation.update(availability="unavailable", inventory_complete=False, result="fail", reason=str(error))
+
+
 def collect(run, processes=manager_processes, prefix=user_prefix, boot=boot_id):
     observed_boot = boot()
     result = {"schema": 1, "kind": "nest_update_manager_health", "hostname": socket.gethostname(),
@@ -166,6 +179,17 @@ def collect(run, processes=manager_processes, prefix=user_prefix, boot=boot_id):
                                result="fail" if failed else "pass", failures=failed)
             except Unavailable as error:
                 manager["reason"] = str(error)
+        # A stable manager PID/unit inventory does not mean its failure set
+        # stayed healthy while the other managers were queried. Recheck all
+        # available buses without starting managers or clearing old failures.
+        for manager in users["managers"]:
+            if manager["inventory_complete"]:
+                try:
+                    user_command = prefix(manager["uid"])
+                except Unavailable as error:
+                    manager.update(availability="unavailable", inventory_complete=False, result="fail", reason=str(error))
+                    continue
+                recheck_failures(run, user_command, manager, "user_failure_inventory_changed")
         if before != active_managers(units(run, ["systemctl"])) or pids != processes():
             raise Unavailable("user_manager_inventory_changed")
         complete = all(row["availability"] == "available" for row in users["managers"])
@@ -174,6 +198,9 @@ def collect(run, processes=manager_processes, prefix=user_prefix, boot=boot_id):
             users["result"] = "pass" if all(row["result"] == "pass" for row in users["managers"]) else "fail"
     except Unavailable as error:
         users["reason"] = str(error)
+    # Bracket the entire user-manager acquisition with system failure samples.
+    # A new system failure cannot inherit an earlier zero-failure result.
+    recheck_failures(run, ["systemctl"], result["system_failures"], "system_failure_inventory_changed")
     if boot() != observed_boot:
         raise Unavailable("boot_changed_during_collection")
     result["result"] = "pass" if all(result[key].get("result") == "pass" and result[key]["inventory_complete"]
