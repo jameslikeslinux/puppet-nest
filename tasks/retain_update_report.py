@@ -130,18 +130,24 @@ def project(raw, transaction, release, hostname):
     }
 
 
-def publish(report, directory):
+def output_directory(directory):
     # An existing canonical directory is deliberate: never silently create an
     # unmounted/remote destination or hide a misspelled supervisor path.
     directory = Path(directory)
     require(directory.is_absolute() and str(directory.resolve(strict=True)) == str(directory),
             "output directory must already exist and be canonical")
     require(directory.is_dir() and not directory.is_symlink(), "invalid output directory")
+    return directory
+
+
+def publish_document(report, directory, prefix):
+    directory = output_directory(directory)
+    token(prefix, r"[A-Za-z0-9][A-Za-z0-9_.-]{0,400}")
     payload = (json.dumps(report, sort_keys=True, indent=2) + "\n").encode("utf-8")
     digest = hashlib.sha256(payload).hexdigest()
     # Content-addressed versions retain pending, failed and completed reports;
     # later observations never overwrite an earlier phase's only receipt.
-    target = directory / (report["host"]["hostname"] + "-" + report["id"] + "-" + digest + ".json")
+    target = directory / (prefix + "-" + digest + ".json")
     fd, name = tempfile.mkstemp(prefix=".nest-update-report-", dir=directory)
     temporary = Path(name)
     try:
@@ -162,12 +168,16 @@ def publish(report, directory):
             os.close(directory_fd)
         require(not target.is_symlink() and target.read_bytes() == payload, "retained report readback mismatch")
         require(json.loads(target.read_text(encoding="utf-8")) == report, "retained report parse mismatch")
-        return {"path": str(target), "sha256": digest, "bytes": len(payload), "readback_verified": True,
-                "id": report["id"], "release": report["release"], "hostname": report["host"]["hostname"],
-                "phase_count": len(report["phases"]), "state": report["state"],
-                "cli_accepted": report["cli_accepted"], "cli_finalized": report["cli_finalized"]}
+        return {"path": str(target), "sha256": digest, "bytes": len(payload), "readback_verified": True}
     finally:
         temporary.unlink(missing_ok=True)
+
+
+def publish(report, directory):
+    receipt = publish_document(report, directory, report["host"]["hostname"] + "-" + report["id"])
+    return dict(receipt, id=report["id"], release=report["release"], hostname=report["host"]["hostname"],
+                phase_count=len(report["phases"]), state=report["state"],
+                cli_accepted=report["cli_accepted"], cli_finalized=report["cli_finalized"])
 
 
 def main():
