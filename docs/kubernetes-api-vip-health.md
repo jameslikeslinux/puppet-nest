@@ -88,6 +88,59 @@ the target and verify client routing no longer selects it. Keep restoration
 artifacts outside the watched manifest directory. Do not restore an unhealthy
 member just to increase the advertiser count.
 
+## Bounded etcd progress check
+
+`nest::kubernetes::check_etcd` exposes the existing maintenance gate without
+running reconciliation. It uses ordinary inventory-backed Bolt escalation on
+one explicitly selected voting member. For example:
+
+```sh
+bolt plan run nest::kubernetes::check_etcd target=control1 'etcd_servers=["https://172.22.4.8:2379","https://172.22.4.9:2379"]'
+```
+
+`etcd_member_names` defaults to the three existing controllers; a different
+complete unique odd voting topology of three through seven members must be
+explicit. The observer must be in that set. `etcd_servers` is a nonempty unique
+TLS seed list, not a membership waiver: native `--cluster` discovery and the
+validator must still cover every expected voter exactly once. The supported
+endpoint port is 2379. No credential bytes appear in parameters or output.
+
+The guard performs two native endpoint health, status and membership acquisitions,
+with `sample_seconds` from one through five (default two) between them. Each
+kubectl request has a ten-second request timeout; etcdctl uses a three-second
+dial and five-second command timeout. An outer fifteen-second deadline, with
+a two-second termination grace, also bounds each command's streaming transport.
+No retry, synthetic application write,
+snapshot, checksum scan, compaction, defrag or service operation is generated.
+Temporary mode-private sample files are removed on normal success/failure.
+Transport loss or process termination can leave private scratch, not a receipt
+or permission to repeat a disruptive operation.
+
+Both samples require exact unique positive member IDs, one cluster and leader,
+consistent raft term, no reported errors, valid committed/applied indexes and
+bounded applied-index lag (`max_lag`, zero through 1000, default 1000).
+Every member's applied index must advance while member/name/endpoint bindings,
+cluster ID, leader and term remain unchanged. Reordered rows are harmless.
+A quiet cluster with no observed advancement, a leader turnover or a transient
+disagreement refuses conservatively; it is not proof of data loss or permission
+to repair/restart etcd. Diagnose only the failed boundary rather than repeating
+the fleet update. The old positional validator interface remains a single
+snapshot check and never claims advancement.
+
+The returned `nest_etcd_check` contains the sanitized quorum result with decimal
+string cluster/member/leader IDs and per-member progress, but always an empty
+`reboot_eligible` and `acceptance_recorded=false`. Validator bytes come from the
+selected Bolt module, not an assumed installed helper revision. Existing API-only
+reconciliation invokes this same gate before mutation and after readiness;
+it does not broaden its certificate/etcd mutation authority.
+
+This is only the quorum portion of maintenance admission. It does not verify
+the kube-apiserver's actual configured client endpoint list, survivor VIP kernel
+route, USB/power coupling, relevant Ceph/storage health, recovery route, prepared
+transaction or release/disruption authorization. Those gates remain required
+before a real host outage; successful quorum sampling alone cannot enable host
+reboot. No fault injection or new cluster operation is authorized by this example.
+
 ## Heavy control-plane work
 
 No raw snapshot replication or capacity rehearsal may run unbounded on a live
