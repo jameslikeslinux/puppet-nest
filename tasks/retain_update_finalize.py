@@ -12,7 +12,7 @@ from retain_update_report import (  # noqa: E402
 )
 
 SNAPSHOT_POLICY = "retain_origins_no_reclamation_claim"
-BINDINGS = ("id", "release", "host", "host_identity_sha256", "shared_state", "source", "policy", "target_tree", "phases")
+BINDINGS = ("id", "release", "host", "host_identity_sha256", "shared_state", "source", "policy", "target_tree", "phases", "reboot_requested")
 
 
 def unique(pairs):
@@ -65,7 +65,7 @@ def retain(arguments):
         report = before
     else:
         report, data = native(arguments["report"], arguments)
-        require(all(report[key] == before[key] for key in BINDINGS) and
+        require(all(report[key] == before[key] for key in BINDINGS) and report.get("reboot") == before.get("reboot") and
                 report["accepted_boot_id"] == before["accepted_boot_id"], "finalization identity changed")
         if action == "preview":
             require(data.get("read_only") is True and data.get("cleanup") == "owned" and data.get("candidates") == [] and

@@ -1,6 +1,7 @@
 """No host or ZFS mutation: exercise the actual stdin task across filesystems."""
 
 
+import copy
 import hashlib
 import importlib.util
 import json
@@ -42,6 +43,19 @@ def fixture(state="prepared", schema=1):
     }
 
 
+def with_reboot(data=None, native_exit=0, intent=False):
+    data = copy.deepcopy(data if data is not None else fixture())
+    data['capacity'] = {'accounting_contract': 2}
+    data['reboot'] = {
+        'schema': 1, 'state': 'intent' if intent else 'returned', 'boot_id': data['host']['boot_id'],
+        'requested_at': '2026-10-21T20:02:00.123456Z', 'command': ['systemctl', '--no-block', 'reboot'],
+    }
+    if not intent:
+        data['reboot'].update(finished_at='2026-10-21T20:02:01Z', native_exit=native_exit)
+    data['reboot_requested'] = None if intent else native_exit == 0
+    return data
+
+
 class RetainUpdateReportTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -78,6 +92,80 @@ class RetainUpdateReportTest(unittest.TestCase):
         self.assertEqual(path.stat().st_mode & 0o777, 0o644)
         shutil.rmtree(self.worker)
         self.assertEqual(json.loads(path.read_text())["state"], "prepared")
+
+    def test_reboot_attempts_retain_three_valued_outcomes_without_acceptance(self):
+        for state, schema in (('prepared', 1), ('accepted', 2), ('finalizing', 2), ('finalized', 2)):
+            for code, intent in ((0, False), (23, False), (0, True)):
+                with self.subTest(state=state, code=code, intent=intent):
+                    data = with_reboot(fixture(state, schema), native_exit=code, intent=intent)
+                    result = self.run_task(self.arguments(data))
+                    self.assertEqual(result.returncode, 0, result.stdout)
+                    retained = json.loads(Path(json.loads(result.stdout)['path']).read_bytes())
+                    self.assertEqual(retained['reboot'], data['reboot'])
+                    self.assertIs(retained['reboot_requested'], data['reboot_requested'])
+                    self.assertFalse(retained['acceptance_independently_verified'])
+                    self.assertNotIn('observation', retained)
+
+    def test_reboot_receipt_strict_shape_binding_and_calendar_validation(self):
+        changes = [
+            {'schema': True}, {'schema': 2}, {'state': 'submitted'}, {'boot_id': 'other'},
+            {'command': ['systemctl', '--force', 'reboot']}, {'stdout': 'private sentinel'},
+            {'requested_at': '2026-02-30T20:02:00Z'}, {'requested_at': '2026-10-21T20:02:00+00:00'},
+            {'requested_at': '2026-10-21T20:00:00Z'}, {'finished_at': '2026-10-21T20:01:00Z'},
+            {'finished_at': '2026-10-21T20:02:60Z'}, {'native_exit': True}, {'native_exit': -1},
+            {'native_exit': 256}, {'native_exit': 0.0}, {'native_exit': None},
+        ]
+        for change in changes:
+            data = with_reboot()
+            data['reboot'].update(change)
+            with self.subTest(change=change):
+                result = self.run_task(self.arguments(data))
+                self.assertEqual(result.returncode, 1)
+                self.assertNotIn('private sentinel', result.stdout + result.stderr)
+        for key in with_reboot()['reboot']:
+            data = with_reboot()
+            del data['reboot'][key]
+            self.assertEqual(self.run_task(self.arguments(data)).returncode, 1)
+        for invalid in (None, [], False, 'private sentinel'):
+            data = with_reboot()
+            data['reboot'] = invalid
+            self.assertEqual(self.run_task(self.arguments(data)).returncode, 1)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+
+    def test_reboot_outcome_requires_matching_receipt_and_successful_preparation(self):
+        for outcome in (True, None, 0, 1, 'false'):
+            data = fixture()
+            data['reboot_requested'] = outcome
+            self.assertEqual(self.run_task(self.arguments(data)).returncode, 1)
+        for change in ('outcome', 'intent_completion', 'capacity', 'old_contract', 'bool_contract', 'state', 'phase_exit', 'command_exit'):
+            data = with_reboot()
+            if change == 'outcome':
+                data['reboot_requested'] = False
+            elif change == 'intent_completion':
+                data['reboot']['state'] = 'intent'
+                data['reboot_requested'] = None
+            elif change == 'capacity':
+                del data['capacity']
+            elif change in ('old_contract', 'bool_contract'):
+                data['capacity']['accounting_contract'] = 1 if change == 'old_contract' else True
+            elif change == 'state':
+                data.update(state='stopped', success=False)
+            elif change == 'phase_exit':
+                data['phases'][0]['native_exit'] = 17
+            else:
+                data['phases'][0]['commands'] = [{'operation': 'root', 'success': True, 'native_exit': 17}]
+            with self.subTest(change=change):
+                self.assertEqual(self.run_task(self.arguments(data)).returncode, 1)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+
+    def test_duplicate_fields_cannot_hide_reboot_outcome_or_secret_material(self):
+        arguments = self.arguments(with_reboot())
+        for field, replacement in (('"reboot_requested": true', '"reboot_requested": null, "reboot_requested": true'),
+                                   ('"native_exit": 0', '"native_exit": 23, "native_exit": 0')):
+            raw = arguments['report'].replace(field, replacement)
+            self.assertNotEqual(raw, arguments['report'])
+            self.assertEqual(self.run_task(dict(arguments, report=raw)).returncode, 1)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
 
     def test_unknown_payload_fields_cannot_leak(self):
         data = fixture()

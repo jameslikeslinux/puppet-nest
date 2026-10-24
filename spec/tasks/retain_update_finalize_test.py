@@ -10,7 +10,7 @@ import tempfile
 from typing import Any
 import unittest
 
-from retain_update_report_test import fixture
+from retain_update_report_test import fixture, with_reboot
 
 TASK = Path(__file__).resolve().parents[2] / 'tasks/retain_update_finalize.py'
 BOOT = '22345678-1234-1234-1234-123456789abc'
@@ -68,6 +68,27 @@ class FinalizeTest(unittest.TestCase):
         code, receipt = self.run_task(action='complete', report=json.dumps(accepted('finalized')))
         self.assertEqual(code, 0, receipt)
         self.assertTrue(receipt['cli_finalized'])
+
+    def test_reboot_history_is_preserved_and_cannot_change_during_finalize(self):
+        for code, intent in ((0, False), (23, False), (0, True)):
+            before = with_reboot(status(), native_exit=code, intent=intent)
+            after = with_reboot(accepted('finalized'), native_exit=code, intent=intent)
+            status_raw = json.dumps(before)
+            result, receipt = self.run_task(action='complete', status=status_raw, report=json.dumps(after))
+            self.assertEqual(result, 0, receipt)
+            document = json.loads(Path(receipt['path']).read_bytes())
+            self.assertEqual(document['report']['reboot'], before['reboot'])
+            for change in ('removed', 'changed', 'added'):
+                changed_before, changed_after = copy.deepcopy(before), copy.deepcopy(after)
+                if change == 'removed':
+                    del changed_after['reboot']
+                    changed_after['reboot_requested'] = False
+                elif change == 'added':
+                    del changed_before['reboot']
+                    changed_before['reboot_requested'] = False
+                else:
+                    changed_after['reboot']['requested_at'] = '2026-10-21T20:02:00Z'
+                self.assertEqual(self.run_task(action='complete', status=json.dumps(changed_before), report=json.dumps(changed_after))[0], 1)
 
     def test_check_does_not_create_files(self):
         code, result = self.run_task(action='check')

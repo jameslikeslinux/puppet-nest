@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Materialize a bounded CLI report on the Bolt supervisor, never on the host."""
 
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -13,6 +14,14 @@ import tempfile
 ID = r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}"
 DIGEST = r"[0-9a-f]{64}"
 PHASES = ["backup", "mount", "sync", "kernel", "unmount", "activate"]
+
+
+def unique(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result, "duplicate field")
+        result[key] = value
+    return result
 
 
 def require(condition, message):
@@ -38,10 +47,48 @@ def identity_tree(rows):
     return result
 
 
+def reboot_time(value):
+    token(value, r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z")
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def reboot_receipt(data, phases, prepared):
+    """Validate native submission semantics, never infer an observed boot."""
+    if "reboot" not in data:
+        require(data.get("reboot_requested") is False, "request outcome without receipt")
+        return None
+    receipt = data["reboot"]
+    require(isinstance(receipt, dict), "invalid reboot receipt")
+    keys = {"schema", "state", "boot_id", "requested_at", "command"}
+    if receipt.get("state") == "returned":
+        keys |= {"finished_at", "native_exit"}
+    require(set(receipt) == keys and type(receipt["schema"]) is int and receipt["schema"] == 1 and
+            receipt["state"] in ("intent", "returned") and
+            receipt["command"] == ["systemctl", "--no-block", "reboot"] and
+            receipt["boot_id"] == data["host"]["boot_id"], "invalid reboot binding")
+    capacity = data.get("capacity")
+    require(prepared and isinstance(capacity, dict) and type(capacity.get("accounting_contract")) is int and
+            capacity["accounting_contract"] == 2, "missing reboot preparation provenance")
+    requested = reboot_time(receipt["requested_at"])
+    for phase in phases:
+        require(phase["state"] == "complete" and phase["native_exit"] in (None, 0) and
+                all(command["success"] and command["native_exit"] in (None, 0) for command in phase["commands"]),
+                "unsuccessful reboot preparation")
+        finished = datetime.fromisoformat(phase["finished_at"].replace("Z", "+00:00"))
+        require(finished.tzinfo is not None and finished <= requested, "reboot predates preparation")
+    outcome = None
+    if receipt["state"] == "returned":
+        require(type(receipt["native_exit"]) is int and 0 <= receipt["native_exit"] <= 255 and
+                reboot_time(receipt["finished_at"]) >= requested, "invalid reboot completion")
+        outcome = receipt["native_exit"] == 0
+    require(data.get("reboot_requested") is outcome, "inconsistent reboot outcome")
+    return dict(receipt)
+
+
 def project(raw, transaction, release, hostname):
     """Project known fields; no arbitrary command output, exception or environment."""
     require(isinstance(raw, str) and len(raw.encode("utf-8")) <= 262144, "report exceeds size bound")
-    data = json.loads(raw)
+    data = json.loads(raw, object_pairs_hook=unique)
     require(isinstance(data, dict), "report must be an object")
     require(type(data.get("schema")) is int and data["schema"] in (1, 2), "unsupported CLI report schema")
     require(data.get("kind") == "reset_transaction_report", "not a CLI transaction report")
@@ -56,7 +103,7 @@ def project(raw, transaction, release, hostname):
     require((data["schema"] == 2) == lifecycle, "schema and lifecycle disagree")
     prepared = state in ("prepared", "accepted", "finalizing", "finalized")
     require(data.get("success") is prepared and data.get("accepted") is lifecycle and
-            data.get("finalized") is (state == "finalized") and data.get("reboot_requested") is False,
+            data.get("finalized") is (state == "finalized"),
             "inconsistent outcome flags")
     rows = data["phases"]
     require(isinstance(rows, list) and len(rows) <= len(PHASES), "invalid phase count")
@@ -91,6 +138,7 @@ def project(raw, transaction, release, hostname):
         phases.append(phase)
     require(not prepared or len(phases) == len(PHASES) and all(row["state"] == "complete" for row in phases),
             "incomplete prepared report")
+    reboot = reboot_receipt(data, phases, prepared)
     host_result = {"hostname": hostname, "boot_id": token(host["boot_id"], r"[0-9a-f-]{36}"),
                    "pool_guid": token(host["pool_guid"], r"[1-9][0-9]*")}
     for key in ("current", "target", "next_boot"):
@@ -125,9 +173,12 @@ def project(raw, transaction, release, hostname):
         "policy": {key: token(data["policy"][key], DIGEST) for key in ("filter_sha256", "cli_sha256")},
         "target_tree": target_tree, "phases": phases,
         "prepared": prepared, "cli_accepted": lifecycle, "cli_finalized": state == "finalized",
+        "reboot_requested": data["reboot_requested"],
         "acceptance_independently_verified": False,
         "transport_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
     }
+    if reboot is not None:
+        result["reboot"] = reboot
     if "observation" in data:
         observed = data["observation"]
         require(isinstance(observed, dict), "invalid observation")
