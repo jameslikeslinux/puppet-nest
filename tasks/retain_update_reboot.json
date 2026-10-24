@@ -1,0 +1,14 @@
+{
+  "description": "Validate and retain native read-only reboot eligibility without submitting a reboot",
+  "input_method": "stdin",
+  "supports_noop": false,
+  "files": ["nest/tasks/retain_update_report.py"],
+  "parameters": {
+    "action": { "type": "Enum['check', 'retain']" },
+    "transaction": { "type": "Pattern[/\\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\\z/]" },
+    "release": { "type": "Pattern[/\\Asha256:[0-9a-f]{64}\\z/]" },
+    "hostname": { "type": "String[1]" },
+    "output_dir": { "type": "Stdlib::Absolutepath", "description": "Existing persistent supervisor directory" },
+    "report": { "type": "Optional[String[1]]", "description": "Exact native reboot --plan stdout; required for retain" }
+  }
+}
