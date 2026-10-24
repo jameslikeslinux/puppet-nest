@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+import fcntl
 import json
 import hashlib
 import importlib.machinery
@@ -107,6 +109,127 @@ class HermesBackupGenerationTest(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(archive.with_suffix('.json').stat().st_mode), 0o600)
         self.assertEqual(list((self.root / 'stage').iterdir()), [])
         self.assertEqual(list(self.backup_dir.glob('*.transfer')), [])
+
+    def verify_args(self, receipt: dict[str, object]):
+        args = generation.parser().parse_args([
+            'verify', '--backup-dir', str(self.backup_dir), '--checkpoint', str(receipt['checkpoint']),
+            '--expected-sha256', str(receipt['sha256']), '--max-age-seconds', '3600',
+        ])
+        args.required_profile = list(PROFILES)
+        return args
+
+    def test_verify_reads_exact_generation_without_capture_prune_or_content_output(self) -> None:
+        self.backup('previous')
+        receipt = self.backup('current')
+        before = {path.name: (path.read_bytes(), path.stat().st_mtime_ns, path.stat().st_mode) for path in self.backup_dir.iterdir()}
+        result = self.run_helper('verify', '--backup-dir', str(self.backup_dir), '--checkpoint', 'current',
+                                 '--expected-sha256', str(receipt['sha256']), '--max-age-seconds', '3600')
+        self.assertEqual(result['action'], 'verified')
+        self.assertEqual(result['sha256'], receipt['sha256'])
+        self.assertFalse(result['restore_verified'])
+        self.assertFalse(result['execution_authorized'])
+        self.assertNotIn('providers', json.dumps(result))
+        self.assertEqual(self.call_log.read_text(), 'backup\nbackup\n')
+        after = {path.name: (path.read_bytes(), path.stat().st_mtime_ns, path.stat().st_mode) for path in self.backup_dir.iterdir()}
+        self.assertEqual(after, before)
+
+    def test_verify_missing_storage_or_lock_does_not_initialize_it(self) -> None:
+        args = self.verify_args({'checkpoint': 'missing', 'sha256': 'a' * 64})
+        with self.assertRaises(FileNotFoundError):
+            generation.verify_generation(args)
+        self.assertFalse(self.backup_dir.exists())
+        self.backup_dir.mkdir(mode=0o700)
+        with self.assertRaises(FileNotFoundError):
+            generation.verify_generation(args)
+        self.assertEqual(list(self.backup_dir.iterdir()), [])
+
+    def test_verify_refuses_busy_retention_lock_without_waiting(self) -> None:
+        args = self.verify_args(self.backup('locked'))
+        with (self.backup_dir / '.generation.lock').open('rb') as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            with self.assertRaises(BlockingIOError):
+                generation.verify_generation(args)
+
+    def test_verify_refuses_same_size_corruption_and_wrong_expected_digest(self) -> None:
+        receipt = self.backup('corrupt-verification')
+        args = self.verify_args(receipt)
+        args.expected_sha256 = 'a' * 64
+        with self.assertRaises(RuntimeError):
+            generation.verify_generation(args)
+        args.expected_sha256 = receipt['sha256']
+        archive = self.backup_dir / str(receipt['archive'])
+        raw = bytearray(archive.read_bytes())
+        raw[50] ^= 1
+        archive.write_bytes(raw)
+        with self.assertRaises(RuntimeError):
+            generation.verify_generation(args)
+
+    def test_verify_refuses_malformed_incomplete_or_miscounted_receipts(self) -> None:
+        receipt = self.backup('bad-receipt')
+        args = self.verify_args(receipt)
+        path = self.backup_dir / 'hermes-home-bad-receipt.json'
+        original = json.loads(path.read_text())
+        mutations = [[], None, {'verified': False}, {'format': 'profile-backup'}, {'members': 999},
+                     {'bytes': True}, {'required_shared': []}, {'required_profiles': None},
+                     {'required_profiles': [{}]}, {'required_profiles': ['talon']},
+                     {'created_at': '2030-02-30T00:00:00Z'}, {'created_at': '2030-01-01T00:00:00+00:00'}]
+        for mutation in mutations:
+            changed = dict(original, **mutation) if isinstance(mutation, dict) else mutation
+            path.write_text(json.dumps(changed))
+            with self.subTest(mutation=mutation), self.assertRaises((RuntimeError, ValueError)):
+                generation.verify_generation(args)
+
+    def test_verify_checks_age_after_hash_and_refuses_future_timestamp(self) -> None:
+        receipt = self.backup('age')
+        args = self.verify_args(receipt)
+        path = self.backup_dir / 'hermes-home-age.json'
+        metadata = json.loads(path.read_text())
+        metadata['created_at'] = '2030-01-01T00:00:00Z'
+        path.write_text(json.dumps(metadata))
+        for hour, allowed in [(0, True), (1, True), (2, False)]:
+            with self.subTest(hour=hour), mock.patch.object(generation, 'datetime', wraps=datetime) as clock:
+                clock.now.return_value = datetime(2030, 1, 1, hour, tzinfo=timezone.utc)
+                if allowed:
+                    self.assertEqual(generation.verify_generation(args)['action'], 'verified')
+                else:
+                    with self.assertRaises(RuntimeError):
+                        generation.verify_generation(args)
+        with mock.patch.object(generation, 'datetime', wraps=datetime) as clock:
+            clock.now.return_value = datetime(2029, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+            with self.assertRaises(RuntimeError):
+                generation.verify_generation(args)
+
+    def test_verify_refuses_public_files_and_symlinks_without_permission_repair(self) -> None:
+        receipt = self.backup('private')
+        args = self.verify_args(receipt)
+        self.backup_dir.chmod(0o755)
+        with self.assertRaises(RuntimeError):
+            generation.verify_generation(args)
+        self.assertEqual(stat.S_IMODE(self.backup_dir.stat().st_mode), 0o755)
+        self.backup_dir.chmod(0o700)
+        archive = self.backup_dir / str(receipt['archive'])
+        archive.chmod(0o644)
+        with self.assertRaises(RuntimeError):
+            generation.verify_generation(args)
+        self.assertEqual(stat.S_IMODE(archive.stat().st_mode), 0o644)
+        archive.chmod(0o600)
+        saved = archive.with_suffix('.saved')
+        archive.rename(saved)
+        archive.symlink_to(saved)
+        with self.assertRaises(RuntimeError):
+            generation.verify_generation(args)
+
+    def test_verify_requires_explicit_bounded_age_and_literal_digest(self) -> None:
+        args = self.verify_args(self.backup('policy'))
+        for age in (0, -1, 604801):
+            args.max_age_seconds = age
+            with self.assertRaises(ValueError):
+                generation.verify_generation(args)
+        args.max_age_seconds = 3600
+        for digest in ('latest', 'sha256:' + 'a' * 64, 'A' * 64):
+            args.expected_sha256 = digest
+            with self.assertRaises(ValueError):
+                generation.verify_generation(args)
 
     def test_failed_capture_keeps_previous_generation_and_publishes_nothing(self) -> None:
         first = self.backup('prior')

@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import fcntl
 import hashlib
 import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -179,7 +181,7 @@ def _read_completed_metadata(archive: Path, checkpoint: str) -> dict[str, object
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     except (FileNotFoundError, OSError, json.JSONDecodeError):
         return None
-    if metadata.get("checkpoint") != checkpoint or metadata.get("archive") != archive.name:
+    if not isinstance(metadata, dict) or metadata.get("checkpoint") != checkpoint or metadata.get("archive") != archive.name:
         return None
     try:
         if metadata.get("bytes") != archive.stat().st_size:
@@ -253,6 +255,64 @@ def prune_generations(args: argparse.Namespace) -> dict[str, object]:
         os.chmod(lock.name, 0o600)
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         return {"action": "pruned", "removed": _prune(backup_dir, args.retain)}
+
+
+def verify_generation(args: argparse.Namespace) -> dict[str, object]:
+    """Read an exact published generation under the existing retention lock."""
+    if not 1 <= args.max_age_seconds <= 604800:
+        raise ValueError('max age must be between 1 and 604800 seconds')
+    if not re.fullmatch(r'[0-9a-f]{64}', args.expected_sha256):
+        raise ValueError('expected SHA256 must be an exact lowercase digest')
+    backup_dir = args.backup_dir.resolve(strict=True)
+    directory = backup_dir.stat()
+    if not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid() or stat.S_IMODE(directory.st_mode) & 0o077:
+        raise RuntimeError('generation directory must be private and owned by the backup account')
+    archive = _archive_for(backup_dir, args.checkpoint)
+    paths = (backup_dir / '.generation.lock', archive, _metadata_for(archive))
+    # Verification must not initialize a missing lock, follow leaf symlinks or
+    # silently repair private permissions. Parent directory trust is supplied by
+    # the ordinary backup account and inventory, not this local receipt.
+    for path in paths:
+        info = path.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) & 0o077:
+            raise RuntimeError('generation files must be private regular files owned by the backup account')
+    with paths[0].open('rb') as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+        metadata = _read_completed_metadata(archive, args.checkpoint)
+        if not isinstance(metadata, dict) or metadata.get('format') != 'full-hermes-home-v1' or metadata.get('verified') is not True:
+            raise RuntimeError('missing completed full-home generation receipt')
+        if metadata.get('sha256') != args.expected_sha256:
+            raise RuntimeError('generation receipt does not match the expected SHA256')
+        created_text = metadata.get('created_at')
+        if not isinstance(created_text, str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z', created_text):
+            raise ValueError('generation receipt requires a strict UTC publication timestamp')
+        created = datetime.strptime(created_text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        verification = _verify_archive(archive, tuple(args.required_profile))
+        if any(type(metadata.get(key)) is not int or metadata[key] != verification[key] for key in ('bytes', 'members')):
+            raise RuntimeError('generation receipt counts do not match the archive')
+        profiles = metadata.get('required_profiles')
+        if not isinstance(profiles, list) or not all(isinstance(profile, str) for profile in profiles):
+            raise RuntimeError('generation receipt requires a profile list')
+        if metadata.get('required_shared') != list(REQUIRED_SHARED) or not set(args.required_profile) <= set(profiles):
+            raise RuntimeError('generation receipt does not cover the required shared state and profiles')
+        if _sha256(archive) != args.expected_sha256:
+            raise RuntimeError('generation archive digest mismatch')
+        # Hashing can take time. Evaluate freshness after the complete readback,
+        # never use a pre-hash sample as an admission lease.
+        checked = datetime.now(timezone.utc)
+        age = (checked - created).total_seconds()
+        if not 0 <= age <= args.max_age_seconds:
+            raise RuntimeError('generation publication is future-dated or older than the required limit')
+        if _read_completed_metadata(archive, args.checkpoint) != metadata:
+            raise RuntimeError('generation receipt changed during verification')
+        return {
+            'schema': 1, 'kind': 'nest_hermes_generation_verification', 'action': 'verified',
+            'checkpoint': args.checkpoint, 'sha256': args.expected_sha256,
+            'archive': archive.name, 'bytes': verification['bytes'], 'members': verification['members'],
+            'required_profiles': list(args.required_profile), 'created_at': created_text,
+            'checked_at': checked.strftime('%Y-%m-%dT%H:%M:%SZ'), 'max_age_seconds': args.max_age_seconds,
+            'restore_verified': False, 'execution_authorized': False,
+        }
 
 
 def _cleanup_legacy_locked(args: argparse.Namespace, backup_dir: Path) -> dict[str, object]:
@@ -331,6 +391,13 @@ def parser() -> argparse.ArgumentParser:
     backup.add_argument("--retain", type=int, default=24)
     backup.set_defaults(handler=create_generation)
 
+    verify = subparsers.add_parser('verify')
+    common(verify)
+    verify.add_argument('--checkpoint', required=True)
+    verify.add_argument('--expected-sha256', required=True)
+    verify.add_argument('--max-age-seconds', type=int, required=True)
+    verify.set_defaults(handler=verify_generation)
+
     prune = subparsers.add_parser("prune")
     common(prune)
     prune.add_argument("--retain", type=int, default=24)
@@ -349,7 +416,7 @@ def main() -> int:
         args.required_profile = list(DEFAULT_PROFILES)
     try:
         result = args.handler(args)
-    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as exc:
+    except (OSError, RuntimeError, ValueError, UnicodeError, zipfile.BadZipFile, subprocess.CalledProcessError) as exc:
         print(json.dumps({"error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 1
     print(json.dumps(result, indent=2, sort_keys=True))
