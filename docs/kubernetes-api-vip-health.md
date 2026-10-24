@@ -177,6 +177,48 @@ etcd, records update acceptance or makes a host reboot eligible. Survivor TLS,
 actual client kernel route, storage and physical coupling, transaction/release
 binding and separately authorized maintenance remain required.
 
+### Observe a survivor from an external client's actual kernel path
+
+`nest::kubernetes::check_api_survivor` is a read-only composition of the existing
+strict VIP readiness policy and the API-client-bound quorum check. For example:
+
+```sh
+bolt plan run nest::kubernetes::check_api_survivor target=control2 survivor=control1 client=owl 'advertisers={"control1":"172.22.4.7","control2":"172.22.4.8"}'
+```
+
+Each selector must resolve to exactly one inventory identity. The target and
+survivor must be different existing controllers, and the client must be external
+to the controller set. The explicit advertiser map binds intended controller
+names to unique IPv4 next hops; it is policy, not discovered approval. The
+survivor must be present, even when the target is a nonadvertising controller.
+
+The survivor's static VIP manifest and ready mirror Pod must agree on image,
+VIP, BGP router ID, strict local readiness URL and read-only Kubernetes CA mount.
+The client must have the exact BIRD route in kernel table 100 and a native route
+lookup through that table and a matching usable gateway/device. The survivor's
+own address must be a next hop; every next hop must be declared. A healthy BIRD
+RIB alone, a reflected next hop, an empty kernel route, dead/linkdown routes,
+local/default routing or a lookup through another table refuses. This interface
+currently supports IPv4 direct gateway and ECMP routes, not nexthop-object IDs.
+
+From that same client, bounded curl requests verify the CA and the same API TLS
+name independently against the direct survivor and VIP. Curl configuration and
+proxy inheritance are disabled; no credentials, redirects, insecure bypass or
+retry are used. The survivor's actual API endpoint/quorum check then runs.
+Client TLS checks repeat afterward, followed by kernel and VIP runtime checks.
+Next-hop ordering and incidental ECMP flow selection may change; the usable
+next-hop set, VIP Pod/container and mirror identities must not. All temporary
+observations are mode-private and removed on normal success/failure. Results
+contain sanitized identities only, with `reboot_eligible=[]` and
+`acceptance_recorded=false`.
+
+This is bounded observation, not proof of withdrawal, route persistence through
+a bridge change, ongoing availability or full maintenance admission. It does
+not mutate the existing VIP maintenance plan, withdraw the target, verify
+storage or physical/USB power independence, bind a prepared update transaction,
+or authorize an outage. Those integration and separately approved live-canary
+obligations remain. No production route or bridge is changed for this check.
+
 ## Heavy control-plane work
 
 No raw snapshot replication or capacity rehearsal may run unbounded on a live
