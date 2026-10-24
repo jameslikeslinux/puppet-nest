@@ -6,6 +6,6 @@
   "parameters": {
     "policy": { "type": "Hash" },
     "targets": { "type": "Array[String[1], 1]" },
-    "inputs": { "type": "Hash", "description": "Exact inventory-name map to transaction, root_generation and capacity_policy; paths exist on each target, not the supervisor" }
+    "inputs": { "type": "Hash", "description": "Exact inventory-name map to transaction, root_generation, capacity_policy and generation_policy; the exact sealed-generation verification policy must bind the same host, release and root path" }
   }
 }

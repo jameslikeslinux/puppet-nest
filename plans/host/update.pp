@@ -85,6 +85,15 @@ plan nest::host::update (
       })
     }
     if $mode == 'prepare' {
+      # Verify ALL selected local seals before the first reset, without source
+      # publication access, transfer, provisioning or automatic repair.
+      $bound['inputs'].each |$name, $input| {
+        run_plan('nest::host::stage_generation', {
+          'targets'     => $name,
+          'policy'      => $input['generation_policy'],
+          'verify_only' => true,
+        })
+      }
       # Verify every declared existing generation before ANY native reset, then
       # repeat affected checks at initiation. Never capture or prune on failure.
       $bound['backup_requirements'].each |$name, $checks| {
@@ -105,6 +114,13 @@ plan nest::host::update (
           $bound['backup_requirements'][$name].each |$check| {
             run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
           }
+          # A seal observation is not a lease. Repeat after readiness/backup
+          # work, then re-admit time and exact inputs before native initiation.
+          run_plan('nest::host::stage_generation', {
+            'targets'     => $name,
+            'policy'      => $bound['inputs'][$name]['generation_policy'],
+            'verify_only' => true,
+          })
           # Initial admission is not a lease. Maintenance, destination checks
           # and earlier waves may outlast the exact preparation window. Recheck
           # on the supervisor immediately before EACH host command, not only
@@ -114,7 +130,8 @@ plan nest::host::update (
             'targets' => $nodes.map |$candidate| { $candidate.name },
             'inputs'  => $inputs,
           }).results[0].value
-          if $admitted['policy_sha256'] != $bound['policy_sha256'] or $admitted['commands'][$name] != $bound['commands'][$name] {
+          if $admitted['policy_sha256'] != $bound['policy_sha256'] or $admitted['inputs_sha256'] != $bound['inputs_sha256'] or
+            $admitted['commands'][$name] != $bound['commands'][$name] {
             fail_plan('Preparation policy changed during admission; no new host command started', 'nest/update-prepare-inputs')
           }
         }

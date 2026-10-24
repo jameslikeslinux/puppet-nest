@@ -18,7 +18,9 @@ from update_wave_plan_test import policy
 
 def inputs(selected):
     return {name: {'transaction': 'fixture-' + name, 'root_generation': '/releases/fixture',
-                   'capacity_policy': '/etc/nest/fixture-capacity.json'} for name in selected}
+                   'capacity_policy': '/etc/nest/fixture-capacity.json',
+                   'generation_policy': {'hostname': name, 'release': 'sha256:' + 'b' * 64,
+                                         'destination': '/releases/fixture'}} for name in selected}
 
 
 def preparation_policy():
@@ -55,6 +57,31 @@ class PrepareInputsTest(unittest.TestCase):
         for bad in ({}, dict(self.inputs, extra=self.inputs['canary']), {key: value for key, value in self.inputs.items() if key != 'leaf'}):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 prepare(self.policy, self.targets, bad)
+
+    def test_seal_must_bind_same_host_release_and_native_root(self):
+        for change in ({'hostname': 'other'}, {'release': 'sha256:' + 'c' * 64},
+                       {'destination': '/other/root'}):
+            value = copy.deepcopy(self.inputs)
+            value['canary']['generation_policy'].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                prepare(self.policy, self.targets, value)
+        for bad in (None, [], {}):
+            value = copy.deepcopy(self.inputs)
+            value['canary']['generation_policy'] = bad
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                prepare(self.policy, self.targets, value)
+        value = copy.deepcopy(self.inputs)
+        del value['leaf']['generation_policy']
+        with self.assertRaises(ValueError):
+            prepare(self.policy, self.targets, value)
+
+    def test_every_preparation_byte_is_bound_even_when_command_is_unchanged(self):
+        first = prepare(self.policy, self.targets, self.inputs)
+        value = copy.deepcopy(self.inputs)
+        value['canary']['generation_policy']['destination_guid'] = '123'
+        changed = prepare(self.policy, self.targets, value)
+        self.assertEqual(first['commands'], changed['commands'])
+        self.assertNotEqual(first['inputs_sha256'], changed['inputs_sha256'])
 
     def test_unknown_keys_and_unsafe_paths_refuse(self):
         mutations = [{'resume': True}, {'transaction': '--help'}, {'transaction': 'x; reboot'},
