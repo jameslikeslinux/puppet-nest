@@ -47,6 +47,12 @@ RSpec.describe 'nest::host::update' do
     expect(run_plan('nest::host::update', 'targets' => targets).ok?).to be(true)
   end
 
+  it 'refuses the legacy controller path instead of bypassing service-aware admission' do
+    allow_any_command.not_be_called
+    expect_plan('nest::host::reboot').not_be_called
+    expect(run_plan('nest::host::update', 'targets' => 'control2', 'reboot' => true).ok?).to be(false)
+  end
+
   it 'reboots only after all requested preparations succeed' do
     expect_command('nest update').with_targets(targets)
     expect_plan('nest::host::reboot').with_params('targets' => targets)
@@ -167,6 +173,66 @@ RSpec.describe 'nest::host::update' do
     let(:commands) { { 'update-good' => ['nest', 'reset', '--transaction', 'good'], 'update-failed' => ['nest', 'reset', '--transaction', 'failed'] } }
     let(:bound) { { 'release' => "sha256:#{'a' * 64}", 'policy_sha256' => 'b' * 64, 'inputs' => inputs, 'commands' => commands, 'waves' => [['update-good'], ['update-failed']] } }
     let(:params) { { 'targets' => targets, 'mode' => 'prepare', 'policy' => {}, 'preparation' => inputs, 'output_dir' => '/fixture' } }
+
+    context 'control-plane maintenance admission' do
+      let(:targets) { ['control3'] }
+      let(:inputs) { { 'control3' => { 'transaction' => 'fixture' } } }
+      let(:commands) { { 'control3' => ['nest', 'reset', '--transaction', 'fixture'] } }
+      let(:bound) { { 'release' => "sha256:#{'a' * 64}", 'policy_sha256' => 'b' * 64, 'inputs' => inputs, 'commands' => commands, 'waves' => [['control3']] } }
+      let(:maintenance) do
+        { 'survivor' => 'control1', 'client' => 'owl', 'advertisers' => {}, 'physical_domains' => {}, 'ceph_fsid' => '12345678-1234-1234-1234-123456789abc' }
+      end
+
+      it 'rejects missing admission without touching a host or creating a report' do
+        allow_any_command.not_be_called
+        expect_task('nest::retain_update_report').not_be_called
+        expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'cannot use the API-only null Ceph option to prepare a controller root' do
+        allow_any_command.not_be_called
+        expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
+        maintenance['ceph_fsid'] = nil
+        expect(run_plan('nest::host::update', params.merge('maintenance' => { 'control3' => maintenance })).ok?).to be(false)
+      end
+
+      it 'checks all controller admission inputs before preparation and rechecks immediately before its exact native command' do
+        admitted = 0
+        expect_plan('nest::kubernetes::check_control_plane_maintenance').with_params(maintenance.merge('target' => 'control3')).be_called_times(2).return do |**_options|
+          admitted += 1
+          Bolt::PlanResult.new({ 'kind' => 'nest_control_plane_maintenance_check' }, 'success')
+        end
+        expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => 'fixture', 'release' => bound['release'], 'hostname' => 'control3', 'output_dir' => '/fixture')
+        expect_command('nest reset --transaction fixture').return do |targets:, command:, **_options|
+          expect(admitted).to eq(2)
+          Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, { 'stdout' => 'fixture report', 'stderr' => '', 'exit_code' => 0 }, 'command', command, []) })
+        end
+        retain = { 'report' => 'fixture report', 'transaction' => 'fixture', 'release' => bound['release'], 'hostname' => 'control3', 'output_dir' => '/fixture' }
+        expect_task('nest::retain_update_report').with_params(retain).always_return('state' => 'prepared')
+        result = run_plan('nest::host::update', params.merge('maintenance' => { 'control3' => maintenance }))
+        expect(result.ok?).to be(true)
+        expect(result.value['reboot_eligible']).to eq([])
+      end
+
+      it 'does not reset after the second admission check fails' do
+        calls = 0
+        expect_plan('nest::kubernetes::check_control_plane_maintenance').be_called_times(2).return do |**_options|
+          calls += 1
+          (calls == 1) ? Bolt::PlanResult.new({}, 'success') : Bolt::PlanResult.new(Bolt::Error.new('Lost survivor', 'nest/maintenance'), 'failure')
+        end
+        expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => 'fixture', 'release' => bound['release'], 'hostname' => 'control3', 'output_dir' => '/fixture')
+        allow_any_command.not_be_called
+        expect(run_plan('nest::host::update', params.merge('maintenance' => { 'control3' => maintenance })).ok?).to be(false)
+      end
+
+      it 'rejects a controller sharing a preparation wave regardless of the declared scheduling domains' do
+        bound['waves'] = [['control3', 'other']]
+        allow_any_command.not_be_called
+        expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
+        expect(run_plan('nest::host::update', params.merge('maintenance' => { 'control3' => maintenance })).ok?).to be(false)
+      end
+    end
 
     before :each do
       expect_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)

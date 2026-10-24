@@ -6,6 +6,11 @@ RSpec.describe 'nest::kubernetes::reconcile_control_plane' do
   include BoltSpec::Plans
 
   let(:plan_modulepath) { Dir.mktmpdir('nest-etcd-reconcile-spec-') }
+  let(:maintenance) { { 'survivor' => 'control2', 'client' => 'owl', 'advertisers' => {}, 'physical_domains' => {}, 'ceph_fsid' => 'fixture' } }
+
+  before :each do
+    allow_plan('nest::kubernetes::check_control_plane_maintenance').always_return('kind' => 'nest_control_plane_maintenance_check')
+  end
 
   def modulepath
     [plan_modulepath, File.expand_path('../fixtures/modules', __dir__)]
@@ -33,9 +38,21 @@ RSpec.describe 'nest::kubernetes::reconcile_control_plane' do
       Bolt::PlanResult.new(Bolt::Error.new('No advancing quorum', 'nest/etcd-check'), 'failure')
     end
 
-    result = run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => servers)
+    result = run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => servers, 'maintenance' => maintenance)
 
     expect(result.ok?).to be(false)
+  end
+
+  it 'refuses missing maintenance inputs before any command or mutation' do
+    allow_any_command.not_be_called
+    expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
+    expect(run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => ['https://172.22.4.8:2379']).ok?).to be(false)
+  end
+
+  it 'propagates failed maintenance admission before kubeadm installation, backup or cluster mutation' do
+    allow_any_command.not_be_called
+    expect_plan('nest::kubernetes::check_control_plane_maintenance').with_params(maintenance.merge('target' => 'control1')).error_with('kind' => 'nest/maintenance', 'msg' => 'unavailable')
+    expect(run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => ['https://172.22.4.8:2379'], 'maintenance' => maintenance).ok?).to be(false)
   end
 
   [false, true].each do |post_failure|
@@ -62,7 +79,7 @@ RSpec.describe 'nest::kubernetes::reconcile_control_plane' do
         end
       end
 
-      result = run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => ['https://172.22.4.8:2379'])
+      result = run_plan('nest::kubernetes::reconcile_control_plane', 'targets' => 'control1', 'etcd_servers' => ['https://172.22.4.8:2379'], 'maintenance' => maintenance)
 
       expect(result.ok?).to be(!post_failure)
       expect(descriptions).to include('Reconcile one control-plane manifest', 'Release cluster-wide control-plane reconciliation lock')

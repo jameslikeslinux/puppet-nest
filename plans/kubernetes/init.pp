@@ -5,6 +5,7 @@
 # @param control_plane_endpoint Address control plane is reachable on
 # @param etcd_servers Explicit etcd endpoints for API servers
 # @param vip_advertisers Control-plane members allowed to advertise the API VIP
+# @param vip_maintenance Reviewed client, advertiser, physical-domain and optional Ceph inputs for excluded VIP withdrawal
 plan nest::kubernetes::init (
   TargetSpec              $targets,
   String                  $name,
@@ -12,6 +13,7 @@ plan nest::kubernetes::init (
   Stdlib::IP::Address::V4 $vip,
   Array[String]           $etcd_servers    = [],
   Array[String]           $vip_advertisers = [],
+  Optional[Hash]          $vip_maintenance = undef,
 ) {
   $nodes      = get_targets($targets)
   $node_names = $nodes.map |$node| { $node.name }
@@ -30,6 +32,10 @@ plan nest::kubernetes::init (
     }
   }
   $excluded_vip_nodes = $nodes - $vip_nodes
+  if !$excluded_vip_nodes.empty and ($vip_maintenance == undef or
+    $vip_maintenance.keys.sort != ['advertisers', 'ceph_fsid', 'client', 'physical_domains']) {
+    fail_plan('Excluded VIP withdrawal requires reviewed maintenance inputs before cluster initialization', 'nest/maintenance-scope')
+  }
 
   run_command('systemctl start crio', $nodes, 'Start CRI-O', {
     _run_as => 'root',
@@ -128,10 +134,11 @@ plan nest::kubernetes::init (
     $withdrawal = catch_errors() || {
       $excluded_vip_nodes.each |$excluded_node| {
         run_plan('nest::kubernetes::generate_kube_vip_manifest', {
-          targets   => $excluded_node,
-          vip       => $vip,
-          advertise => false,
-          survivor  => $vip_nodes[0].name,
+          targets     => $excluded_node,
+          vip         => $vip,
+          advertise   => false,
+          survivor    => $vip_nodes[0].name,
+          maintenance => $vip_maintenance,
         })
         run_command("kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system wait --for=delete pod/kube-vip-${excluded_node.name} --timeout=180s", $init_node, "Wait for kube-vip withdrawal from ${excluded_node.name}", {
           _run_as => 'root',

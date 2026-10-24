@@ -10,12 +10,14 @@
 # @param etcd_member_names Exact voting etcd member names required by the gate
 # @param upgrade_components Explicit version-upgrade path, including etcd and certificates
 # @param kubeadm_version Explicit compatible Gentoo kubeadm tool version, without upgrading cluster components
+# @param maintenance Complete survivor, client, advertiser, physical-domain and Ceph inputs
 plan nest::kubernetes::reconcile_control_plane (
   TargetSpec       $targets,
   Array[String]    $etcd_servers,
   Array[String]    $etcd_member_names  = ['control1', 'control2', 'control3'],
   Boolean          $upgrade_components = false,
   Optional[String] $kubeadm_version    = undef,
+  Optional[Hash]   $maintenance        = undef,
 ) {
   if $kubeadm_version and $kubeadm_version !~ Pattern[/\A[0-9]+\.[0-9]+\.[0-9]+\z/] {
     fail('kubeadm_version must be an exact major.minor.patch version')
@@ -30,6 +32,12 @@ plan nest::kubernetes::reconcile_control_plane (
 
   $member              = $members[0]
   $member_name         = $member.name
+  if $maintenance == undef or $maintenance.keys.sort != ['advertisers', 'ceph_fsid', 'client', 'physical_domains', 'survivor'] {
+    fail_plan('Control-plane reconciliation requires complete maintenance inputs', 'nest/maintenance-scope')
+  }
+  # Run before tool installation, backup, lock or any cluster mutation. Quorum
+  # alone and a route in the maintenance target's BIRD RIB are insufficient.
+  run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance + { 'target' => $member_name })
   $endpoint_csv        = $etcd_servers.join(',')
   $patches             = '/etc/kubernetes/patches'
   $manifest            = '/etc/kubernetes/manifests/kube-apiserver.yaml'
@@ -201,6 +209,7 @@ plan nest::kubernetes::reconcile_control_plane (
     _run_as => 'root',
   })
   $freshness = catch_errors() || {
+    run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance + { 'target' => $member_name })
     run_command("${read_config_command} | ${compare_command} && cmp ${manifest_backup_quoted} ${manifest_quoted}", $member, 'Require preflight inputs to remain unchanged after lock acquisition', {
       _run_as => 'root',
     })
