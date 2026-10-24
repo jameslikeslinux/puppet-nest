@@ -67,6 +67,7 @@ stages:
     - 'python3 spec/tasks/retain_update_backup_test.py'
     - 'python3 spec/tasks/retain_generation_report_test.py'
     - 'python3 spec/tasks/retain_update_catalog_test.py'
+    - 'python3 spec/tasks/retain_update_health_test.py'
     - 'python3 spec/tasks/update_manager_health_test.py'
     - 'python3 spec/tasks/update_boot_health_test.py'
     - 'python3 spec/tasks/update_network_health_test.py'

@@ -3,10 +3,18 @@ plan nest::host::update_health (
   TargetSpec            $target,
   Hash[String, String]  $expectations,
   Array[Hash]           $endpoints = [],
+  Optional[Hash]        $retention = undef,
 ) {
   $nodes = get_targets($target)
   if $nodes.length != 1 {
     fail_plan('Health observation requires exactly one host', 'nest/update-health-target')
+  }
+  if $retention != undef {
+    if $retention.keys.sort != ['output_dir', 'release', 'transaction'] {
+      fail_plan('Health retention requires exact transaction, release and output_dir fields', 'nest/update-health-retention')
+    }
+    $retain_params = $retention + { 'expectations' => $expectations, 'endpoints' => $endpoints }
+    run_task('nest::retain_update_health', 'localhost', $retain_params + { 'action' => 'check' })
   }
   $boot_before = run_plan('nest::host::update_boot_health',
     target       => $nodes[0],
@@ -44,7 +52,7 @@ plan nest::host::update_health (
     true    => 'pass',
     default => 'fail',
   }
-  return({
+  $outcome_report = {
     'schema'               => 1,
     'kind'                 => 'nest_update_health',
     'result'               => $outcome,
@@ -55,5 +63,13 @@ plan nest::host::update_health (
     'network_requested'    => !$endpoints.empty,
     'boot_after'           => $boot_after,
     'acceptance_recorded'  => false,
-  })
+  }
+  if $retention != undef {
+    $retained = run_task('nest::retain_update_health', 'localhost', $retain_params + {
+      'action' => 'retain',
+      'report' => $outcome_report.to_json,
+    })
+    return($outcome_report + { 'retained_report' => $retained.results[0].value })
+  }
+  return($outcome_report)
 }

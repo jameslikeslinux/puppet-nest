@@ -22,6 +22,7 @@ RSpec.describe 'nest::host::update_health' do
     { 'schema' => 1, 'kind' => 'nest_update_network_health', 'hostname' => 'fixture-host',
       'boot_id' => boot_id, 'result' => 'pass', 'acceptance_recorded' => false }
   end
+  let(:retention) { { 'transaction' => 'fixture-cycle', 'release' => "sha256:#{'a' * 64}", 'output_dir' => '/evidence' } }
 
   def modulepath
     [plan_modulepath, File.expand_path('../fixtures/modules', __dir__)]
@@ -34,8 +35,23 @@ RSpec.describe 'nest::host::update_health' do
     FileUtils.remove_entry(plan_modulepath)
   end
 
-  def observe(before = boot, manager = managers, after = before, client = nil)
+  def observe(before = boot, manager = managers, after = before, client = nil, retained = nil)
     calls = []
+    if retained
+      expect_task('nest::retain_update_health').be_called_times(2).return do |params:, targets:, **_options|
+        expect(targets.map(&:name)).to eq(['localhost'])
+        expect(params).to include(retention.merge('expectations' => identities, 'endpoints' => client ? endpoints : []))
+        calls << params['action']
+        if params['action'] == 'retain'
+          expect(JSON.parse(params['report'])).to include('kind' => 'nest_update_health', 'boot_before' => before,
+                                                        'managers' => manager, 'boot_after' => after, 'network' => client)
+        end
+        value = { 'readback_verified' => true, 'path' => '/evidence/fixture.json', 'acceptance_recorded' => false }
+        Bolt::ResultSet.new(targets.map { |target| Bolt::Result.new(target, value: value) })
+      end
+    else
+      expect_task('nest::retain_update_health').not_be_called
+    end
     expect_plan('nest::host::update_boot_health').be_called_times(2).return do |params:, **_options|
       expect(params['target'].name).to eq('fixture-host')
       expect(params['expectations']).to eq(identities)
@@ -57,10 +73,13 @@ RSpec.describe 'nest::host::update_health' do
     else
       expect_plan('nest::host::update_network_health').not_be_called
     end
-    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities,
-                                                'endpoints' => client ? endpoints : [])
+    params = { 'target' => 'fixture-host', 'expectations' => identities, 'endpoints' => client ? endpoints : [] }
+    params['retention'] = retention if retained
+    result = run_plan('nest::host::update_health', params)
     expect(result.ok?).to be(true)
-    expect(calls).to eq(client ? ['boot', 'manager', 'network', 'boot'] : ['boot', 'manager', 'boot'])
+    expected_calls = client ? ['boot', 'manager', 'network', 'boot'] : ['boot', 'manager', 'boot']
+    expected_calls = ['check'] + expected_calls + ['retain'] if retained
+    expect(calls).to eq(expected_calls)
     result.value
   end
 
@@ -159,5 +178,63 @@ RSpec.describe 'nest::host::update_health' do
     expect_plan('nest::host::update_manager_health').not_be_called
 
     expect(run_plan('nest::host::update_health', 'target' => ['one', 'two'], 'expectations' => identities).ok?).to be(false)
+  end
+
+  it 'checks the supervisor before collection and retains the exact complete result afterward' do
+    value = observe(boot, managers, boot, network, true)
+    expect(value).to include('result' => 'pass', 'acceptance_recorded' => false)
+    expect(value['retained_report']).to include('readback_verified' => true, 'acceptance_recorded' => false)
+  end
+
+  it 'retains failed health instead of converting publication into acceptance' do
+    failed = managers.merge('result' => 'fail')
+    value = observe(boot, failed, boot, nil, true)
+    expect(value).to include('result' => 'fail', 'acceptance_recorded' => false)
+    expect(value['retained_report']).to include('readback_verified' => true)
+  end
+
+  it 'retains unbound observations as failures, not a second collection attempt' do
+    value = observe(boot, managers.merge('boot_id' => 'aaaaaaaa-2222-3333-4444-555555555555'), boot, nil, true)
+    expect(value).to include('result' => 'fail', 'observations_bound' => false)
+  end
+
+  it 'refuses invalid retention fields before contacting any host' do
+    expect_task('nest::retain_update_health').not_be_called
+    expect_plan('nest::host::update_boot_health').not_be_called
+    expect_plan('nest::host::update_manager_health').not_be_called
+
+    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities,
+                                                'retention' => retention.merge('unexpected' => true))
+    expect(result.ok?).to be(false)
+  end
+
+  it 'fails a missing supervisor destination before contacting any host' do
+    expect_task('nest::retain_update_health').error_with('kind' => 'nest/unavailable', 'msg' => 'Missing destination')
+    expect_plan('nest::host::update_boot_health').not_be_called
+    expect_plan('nest::host::update_manager_health').not_be_called
+
+    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities, 'retention' => retention)
+    expect(result.ok?).to be(false)
+  end
+
+  it 'does not repeat observations after supervisor publication fails' do
+    expect_task('nest::retain_update_health').be_called_times(2).return do |params:, targets:, **_options|
+      Bolt::ResultSet.new(targets.map do |target|
+        if params['action'] == 'retain'
+          Bolt::Result.new(target, error: { 'kind' => 'nest/unavailable', 'msg' => 'Destination lost' })
+        else
+          Bolt::Result.new(target, value: { 'destination_checked' => true })
+        end
+      end)
+    end
+    expect_plan('nest::host::update_boot_health').be_called_times(2).return do |**_options|
+      Bolt::PlanResult.new(boot, 'success')
+    end
+    expect_plan('nest::host::update_manager_health').be_called_times(1).return do |**_options|
+      Bolt::PlanResult.new(managers, 'success')
+    end
+
+    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities, 'retention' => retention)
+    expect(result.ok?).to be(false)
   end
 end

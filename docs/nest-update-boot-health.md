@@ -197,3 +197,59 @@ legacy partial composite does not imply network coverage or full acceptance.
 With policy the complete network observation is retained under `network` and
 `network_requested` is true. This is still not lifecycle acceptance evidence.
 Rollback omits the endpoint policy or stops calling the new read-only plan.
+
+## Durable supervisor health summary
+
+The composed `nest::host::update_health` accepts optional `retention`, with
+exactly `transaction`, `release` and `output_dir`. The transaction is a native
+Nest ID; release is `sha256:` plus a full manifest digest. These are requested
+associations, not independently verified preparation or release membership.
+The existing native `expectations` and optional `endpoints` remain required as
+described above. Omitting retention preserves the previous interface and result.
+
+Precreate `output_dir` on persistent supervisor storage. With the Nest Bolt
+container wrapper, use a directory under `/modules/nest/rollout-evidence/ROUND`,
+backed by the caller's project directory, not container-local scratch. Before
+contacting the host, the plan invokes `nest::retain_update_health action=check`
+on `localhost`. This checks the entire expectation/endpoint/context shape and
+canonical existing destination without creating directories, locks or reports.
+It is not a promise of future capacity or writeability.
+
+The plan collects boot, managers, optional network and boot once, then transports
+its exact JSON to `nest::retain_update_health action=retain` on that supervisor.
+The task checks schema, boot bracket equality, host/boot associations, requested
+network scope, native result consistency, complete versus unavailable manager
+inventories and detailed failed-unit identities. Failed or unavailable component
+observations remain failures; valid changed-boot/unbound results are retained as
+unbound failures. Malformed reports or component task/transport errors refuse;
+they are never replaced with an empty healthy report or automatically retried.
+
+The public schema-1 `nest_update_retained_health` is an allowlisted SUMMARY,
+not the full native observation. It includes expected identities and endpoints,
+observed host/boot/kernel, boot check verdicts and fixed reason codes, system
+and actual user-manager failure identities (including a changed second sample),
+manager UID/PID/availability and endpoint verdicts. It omits raw mount paths,
+native command output, private descriptions, arbitrary extra fields and logs.
+Complete boot observations are hashed for bracket identity; the exact input JSON
+also has a transport digest. Hashes do not authenticate the producer or prove
+omitted native observations independently. The native collectors still own
+mount/storage/route acquisition and validation. This task does not recollect them.
+
+Publication reuses the existing fsync/no-clobber/exact-byte-readback report
+helper. Mode-0644 `health-TRANSACTION-DIGEST.json` files are content addressed;
+equal concurrent publication is idempotent, changed observations retain separate
+files, and conflicting bytes or symlinks refuse without replacement. No pruning
+occurs. The plan adds `retained_report`, with exact path, SHA256, byte count,
+readback flag and health result. Inspect `result`: retaining a failed health
+summary does not make health pass. A publication failure fails the plan without
+repeating collection. Caller storage and notification-host delivery are distinct:
+reopen the corresponding caller-side file, compare its context/digest/result and
+retain it through the task artifact interface before enclosing completion.
+
+`acceptance_recorded` and `preparation_verified` remain false. This does not bind
+a real prepared transaction/shared-state generation, attest served catalog
+bytes, record historical failure dispositions, prove service/hardware/physical
+UX, or call accept/finalize/reset/reboot. Missing network policy still means no
+network coverage. No live reboot or host mutation is needed to exercise retention.
+Rollback stops requesting retention while preserving all existing reports;
+it must not be used to bypass a failed lifecycle evidence gate.
