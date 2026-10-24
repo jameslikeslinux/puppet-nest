@@ -2,6 +2,7 @@
 
 
 import hashlib
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -226,6 +227,99 @@ class RetainCatalogTest(unittest.TestCase):
         self.assertEqual(json.loads(paths[0].read_bytes()), document)
         receipt = retainer.publish_document(document, self.supervisor, "catalog-" + TRANSACTION)
         self.assertTrue(receipt["readback_verified"])
+
+    def manifest_arguments(self):
+        sys.path.insert(0, str(TASKS.parent / "spec/files"))
+        from nest_release_manifest_test import fixture as release_fixture, release as validator
+        expected, candidate = release_fixture()
+        manifest = validator.validate(expected, candidate)
+        arguments = self.arguments()
+        arguments["manifest"] = manifest
+        arguments["release"] = validator.digest(manifest)
+        arguments["expectations"] = dict(EXPECTED, hostname="fixture-host",
+                                        configuration_version=expected["sources"]["nest/config"])
+        data = fixture()
+        data.update(hostname="fixture-host", configuration_version=arguments["expectations"]["configuration_version"])
+        for key in ("main", "repeat"):
+            data[key]["report"]["configuration_version"] = arguments["expectations"]["configuration_version"]
+        arguments["report"] = json.dumps(data)
+        return arguments
+
+    def test_release_manifest_preflight_creates_nothing_and_retains_bound_metadata(self):
+        arguments = self.manifest_arguments()
+        preflight = dict(arguments, action="check")
+        del preflight["report"]
+        result = self.run_task(preflight)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(json.loads(result.stdout)["release_metadata_bound"])
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+        result = self.run_task(arguments)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        receipt = json.loads(result.stdout)
+        document = json.loads(Path(receipt["path"]).read_bytes())
+        binding = document["release_metadata"]
+        self.assertEqual(binding["manifest_digest"], arguments["release"])
+        self.assertEqual(binding["configuration_version"], arguments["expectations"]["configuration_version"])
+        self.assertEqual(binding["root"], arguments["manifest"]["candidate"]["outputs"][3]["artifacts"]["root"])
+        self.assertEqual(binding["resource_verification"], "not_performed")
+        for field in ("release_binding_verified", "served_source_verified", "acceptance_recorded"):
+            self.assertIs(document[field], False)
+
+    def test_release_metadata_does_not_turn_failed_catalog_into_acceptance(self):
+        arguments = self.manifest_arguments()
+        data = json.loads(arguments["report"])
+        data.update(result="fail", converged=False)
+        data["repeat"]["native_exit"] = 2
+        data["repeat"]["report"]["status"] = "changed"
+        arguments["report"] = json.dumps(data)
+        result = self.run_task(arguments)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        receipt = json.loads(result.stdout)
+        self.assertEqual(receipt["result"], "fail")
+        self.assertTrue(receipt["release_metadata_bound"])
+        self.assertFalse(receipt["acceptance_recorded"])
+
+    def test_wrong_release_source_host_and_incomplete_matrix_refuse_before_publication(self):
+        original = self.manifest_arguments()
+        mutations = [(("release",), "sha256:" + "0" * 64),
+                     (("expectations", "configuration_version"), "f" * 40),
+                     (("expectations", "hostname"), "other-host"),
+                     (("manifest", "schema"), True), (("manifest", "kind"), "nest_release_manifest_validation"),
+                     (("manifest", "candidate", "outputs"), original["manifest"]["candidate"]["outputs"][1:]),
+                     (("manifest", "expectations", "sources", "nest/config"), "f" * 40),
+                     (("manifest", "private"), "private sentinel"), (("manifest",), None)]
+        for path, value in mutations:
+            arguments = copy.deepcopy(original)
+            target = arguments
+            for key in path[:-1]:
+                target = target[key]
+            target[path[-1]] = value
+            for action in ("check", "retain"):
+                params = dict(arguments, action=action)
+                if action == "check":
+                    del params["report"]
+                with self.subTest(path=path, action=action):
+                    result = self.run_task(params)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertNotIn("private sentinel", result.stdout + result.stderr)
+                    self.assertNotIn("Traceback", result.stdout + result.stderr)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+
+    def test_changed_unrelated_output_invalidates_runtime_release(self):
+        arguments = self.manifest_arguments()
+        arguments["manifest"]["candidate"]["outputs"][0]["artifacts"]["normal"] = "registry.example/nest/image@sha256:" + "f" * 64
+        self.assertEqual(self.run_task(arguments).returncode, 1)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+
+    def test_duplicate_manifest_keys_nonfinite_and_oversized_input_refuse(self):
+        arguments = self.manifest_arguments()
+        raw = json.dumps(arguments)
+        for payload in (raw[:-1] + ',"manifest":{}}', raw.replace('"schema": 1', '"schema": NaN', 1), " " * 2097153):
+            result = subprocess.run([sys.executable, str(TASKS / "retain_update_catalog.py")], input=payload,
+                                    text=True, capture_output=True, cwd=self.worker, check=False)
+            self.assertEqual(result.returncode, 1)
+            self.assertNotIn("Traceback", result.stdout + result.stderr)
+        self.assertEqual(list(self.supervisor.iterdir()), [])
 
     def test_symlink_target_refuses_without_changing_its_referent(self):
         document = self.project(fixture())
