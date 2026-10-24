@@ -4,26 +4,30 @@
 # of --profile.  Profile/service parameters remain accepted for compatibility
 # with old callers, but never label or multiply full-home archives.
 plan nest::app::hermes::backup (
-  TargetSpec                          $target               = 'owl',
-  String[1]                           $backup_dir           = '/nest/backup/hermes',
-  String[1]                           $stage_dir            = '/var/tmp/nest-hermes-backup',
-  Boolean                             $preserve_existing    = false,
-  Boolean                             $verify_only          = false,
-  Optional[String[64, 64]]            $expected_sha256      = undef,
-  Optional[Integer[1, 604800]]        $max_age_seconds      = undef,
-  Boolean                             $quick                = false,
-  Boolean                             $prune_only           = false,
-  Boolean                             $cleanup_legacy       = false,
-  Boolean                             $apply_legacy_cleanup = false,
-  Optional[String[1]]                 $checkpoint           = undef,
+  TargetSpec                          $target                 = 'owl',
+  String[1]                           $backup_dir             = '/nest/backup/hermes',
+  String[1]                           $stage_dir              = '/var/tmp/nest-hermes-backup',
+  Boolean                             $preserve_existing      = false,
+  Boolean                             $verify_only            = false,
+  Optional[String[64, 64]]            $expected_sha256        = undef,
+  Optional[Integer[1, 604800]]        $max_age_seconds        = undef,
+  Optional[Hash]                      $verification_retention = undef,
+  Boolean                             $quick                  = false,
+  Boolean                             $prune_only             = false,
+  Boolean                             $cleanup_legacy         = false,
+  Boolean                             $apply_legacy_cleanup   = false,
+  Optional[String[1]]                 $checkpoint             = undef,
   # Account used to run Hermes and own the backup directory.
-  String[1]                           $user                 = 'joy',
-  Integer[1]                          $retain               = 24,
-  Array[String[1], 1]                 $required_profiles    = ['talon', 'star', 'beryl', 'quill'],
+  String[1]                           $user                   = 'joy',
+  Integer[1]                          $retain                 = 24,
+  Array[String[1], 1]                 $required_profiles      = ['talon', 'star', 'beryl', 'quill'],
   # Deprecated compatibility inputs. Full backups are deliberately unscoped.
-  Optional[String[1]]                 $service_name         = undef,
-  Optional[String[1]]                 $profile              = undef,
+  Optional[String[1]]                 $service_name           = undef,
+  Optional[String[1]]                 $profile                = undef,
 ) {
+  if $verification_retention != undef and !$verify_only {
+    fail_plan('verification_retention applies only to explicit verify_only calls', 'nest/update-backup-retention')
+  }
   if $verify_only {
     if $quick or $prune_only or $cleanup_legacy or $apply_legacy_cleanup or $preserve_existing or
       $checkpoint == undef or $expected_sha256 !~ Pattern[/\A[0-9a-f]{64}\z/] or $max_age_seconds == undef {
@@ -66,6 +70,24 @@ plan nest::app::hermes::backup (
     fail_plan('Hermes backup requires exactly one shared backup target')
   }
   $backup_target = $backup_targets[0]
+  if $verification_retention != undef {
+    $verification_check = {
+      'kind'              => 'hermes',
+      'target'            => $backup_target.name,
+      'user'              => $user,
+      'backup_dir'        => $backup_dir,
+      'checkpoint'        => $checkpoint,
+      'expected_sha256'   => $expected_sha256,
+      'max_age_seconds'   => $max_age_seconds,
+      'required_profiles' => $required_profiles,
+    }
+    # Check the supervisor destination before upload or native verification.
+    run_task('nest::retain_update_backup', 'localhost', {
+      'action'    => 'check',
+      'check'     => $verification_check,
+      'retention' => $verification_retention,
+    })
+  }
   $helper = run_command(
     'mktemp /tmp/nest-hermes-backup-generation.XXXXXXXX',
     $backup_target,
@@ -150,5 +172,13 @@ plan nest::app::hermes::backup (
   $result = run_command($command, $backup_target, $description, {
     '_run_as' => 'root',
   })
+  if $verification_retention != undef {
+    return(run_task('nest::retain_update_backup', 'localhost', {
+      'action'    => 'retain',
+      'check'     => $verification_check,
+      'retention' => $verification_retention,
+      'report'    => $result.results[0].value['stdout'],
+    }).results[0].value)
+  }
   return $result
 }
