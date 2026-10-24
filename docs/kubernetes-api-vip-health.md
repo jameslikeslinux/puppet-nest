@@ -141,6 +141,42 @@ transaction or release/disruption authorization. Those gates remain required
 before a real host outage; successful quorum sampling alone cannot enable host
 reboot. No fault injection or new cluster operation is authorized by this example.
 
+### Bind quorum sampling to an observed API client's configuration
+
+`nest::kubernetes::check_apiserver_etcd` composes the same progress guard with
+read-only discovery on one explicitly selected API/voting member:
+
+```sh
+bolt plan run nest::kubernetes::check_apiserver_etcd target=control1
+```
+
+It reads the selected module's endpoint projector, the member's static API
+manifest and the native `kube-system/kube-apiserver-MEMBER` mirror Pod. Both
+must contain the same unique explicit TLS `--etcd-servers` list. The mirror
+must belong to the selected node and have one ready, running API container
+with a native runtime identity. Unsupported argument forms, unavailable API
+reads, malformed inputs, missing status and configuration disagreements refuse;
+none are treated as zero failures. The observed list, not a guessed seed list,
+is passed to `check_etcd`. Optional `expected_servers` requires an exact set
+match with an independently reviewed endpoint policy before quorum acquisition.
+Reordered lists do not change identity. The separate `check_etcd` interface
+retains explicit seed-list semantics for existing reconciliation callers.
+
+The API observation is repeated after quorum sampling and must retain identical
+endpoint, mirror, Pod and container identities. Each native API read has the
+same request and outer streaming deadlines as the quorum acquisition. Private
+temporary Pod data is removed on ordinary success/failure; only sanitized
+endpoint/runtime identities are returned. Parser errors never echo source YAML,
+Pod contents or unrelated arguments. No certificate material is returned.
+
+This observes kubelet's reported runtime and current selected manifest, not
+an independent process-memory attestation. It is bounded point-in-time evidence
+for that member only, not all API clients or ongoing availability. Neither
+plan changes endpoints, runs reconciliation, restarts a component, repairs
+etcd, records update acceptance or makes a host reboot eligible. Survivor TLS,
+actual client kernel route, storage and physical coupling, transaction/release
+binding and separately authorized maintenance remain required.
+
 ## Heavy control-plane work
 
 No raw snapshot replication or capacity rehearsal may run unbounded on a live
