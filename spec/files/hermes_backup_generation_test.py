@@ -473,9 +473,16 @@ class HermesBackupGenerationTest(unittest.TestCase):
         before = {path.name: path.read_bytes() for path in self.backup_dir.iterdir()}
         checked = self.run_helper('check-hold', *common, '--max-age-seconds', '3600')
         self.assertTrue(checked['held'])
+        self.assertEqual(checked['verification']['kind'], 'nest_hermes_generation_verification')
+        self.assertEqual(checked['verification']['action'], 'verified')
+        self.assertEqual(checked['verification']['max_age_seconds'], 3600)
+        for key in ('checkpoint', 'archive', 'sha256', 'bytes', 'members', 'required_profiles'):
+            self.assertEqual(checked['verification'][key], checked['hold'][key])
+        self.assertNotIn('verification', held)
         self.assertEqual({path.name: path.read_bytes() for path in self.backup_dir.iterdir()}, before)
         released = self.run_helper('release-hold', *common)
         self.assertFalse(released['held'])
+        self.assertNotIn('verification', released)
         self.assertTrue((self.backup_dir / str(first['archive'])).exists())
         with self.assertRaises(subprocess.CalledProcessError):
             self.run_helper('release-hold', *common)

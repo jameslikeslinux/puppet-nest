@@ -84,6 +84,11 @@ backup/lock/archive/metadata files; missing storage is not repaired. A missing h
 refuses rather than inventing evidence of a previous release. After an ambiguous
 release, inspect the exact native hold and archive; do not replay host phases.
 
+`check-hold` also returns `verification`, the existing generation-verification
+document collected under the same shared lock. This binds age, counts and archive
+digest to the hold without a second archive scan. Hold creation and release do
+not return that field.
+
 Results have schema 1, kind `nest_hermes_generation_retention`, exact `action`,
 allowlisted `hold`, boolean `held`, `readback_verified: true`, `restore_verified:
 false` and `execution_authorized: false`. They expose identities/counts only,
@@ -111,11 +116,23 @@ inspect its actual metadata instead of recapturing to manufacture success.
 ## Compatibility, rollback and remaining lifecycle work
 
 Existing capture, verify and cleanup arguments retain their meaning. Verification
-alone remains an observation, not a retention hold. Existing schema-3 host update
-preparation has NOT yet been changed to require `check-hold`; release policy,
-writer-source admission, backup hold receipts and transaction-wide lifecycle must
-be bound before claiming end-to-end retention. No hold is auto-created/released by
-host preparation, accept, finalize or successful CI.
+alone remains an observation, not a retention hold. Host update preparation now
+requires schema 4: every nonempty Hermes backup prerequisite adds an exact
+`hold_id`. Schemas 1 through 3 remain usable for planning and stored observation,
+but cannot initiate transactional preparation. `nest::host::check_update_backup`
+validates the complete requirement and supervisor destination, invokes only
+`check-hold` for the policy release, and retains the allowlisted hold and native
+verification together. All selected prerequisites are checked before the first
+reset and checked again for each affected host at initiation. Missing holds,
+wrong release/generation/coverage, stale archives, busy locks or missing supervisor
+readback stop new resets without capture, hold creation or retries.
+
+The retained receipt includes `hold_checked: true`; `retention_lease` remains
+false. A trusted backup account can explicitly release a hold after observation;
+the observation is not a lock held across reset or proof that all pruning writers
+use hold-aware source. Writer-source admission and transaction-wide rollback and
+retirement policy remain required before claiming end-to-end retention. No hold
+is auto-created/released by host preparation, accept, finalize or successful CI.
 
 Rollback stops new retention calls and preserves holds and archives. DO NOT run
 an older prune implementation against a directory with active holds. Keep a

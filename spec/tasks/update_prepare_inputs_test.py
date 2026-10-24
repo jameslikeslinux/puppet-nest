@@ -26,7 +26,7 @@ def inputs(selected):
 def preparation_policy():
     value = policy()
     now = datetime.now(timezone.utc)
-    value['schema'] = 3
+    value['schema'] = 4
     value['backup_requirements'] = {host['name']: [] for host in value['hosts']}
     value['preparation_window'] = {
         'not_before': (now - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -52,6 +52,30 @@ class PrepareInputsTest(unittest.TestCase):
             self.assertNotIn('--resume-transaction', argv)
         self.assertFalse(result['execution_authorized'])
         self.assertEqual(result['reboot_eligible'], [])
+
+    def test_schema_three_remains_inspectable_but_cannot_prepare(self):
+        from update_wave_plan import plan
+        self.policy['schema'] = 3
+        self.assertEqual(plan(self.policy, self.targets)['policy_schema'], 3)
+        with self.assertRaises(ValueError):
+            prepare(self.policy, self.targets, self.inputs)
+
+    def test_every_backup_requires_exact_hold_and_binds_it_into_policy(self):
+        check = dict(kind='hermes', target='backup', user='joy', backup_dir='/fixture/backups',
+                     checkpoint='fixture', expected_sha256='c' * 64, max_age_seconds=3600,
+                     required_profiles=['talon'], hold_id='release-fixture')
+        self.policy['backup_requirements']['canary'] = [check]
+        first = prepare(self.policy, self.targets, self.inputs)
+        check['hold_id'] = 'other-hold'
+        second = prepare(self.policy, self.targets, self.inputs)
+        self.assertNotEqual(first['policy_sha256'], second['policy_sha256'])
+        for invalid in (None, '', 'a;reboot', '--bad', 'x' * 65, True):
+            check['hold_id'] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                prepare(self.policy, self.targets, self.inputs)
+        del check['hold_id']
+        with self.assertRaises(ValueError):
+            prepare(self.policy, self.targets, self.inputs)
 
     def test_complete_inputs_required_before_any_command(self):
         for bad in ({}, dict(self.inputs, extra=self.inputs['canary']), {key: value for key, value in self.inputs.items() if key != 'leaf'}):

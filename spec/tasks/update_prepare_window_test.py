@@ -22,7 +22,7 @@ from update_prepare_inputs_test import inputs
 
 def bounded_policy():
     value = policy()
-    value['schema'] = 3
+    value['schema'] = 4
     value['backup_requirements'] = {host['name']: [] for host in value['hosts']}
     value['preparation_window'] = {'not_before': '2030-01-01T00:00:00Z', 'not_after': '2030-01-01T01:00:00Z'}
     return value
@@ -59,7 +59,7 @@ class PrepareWindowTest(unittest.TestCase):
                         prepare(self.policy, self.targets, self.inputs)
 
     def test_planning_and_status_are_available_outside_window(self):
-        self.assertEqual(plan(self.policy, self.targets)['policy_schema'], 3)
+        self.assertEqual(plan(self.policy, self.targets)['policy_schema'], 4)
         statuses = {name: {'transaction': entry['transaction']} for name, entry in self.inputs.items()}
         self.assertEqual(observe(self.policy, self.targets, statuses)['commands']['canary'][2], 'status')
 
@@ -80,7 +80,7 @@ class PrepareWindowTest(unittest.TestCase):
                 plan(candidate, self.targets)
         candidate = copy.deepcopy(self.policy)
         candidate['preparation_window']['not_after'] = '2030-01-02T00:00:00Z'
-        self.assertEqual(plan(candidate, self.targets)['policy_schema'], 3)
+        self.assertEqual(plan(candidate, self.targets)['policy_schema'], 4)
 
     def test_every_window_byte_is_bound_to_policy_digest(self):
         first = plan(self.policy, self.targets)['policy_sha256']

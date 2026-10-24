@@ -1,5 +1,5 @@
 {
-  "description": "Validate exact schema-3 policy with explicit backup prerequisites, current supervisor UTC preparation window and complete host-local inputs without executing a host command",
+  "description": "Validate exact schema-4 policy with explicit release-owned backup hold prerequisites, current supervisor UTC preparation window and complete host-local inputs without executing a host command",
   "input_method": "stdin",
   "supports_noop": true,
   "files": ["nest/tasks/update_wave_plan.py"],

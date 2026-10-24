@@ -138,9 +138,9 @@ plan nest::host::update (
       # repeat affected checks at initiation. Never capture or prune on failure.
       $backup_preflight = $bound['backup_requirements'].map |$name, $checks| {
         $checks.map |$check| {
-          run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + {
-            'verify_only' => true,
-            'verification_retention' => {
+          run_plan('nest::host::check_update_backup', {
+            'check'     => $check,
+            'retention' => {
               'transaction'   => $bound['inputs'][$name]['transaction'],
               'release'       => $bound['release'],
               'hostname'      => $name,
@@ -151,7 +151,7 @@ plan nest::host::update (
           })
         }
       }
-      if !$backup_preflight.flatten.all |$receipt| { $receipt['verification_retained'] == true and $receipt['readback_verified'] == true } {
+      if !$backup_preflight.flatten.all |$receipt| { $receipt['verification_retained'] == true and $receipt['hold_checked'] == true and $receipt['readback_verified'] == true } {
         fail_plan('Backup verification was not retained; no reset started', 'nest/update-backup-retention')
       }
     } else {
@@ -169,9 +169,9 @@ plan nest::host::update (
         }
         if $mode == 'prepare' {
           $backup_verification = $bound['backup_requirements'][$name].map |$check| {
-            run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + {
-              'verify_only' => true,
-              'verification_retention' => {
+            run_plan('nest::host::check_update_backup', {
+              'check'     => $check,
+              'retention' => {
                 'transaction'   => $bound['inputs'][$name]['transaction'],
                 'release'       => $bound['release'],
                 'hostname'      => $name,
@@ -181,7 +181,7 @@ plan nest::host::update (
               },
             })
           }
-          if !$backup_verification.all |$receipt| { $receipt['verification_retained'] == true and $receipt['readback_verified'] == true } {
+          if !$backup_verification.all |$receipt| { $receipt['verification_retained'] == true and $receipt['hold_checked'] == true and $receipt['readback_verified'] == true } {
             fail_plan('Backup verification was not retained; no new reset started', 'nest/update-backup-retention')
           }
           # A seal observation is not a lease. Repeat after readiness/backup

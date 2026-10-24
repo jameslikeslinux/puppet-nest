@@ -15,7 +15,7 @@ from update_wave_plan import backup_requirements, fields, unique_object
 def binding(check, retention):
     fields(retention, 'transaction release hostname policy_sha256 stage output_dir')
     hostname = token(retention['hostname'], r'[a-z0-9][a-z0-9_.-]{0,127}')
-    backup_requirements({hostname: [check]}, [hostname])
+    backup_requirements({hostname: [check]}, [hostname], require_hold='hold_id' in check)
     token(retention['transaction'], r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}')
     token(retention['release'], r'sha256:[0-9a-f]{64}')
     token(retention['policy_sha256'], r'[0-9a-f]{64}')
@@ -32,6 +32,18 @@ def project(raw, check, retention):
     binding(check, retention)
     require(type(raw) is str and len(raw.encode('utf-8')) <= 65536, 'Invalid observation size')
     row: Any = json.loads(raw, object_pairs_hook=unique_object)
+    hold: Any = None
+    if 'hold_id' in check:
+        require(type(row) is dict and type(row.get('schema')) is int and row['schema'] == 1
+                and row.get('kind') == 'nest_hermes_generation_retention' and row.get('action') == 'check-hold'
+                and row.get('held') is True and row.get('readback_verified') is True
+                and row.get('restore_verified') is False and row.get('execution_authorized') is False,
+                'Invalid native hold observation')
+        hold = row.get('hold')
+        fields(hold, 'schema kind hold_id release checkpoint archive sha256 bytes members required_profiles')
+        require(type(hold['schema']) is int and hold['schema'] == 1 and hold['kind'] == 'nest_hermes_generation_hold'
+                and hold['hold_id'] == check['hold_id'] and hold['release'] == retention['release'], 'Wrong release hold')
+        row = row.get('verification')
     require(type(row) is dict and type(row.get('schema')) is int and row['schema'] == 1
             and row.get('kind') == 'nest_hermes_generation_verification' and row.get('action') == 'verified',
             'Invalid native verification outcome')
@@ -45,10 +57,14 @@ def project(raw, check, retention):
         require(type(row.get(key)) is int and 0 < row[key] <= 9223372036854775807, 'Invalid archive counts')
     age = (timestamp(row['checked_at']) - timestamp(row['created_at'])).total_seconds()
     require(0 <= age <= check['max_age_seconds'], 'Inconsistent publication age')
+    if hold is not None:
+        require(all(type(hold[key]) is type(row[key]) and hold[key] == row[key]
+                    for key in ('checkpoint', 'archive', 'sha256', 'bytes', 'members', 'required_profiles')),
+                'Hold and verification differ')
     # Bind the placement without copying account paths into the public report.
     # This is the requested inventory identity, not independent remote identity.
     check_digest = hashlib.sha256((json.dumps(check, sort_keys=True, separators=(',', ':')) + '\n').encode('ascii')).hexdigest()
-    return {
+    result = {
         'schema': 1, 'kind': 'nest_update_backup_verification',
         **{key: retention[key] for key in ('transaction', 'release', 'hostname', 'policy_sha256', 'stage')},
         'backup_target': check['target'], 'requirement_sha256': check_digest,
@@ -57,6 +73,9 @@ def project(raw, check, retention):
         'verification_retained': True, 'retention_lease': False, 'restore_verified': False,
         'execution_authorized': False, 'transport_sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(),
     }
+    if hold is not None:
+        result.update(hold=hold, hold_checked=True)
+    return result
 
 
 def main():
@@ -74,7 +93,8 @@ def main():
         report = project(params['report'], check, retention)
         prefix = retention['hostname'] + '-' + retention['transaction'] + '-backup-' + retention['stage']
         receipt = publish_document(report, retention['output_dir'], prefix)
-        print(json.dumps(dict(receipt, verification_retained=True, retention_lease=False, restore_verified=False)))
+        print(json.dumps(dict(receipt, verification_retained=True, hold_checked=report.get('hold_checked', False),
+                              retention_lease=False, restore_verified=False)))
         return 0
     except (KeyError, TypeError, ValueError, OSError, UnicodeError, RecursionError, OverflowError):
         print(json.dumps({'_error': {'kind': 'nest/update-backup-retention',
