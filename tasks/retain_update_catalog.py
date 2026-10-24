@@ -3,7 +3,9 @@
 
 import datetime
 import hashlib
+import importlib.util
 import json
+from pathlib import Path
 
 import sys
 from typing import Any
@@ -58,7 +60,32 @@ def invocation(value: Any, expected: Any):
     return value
 
 
-def project(raw, expected, transaction, release):
+def release_binding(manifest, expected, release):
+    """Bind requested catalog source to complete release metadata, not live bytes."""
+    spec = importlib.util.spec_from_file_location(
+        "catalog_release_manifest", Path(__file__).resolve().parents[1] / "scripts/nest-release-manifest.py")
+    assert spec is not None and spec.loader is not None
+    validator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(validator)
+    validator.fields(manifest, "schema kind expectations candidate", "manifest")
+    require(type(manifest["schema"]) is int and manifest["schema"] == 1
+            and manifest["kind"] == "nest_release_manifest", "invalid manifest")
+    checked = validator.validate(manifest["expectations"], manifest["candidate"])
+    require(validator.canonical(checked) == validator.canonical(manifest)
+            and validator.digest(checked) == release, "release manifest mismatch")
+    source = checked["expectations"]["sources"]["nest/config"]
+    require(expected["configuration_version"] == source, "catalog source differs from release")
+    outputs = [row for row in checked["candidate"]["outputs"]
+               if row["member"]["stage"] == "stage3" and row["member"]["host"] == expected["hostname"]]
+    require(len(outputs) == 1, "host is not a unique release output")
+    output = outputs[0]
+    return {"schema": 1, "kind": "nest_catalog_release_binding", "manifest_digest": release,
+            "configuration_version": source, "hostname": expected["hostname"],
+            "member": output["member"]["id"], "root": output["artifacts"]["root"],
+            "resource_verification": "not_performed", "acceptance_recorded": False}
+
+
+def project(raw, expected, transaction, release, manifest=None):
     require(type(raw) is str and len(raw.encode("utf-8")) <= 65536, "catalog transport limit")
     expected = expectations(expected)
     token(transaction, ID)
@@ -88,24 +115,35 @@ def project(raw, expected, transaction, release):
     converged = converged and data.get("identity_binding_failed") is not True
     require(data["converged"] is converged and data["result"] == ("pass" if converged else "fail"),
             "inconsistent catalog outcome")
-    return {"schema": 1, "kind": "nest_update_retained_catalog", "transaction": transaction, "release": release,
+    result = {"schema": 1, "kind": "nest_update_retained_catalog", "transaction": transaction, "release": release,
             "expectations": expected, "catalog": data, "release_binding_verified": False,
             "served_source_verified": False, "acceptance_recorded": False,
             "transport_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest()}
+    if manifest is not None:
+        result["release_metadata"] = release_binding(manifest, expected, release)
+    return result
 
 
 def main():
     try:
-        raw = sys.stdin.read(131073)
-        require(len(raw.encode("utf-8")) <= 131072, "parameter limit")
-        params: Any = json.loads(raw, object_pairs_hook=unique)
+        # A complete manifest can be larger than a catalog's bounded report.
+        raw = sys.stdin.read(2097153)
+        require(len(raw.encode("utf-8")) <= 2097152, "parameter limit")
+        params: Any = json.loads(raw, object_pairs_hook=unique,
+                                 parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
         required = {"action", "expectations", "transaction", "release", "output_dir"}
         require(type(params) is dict and required <= set(params)
-                and all(key in required | {"report"} or key.startswith("_") for key in params), "invalid parameters")
+                and all(isinstance(key, str) and (key in required | {"report", "manifest"} or key.startswith("_")) for key in params),
+                "invalid parameters")
+        require(len(json.dumps({key: value for key, value in params.items() if key != "manifest"}).encode("utf-8")) <= 131072,
+                "catalog parameter limit")
         require(params["action"] in ("check", "retain"), "invalid action")
         expected = expectations(params["expectations"])
         token(params["transaction"], ID)
         token(params["release"], "sha256:" + DIGEST)
+        binding = None
+        if "manifest" in params:
+            binding = release_binding(params["manifest"], expected, params["release"])
         directory = output_directory(params["output_dir"])
         if params["action"] == "check":
             require("report" not in params, "report on preflight")
@@ -114,10 +152,12 @@ def main():
                        "acceptance_recorded": False}
         else:
             require(params.get("_noop") is not True, "retention is not noop")
-            document = project(params["report"], expected, params["transaction"], params["release"])
+            document = project(params["report"], expected, params["transaction"], params["release"], params.get("manifest"))
             receipt = publish_document(document, directory, "catalog-" + params["transaction"])
             receipt.update(transaction=params["transaction"], release=params["release"], hostname=expected["hostname"],
                            result=document["catalog"]["result"], acceptance_recorded=False)
+        if binding is not None:
+            receipt.update(release_metadata_bound=True, manifest_digest=binding["manifest_digest"])
         print(json.dumps(receipt, sort_keys=True))
         return 0
     except (KeyError, TypeError, ValueError, OSError, RecursionError):

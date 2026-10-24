@@ -1,18 +1,26 @@
 # Execute normal main catalogs, retaining detailed native exits without acceptance.
 plan nest::host::update_catalog (
   TargetSpec                   $target,
-  Optional[Hash[String, Data]] $expectations = undef,
-  Optional[Hash[String, Data]] $retention    = undef,
+  Optional[Hash[String, Data]] $expectations     = undef,
+  Optional[Hash[String, Data]] $retention        = undef,
+  Optional[Hash]               $release_manifest = undef,
 ) {
   $nodes = get_targets($target)
   if $nodes.length != 1 {
     fail_plan('Catalog convergence requires exactly one host', 'nest/update-catalog-target')
   }
+  if $release_manifest != undef and ($expectations == undef or $retention == undef) {
+    fail_plan('Release binding requires exact invocation expectations and supervisor retention before apply', 'nest/update-catalog-release')
+  }
   if $retention != undef {
     if $expectations == undef or $retention.keys.sort != ['output_dir', 'release', 'transaction'] {
       fail_plan('Catalog retention requires bound expectations and exact transaction, release and output_dir fields', 'nest/update-catalog-retention')
     }
-    $retain_params = $retention + { 'expectations' => $expectations }
+    $manifest_params = $release_manifest == undef ? {
+      true    => {},
+      default => { 'manifest' => $release_manifest },
+    }
+    $retain_params = $retention + { 'expectations' => $expectations } + $manifest_params
     # Validate the supervisor destination before the first MUTATING host apply.
     # This check creates nothing and does not promise later writeability/capacity.
     run_task('nest::retain_update_catalog', 'localhost', $retain_params + { 'action' => 'check' })

@@ -204,6 +204,51 @@ background supervisor or turn the read-only health plan into a mutating plan.
 No real host catalog was applied to test retention. Rollback omits `retention`,
 preserving existing evidence and all ambiguity; it cannot undo prior applies.
 
+## Complete runtime release metadata binding
+
+For lifecycle callers, pass `release_manifest` to `nest::host::update_catalog`
+alongside both exact `expectations` and `retention`. The value is the complete
+`nest_release_manifest`, not a validation receipt or one selected output.
+Without both prerequisites the plan refuses before any task or host apply.
+Existing callers omitting this parameter retain their previous result shape.
+
+The supervisor retainer validates the entire expected matrix, input sources,
+producer/executor identities and output structure using the existing release
+validator. Its canonical digest must equal `retention.release`, the requested
+configuration version must equal the manifest's exact `nest/config` source,
+and the expected hostname must be a unique Stage 3 output member. Other missing
+or changed members invalidate the runtime digest too. Hostname is not silently
+derived from an inventory alias, and certname remains a separate identity.
+
+These checks run before the first mutating catalog invocation and again before
+retention. Invalid metadata stops without applying, publishing, retrying or
+repairing. A later publication failure never causes another host apply. The
+existing invocation validator still binds both native reports to the same exact
+configuration version, certname and boot, with detailed first/repeat exits.
+Valid failed outcomes remain failures even with matching release metadata.
+
+The retained document adds only `release_metadata`: runtime manifest digest,
+config SHA, hostname, Stage 3 member and versioned root reference. It does not
+copy the complete manifest or arbitrary private data into the public report.
+The retention check and final receipt add `release_metadata_bound: true` and
+`manifest_digest`. Raw catalog reports retain their existing bounded size;
+the complete task parameter envelope is bounded to 2 MiB. Publication still
+uses the same atomic, no-clobber, reopened supervisor files.
+
+This is metadata reconciliation, NOT independently verified served module bytes,
+preparation/GUID/boot continuity, actual publication resources, a retention lease
+or transaction acceptance. `resource_verification` is `not_performed`, while
+`release_binding_verified`, `served_source_verified` and `acceptance_recorded`
+remain false. It does not call native accept/finalize or authorize a catalog,
+reset or reboot. Full lifecycle integration must verify those remaining gates;
+matching metadata must not be promoted into operational acceptance.
+
+Rollback stops this interface or omits `release_manifest` for explicitly legacy
+callers while preserving all receipts. Do not use the compatibility interface
+to bypass a refused release-aware lifecycle. Reopen and retain exact caller-side
+files before completion as described above. No real host apply is needed to
+exercise manifest validation, staging or isolated composition tests.
+
 ## Wrapper compatibility and rollback
 
 Ordinary `nest::puppet::run` callers still receive the historical wrapper mapping

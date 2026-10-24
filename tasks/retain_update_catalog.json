@@ -2,13 +2,14 @@
   "description": "Check the supervisor destination or atomically retain a bound catalog outcome; never apply a catalog or record release acceptance",
   "input_method": "stdin",
   "supports_noop": false,
-  "files": ["nest/tasks/retain_update_report.py"],
+  "files": ["nest/tasks/retain_update_report.py", "nest/scripts/nest-release-manifest.py"],
   "parameters": {
     "action": { "type": "Enum['check', 'retain']" },
     "expectations": { "type": "Hash[String, Data]", "description": "Exact hostname, certname, boot_id and configuration_version, matching the bound invocation" },
     "transaction": { "type": "Pattern[/\\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\\z/]", "description": "Requested Nest transaction context, not independently verified preparation" },
     "release": { "type": "Pattern[/\\Asha256:[0-9a-f]{64}\\z/]", "description": "Requested release context; retaining a catalog is not release acceptance" },
     "output_dir": { "type": "Stdlib::Absolutepath", "description": "Existing canonical directory on persistent supervisor storage" },
-    "report": { "type": "Optional[String[1]]", "description": "Exact bound-task JSON, required only for retain" }
+    "report": { "type": "Optional[String[1]]", "description": "Exact bound-task JSON, required only for retain" },
+    "manifest": { "type": "Optional[Hash]", "description": "Complete runtime release manifest for metadata binding, not live resource or acceptance proof" }
   }
 }

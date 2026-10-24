@@ -129,6 +129,50 @@ RSpec.describe 'nest::host::update_catalog' do
     expect(result.ok?).to be(false)
   end
 
+  it 'checks and retains the same complete release manifest around one bound apply' do
+    expected = { 'hostname' => 'fixture-host', 'certname' => 'fixture.nest',
+                 'boot_id' => '11111111-1111-4111-8111-111111111111', 'configuration_version' => 'a' * 40 }
+    retention = { 'output_dir' => '/modules/nest/rollout-evidence/fixture', 'release' => "sha256:#{'b' * 64}", 'transaction' => 'fixture-cycle' }
+    manifest = { 'kind' => 'fixture manifest; actual validation covered by task tests' }
+    calls = []
+    expect_task('nest::retain_update_catalog').be_called_times(2).return do |targets:, params:, **_others|
+      expect(params).to include(retention.merge('manifest' => manifest, 'expectations' => expected))
+      expect(params['action']).to eq(calls.empty? ? 'check' : 'retain')
+      calls << params['action']
+      Bolt::ResultSet.new(targets.map { |target| Bolt::Result.new(target, value: { 'release_metadata_bound' => true }) })
+    end
+    expect_task('nest::update_catalog_apply').be_called_times(1).return do |targets:, params:, **_others|
+      expect(calls).to eq(['check'])
+      expect(params).to include('expectations' => expected, '_run_as' => 'root')
+      calls << 'apply'
+      Bolt::ResultSet.new(targets.map { |target| Bolt::Result.new(target, value: { 'result' => 'pass' }) })
+    end
+    result = run_plan('nest::host::update_catalog', 'target' => 'fixture-host', 'expectations' => expected,
+                      'retention' => retention, 'release_manifest' => manifest)
+    expect(result.ok?).to be(true)
+    expect(calls).to eq(['check', 'apply', 'retain'])
+    expect(result.value['retained_report']).to include('release_metadata_bound' => true)
+  end
+
+  [{}, { 'expectations' => {} }, { 'retention' => {} }].each do |inputs|
+    it "refuses release binding without both prerequisites: #{inputs.keys.join(', ')}" do
+      expect_task('nest::retain_update_catalog').not_be_called
+      expect_task('nest::update_catalog_apply').not_be_called
+      expect_script('nest/run_puppet.sh').not_be_called
+      result = run_plan('nest::host::update_catalog', inputs.merge('target' => 'fixture-host', 'release_manifest' => {}))
+      expect(result.ok?).to be(false)
+    end
+  end
+
+  it 'does not apply or replay after release manifest validation refusal' do
+    expect_task('nest::retain_update_catalog').error_with('kind' => 'fixture/release', 'msg' => 'Release differs')
+    expect_task('nest::update_catalog_apply').not_be_called
+    expect_script('nest/run_puppet.sh').not_be_called
+    result = run_plan('nest::host::update_catalog', 'target' => 'fixture-host', 'expectations' => {}, 'release_manifest' => {},
+                      'retention' => { 'transaction' => 'fixture', 'release' => "sha256:#{'b' * 64}", 'output_dir' => '/missing' })
+    expect(result.ok?).to be(false)
+  end
+
   it 'routes explicit invocation expectations to the mutating bound task exactly once' do
     expected = { 'hostname' => 'fixture', 'certname' => 'fixture.nest',
                  'boot_id' => '11111111-1111-4111-8111-111111111111', 'configuration_version' => 'a' * 40 }
