@@ -7,6 +7,18 @@
 
 set -u
 
+# Ordinary callers retain the historical 0/2 success mapping. Update acceptance
+# must distinguish an applied catalog from an unchanged repeat. Validate before
+# touching the agent service or acquiring a lock.
+preserve_detailed_exit=${PUPPET_PRESERVE_DETAILED_EXIT:-false}
+case "$preserve_detailed_exit" in
+  true|false) ;;
+  *)
+    printf '%s\n' 'Invalid Puppet detailed-exit selection' >&2
+    exit 1
+    ;;
+esac
+
 restore_launchd_puppet=false
 cygwin=false
 
@@ -97,7 +109,7 @@ fi
 run_puppet
 status=$?
 
-if [ "$status" -eq 2 ]; then
+if [ "$status" -eq 2 ] && [ "$preserve_detailed_exit" = false ]; then
   exit 0
 fi
 
