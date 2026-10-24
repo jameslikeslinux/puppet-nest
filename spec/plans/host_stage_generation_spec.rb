@@ -8,6 +8,8 @@ RSpec.describe 'nest::host::stage_generation' do
   let(:plan_modulepath) { Dir.mktmpdir('nest-plan-spec-') }
   let(:policy) { { 'hostname' => 'fixture-host' } }
   let(:manifest) { { 'kind' => 'fixture-manifest' } }
+  let(:output_dir) { '/persistent/reports' }
+  let(:receipt) { { 'kind' => 'nest_generation_retention_receipt', 'readback_verified' => true } }
   let(:report) do
     { 'kind' => 'nest_generation_transfer_report', 'schema' => 1, 'policy' => policy,
       'read_only' => true, 'sealed' => false, 'reset_authorized' => false }
@@ -20,6 +22,7 @@ RSpec.describe 'nest::host::stage_generation' do
   around :each do |example|
     File.symlink(File.expand_path('../..', __dir__), File.join(plan_modulepath, 'nest'))
     allow_task('nest::update_generation_binding').always_return('reset_authorized' => false)
+    allow_task('nest::retain_generation_report').always_return(receipt)
     example.run
   ensure
     FileUtils.remove_entry(plan_modulepath)
@@ -52,10 +55,44 @@ RSpec.describe 'nest::host::stage_generation' do
   it 'requires explicit check=false to invoke the transfer path' do
     transferred = report.merge('read_only' => false, 'sealed' => true)
     expect_command(command(false)).with_targets('fixture-host').always_return('stdout' => transferred.to_json)
-    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'check' => false)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'check' => false, 'output_dir' => output_dir)
 
     expect(result.ok?).to be(true)
-    expect(result.value).to eq(transferred)
+    expect(result.value).to eq('report' => transferred, 'retained' => receipt)
+  end
+
+  it 'refuses transfer without supervisor retention before any target command' do
+    allow_any_command.not_be_called
+    expect(run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'check' => false).ok?).to be(false)
+  end
+
+  it 'refuses failed directory preflight before any target command' do
+    expect_task('nest::retain_generation_report').with_params('output_dir' => output_dir).error_with('kind' => 'fixture/path', 'msg' => 'Missing output directory')
+    allow_any_command.not_be_called
+    expect(run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'output_dir' => output_dir).ok?).to be(false)
+  end
+
+  it 'retains exact native stdout on localhost after the one target command' do
+    expect_task('nest::retain_generation_report').with_targets('localhost').with_params('output_dir' => output_dir).always_return('read_only' => true)
+    expect_command(command(true)).with_targets('fixture-host').always_return('stdout' => report.to_json)
+    expect_task('nest::retain_generation_report').with_targets('localhost').with_params(
+      'output_dir' => output_dir, 'report' => report.to_json, 'policy' => policy, 'check' => true, 'verify_only' => false,
+    ).always_return(receipt)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'output_dir' => output_dir)
+
+    expect(result.ok?).to be(true)
+    expect(result.value).to eq('report' => report, 'retained' => receipt)
+  end
+
+  it 'reports retention failure without replaying successful transfer' do
+    transferred = report.merge('read_only' => false, 'sealed' => true)
+    expect_command(command(false)).with_targets('fixture-host').always_return('stdout' => transferred.to_json)
+    expect_task('nest::retain_generation_report').with_params(
+      'output_dir' => output_dir, 'report' => transferred.to_json, 'policy' => policy, 'check' => false, 'verify_only' => false,
+    ).error_with('kind' => 'fixture/retention', 'msg' => 'Failed publication; never replay')
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'check' => false, 'output_dir' => output_dir)
+
+    expect(result.ok?).to be(false)
   end
 
   it 'verifies a sealed local generation without selecting the transfer path' do

@@ -200,3 +200,35 @@ mutation or authorization to proceed with a reset. Full digest reads can still
 be significant I/O. Missing/ambiguous receipts, wrong ownership/mode, links,
 special files, changed identities or corrupt content refuse; do not recopy,
 relax checks or fabricate a complete receipt to obtain a passing result.
+
+## Supervisor report retention
+
+Executing `check=false` now requires `output_dir`, an existing canonical
+directory on persistent supervisor storage. The plan checks that directory
+before contacting the target. It never creates directories or uses a remote
+host path as evidence that the supervisor received a report. As with transaction
+reports, a containerized Bolt caller must use a caller-backed mounted directory,
+for example `/modules/nest/rollout-evidence/ROUND`, not an ephemeral container
+path. Read-only check/verify calls remain compatible without `output_dir`.
+
+When supplied, `output_dir` changes the successful plan result to an object with
+`report` (the native result) and `retained` (the supervisor receipt). The
+supervisor validates exact schema, policy hash, mode/outcome, current boot/root,
+state/generation placement and bounded byte counts. It retains only known public
+identity/outcome fields, omitting raw mount sources/options, arbitrary output
+and the full policy. This is not an independent native observation, producer
+resource verification, reset-capacity approval or release authorization.
+
+The existing content-addressed no-clobber publisher fsyncs and reopens the exact
+JSON. The receipt returns its supervisor path, SHA256, byte count and explicit
+readback flag. Repeated identical retention is idempotent; conflicting bytes
+refuse without replacement. Before enclosing completion, reopen the caller-side
+file, verify its digest/bindings and retain it through the task artifact surface.
+The plan cannot prove that an arbitrary directory survives container/host loss.
+
+A failed post-transfer retention step fails the plan, but does not undo or
+repeat the successful native transfer. Preserve the host's started/complete
+receipts and sealed generation. Recover the exact result through read-only
+sealed verification and retention; never recopy merely to reconstruct evidence.
+Rollback stops using these calls and retains all native and supervisor records.
+No real transfer or live generation acceptance is implied by fixture coverage.
