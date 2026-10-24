@@ -2,7 +2,8 @@
   "description": "Validate and durably retain a sanitized CLI transaction report on the supervisor filesystem",
   "input_method": "stdin",
   "parameters": {
-    "report": { "type": "String[1]", "description": "Exact sanitized CLI report stdout transported from the host" },
+    "action": { "type": "Optional[Enum['check', 'retain']]" },
+    "report": { "type": "Optional[String[1]]", "description": "Exact sanitized CLI report stdout transported from the host; required for retain" },
     "transaction": { "type": "Pattern[/\\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\\z/]" },
     "release": { "type": "Pattern[/\\Asha256:[0-9a-f]{64}\\z/]" },
     "hostname": { "type": "String[1]", "description": "Expected exact host hostname, not an inferred inventory alias" },

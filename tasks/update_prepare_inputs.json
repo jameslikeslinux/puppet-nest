@@ -1,0 +1,11 @@
+{
+  "description": "Validate the complete exact wave policy and explicit host-local preparation inputs without executing a host command",
+  "input_method": "stdin",
+  "supports_noop": true,
+  "files": ["nest/tasks/update_wave_plan.py"],
+  "parameters": {
+    "policy": { "type": "Hash" },
+    "targets": { "type": "Array[String[1], 1]" },
+    "inputs": { "type": "Hash", "description": "Exact inventory-name map to transaction, root_generation and capacity_policy; paths exist on each target, not the supervisor" }
+  }
+}

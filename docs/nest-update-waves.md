@@ -1,6 +1,6 @@
 # Read-only host update wave planning
 
-`nest::host::update` accepts optional `mode=plan` and `policy`. This computes
+`nest::host::update` accepts optional `mode=plan` and `policy`. Planning computes
 failure-domain waves from exact inventory names on the Bolt supervisor. It does
 not contact target hosts, run reset/update/Puppet, inspect transaction state,
 reboot, record acceptance or authorize any of those operations. Inventory
@@ -16,8 +16,8 @@ bolt plan run nest::host::update --params @/absolute/path/wave-plan-params.json
 The parameter document contains `targets`, `mode: "plan"` and `policy` as
 specified below. Retain and inspect the returned JSON. `reboot=true`,
 `reset=false`, a missing policy, or a policy supplied to legacy execution
-refuses before any host command. There is no transactional prepare/reboot mode
-in this interface yet. Never change mode to legacy to execute a computed wave:
+refuses before any host command. The separate explicit `mode=prepare` described
+below invokes native transactions but never reboots. Never change mode to legacy to execute a computed wave:
 legacy execution does not enforce this policy, release or transaction identity.
 
 ## Policy schema 1
@@ -99,7 +99,7 @@ into a reboot set. The task supports noop because it is always read-only.
 Task failure returns a bounded generic error without echoing private input.
 No file, lock, directory, service, host command or transport fallback is created.
 
-R05/R08/R12 integration remains incomplete: transaction-owned prepare/status,
+R05/R08/R12 integration remains incomplete: live transaction status,
 immutable generation transfer/sealing, capacity admission, verified prepared-only
 reboot eligibility, boot-ID continuity after ambiguous disconnect, readiness gates,
 accept/finalize and retained lifecycle reports must consume the same bound policy
@@ -111,3 +111,70 @@ live lifecycle completion is inferred from these fixtures.
 Rollback stops supplying `mode=plan` and `policy`; it preserves all existing
 reports and transactions. It does not authorize falling back to unbound legacy
 reset, replacing a prepared release or replaying an ambiguous phase.
+
+## Explicit transactional preparation
+
+`mode=prepare` is MUTATING, unlike `mode=plan`. Use only within an independently
+approved exact reset scope. Source installation and a planning result are not
+that authorization. The first real reset/reboot canary for the audit program
+remains separately Joy-gated. This interface does not provision or transfer a
+generation, relax quotas, select a release alias, reboot, apply a main catalog,
+accept, finalize or clean up a boot environment.
+
+Pass the same complete `policy`, `targets`, an existing canonical supervisor
+`output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
+Each entry has exactly `transaction`, `root_generation`, and `capacity_policy`.
+The transaction is a native CLI ID (alphanumeric first, then alphanumeric,
+underscore or hyphen, at most 64 characters). Both paths are absolute canonical
+path spellings on that target, not on the supervisor. Empty components, dot
+components, traversal, shell text and the mutable `/nest/hosts/` alias refuse.
+Realpath, ownership, source identity and capacity validation are native CLI
+responsibilities; syntactic input validation does not claim they passed.
+Inventory names must equal the actual native report hostname; aliases are not
+silently translated. Each host may use its own explicit generation and policy.
+
+Before any host command, the supervisor validates the full inventory/policy/input
+scope and every report destination. No missing member is silently skipped.
+The native CLI must already be the installed transaction-capable safe source,
+with host-local shared state, a sealed immutable local generation bound to the
+release, and its supported bound capacity policy. Missing prerequisites fail
+closed; no legacy reset fallback or provisioning repair is attempted here.
+
+For each computed wave, Bolt invokes once per host:
+
+```text
+nest reset --transaction ID --release sha256:DIGEST --root-generation PATH --capacity-policy FILE --format=json
+```
+
+The command is constructed as a shell-quoted argv with inventory-backed root
+escalation, not root SSH. Canaries remain isolated; members with disjoint
+declared failure domains run concurrently up to the policy bound. All members
+of a wave finish before the next wave. Topology still requires owner review.
+`reboot=true`, `reset=false`, missing required inputs and preparation options
+supplied to another mode refuse. No `--resume` or `--resume-transaction` is
+generated. Repeating the same plan encounters the CLI's existing-ID refusal,
+not an automatic destructive replay; inspect stored status/report instead.
+
+After each native invocation, the existing supervisor retainer validates and
+atomically reopens the sanitized CLI report bound to transaction/release/host.
+Valid stopped receipts are retained before failure is raised. A failed exit,
+non-prepared receipt, transport loss, malformed report or retention failure
+stops later waves; independent commands already started in that wave may finish.
+A lost result is ambiguous: export native stored status/report without rerunning
+preparation. Raw transport and initialization errors are not invented receipts.
+Destination preflight is read-only and cannot promise future space or successful
+publication; host state remains authoritative if publication later fails.
+
+Successful output is `nest_update_preparation`, schema 1, containing the exact
+`policy_sha256` and ordered waves of durable report receipts. It reports only
+native preparation, not current live boot selection, served-source attestation,
+readiness, kernel/platform acceptance or permission to reboot. In particular,
+`reboot_eligible` stays empty and `acceptance_recorded` stays false. Copy and
+reopen reports on the notification host when its filesystem differs; wrapper
+supervisor paths under `/modules/nest` correspond to the mounted project path.
+
+Rollback removes use of explicit prepare mode while retaining all native state,
+prepared BEs and reports. Do not fall back to legacy execution or invent a new
+transaction ID to bypass an unresolved prior transaction. The remaining lifecycle,
+shared A/B continuity, generation/capacity provisioning, readiness and separately
+approved live-canary work stays open; fixtures do not prove those contracts.
