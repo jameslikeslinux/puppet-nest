@@ -2,11 +2,13 @@
 #
 # @param $targets Exactly one canonical inventory hostname matching policy
 # @param $policy Exact generation placement, identity, digest and transfer-budget policy
+# @param $manifest Complete runtime release manifest binding the versioned publication and content
 # @param $check Read-only placement/content admission by default; false explicitly copies and seals
 # @param $verify_only Verify an already sealed local generation and its retained receipts without publication access
 plan nest::host::stage_generation (
   TargetSpec $targets,
   Hash       $policy,
+  Hash       $manifest,
   Boolean    $check       = true,
   Boolean    $verify_only = false,
 ) {
@@ -18,6 +20,10 @@ plan nest::host::stage_generation (
     $nodes[0].name !~ Pattern[/\A(?:control[123]\.|[^.]*-console(?:\.|\z))/] {
     fail_plan('Generation staging requires one exact canonical non-console host', 'nest/generation-scope')
   }
+  run_task('nest::update_generation_binding', 'localhost', {
+    'manifest' => $manifest,
+    'policies' => { $nodes[0].name => $policy },
+  })
   # Only public placement/digest/budget fields belong in this JSON. The helper
   # validates the complete schema and never logs file names or private content.
   $args = ['python3', '/usr/libexec/nest/transfer-generation.py', $policy.to_json]

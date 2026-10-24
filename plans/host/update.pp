@@ -10,18 +10,23 @@
 # @param $observations Exact per-host stored transaction identities for read-only status
 # @param $output_dir Existing canonical supervisor directory for retained reports
 # @param $maintenance Exact per-controller survivor/storage/physical admission inputs for preparation
+# @param $release_manifest Complete runtime release manifest, required only for preparation
 plan nest::host::update (
   TargetSpec                                   $targets,
-  Boolean                                      $reset        = true,
-  Boolean                                      $reboot       = false,
-  Boolean                                      $run_puppet   = true,
-  Enum['legacy', 'plan', 'observe', 'prepare'] $mode         = 'legacy',
-  Optional[Hash]                               $policy       = undef,
-  Optional[Hash]                               $preparation  = undef,
-  Optional[Hash]                               $observations = undef,
-  Optional[Stdlib::Absolutepath]               $output_dir   = undef,
-  Optional[Hash]                               $maintenance  = undef,
+  Boolean                                      $reset            = true,
+  Boolean                                      $reboot           = false,
+  Boolean                                      $run_puppet       = true,
+  Enum['legacy', 'plan', 'observe', 'prepare'] $mode             = 'legacy',
+  Optional[Hash]                               $policy           = undef,
+  Optional[Hash]                               $preparation      = undef,
+  Optional[Hash]                               $observations     = undef,
+  Optional[Stdlib::Absolutepath]               $output_dir       = undef,
+  Optional[Hash]                               $maintenance      = undef,
+  Optional[Hash]                               $release_manifest = undef,
 ) {
+  if ($mode == 'prepare') != ($release_manifest != undef) {
+    fail_plan('Preparation requires the complete release_manifest; other modes refuse it', 'nest/update-generation-binding')
+  }
   if $mode in ['prepare', 'observe'] {
     if $policy == undef or $output_dir == undef or $reboot or !$reset {
       fail_plan('Transaction modes require policy, output_dir, reset=true and reboot=false', 'nest/update-prepare-inputs')
@@ -53,6 +58,18 @@ plan nest::host::update (
       'targets' => $nodes.map |$node| { $node.name },
       'inputs'  => $inputs,
     }).results[0].value
+    if $mode == 'prepare' {
+      $generation_policies = $bound['inputs'].reduce({}) |$memo, $entry| {
+        $memo + { $entry[0] => $entry[1]['generation_policy'] }
+      }
+      # Reconcile the COMPLETE scope before maintenance, backup or generation
+      # contact. Native checks remain separate resource admission.
+      run_task('nest::update_generation_binding', 'localhost', {
+        'manifest' => $release_manifest,
+        'policies' => $generation_policies,
+        'scope'    => $policy,
+      })
+    }
     $controllers = $nodes.filter |$node| { $node.name in ['control1', 'control2', 'control3'] }.map |$node| { $node.name }
     if $mode == 'prepare' and !$controllers.empty {
       if $maintenance == undef or $maintenance.keys.sort != $controllers.sort or
@@ -91,6 +108,7 @@ plan nest::host::update (
         run_plan('nest::host::stage_generation', {
           'targets'     => $name,
           'policy'      => $input['generation_policy'],
+          'manifest'    => $release_manifest,
           'verify_only' => true,
         })
       }
@@ -119,6 +137,7 @@ plan nest::host::update (
           run_plan('nest::host::stage_generation', {
             'targets'     => $name,
             'policy'      => $bound['inputs'][$name]['generation_policy'],
+            'manifest'    => $release_manifest,
             'verify_only' => true,
           })
           # Initial admission is not a lease. Maintenance, destination checks
