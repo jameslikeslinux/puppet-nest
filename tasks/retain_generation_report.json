@@ -1,0 +1,12 @@
+{
+  "description": "Validate and durably retain a bounded generation result on the supervisor without host operations",
+  "input_method": "stdin",
+  "files": ["nest/scripts/nest-release-manifest.py"],
+  "parameters": {
+    "output_dir": { "type": "Stdlib::Absolutepath", "description": "Existing canonical persistent supervisor directory; no directory creation" },
+    "report": { "type": "Optional[String[1]]", "description": "Native generation result stdout; omission selects read-only directory preflight" },
+    "policy": { "type": "Optional[Hash]" },
+    "check": { "type": "Optional[Boolean]" },
+    "verify_only": { "type": "Optional[Boolean]" }
+  }
+}

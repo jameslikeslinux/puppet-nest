@@ -5,15 +5,20 @@
 # @param $manifest Complete runtime release manifest binding the versioned publication and content
 # @param $check Read-only placement/content admission by default; false explicitly copies and seals
 # @param $verify_only Verify an already sealed local generation and its retained receipts without publication access
+# @param $output_dir Existing persistent supervisor directory; required before any executing transfer
 plan nest::host::stage_generation (
-  TargetSpec $targets,
-  Hash       $policy,
-  Hash       $manifest,
-  Boolean    $check       = true,
-  Boolean    $verify_only = false,
+  TargetSpec                     $targets,
+  Hash                           $policy,
+  Hash                           $manifest,
+  Boolean                        $check       = true,
+  Boolean                        $verify_only = false,
+  Optional[Stdlib::Absolutepath] $output_dir  = undef,
 ) {
   if $verify_only and !$check {
     fail_plan('Sealed generation verification requires check=true; it never transfers', 'nest/generation-mode')
+  }
+  if !$check and $output_dir == undef {
+    fail_plan('Executing generation transfer requires persistent supervisor report retention', 'nest/generation-retention')
   }
   $nodes = get_targets($targets)
   unless $nodes.length == 1 and $nodes[0].name == $policy['hostname'] and
@@ -24,6 +29,9 @@ plan nest::host::stage_generation (
     'manifest' => $manifest,
     'policies' => { $nodes[0].name => $policy },
   })
+  if $output_dir != undef {
+    run_task('nest::retain_generation_report', 'localhost', { 'output_dir' => $output_dir })
+  }
   # Only public placement/digest/budget fields belong in this JSON. The helper
   # validates the complete schema and never logs file names or private content.
   $args = ['python3', '/usr/libexec/nest/transfer-generation.py', $policy.to_json]
@@ -45,6 +53,16 @@ plan nest::host::stage_generation (
     $report['sealed'] == ($verify_only or !$check) and $report['reset_authorized'] == false and
     (!$verify_only or $report['reset_capacity_admitted'] == false) {
     fail_plan('Generation staging did not return the exact expected bound result; never replay', 'nest/generation-result')
+  }
+  if $output_dir != undef {
+    $retained = run_task('nest::retain_generation_report', 'localhost', {
+      'output_dir'  => $output_dir,
+      'report'      => $native.results[0].value['stdout'],
+      'policy'      => $policy,
+      'check'       => $check,
+      'verify_only' => $verify_only,
+    })
+    return({ 'report' => $report, 'retained' => $retained.results[0].value })
   }
   return($report)
 }
