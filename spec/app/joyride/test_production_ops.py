@@ -8,13 +8,14 @@ import base64
 import json
 from pathlib import Path
 import ssl
-import subprocess
+
 import tempfile
 import time
 import unittest
 import uuid
 
 from test_private_access import CLIENT, IMAGE, PYTHON, ROOT, run
+from fixture_resources import FixtureResources
 
 UPSTREAM = '''
 import http.server,json
@@ -36,6 +37,8 @@ class OpsFixture:
     @classmethod
     def setUpClass(cls):
         cls.directory = tempfile.TemporaryDirectory(prefix='joyride-production-ops-')
+        cls.addClassCleanup(cls.directory.cleanup)
+        cls.resources = FixtureResources(cls)
         cls.path = Path(cls.directory.name)
         cls.path.chmod(0o755)
         cls.container = 'joyride-production-ops-' + uuid.uuid4().hex[:12]
@@ -51,11 +54,11 @@ class OpsFixture:
             architecture = run('podman', 'info', '--format', '{{.Host.Arch}}').stdout.strip()
             for image in (PYTHON, IMAGE):
                 run('podman', 'pull', '--platform', 'linux/' + architecture, image)
-            run('podman', 'network', 'create', '--internal', cls.network)
-            run('podman', 'create', '--name', cls.upstream, '--network', cls.network, '--cap-drop=ALL', PYTHON, 'python', '-u', '-c', UPSTREAM)
+            run('podman', 'network', 'create', *cls.resources.labels, '--internal', cls.network)
+            run('podman', 'create', *cls.resources.labels, '--name', cls.upstream, '--network', cls.network, '--cap-drop=ALL', PYTHON, 'python', '-u', '-c', UPSTREAM)
             run('podman', 'cp', str(cls.path), cls.upstream + ':/tls')
             run('podman', 'start', cls.upstream)
-            run('podman', 'create', '--name', cls.container, '--network', 'container:' + cls.upstream, '--read-only', '--cap-drop=ALL', '--security-opt', 'no-new-privileges', '--user', '10001:10001', '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m,mode=1777', '--entrypoint', 'nginx', IMAGE, '-g', 'daemon off;')
+            run('podman', 'create', *cls.resources.labels, '--name', cls.container, '--network', 'container:' + cls.upstream, '--read-only', '--cap-drop=ALL', '--security-opt', 'no-new-privileges', '--user', '10001:10001', '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m,mode=1777', '--entrypoint', 'nginx', IMAGE, '-g', 'daemon off;')
             run('podman', 'cp', str(cls.path), cls.container + ':/tls')
             run('podman', 'cp', str(cls.path / 'nginx.conf'), cls.container + ':/etc/nginx/nginx.conf')
             run('podman', 'start', cls.container)
@@ -70,15 +73,8 @@ class OpsFixture:
             else:
                 raise RuntimeError(run('podman', 'logs', cls.container).stderr)
         except Exception:
-            cls.tearDownClass()
+            # unittest runs registered class cleanups even when setup fails.
             raise
-
-    @classmethod
-    def tearDownClass(cls):
-        for name in (cls.container, cls.upstream):
-            subprocess.run(['podman', 'rm', '-f', name], capture_output=True, timeout=30)
-        subprocess.run(['podman', 'network', 'rm', cls.network], capture_output=True, timeout=30)
-        cls.directory.cleanup()
 
     @classmethod
     def request(cls, path='/ops/status', host='joyride-ops.eyrie', sni='joyride-ops.eyrie', extra='', method='GET'):

@@ -16,6 +16,8 @@ import unittest
 import uuid
 import xml.etree.ElementTree as ET
 
+from fixture_resources import FixtureResources
+
 ROOT = Path(__file__).resolve().parents[3]
 IMAGE = "mirror.gcr.io/nginxinc/nginx-unprivileged@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03"
 PYTHON = "mirror.gcr.io/library/python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641"
@@ -60,6 +62,8 @@ class PrivateAccess(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.directory = tempfile.TemporaryDirectory(prefix="joyride-private-access-")
+        cls.addClassCleanup(cls.directory.cleanup)
+        cls.resources = FixtureResources(cls)
         cls.path = Path(cls.directory.name)
         cls.path.chmod(0o755)
         cls.container = "joyride-access-test-" + uuid.uuid4().hex[:12]
@@ -76,14 +80,14 @@ class PrivateAccess(unittest.TestCase):
             architecture = run("podman", "info", "--format", "{{.Host.Arch}}").stdout.strip()
             for image in (PYTHON, IMAGE):
                 run("podman", "pull", "--platform", "linux/" + architecture, image)
-            run("podman", "network", "create", "--internal", cls.network)
-            run("podman", "create", "--name", cls.upstream, "--network", cls.network, "--cap-drop=ALL", "--security-opt", "no-new-privileges", PYTHON, "python", "-u", "-c", UPSTREAM)
+            run("podman", "network", "create", *cls.resources.labels, "--internal", cls.network)
+            run("podman", "create", *cls.resources.labels, "--name", cls.upstream, "--network", cls.network, "--cap-drop=ALL", "--security-opt", "no-new-privileges", PYTHON, "python", "-u", "-c", UPSTREAM)
             run("podman", "cp", str(cls.path), cls.upstream + ":/tls")
             run("podman", "start", cls.upstream)
             upstream_info = json.loads(run("podman", "inspect", cls.upstream).stdout)[0]
             upstream_ip = upstream_info["NetworkSettings"]["Networks"][cls.network]["IPAddress"]
             (cls.path / "nginx.conf").write_text(config.replace(cls.upstream + ":8000", upstream_ip + ":8000"))
-            run("podman", "create", "--name", cls.container, "--network", cls.network, "--read-only", "--cap-drop=ALL", "--security-opt", "no-new-privileges", "--user", "101:101", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m,mode=1777", "--entrypoint", "nginx", IMAGE, "-g", "daemon off;")
+            run("podman", "create", *cls.resources.labels, "--name", cls.container, "--network", cls.network, "--read-only", "--cap-drop=ALL", "--security-opt", "no-new-privileges", "--user", "101:101", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m,mode=1777", "--entrypoint", "nginx", IMAGE, "-g", "daemon off;")
             run("podman", "cp", str(cls.path), cls.container + ":/tls")
             run("podman", "cp", str(cls.path / "nginx.conf"), cls.container + ":/etc/nginx/nginx.conf")
             run("podman", "start", cls.container)
@@ -101,20 +105,8 @@ class PrivateAccess(unittest.TestCase):
                 logs = run("podman", "logs", cls.container)
                 raise RuntimeError(logs.stdout + logs.stderr)
         except Exception:
-            cls.cleanup()
-            cls.directory.cleanup()
+            # unittest runs registered class cleanups even when setup fails.
             raise
-
-    @classmethod
-    def cleanup(cls):
-        for name in (cls.container, cls.upstream):
-            subprocess.run(["podman", "rm", "-f", name], capture_output=True, timeout=30)
-        subprocess.run(["podman", "network", "rm", cls.network], capture_output=True, timeout=30)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.cleanup()
-        cls.directory.cleanup()
 
     def request(self, path="/", host="joyride-test.eyrie", sni="joyride-test.eyrie", extra="", method="GET"):
         result = json.loads(run("podman", "exec", self.upstream, "python", "-c", CLIENT, self.address, path, host, sni, extra, method).stdout)
