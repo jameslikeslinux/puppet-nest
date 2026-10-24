@@ -42,6 +42,12 @@ plan nest::host::update (
       $result_kind = 'nest_update_observation'
     }
     $nodes = get_targets($targets)
+    # Maintenance policy and native hostname receipts use canonical inventory
+    # names. Never reinterpret a qualified controller as an ordinary leaf, or
+    # silently rewrite its transaction identity to a guessed short name.
+    if $mode == 'prepare' and $nodes.any |$node| { $node.name =~ Pattern[/\Acontrol[123]\./] } {
+      fail_plan('Controller preparation requires canonical control1/control2/control3 inventory names and bound maintenance inputs', 'nest/maintenance-scope')
+    }
     $bound = run_task($input_task, 'localhost', {
       'policy'  => $policy,
       'targets' => $nodes.map |$node| { $node.name },
@@ -139,7 +145,7 @@ plan nest::host::update (
   if $legacy_nodes.any |$node| { $node.name =~ Pattern[/\A[^.]*-console(?:\.|\z)/] } {
     fail_plan('Recovery consoles are excluded from operating system updates; no host in this selection was updated', 'nest/update-excluded-console')
   }
-  if $legacy_nodes.any |$node| { $node.name in ['control1', 'control2', 'control3'] } {
+  if $legacy_nodes.any |$node| { $node.name =~ Pattern[/\Acontrol[123](?:\.|\z)/] } {
     fail_plan('Legacy updates cannot admit a control-plane outage; use explicit bound preparation and maintenance policy', 'nest/maintenance-scope')
   }
   if $reset {

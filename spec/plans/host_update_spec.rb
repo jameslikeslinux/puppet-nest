@@ -53,6 +53,40 @@ RSpec.describe 'nest::host::update' do
     expect(run_plan('nest::host::update', 'targets' => 'control2', 'reboot' => true).ok?).to be(false)
   end
 
+  ['control1.nest', 'control2.nest', 'control3.nest'].each do |controller|
+    [true, false].each do |reset|
+      it "refuses the entire legacy selection containing #{controller} with reset=#{reset}" do
+        allow_any_command.not_be_called
+        expect_plan('nest::host::reboot').not_be_called
+        expect_plan('nest::puppet::run').not_be_called
+
+        result = run_plan('nest::host::update', 'targets' => ['update-good', controller], 'reset' => reset, 'reboot' => true)
+
+        expect(result.ok?).to be(false)
+      end
+    end
+
+    it "refuses noncanonical controller preparation for #{controller} before any task or host action" do
+      allow_any_command.not_be_called
+      expect_task('nest::update_prepare_inputs').not_be_called
+      expect_task('nest::retain_update_report').not_be_called
+      expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
+      expect_plan('nest::host::reboot').not_be_called
+
+      params = { 'targets' => ['update-good', controller], 'mode' => 'prepare', 'policy' => {}, 'preparation' => {}, 'output_dir' => '/fixture' }
+      result = run_plan('nest::host::update', params)
+
+      expect(result.ok?).to be(false)
+      expect(result.value.kind).to eq('nest/maintenance-scope')
+    end
+  end
+
+  it 'does not classify a similarly prefixed independent name as a controller' do
+    expect_command('nest update').with_targets('control3-extra.nest')
+
+    expect(run_plan('nest::host::update', 'targets' => 'control3-extra.nest', 'reset' => false).ok?).to be(true)
+  end
+
   ['fixture-console', 'fixture-console.nest'].each do |console|
     [true, false].each do |reset|
       it "refuses the entire legacy selection containing #{console} with reset=#{reset} before any host action" do
