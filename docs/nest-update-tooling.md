@@ -376,6 +376,11 @@ Normal main catalog, converged repeat, hardware/service canaries, release policy
 and durable collector bundle integration remain required before acceptance.
 Rollback simply stops using this observation plan; no host state needs undoing.
 
+The separate [bounded boot identity observation](nest-update-boot-health.md)
+adds exact postboot hostname/kernel, unique root/own var, current/next boot and
+ZFS GUID/pool-health checks. Neither observation records transaction acceptance;
+network/trust, catalog convergence and lifecycle integration remain required.
+
 ## Exact Stage 1 and Stage 2 base inputs
 
 The existing `bin/build` wrapper passes optional plan arguments through unchanged.

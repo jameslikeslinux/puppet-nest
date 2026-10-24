@@ -1,0 +1,11 @@
+{
+  "description": "Read bounded expected-host boot, kernel, root/var GUID and online-pool observations without mutating or accepting an update",
+  "input_method": "stdin",
+  "supports_noop": true,
+  "parameters": {
+    "expectations": {
+      "description": "Exact observed preparation identities and reviewed expected kernel: hostname, kernel, previous_boot_id, current, current_guid, var_guid and pool_guid. This task does not authorize or record acceptance.",
+      "type": "Hash[String, String]"
+    }
+  }
+}
