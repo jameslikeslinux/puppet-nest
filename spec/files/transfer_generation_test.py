@@ -63,9 +63,9 @@ class TransferTests(unittest.TestCase):
             manager.start()
             self.addCleanup(manager.stop)
 
-    def identity(self, value, writable):
+    def identity(self, value, writable, local=False):
         self.assertEqual(writable, not self.sealed)
-        return copy.deepcopy(self.observed)
+        return {key: copy.deepcopy(content) for key, content in self.observed.items() if not local or key != 'source_mount'}
 
     def command(self, args, timeout=60):
         self.commands.append(args)
@@ -97,6 +97,101 @@ class TransferTests(unittest.TestCase):
         self.assertIn('org.nest:release=' + self.value['release'], self.commands[-1])
         self.assertIn('readonly=on', self.commands[-1])
         self.assertNotIn('--delete', self.commands[0])
+
+    def test_verify_local_seal_after_boot_change_without_publication_or_writes(self):
+        transferred = GEN.transfer(self.value)
+        self.commands.clear()
+        shutil.rmtree(self.source)
+        (self.state / '.lock').unlink()
+        self.observed.update(current='pool/crypt/ROOT/B', boot_id='2' * 36)
+        before = {path.name: path.read_bytes() for path in self.state.iterdir()}
+        with patch.object(GEN, 'admission', side_effect=AssertionError('No transfer capacity probe')):
+            result = GEN.verify(self.value)
+        self.assertTrue(result['read_only'] and result['sealed'])
+        self.assertFalse(result['reset_authorized'] or result['reset_capacity_admitted'])
+        self.assertEqual(result['generation']['current'], 'pool/crypt/ROOT/B')
+        self.assertEqual(result['generation']['boot_id'], '2' * 36)
+        self.assertNotIn('source_mount', result['generation'])
+        self.assertEqual(result['transfer_receipt_sha256'], hashlib.sha256(GEN.ROOT.canonical(transferred)).hexdigest())
+        self.assertEqual(before, {path.name: path.read_bytes() for path in self.state.iterdir()})
+        self.assertEqual(self.commands, [])
+
+    def test_verify_refuses_incomplete_or_changed_receipts(self):
+        GEN.transfer(self.value)
+        for path in (self.started(), self.completed()):
+            original = path.read_bytes()
+            for content in (b'', b'{}\n', b'x' * 32769,
+                            GEN.ROOT.canonical(dict(json.loads(original), policy_sha256='0' * 64)),
+                            original.replace(b'"schema":1', b'"schema":true')):
+                with self.subTest(path=path.name, content=content[:30]):
+                    path.write_bytes(content)
+                    with self.assertRaises((ValueError, json.JSONDecodeError)):
+                        GEN.verify(self.value)
+            path.write_bytes(original)
+            path.unlink()
+            with self.assertRaises(FileNotFoundError):
+                GEN.verify(self.value)
+            path.write_bytes(original)
+            path.chmod(0o600)
+
+    def test_verify_observation_does_not_take_or_break_busy_transaction_lock(self):
+        GEN.transfer(self.value)
+        descriptor = os.open(self.state / '.lock', os.O_RDWR)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            before = os.fstat(descriptor).st_ino
+            self.assertTrue(GEN.verify(self.value)['read_only'])
+            self.assertEqual((self.state / '.lock').stat().st_ino, before)
+        finally:
+            os.close(descriptor)
+
+    def test_verify_refuses_symlink_hardlink_fifo_and_unsafe_receipt_mode(self):
+        GEN.transfer(self.value)
+        original = self.completed().read_bytes()
+        self.completed().chmod(0o644)
+        with self.assertRaises(ValueError):
+            GEN.verify(self.value)
+        self.completed().unlink()
+        self.completed().symlink_to(self.started())
+        with self.assertRaises(OSError):
+            GEN.verify(self.value)
+        self.completed().unlink()
+        os.link(self.started(), self.completed())
+        with self.assertRaises(ValueError):
+            GEN.verify(self.value)
+        self.completed().unlink()
+        os.mkfifo(self.completed(), 0o600)
+        with self.assertRaises(ValueError):
+            GEN.verify(self.value)
+        self.completed().unlink()
+        self.completed().write_bytes(original)
+
+    def test_verify_refuses_corrupted_sealed_bytes(self):
+        GEN.transfer(self.value)
+        (self.destination / 'private').write_bytes(b'corrupt')
+        with self.assertRaises(ValueError):
+            GEN.verify(self.value)
+
+    def test_verify_refuses_changed_native_identity_and_during_read(self):
+        GEN.transfer(self.value)
+        original = copy.deepcopy(self.observed)
+        for key in ('dataset', 'creation_txg', 'state_dataset', 'state_guid'):
+            self.observed[key] = 'changed'
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                GEN.verify(self.value)
+            self.observed = copy.deepcopy(original)
+        observed = self.identity(self.value, False, local=True)
+        with patch.object(GEN, 'identity', side_effect=[observed, dict(observed, boot_id='changed')]), self.assertRaises(ValueError):
+            GEN.verify(self.value)
+
+    def test_verify_refuses_receipt_change_during_content_check(self):
+        GEN.transfer(self.value)
+        digest = GEN.ROOT.content_digest
+        def mutate(path):
+            self.completed().write_bytes(b'{}\n')
+            return digest(path)
+        with patch.object(GEN.ROOT, 'content_digest', side_effect=mutate), self.assertRaises(ValueError):
+            GEN.verify(self.value)
 
     def test_check_creates_no_lock_receipt_or_copy(self):
         result = GEN.transfer(self.value, check=True)
@@ -250,13 +345,32 @@ class IdentityTests(unittest.TestCase):
     def read(self, path, *args, **kwargs):
         return 'c' * 32 if str(path) == '/etc/machine-id' else '11111111-2222-3333-4444-555555555555'
 
-    def run_identity(self):
+    def run_identity(self, writable=True, local=False):
         with patch.object(GEN.os, 'geteuid', return_value=0), patch.object(GEN.socket, 'gethostname', return_value='fixture-host'), \
                 patch.object(GEN.Path, 'read_text', new=lambda path: self.read(path)), patch.object(GEN.ROOT, 'safe_ancestors'), \
                 patch.object(GEN.Path, 'stat', return_value=type('Info', (), {'st_mode': 0o40700})()), \
                 patch.object(GEN, 'mounts', return_value=self.rows), \
                 patch.object(GEN, 'property_value', side_effect=self.property_value), patch.object(GEN, 'command', side_effect=self.command):
-            return GEN.identity(self.value, True)
+            return GEN.identity(self.value, writable, local=local)
+
+    def test_sealed_local_identity_has_no_publication_dependency(self):
+        self.rows = self.rows[:3]
+        self.rows[2]['options'] = 'ro'
+        original = self.property_value
+        sealed = {'org.nest:host': self.value['hostname'], 'org.nest:release': self.value['release'],
+                  'org.nest:build-release': self.value['build_release'], 'org.nest:content-digest': self.value['content_digest'],
+                  'readonly': 'on'}
+        def properties(dataset, name):
+            return sealed[name] if dataset == self.dataset and name in sealed else original(dataset, name)
+        self.property_value = properties
+        result = self.run_identity(writable=False, local=True)
+        self.assertNotIn('source_mount', result)
+        self.assertEqual(result['dataset'], self.dataset)
+        with self.assertRaises(ValueError):
+            self.run_identity(writable=False, local=False)
+        self.rows[2]['options'] = 'rw'
+        with self.assertRaises(ValueError):
+            self.run_identity(writable=False, local=True)
 
     def test_native_host_pool_state_source_and_destination_binding(self):
         result = self.run_identity()
@@ -355,6 +469,16 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, '')
         self.assertEqual(result.stderr, 'Generation transfer refused or stopped; retain the dataset and native receipts; never replay automatically\n')
+
+    def test_cli_verify_has_sanitized_failure_and_refuses_conflicting_modes(self):
+        helper = str(Path(STAGED.name) / 'transfer-generation.py')
+        result = subprocess.run(['python3', helper, '{bad', '--verify'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, '')
+        self.assertNotIn('Traceback', result.stderr)
+        result = subprocess.run(['python3', helper, json.dumps(example()), '--verify', '--check'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, '')
 
 
 if __name__ == '__main__':

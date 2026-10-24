@@ -101,13 +101,13 @@ def source_mount(path, inventory):
     return selected[0]
 
 
-def identity(value, writable):
+def identity(value, writable, local=False):
     require(os.geteuid() == 0 and socket.gethostname() == value['hostname'])
     machine = Path('/etc/machine-id').read_text().strip()
     require(re.fullmatch(r'[0-9a-f]{32}', machine) is not None)
     require(hashlib.sha256(machine.encode('ascii')).hexdigest() == value['host_identity_sha256'])
     source, destination = Path(value['source']), Path(value['destination'])
-    for path in (source, destination, STATE):
+    for path in ((destination, STATE) if local else (source, destination, STATE)):
         ROOT.safe_ancestors(path)
     for first, second in ((source, destination), (source, STATE), (destination, STATE)):
         require(first != second and first not in second.parents and second not in first.parents)
@@ -139,8 +139,11 @@ def identity(value, writable):
     require(re.fullmatch(ROOT.GUID, state_guid) is not None)
     boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     require(re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot) is not None)
-    return {'dataset': target, 'creation_txg': txg, 'state_dataset': state, 'current': root[0]['source'],
-            'boot_id': boot, 'state_guid': state_guid, 'source_mount': source_mount(source, inventory)}
+    observed = {'dataset': target, 'creation_txg': txg, 'state_dataset': state, 'current': root[0]['source'],
+                'boot_id': boot, 'state_guid': state_guid}
+    if not local:
+        observed['source_mount'] = source_mount(source, inventory)
+    return observed
 
 
 def admission(value, observed):
@@ -240,15 +243,68 @@ def transfer(value, check=False):
         os.close(fd)
 
 
+def receipt(path):
+    # A read-only observation never creates a lock, repairs a receipt or follows
+    # a symlink. Bound reads also refuse special files and oversized records.
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        before = os.fstat(descriptor)
+        require(stat.S_ISREG(before.st_mode) and before.st_uid == 0 and before.st_nlink == 1
+                and stat.S_IMODE(before.st_mode) == 0o600 and 0 < before.st_size <= 32768)
+        with os.fdopen(descriptor, 'rb', closefd=False) as stream:
+            raw = stream.read(32769)
+        require(len(raw) == before.st_size and ROOT.metadata(os.fstat(descriptor)) == ROOT.metadata(before)
+                and ROOT.metadata(path.lstat()) == ROOT.metadata(before))
+        row = json.loads(raw, object_pairs_hook=unique)
+        require(type(row) is dict and ROOT.canonical(row) == raw)
+        return row, raw
+    finally:
+        os.close(descriptor)
+
+
+def verify(value):
+    observed = identity(value, False, local=True)
+    started = STATE / ('generation-' + value['destination_guid'] + '.started')
+    completed = STATE / ('generation-' + value['destination_guid'] + '.complete')
+    initial, initial_raw = receipt(started)
+    final, final_raw = receipt(completed)
+    require(set(initial) == {'schema', 'kind', 'policy', 'policy_sha256', 'source', 'capacity',
+                             'read_only', 'sealed', 'reset_authorized'})
+    require(type(initial['schema']) is int and initial['schema'] == 1
+            and initial['kind'] == 'nest_generation_transfer_report')
+    require(ROOT.canonical(initial['policy']) == ROOT.canonical(value)
+            and initial['policy_sha256'] == hashlib.sha256(ROOT.canonical(value)).hexdigest())
+    require(initial['read_only'] is False and initial['sealed'] is False and initial['reset_authorized'] is False)
+    require(final_raw == ROOT.canonical(dict(initial, sealed=True)))
+    historical = initial['source']
+    require(type(historical) is dict and set(historical) == set(observed) | {'source_mount'})
+    for key in ('dataset', 'creation_txg', 'state_dataset', 'state_guid'):
+        require(historical[key] == observed[key])
+    # Current BE and boot are current observations, not replay requirements.
+    # Pool/host/destination and shared-state identity are freshly checked above.
+    destination = Path(value['destination'])
+    contained_paths(destination)
+    require(ROOT.content_digest(destination) == value['content_digest'])
+    require(identity(value, False, local=True) == observed)
+    require(receipt(started)[1] == initial_raw and receipt(completed)[1] == final_raw)
+    return {'schema': 1, 'kind': 'nest_generation_verification_report', 'policy': value,
+            'policy_sha256': initial['policy_sha256'], 'generation': observed,
+            'transfer_receipt_sha256': hashlib.sha256(final_raw).hexdigest(),
+            'read_only': True, 'sealed': True, 'reset_authorized': False, 'reset_capacity_admitted': False}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('policy', help='Exact JSON policy; never include secrets')
-    parser.add_argument('--check', action='store_true', help='Read-only placement/content/budget checks; no lock or receipt creation')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--check', action='store_true', help='Read-only placement/content/budget checks; no lock or receipt creation')
+    mode.add_argument('--verify', action='store_true', help='Read-only sealed local generation and retained receipt verification')
     args = parser.parse_args()
     try:
-        print(json.dumps(transfer(policy(args.policy), args.check), sort_keys=True))
+        value = policy(args.policy)
+        print(json.dumps(verify(value) if args.verify else transfer(value, args.check), sort_keys=True))
         return 0
-    except (OSError, ValueError, TypeError, KeyError, IndexError, RuntimeError, subprocess.SubprocessError):
+    except (OSError, ValueError, TypeError, KeyError, IndexError, RuntimeError, RecursionError, subprocess.SubprocessError):
         print('Generation transfer refused or stopped; retain the dataset and native receipts; never replay automatically', file=sys.stderr)
         return 1
 
