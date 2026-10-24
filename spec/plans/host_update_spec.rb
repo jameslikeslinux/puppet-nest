@@ -284,8 +284,74 @@ RSpec.describe 'nest::host::update' do
 
     before :each do
       allow_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
+      bound['backup_requirements'] = targets.each_with_object({}) { |name, entries| entries[name] = [] }
       expect_plan('nest::host::reboot').not_be_called
       expect_plan('nest::puppet::run').not_be_called
+    end
+
+    context 'existing backup prerequisites' do
+      let(:backup_check) do
+        { 'kind' => 'hermes', 'target' => 'fixture-backup', 'user' => 'joy', 'backup_dir' => '/fixture/backups',
+          'checkpoint' => 'fixture', 'expected_sha256' => 'c' * 64, 'max_age_seconds' => 3600, 'required_profiles' => ['talon'] }
+      end
+      let(:verify_params) { backup_check.reject { |key, _value| key == 'kind' }.merge('verify_only' => true) }
+
+      before :each do
+        bound['backup_requirements']['update-good'] = [backup_check]
+        allow_task('nest::retain_update_report').always_return('state' => 'prepared')
+      end
+
+      it 'checks the full backup scope before any reset and repeats the affected prerequisite before initiation' do
+        checks = 0
+        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
+          checks += 1
+          Bolt::PlanResult.new({}, 'success')
+        end
+        commands.each_value do |argv|
+          expect_command(argv.join(' ')).return do |targets:, command:, **_options|
+            expect(checks).to eq(2)
+            Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, { 'stdout' => 'report', 'stderr' => '', 'exit_code' => 0 }, 'command', command, []) })
+          end
+        end
+
+        expect(run_plan('nest::host::update', params).ok?).to be(true)
+      end
+
+      it 'does not start even the canary when a later host backup preflight fails' do
+        bound['backup_requirements']['update-good'] = []
+        bound['backup_requirements']['update-failed'] = [backup_check]
+        expect_plan('nest::app::hermes::backup').with_params(verify_params).error_with('kind' => 'fixture/backup', 'msg' => 'Stale generation')
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'does not reset after a previously valid backup becomes unavailable at initiation' do
+        checks = 0
+        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
+          checks += 1
+          (checks == 1) ? Bolt::PlanResult.new({}, 'success') : Bolt::PlanResult.new(Bolt::Error.new('Busy backup', 'fixture/backup'), 'failure')
+        end
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
+      it 'rechecks the preparation window after backup readback rather than treating it as a lease' do
+        checks = 0
+        expect_plan('nest::app::hermes::backup').with_params(verify_params).be_called_times(2).return do |**_options|
+          checks += 1
+          Bolt::PlanResult.new({}, 'success')
+        end
+        expect_task('nest::update_prepare_inputs').be_called_times(2).return do |targets:, **_options|
+          value = (checks == 2) ? { '_error' => { 'kind' => 'nest/update-prepare-inputs', 'msg' => 'Expired window' } } : bound
+          status = (checks == 2) ? 1 : 0
+          Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_task(target, JSON.generate(value), '', status, 'nest::update_prepare_inputs', []) })
+        end
+        allow_any_command.not_be_called
+
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
     end
 
     it 'rechecks admission after destination preflight and stops before the next host when its window expires' do

@@ -75,7 +75,10 @@ timestamps and age budget. `restore_verified` and `execution_authorized` remain
 false. No private member values or full backup payload appear in this receipt.
 
 This is a working backup-readback prerequisite, not the full host release policy.
-The transactional host plan does not yet consume it as reset admission. Host
+The transactional host plan consumes explicit schema-3 `backup_requirements`
+before any preparation starts and again at each affected host's initiation, as
+documented in `nest-update-waves.md`. Planning and stored observation remain
+read-only, and old schema-2 preparation refuses rather than bypassing the checks. Host
 rollback/retention, immutable generation/capacity, A/B continuity, catalog/release
 attestation and accept/finalize/report integration remain separate unfinished
 work. Verification alone never authorizes reset, reboot, cleanup, restore or

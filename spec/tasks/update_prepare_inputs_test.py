@@ -24,7 +24,8 @@ def inputs(selected):
 def preparation_policy():
     value = policy()
     now = datetime.now(timezone.utc)
-    value['schema'] = 2
+    value['schema'] = 3
+    value['backup_requirements'] = {host['name']: [] for host in value['hosts']}
     value['preparation_window'] = {
         'not_before': (now - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'not_after': (now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),

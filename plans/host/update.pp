@@ -84,6 +84,15 @@ plan nest::host::update (
         'output_dir'  => $output_dir,
       })
     }
+    if $mode == 'prepare' {
+      # Verify every declared existing generation before ANY native reset, then
+      # repeat affected checks at initiation. Never capture or prune on failure.
+      $bound['backup_requirements'].each |$name, $checks| {
+        $checks.each |$check| {
+          run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
+        }
+      }
+    }
     $waves = $bound['waves'].map |$wave| {
       # parallelize waits for the whole wave, including retention, before the
       # next wave starts. A failure never starts the next wave or a reboot.
@@ -93,6 +102,9 @@ plan nest::host::update (
           run_plan('nest::kubernetes::check_control_plane_maintenance', $maintenance[$name] + { 'target' => $name })
         }
         if $mode == 'prepare' {
+          $bound['backup_requirements'][$name].each |$check| {
+            run_plan('nest::app::hermes::backup', $check.filter |$key, $value| { $key != 'kind' } + { 'verify_only' => true })
+          }
           # Initial admission is not a lease. Maintenance, destination checks
           # and earlier waves may outlast the exact preparation window. Recheck
           # on the supervisor immediately before EACH host command, not only
