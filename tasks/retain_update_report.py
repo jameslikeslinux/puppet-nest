@@ -183,6 +183,14 @@ def publish(report, directory):
 def main():
     try:
         arguments = json.load(sys.stdin)
+        if arguments.get('action', 'retain') == 'check':
+            token(arguments['transaction'], ID)
+            token(arguments['release'], 'sha256:' + DIGEST)
+            token(arguments['hostname'], r'[A-Za-z0-9][A-Za-z0-9_.-]{0,252}')
+            output_directory(arguments['output_dir'])
+            print(json.dumps({'destination_checked': True, 'host_action_performed': False}))
+            return 0
+        require(arguments.get('action', 'retain') == 'retain', 'invalid action')
         report = project(arguments["report"], arguments["transaction"], arguments["release"], arguments["hostname"])
         print(json.dumps(publish(report, arguments["output_dir"])))
     except (KeyError, TypeError, ValueError, OSError):

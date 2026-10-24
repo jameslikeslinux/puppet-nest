@@ -67,6 +67,7 @@ stages:
     - 'python3 spec/tasks/update_boot_health_test.py'
     - 'python3 spec/tasks/update_network_health_test.py'
     - 'python3 spec/tasks/update_wave_plan_test.py'
+    - 'python3 spec/tasks/update_prepare_inputs_test.py'
     - 'python3 spec/files/run_puppet_exit_test.py'
     - 'python3 spec/files/nest_update_state_test.py'
     - 'python3 spec/files/nest_release_manifest_test.py'

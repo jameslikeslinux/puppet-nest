@@ -143,6 +143,20 @@ class RetainUpdateReportTest(unittest.TestCase):
             self.assertNotIn("private sentinel", result.stdout + result.stderr)
             self.assertIn("_error", json.loads(result.stdout))
 
+    def test_read_only_destination_preflight_and_unchanged_default(self):
+        arguments = self.arguments()
+        arguments.pop('report')
+        arguments['action'] = 'check'
+        result = self.run_task(arguments)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertTrue(json.loads(result.stdout)['destination_checked'])
+        self.assertEqual(list(self.supervisor.iterdir()), [])
+        arguments['output_dir'] += '/missing'
+        self.assertEqual(self.run_task(arguments).returncode, 1)
+        arguments = self.arguments()
+        arguments['action'] = 'unknown'
+        self.assertEqual(self.run_task(arguments).returncode, 1)
+
     def test_missing_or_symlink_destination_is_refused(self):
         args = self.arguments()
         args["output_dir"] = str(self.root / "missing")

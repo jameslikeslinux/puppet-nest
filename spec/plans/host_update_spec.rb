@@ -94,4 +94,58 @@ RSpec.describe 'nest::host::update' do
 
     expect(run_plan('nest::host::update', 'targets' => targets, 'mode' => 'plan', 'policy' => {}).ok?).to be(false)
   end
+
+  context 'explicit native preparation' do
+    let(:inputs) { { 'update-good' => { 'transaction' => 'good' }, 'update-failed' => { 'transaction' => 'failed' } } }
+    let(:commands) { { 'update-good' => ['nest', 'reset', '--transaction', 'good'], 'update-failed' => ['nest', 'reset', '--transaction', 'failed'] } }
+    let(:bound) { { 'release' => "sha256:#{'a' * 64}", 'policy_sha256' => 'b' * 64, 'inputs' => inputs, 'commands' => commands, 'waves' => [['update-good'], ['update-failed']] } }
+    let(:params) { { 'targets' => targets, 'mode' => 'prepare', 'policy' => {}, 'preparation' => inputs, 'output_dir' => '/fixture' } }
+
+    before :each do
+      expect_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
+      expect_plan('nest::host::reboot').not_be_called
+      expect_plan('nest::puppet::run').not_be_called
+    end
+
+    it 'preflights every destination and retains each successful native transaction without reboot eligibility' do
+      ['good', 'failed'].each do |id|
+        host = (id == 'good') ? 'update-good' : 'update-failed'
+        check_params = { 'action' => 'check', 'transaction' => id, 'release' => bound['release'], 'hostname' => host, 'output_dir' => '/fixture' }
+        expect_task('nest::retain_update_report').with_params(check_params).always_return('destination_checked' => true)
+      end
+      expect_command('nest reset --transaction good').with_targets('update-good').always_return('stdout' => 'good report')
+      expect_command('nest reset --transaction failed').with_targets('update-failed').always_return('stdout' => 'failed report')
+      ['good', 'failed'].each do |id|
+        host = (id == 'good') ? 'update-good' : 'update-failed'
+        retain_params = { 'report' => "#{id} report", 'transaction' => id, 'release' => bound['release'], 'hostname' => host, 'output_dir' => '/fixture' }
+        expect_task('nest::retain_update_report').with_params(retain_params).always_return('state' => 'prepared', 'readback_verified' => true)
+      end
+
+      result = run_plan('nest::host::update', params)
+
+      expect(result.ok?).to be(true)
+      expect(result.value['reboot_eligible']).to eq([])
+      expect(result.value['waves'].length).to eq(2)
+    end
+
+    it 'retains a stopped native outcome and never starts the next wave or retries' do
+      expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => 'good', 'release' => bound['release'], 'hostname' => 'update-good', 'output_dir' => '/fixture')
+      expect_task('nest::retain_update_report').with_params('action' => 'check', 'transaction' => 'failed', 'release' => bound['release'], 'hostname' => 'update-failed', 'output_dir' => '/fixture')
+      expect_command('nest reset --transaction good').with_targets('update-good').return do |targets:, command:, **_options|
+        Bolt::ResultSet.new(targets.map { |target| Bolt::Result.for_command(target, { 'stdout' => 'stopped report', 'stderr' => '', 'exit_code' => 2 }, 'command', command, []) })
+      end
+      retain_params = { 'report' => 'stopped report', 'transaction' => 'good', 'release' => bound['release'], 'hostname' => 'update-good', 'output_dir' => '/fixture' }
+      expect_task('nest::retain_update_report').with_params(retain_params).always_return('state' => 'stopped')
+      expect_command('nest reset --transaction failed').not_be_called
+
+      expect(run_plan('nest::host::update', params).ok?).to be(false)
+    end
+
+    it 'refuses a bad destination before any native reset' do
+      expect_task('nest::retain_update_report').error_with('kind' => 'nest/update-report', 'msg' => 'Invalid destination')
+      commands.each_value { |argv| expect_command(argv.join(' ')).not_be_called }
+
+      expect(run_plan('nest::host::update', params).ok?).to be(false)
+    end
+  end
 end
