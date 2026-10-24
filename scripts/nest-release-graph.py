@@ -205,8 +205,15 @@ def native_node(api, request: Any, root_id, name):
     freezer = D['selected'](inputs, inputs[0]['name'])
     observed = B['job'](api, 'nest/config', root_id, freezer['id'], sha)
     require(observed['name'] == freezer['name'], 'graph freezer identity changed')
+    # GitLab adds volatile duration, runner and user metadata to bridge rows.
+    # Compare resource identity, required success and exact parent/child pins,
+    # not unrelated mutable display metadata, across independent acquisitions.
+    stable_bridge = {key: bridge[key] for key in ('id', 'name', 'status', 'allow_failure')}
+    stable_bridge['pipeline'] = {key: bridge['pipeline'][key] for key in ('id', 'project_id', 'sha')}
+    stable_bridge['downstream_pipeline'] = {
+        key: bridge['downstream_pipeline'][key] for key in ('id', 'project_id', 'sha', 'ref', 'status')}
     return dict(root_pipeline=child['id'], input_pipeline=root_id, bridge='Build frozen member'), dict(
-        root=root, bridge=bridge, child=child, freezer=observed)
+        root=root, bridge=stable_bridge, child=child, freezer=observed)
 
 
 def active_freezer(api, root_id, name, env, source):
