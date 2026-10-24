@@ -247,6 +247,52 @@ def validate(expected: Any, record: Any):
     return {"schema": 1, "kind": "nest_release_manifest", "expectations": expected, "candidate": record}
 
 
+def generation_binding(manifest: Any, policies: Any, scope: Any = None):
+    """Reconcile local generation assertions with a complete runtime manifest.
+
+    This is metadata admission, not independent resource or approval evidence.
+    The native producer still checks actual content, host and dataset identities.
+    """
+    fields(manifest, "schema kind expectations candidate", "manifest")
+    require(type(manifest["schema"]) is int and manifest["schema"] == 1
+            and manifest["kind"] == "nest_release_manifest", "manifest: unsupported schema/kind")
+    checked = validate(manifest["expectations"], manifest["candidate"])
+    require(canonical(checked) == canonical(manifest), "manifest: inconsistent content")
+    runtime = digest(checked)
+    require(type(policies) is dict and 0 < len(policies) <= 128, "generation: invalid host scope")
+    outputs = {row["member"]["host"]: row for row in checked["candidate"]["outputs"]
+               if row["member"]["stage"] == "stage3"}
+    bindings = {}
+    for hostname, policy in policies.items():
+        match(hostname, r"[a-z0-9][a-z0-9-]{0,62}", "generation host")
+        require(hostname in outputs and type(policy) is dict, "generation: missing host output")
+        output = outputs[hostname]
+        root = output["artifacts"]["root"]
+        require(policy.get("hostname") == hostname and policy.get("release") == runtime
+                and policy.get("build_release") == checked["expectations"]["release"]
+                and policy.get("source") == root["path"]
+                and policy.get("content_digest") == root["content_digest"]
+                and policy.get("destination") == "/var/lib/nest/generations/" + runtime.split(":")[1],
+                "generation: publication/runtime/content mismatch")
+        bindings[hostname] = {"member": output["member"]["id"], "root": root,
+                              "platform": output["member"]["platform"],
+                              "kernel": output["member"]["compatibility"]["kernel"]}
+    if scope is not None:
+        require(type(scope) is dict and scope.get("release") == runtime
+                and scope.get("config_source") == checked["expectations"]["sources"]["nest/config"],
+                "generation: wave release/config mismatch")
+        hosts = scope.get("hosts")
+        require(type(hosts) is list and all(type(host) is dict for host in hosts)
+                and len(hosts) == len(bindings) and {host.get("name") for host in hosts} == set(bindings),
+                "generation: incomplete wave scope")
+        for host in hosts:
+            bound = bindings[host["name"]]
+            require(host.get("kernel") == bound["kernel"] and host.get("platform") == bound["platform"],
+                    "generation: wave compatibility mismatch")
+    return {"schema": 1, "kind": "nest_generation_release_binding", "manifest_digest": runtime,
+            "hosts": bindings, "resource_verification": "not_performed", "reset_authorized": False}
+
+
 def retain(directory, payload):
     """No-clobber local artifact publication, not a release alias or ZFS publisher."""
     directory = Path(directory)

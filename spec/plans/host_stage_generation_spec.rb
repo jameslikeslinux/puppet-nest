@@ -7,6 +7,7 @@ RSpec.describe 'nest::host::stage_generation' do
 
   let(:plan_modulepath) { Dir.mktmpdir('nest-plan-spec-') }
   let(:policy) { { 'hostname' => 'fixture-host' } }
+  let(:manifest) { { 'kind' => 'fixture-manifest' } }
   let(:report) do
     { 'kind' => 'nest_generation_transfer_report', 'schema' => 1, 'policy' => policy,
       'read_only' => true, 'sealed' => false, 'reset_authorized' => false }
@@ -18,6 +19,7 @@ RSpec.describe 'nest::host::stage_generation' do
 
   around :each do |example|
     File.symlink(File.expand_path('../..', __dir__), File.join(plan_modulepath, 'nest'))
+    allow_task('nest::update_generation_binding').always_return('reset_authorized' => false)
     example.run
   ensure
     FileUtils.remove_entry(plan_modulepath)
@@ -29,16 +31,28 @@ RSpec.describe 'nest::host::stage_generation' do
 
   it 'defaults to exact inventory-backed read-only admission' do
     expect_command(command(true)).with_targets('fixture-host').always_return('stdout' => report.to_json)
-    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest)
 
     expect(result.ok?).to be(true)
     expect(result.value).to eq(report)
   end
 
+  it 'refuses a missing manifest before any target command' do
+    allow_any_command.not_be_called
+    expect(run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy).ok?).to be(false)
+  end
+
+  it 'refuses manifest binding failure before any target command' do
+    allow_any_command.not_be_called
+    binding = { 'manifest' => manifest, 'policies' => { 'fixture-host' => policy } }
+    expect_task('nest::update_generation_binding').with_targets('localhost').with_params(binding).error_with('kind' => 'fixture/binding', 'msg' => 'Wrong root')
+    expect(run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest).ok?).to be(false)
+  end
+
   it 'requires explicit check=false to invoke the transfer path' do
     transferred = report.merge('read_only' => false, 'sealed' => true)
     expect_command(command(false)).with_targets('fixture-host').always_return('stdout' => transferred.to_json)
-    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'check' => false)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'check' => false)
 
     expect(result.ok?).to be(true)
     expect(result.value).to eq(transferred)
@@ -47,7 +61,7 @@ RSpec.describe 'nest::host::stage_generation' do
   it 'verifies a sealed local generation without selecting the transfer path' do
     verified = report.merge('kind' => 'nest_generation_verification_report', 'sealed' => true, 'reset_capacity_admitted' => false)
     expect_command("#{command(false)} --verify").with_targets('fixture-host').always_return('stdout' => verified.to_json)
-    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'verify_only' => true)
 
     expect(result.ok?).to be(true)
     expect(result.value).to eq(verified)
@@ -55,7 +69,7 @@ RSpec.describe 'nest::host::stage_generation' do
 
   it 'refuses contradictory verification and transfer inputs before any command' do
     allow_any_command.not_be_called
-    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true, 'check' => false)
+    result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'verify_only' => true, 'check' => false)
 
     expect(result.ok?).to be(false)
   end
@@ -71,7 +85,7 @@ RSpec.describe 'nest::host::stage_generation' do
     it "refuses contradictory sealed verification result #{change} without retry" do
       verified = report.merge('kind' => 'nest_generation_verification_report', 'sealed' => true, 'reset_capacity_admitted' => false).merge(change)
       expect_command("#{command(false)} --verify").with_targets('fixture-host').always_return('stdout' => verified.to_json)
-      result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'verify_only' => true)
+      result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest, 'verify_only' => true)
 
       expect(result.ok?).to be(false)
     end
@@ -80,7 +94,7 @@ RSpec.describe 'nest::host::stage_generation' do
   ['other', 'fixture-host.nest', 'fixture-console', 'fixture-console.nest', 'control1.nest'].each do |name|
     it "refuses nonmatching or excluded inventory scope #{name} before any command" do
       allow_any_command.not_be_called
-      result = run_plan('nest::host::stage_generation', 'targets' => name, 'policy' => policy)
+      result = run_plan('nest::host::stage_generation', 'targets' => name, 'policy' => policy, 'manifest' => manifest)
 
       expect(result.ok?).to be(false)
     end
@@ -88,7 +102,7 @@ RSpec.describe 'nest::host::stage_generation' do
 
   it 'refuses multiple targets before any command' do
     allow_any_command.not_be_called
-    result = run_plan('nest::host::stage_generation', 'targets' => ['fixture-host', 'other'], 'policy' => policy)
+    result = run_plan('nest::host::stage_generation', 'targets' => ['fixture-host', 'other'], 'policy' => policy, 'manifest' => manifest)
 
     expect(result.ok?).to be(false)
   end
@@ -96,7 +110,7 @@ RSpec.describe 'nest::host::stage_generation' do
   ['fixture-console', 'fixture-console.nest', 'control1.nest'].each do |name|
     it "refuses excluded name #{name} even when the supplied policy agrees" do
       allow_any_command.not_be_called
-      result = run_plan('nest::host::stage_generation', 'targets' => name, 'policy' => policy.merge('hostname' => name))
+      result = run_plan('nest::host::stage_generation', 'targets' => name, 'policy' => policy.merge('hostname' => name), 'manifest' => manifest)
 
       expect(result.ok?).to be(false)
     end
@@ -111,7 +125,7 @@ RSpec.describe 'nest::host::stage_generation' do
   ].each do |change|
     it "refuses changed or contradictory result #{change} without retry" do
       expect_command(command(true)).with_targets('fixture-host').always_return('stdout' => report.merge(change).to_json)
-      result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy)
+      result = run_plan('nest::host::stage_generation', 'targets' => 'fixture-host', 'policy' => policy, 'manifest' => manifest)
 
       expect(result.ok?).to be(false)
     end

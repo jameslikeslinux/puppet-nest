@@ -1,0 +1,11 @@
+{
+  "description": "Read-only reconciliation of exact generation policies with a complete runtime release manifest on the supervisor; no resource discovery or authorization",
+  "input_method": "stdin",
+  "supports_noop": true,
+  "files": ["nest/scripts/nest-release-manifest.py"],
+  "parameters": {
+    "manifest": { "type": "Hash", "description": "Complete retained nest_release_manifest, not a validation receipt" },
+    "policies": { "type": "Hash", "description": "Exact hostname to native generation policy map" },
+    "scope": { "type": "Optional[Hash]", "description": "Optional complete wave policy for release, config source, host, platform and kernel reconciliation" }
+  }
+}

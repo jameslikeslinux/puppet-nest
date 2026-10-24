@@ -73,7 +73,7 @@ RSpec.describe 'nest::host::update' do
       expect_plan('nest::kubernetes::check_control_plane_maintenance').not_be_called
       expect_plan('nest::host::reboot').not_be_called
 
-      params = { 'targets' => ['update-good', controller], 'mode' => 'prepare', 'policy' => {}, 'preparation' => {}, 'output_dir' => '/fixture' }
+      params = { 'targets' => ['update-good', controller], 'mode' => 'prepare', 'policy' => {}, 'preparation' => {}, 'output_dir' => '/fixture', 'release_manifest' => {} }
       result = run_plan('nest::host::update', params)
 
       expect(result.ok?).to be(false)
@@ -217,10 +217,19 @@ RSpec.describe 'nest::host::update' do
   end
 
   context 'explicit native preparation' do
+    ['legacy', 'plan', 'observe'].each do |mode|
+      it "refuses release manifest supplied to #{mode} before tasks or commands" do
+        allow_any_command.not_be_called
+        expect_task('nest::update_generation_binding').not_be_called
+        expect(run_plan('nest::host::update', 'targets' => targets, 'mode' => mode, 'release_manifest' => {}).ok?).to be(false)
+      end
+    end
+
     let(:inputs) { { 'update-good' => { 'transaction' => 'good' }, 'update-failed' => { 'transaction' => 'failed' } } }
     let(:commands) { { 'update-good' => ['nest', 'reset', '--transaction', 'good'], 'update-failed' => ['nest', 'reset', '--transaction', 'failed'] } }
     let(:bound) { { 'release' => "sha256:#{'a' * 64}", 'policy_sha256' => 'b' * 64, 'inputs' => inputs, 'commands' => commands, 'waves' => [['update-good'], ['update-failed']] } }
-    let(:params) { { 'targets' => targets, 'mode' => 'prepare', 'policy' => {}, 'preparation' => inputs, 'output_dir' => '/fixture' } }
+    let(:manifest) { { 'kind' => 'fixture-manifest' } }
+    let(:params) { { 'targets' => targets, 'mode' => 'prepare', 'policy' => {}, 'preparation' => inputs, 'output_dir' => '/fixture', 'release_manifest' => manifest } }
 
     context 'control-plane maintenance admission' do
       let(:targets) { ['control3'] }
@@ -284,6 +293,7 @@ RSpec.describe 'nest::host::update' do
 
     before :each do
       allow_task('nest::update_prepare_inputs').with_targets('localhost').always_return(bound)
+      allow_task('nest::update_generation_binding').with_targets('localhost').always_return('reset_authorized' => false)
       bound['backup_requirements'] = targets.each_with_object({}) { |name, entries| entries[name] = [] }
       bound['inputs_sha256'] = 'c' * 64
       inputs.each do |name, entry|
@@ -295,6 +305,22 @@ RSpec.describe 'nest::host::update' do
     end
 
     context 'sealed local generation prerequisites' do
+      it 'requires the complete manifest before any host action' do
+        allow_any_command.not_be_called
+        expect_task('nest::update_prepare_inputs').not_be_called
+        expect(run_plan('nest::host::update', params.reject { |key, _value| key == 'release_manifest' }).ok?).to be(false)
+      end
+
+      it 'binds every generation and exact wave scope before contacting any host' do
+        policies = inputs.transform_values { |entry| entry['generation_policy'] }
+        binding = { 'manifest' => manifest, 'policies' => policies, 'scope' => params['policy'] }
+        expect_task('nest::update_generation_binding').with_params(binding).error_with('kind' => 'fixture/binding', 'msg' => 'Wrong release')
+        expect_plan('nest::host::stage_generation').not_be_called
+        expect_task('nest::retain_update_report').not_be_called
+        allow_any_command.not_be_called
+        expect(run_plan('nest::host::update', params).ok?).to be(false)
+      end
+
       before :each do
         allow_task('nest::retain_update_report').always_return('state' => 'prepared')
       end
@@ -302,7 +328,7 @@ RSpec.describe 'nest::host::update' do
       it 'checks every exact seal before reset and repeats each affected check at initiation' do
         checked = Hash.new(0)
         inputs.each do |name, entry|
-          verify = { 'targets' => name, 'policy' => entry['generation_policy'], 'verify_only' => true }
+          verify = { 'targets' => name, 'policy' => entry['generation_policy'], 'manifest' => manifest, 'verify_only' => true }
           expect_plan('nest::host::stage_generation').with_params(verify).be_called_times(2).return do |**_options|
             checked[name] += 1
             Bolt::PlanResult.new({ 'sealed' => true }, 'success')
@@ -321,7 +347,7 @@ RSpec.describe 'nest::host::update' do
       end
 
       it 'refuses the canary when a later selected generation fails preflight' do
-        verify = { 'targets' => 'update-failed', 'policy' => inputs['update-failed']['generation_policy'], 'verify_only' => true }
+        verify = { 'targets' => 'update-failed', 'policy' => inputs['update-failed']['generation_policy'], 'manifest' => manifest, 'verify_only' => true }
         expect_plan('nest::host::stage_generation').with_params(verify).error_with('kind' => 'fixture/seal', 'msg' => 'Corrupt generation')
         allow_any_command.not_be_called
 
@@ -330,7 +356,7 @@ RSpec.describe 'nest::host::update' do
 
       it 'refuses reset when a seal changes between preflight and initiation' do
         checks = 0
-        verify = { 'targets' => 'update-good', 'policy' => inputs['update-good']['generation_policy'], 'verify_only' => true }
+        verify = { 'targets' => 'update-good', 'policy' => inputs['update-good']['generation_policy'], 'manifest' => manifest, 'verify_only' => true }
         expect_plan('nest::host::stage_generation').with_params(verify).be_called_times(2).return do |**_options|
           checks += 1
           (checks == 1) ? Bolt::PlanResult.new({}, 'success') : Bolt::PlanResult.new(Bolt::Error.new('Changed seal', 'fixture/seal'), 'failure')

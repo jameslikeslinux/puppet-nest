@@ -17,7 +17,13 @@ inventory-backed entrypoint is:
 bolt plan run nest::host::stage_generation --params @/PATH/params.json
 ```
 
-The parameter object has `targets`, `policy` and optional `check` (default true).
+The parameter object has `targets`, `policy`, `manifest` and optional `check`
+(default true). `manifest` is the complete retained `nest_release_manifest`, not
+its validation receipt. Older calls without this object refuse before any host
+command. The supervisor validates the full manifest and exact selected host
+output, then binds policy runtime release, build token, source path, content
+digest and destination to it. A missing unrelated output also refuses; supplying
+only a host artifact cannot bypass complete release validation.
 Exactly one canonical inventory name must equal `policy.hostname`. Recovery
 consoles and qualified controller aliases refuse. Ordinary Joy/Bolt transport
 and Bolt root escalation are used; there is no root-SSH fallback. The installed
@@ -62,7 +68,11 @@ A digest supplied in a policy is a trusted-root/release-owner assertion, not a
 signature, proof of remote dataset GUID, or independent discovery of the
 relationship between a build root and a runtime release. Actual source bytes
 must match that asserted content digest. Release assembly/approval must supply
-the correct identities; this helper never invents or promotes them.
+the correct identities; this helper never invents or promotes them. The Bolt
+entrypoint now reconciles those assertions with the complete manifest, but does
+not independently verify producer GitLab jobs, the publication dataset GUID or
+release approval. The native helper alone remains the low-level trusted-root
+interface, not a substitute for the supervisor release binding.
 
 ## Explicit prerequisites and capacity boundary
 
@@ -153,6 +163,8 @@ real rsync, hardlinks/xattrs, flock and atomic receipt publication are exercised
 
 Use the same exact policy with `verify_only=true` on
 `nest::host::stage_generation`. Leave `check=true` (the default); the plan
+also requires the same complete `manifest` in this mode. Manifest validation is
+local to the supervisor, so it adds no publication network dependency. The plan
 refuses `verify_only=true check=false` before any target command. The installed
 helper's corresponding mode is `--verify`, mutually exclusive with `--check`.
 Ordinary placement checking and explicit transfer behavior remain unchanged.

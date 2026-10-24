@@ -223,8 +223,20 @@ The update plan never invokes its transfer path automatically. Preparation now
 requires the producer's exact sealed-generation policy and invokes only its
 read-only `verify_only=true` path before any reset and again at host initiation.
 
-Pass the same complete schema-3 `policy`, `targets`, an existing canonical supervisor
+Pass the complete retained `release_manifest` as well as the schema-3 `policy`,
+`targets`, an existing canonical supervisor
 `output_dir`, and `preparation`: a map keyed by every exact inventory hostname.
+The supervisor first validates the entire manifest using the existing release
+validator and reconciles every selected generation with its Stage 3 output.
+The wave release must equal the canonical manifest digest, and its config source,
+exact host scope, platform and kernel must match the selected member records.
+This runs before controller maintenance, backup or generation contact. Each local
+seal check also receives that same manifest. Missing manifests, validation
+receipts instead of manifests, incomplete output matrices and mismatched content
+or compatibility refuse without reset. Other modes refuse `release_manifest`;
+planning and stored-status observation remain independent of its availability.
+Metadata agreement is not independent producer/resource verification, catalog
+attestation, release approval or native capacity admission.
 Each entry has exactly `transaction`, `root_generation`, `capacity_policy` and
 `generation_policy`. The last field is the complete exact schema-1 policy from
 the [generation producer](nest-host-generations.md), not its returned report.
