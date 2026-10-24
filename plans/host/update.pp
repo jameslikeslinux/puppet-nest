@@ -104,13 +104,21 @@ plan nest::host::update (
     if $mode == 'prepare' {
       # Verify ALL selected local seals before the first reset, without source
       # publication access, transfer, provisioning or automatic repair.
-      $bound['inputs'].each |$name, $input| {
-        run_plan('nest::host::stage_generation', {
+      $generation_preflight = $bound['inputs'].map |$name, $input| {
+        $verified = run_plan('nest::host::stage_generation', {
           'targets'     => $name,
           'policy'      => $input['generation_policy'],
           'manifest'    => $release_manifest,
           'verify_only' => true,
+          'output_dir'  => $output_dir,
         })
+        $retained = $verified['retained']
+        unless $retained =~ Hash and $retained['kind'] == 'nest_generation_retention_receipt' and
+          $retained['readback_verified'] == true and $retained['sealed'] == true and
+          $retained['hostname'] == $name and $retained['release'] == $bound['release'] and $retained['reset_authorized'] == false {
+          fail_plan('Generation verification was not retained; no reset started', 'nest/update-generation-retention')
+        }
+        $retained
       }
       # A seal is not reset capacity. Admit ALL hosts through the native read-only
       # planner before any reset; these observations are never execution leases.
@@ -147,6 +155,7 @@ plan nest::host::update (
         fail_plan('Backup verification was not retained; no reset started', 'nest/update-backup-retention')
       }
     } else {
+      $generation_preflight = []
       $capacity_preflight = []
       $backup_preflight = []
     }
@@ -177,12 +186,19 @@ plan nest::host::update (
           }
           # A seal observation is not a lease. Repeat after readiness/backup
           # work, then re-admit time and exact inputs before native initiation.
-          run_plan('nest::host::stage_generation', {
+          $verified = run_plan('nest::host::stage_generation', {
             'targets'     => $name,
             'policy'      => $bound['inputs'][$name]['generation_policy'],
             'manifest'    => $release_manifest,
             'verify_only' => true,
+            'output_dir'  => $output_dir,
           })
+          $generation_verification = $verified['retained']
+          unless $generation_verification =~ Hash and $generation_verification['kind'] == 'nest_generation_retention_receipt' and
+            $generation_verification['readback_verified'] == true and $generation_verification['sealed'] == true and
+            $generation_verification['hostname'] == $name and $generation_verification['release'] == $bound['release'] and $generation_verification['reset_authorized'] == false {
+            fail_plan('Generation verification was not retained; no new reset started', 'nest/update-generation-retention')
+          }
           # Initial admission is not a lease. Maintenance, destination checks
           # and earlier waves may outlast the exact preparation window. Recheck
           # on the supervisor immediately before EACH host command, not only
@@ -198,6 +214,7 @@ plan nest::host::update (
           }
         } else {
           $backup_verification = []
+          $generation_verification = undef
         }
         $native = run_command($bound['commands'][$name].shellquote, $node, 'Run exact native transaction command', {
           '_run_as'       => 'root',
@@ -219,18 +236,19 @@ plan nest::host::update (
         if $mode == 'observe' and (!$native.ok or $receipt['observation_retained'] != true) {
           fail_plan('Native status did not produce a retained live observation', 'nest/update-observe-failed')
         }
-        $receipt + { 'backup_verification' => $backup_verification }
+        $receipt + { 'backup_verification' => $backup_verification, 'generation_verification' => $generation_verification }
       }
     }
     return({
-      'kind'                => $result_kind,
-      'schema'              => 1,
-      'policy_sha256'       => $bound['policy_sha256'],
-      'waves'               => $waves,
-      'capacity_preflight'  => $capacity_preflight,
-      'backup_preflight'    => $backup_preflight,
-      'reboot_eligible'     => [],
-      'acceptance_recorded' => false,
+      'kind'                 => $result_kind,
+      'schema'               => 1,
+      'policy_sha256'        => $bound['policy_sha256'],
+      'waves'                => $waves,
+      'generation_preflight' => $generation_preflight,
+      'capacity_preflight'   => $capacity_preflight,
+      'backup_preflight'     => $backup_preflight,
+      'reboot_eligible'      => [],
+      'acceptance_recorded'  => false,
     })
   }
   if $preparation != undef or $observations != undef or $output_dir != undef or $maintenance != undef {
