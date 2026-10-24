@@ -321,6 +321,7 @@ class IdentityTests(unittest.TestCase):
                      {'target': '/nest/releases', 'source': 'server:/releases', 'fstype': 'nfs4', 'options': 'ro'}]
         self.properties = {'guid': '456', 'createtxg': '789', 'origin': '-', 'exec': 'off',
                            'setuid': 'off', 'devices': 'off', 'canmount': 'on'}
+        self.state_properties = {'guid': '800', 'canmount': 'noauto', 'org.nest:host-id': 'c' * 32}
         self.calls = []
 
     def property_value(self, dataset, name):
@@ -330,8 +331,8 @@ class IdentityTests(unittest.TestCase):
             return str(GEN.STATE) if dataset == self.state else self.value['destination']
         if name == 'readonly':
             return 'off'
-        if dataset == self.state and name == 'guid':
-            return '800'
+        if dataset == self.state:
+            return self.state_properties.get(name, '-')
         return self.properties.get(name, '-')
 
     def command(self, args, timeout=60):
@@ -388,6 +389,22 @@ class IdentityTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 self.run_identity()
             self.value[key] = previous
+
+    def test_state_requires_explicit_host_binding_and_managed_mount_policy(self):
+        for key, changed in [('org.nest:host-id', '-'), ('org.nest:host-id', 'd' * 32),
+                             ('canmount', 'on'), ('canmount', 'off')]:
+            original = self.state_properties[key]
+            self.state_properties[key] = changed
+            with self.subTest(key=key, changed=changed), self.assertRaises(ValueError):
+                self.run_identity()
+            self.state_properties[key] = original
+
+    def test_state_and_generation_reject_alias_mounts(self):
+        for index in (1, 2):
+            self.rows.append(dict(self.rows[index], target='/unexpected-alias'))
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                self.run_identity()
+            self.rows.pop()
 
     def test_existing_origin_release_or_unsafe_execution_properties_refuse(self):
         for key, changed in [('origin', 'pool/old@snap'), ('org.nest:release', self.value['release']),
