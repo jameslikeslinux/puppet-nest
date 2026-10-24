@@ -54,4 +54,44 @@ RSpec.describe 'nest::host::update' do
 
     expect(run_plan('nest::host::update', 'targets' => targets, 'reset' => false, 'reboot' => true).ok?).to be(true)
   end
+
+  it 'resolves inventory names and invokes only the supervisor wave planner in plan mode' do
+    policy = { 'schema' => 1, 'kind' => 'nest_update_wave_policy' }
+    planned = { 'schema' => 1, 'kind' => 'nest_update_wave_plan', 'execution_authorized' => false, 'reboot_eligible' => [] }
+    expect_task('nest::update_wave_plan').with_targets('localhost').with_params('policy' => policy, 'targets' => targets).always_return(planned)
+    expect_command('nest reset').not_be_called
+    expect_command('nest update').not_be_called
+    expect_plan('nest::host::reboot').not_be_called
+    expect_plan('nest::puppet::run').not_be_called
+
+    result = run_plan('nest::host::update', 'targets' => targets, 'mode' => 'plan', 'policy' => policy)
+
+    expect(result.ok?).to be(true)
+    expect(result.value).to eq(planned)
+  end
+
+  [
+    { 'mode' => 'plan' },
+    { 'mode' => 'plan', 'policy' => {}, 'reboot' => true },
+    { 'mode' => 'plan', 'policy' => {}, 'reset' => false },
+    { 'policy' => {} },
+  ].each do |options|
+    it "refuses incompatible wave options #{options} without any host action" do
+      expect_command('nest reset').not_be_called
+      expect_command('nest update').not_be_called
+      expect_task('nest::update_wave_plan').not_be_called
+      expect_plan('nest::host::reboot').not_be_called
+      expect_plan('nest::puppet::run').not_be_called
+
+      expect(run_plan('nest::host::update', options.merge('targets' => targets)).ok?).to be(false)
+    end
+  end
+
+  it 'does not fall through to execution when policy validation fails' do
+    expect_task('nest::update_wave_plan').with_targets('localhost').error_with('kind' => 'nest/update-wave-policy', 'msg' => 'Invalid policy')
+    expect_command('nest reset').not_be_called
+    expect_plan('nest::host::reboot').not_be_called
+
+    expect(run_plan('nest::host::update', 'targets' => targets, 'mode' => 'plan', 'policy' => {}).ok?).to be(false)
+  end
 end
