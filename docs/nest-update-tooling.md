@@ -287,6 +287,16 @@ the exact expected transaction, release digest and host hostname; the inventory
 alias alone is not an accepted hostname assertion. Missing shared state, missing
 receipt or failed transport stops collection, not a reason to recreate a cycle.
 
+The plan validates the exact transaction/release/hostname context and existing
+supervisor destination before contacting the host. A missing, symlinked or
+invalid destination fails without even exporting the native report. This is an
+observation, not a capacity or writeability lease: later publication can still
+fail. Success requires the returned receipt's exact context and
+`readback_verified=true`. A lost directory, failed publication or inconsistent
+receipt never retries export or any update phase. Preserve the native report
+and retry only this read-only export after diagnosing the destination; never
+prepare, accept, finalize or reboot to reconstruct a receipt.
+
 Create a canonical output directory on persistent supervisor storage first.
 With the existing Nest container wrapper, `localhost` is the short-lived Bolt
 container: use `/modules/nest/rollout-evidence/ROUND` backed by the caller's
