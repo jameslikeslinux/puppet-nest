@@ -17,6 +17,12 @@ RSpec.describe 'nest::host::update_health' do
       'boot_id' => boot_id, 'result' => 'pass', 'acceptance_recorded' => false }
   end
 
+  let(:endpoints) { [{ 'hostname' => 'service.example', 'addresses' => ['192.0.2.1'], 'path' => '/readyz', 'status' => 200 }] }
+  let(:network) do
+    { 'schema' => 1, 'kind' => 'nest_update_network_health', 'hostname' => 'fixture-host',
+      'boot_id' => boot_id, 'result' => 'pass', 'acceptance_recorded' => false }
+  end
+
   def modulepath
     [plan_modulepath, File.expand_path('../fixtures/modules', __dir__)]
   end
@@ -28,7 +34,7 @@ RSpec.describe 'nest::host::update_health' do
     FileUtils.remove_entry(plan_modulepath)
   end
 
-  def observe(before = boot, manager = managers, after = before)
+  def observe(before = boot, manager = managers, after = before, client = nil)
     calls = []
     expect_plan('nest::host::update_boot_health').be_called_times(2).return do |params:, **_options|
       expect(params['target'].name).to eq('fixture-host')
@@ -41,9 +47,20 @@ RSpec.describe 'nest::host::update_health' do
       calls << 'manager'
       Bolt::PlanResult.new(manager, 'success')
     end
-    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities)
+    if client
+      expect_plan('nest::host::update_network_health').return do |params:, **_options|
+        expect(params['target'].name).to eq('fixture-host')
+        expect(params['endpoints']).to eq(endpoints)
+        calls << 'network'
+        Bolt::PlanResult.new(client, 'success')
+      end
+    else
+      expect_plan('nest::host::update_network_health').not_be_called
+    end
+    result = run_plan('nest::host::update_health', 'target' => 'fixture-host', 'expectations' => identities,
+                                                'endpoints' => client ? endpoints : [])
     expect(result.ok?).to be(true)
-    expect(calls).to eq(['boot', 'manager', 'boot'])
+    expect(calls).to eq(client ? ['boot', 'manager', 'network', 'boot'] : ['boot', 'manager', 'boot'])
     result.value
   end
 
@@ -55,6 +72,30 @@ RSpec.describe 'nest::host::update_health' do
     expect(value['boot_before']).to eq(boot)
     expect(value['managers']).to eq(managers)
     expect(value['boot_after']).to eq(boot)
+    expect(value).to include('network' => nil, 'network_requested' => false)
+  end
+
+  it 'binds requested client paths inside the same boot bracket' do
+    expect(observe(boot, managers, boot, network)).to include('result' => 'pass', 'observations_bound' => true,
+                                                          'network' => network, 'network_requested' => true)
+  end
+
+  it 'retains failed or unavailable network observations without accepting' do
+    failed = network.merge('result' => 'fail', 'endpoints' => [{ 'availability' => 'unavailable' }])
+    expect(observe(boot, managers, boot, failed)).to include('result' => 'fail', 'observations_bound' => true,
+                                                         'network' => failed, 'acceptance_recorded' => false)
+  end
+
+  [
+    ['boot_id', 'aaaaaaaa-2222-3333-4444-555555555555'],
+    ['hostname', 'another-host'],
+    ['schema', 2],
+    ['kind', 'another_kind'],
+    ['acceptance_recorded', true],
+  ].each do |key, value|
+    it "refuses network #{key} substitution" do
+      expect(observe(boot, managers, boot, network.merge(key => value))).to include('result' => 'fail', 'observations_bound' => false)
+    end
   end
 
   it 'retains unavailable manager inventories and explained failures without making them healthy' do

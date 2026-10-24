@@ -2,6 +2,7 @@
 plan nest::host::update_health (
   TargetSpec            $target,
   Hash[String, String]  $expectations,
+  Array[Hash]           $endpoints = [],
 ) {
   $nodes = get_targets($target)
   if $nodes.length != 1 {
@@ -12,6 +13,11 @@ plan nest::host::update_health (
     expectations => $expectations,
   )
   $managers = run_plan('nest::host::update_manager_health', target => $nodes[0])
+  if $endpoints.empty {
+    $network = undef
+  } else {
+    $network = run_plan('nest::host::update_network_health', target => $nodes[0], endpoints => $endpoints)
+  }
   $boot_after = run_plan('nest::host::update_boot_health',
     target       => $nodes[0],
     expectations => $expectations,
@@ -26,8 +32,14 @@ plan nest::host::update_health (
   $manager_identity = $managers['schema'] == 1 and $managers['kind'] == 'nest_update_manager_health' and
     $managers['acceptance_recorded'] == false and $managers['hostname'] == $boot_before['hostname'] and
     $managers['boot_id'] == $boot_before['boot_id']
-  $bound = $boot_identity and $manager_identity
-  $healthy = $bound and $boot_before['result'] == 'pass' and $managers['result'] == 'pass'
+  $network_identity = $network == undef or (
+    $network['schema'] == 1 and $network['kind'] == 'nest_update_network_health' and
+    $network['acceptance_recorded'] == false and $network['hostname'] == $boot_before['hostname'] and
+    $network['boot_id'] == $boot_before['boot_id']
+  )
+  $bound = $boot_identity and $manager_identity and $network_identity
+  $healthy = $bound and $boot_before['result'] == 'pass' and $managers['result'] == 'pass' and
+    ($network == undef or $network['result'] == 'pass')
   $outcome = $healthy ? {
     true    => 'pass',
     default => 'fail',
@@ -39,6 +51,8 @@ plan nest::host::update_health (
     'observations_bound'   => $bound,
     'boot_before'          => $boot_before,
     'managers'             => $managers,
+    'network'              => $network,
+    'network_requested'    => !$endpoints.empty,
     'boot_after'           => $boot_after,
     'acceptance_recorded'  => false,
   })
