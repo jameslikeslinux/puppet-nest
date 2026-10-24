@@ -335,6 +335,175 @@ class HermesBackupGenerationTest(unittest.TestCase):
                 f"profile: {profile}\n",
             )
 
+    def hold_args(self, receipt, action='hold', hold_id='fixture-hold', release=None):
+        args = self.verify_args(receipt)
+        args.command = action
+        args.hold_id = hold_id
+        args.release = release or 'sha256:' + 'a' * 64
+        return args
+
+    def test_release_hold_preserves_old_generation_across_capture_and_prune(self) -> None:
+        first = self.backup('held')
+        held = generation.retain_generation(self.hold_args(first))
+        path = self.backup_dir / '.generation-hold-fixture-hold.json'
+        self.assertTrue(held['held'])
+        self.assertTrue(held['readback_verified'])
+        self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+        before = path.read_bytes(), path.stat().st_mtime_ns
+        self.assertEqual(generation.retain_generation(self.hold_args(first)), held)
+        self.assertEqual((path.read_bytes(), path.stat().st_mtime_ns), before)
+        second = self.backup('later', 1)
+        self.run_helper('prune', '--backup-dir', str(self.backup_dir), '--retain', '1')
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        self.assertTrue((self.backup_dir / str(second['archive'])).exists())
+        self.assertTrue(generation.retain_generation(self.hold_args(first, 'check-hold'))['held'])
+        released = generation.retain_generation(self.hold_args(first, 'release-hold'))
+        self.assertFalse(released['held'])
+        self.assertFalse(path.exists())
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        self.run_helper('prune', '--backup-dir', str(self.backup_dir), '--retain', '1')
+        self.assertFalse((self.backup_dir / str(first['archive'])).exists())
+        self.assertEqual(self.call_log.read_text(), 'backup\nbackup\n')
+
+    def test_independent_holds_require_independent_exact_release(self) -> None:
+        first = self.backup('shared-held')
+        generation.retain_generation(self.hold_args(first, hold_id='one'))
+        generation.retain_generation(self.hold_args(first, hold_id='two', release='sha256:' + 'b' * 64))
+        for action in ('hold', 'check-hold', 'release-hold'):
+            with self.subTest(action=action), self.assertRaises(RuntimeError):
+                generation.retain_generation(self.hold_args(first, action, hold_id='one', release='sha256:' + 'c' * 64))
+        generation.retain_generation(self.hold_args(first, 'release-hold', hold_id='one'))
+        self.backup('newest', 1)
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+
+    def test_hold_and_check_hash_but_prune_does_not_rehash_old_archives(self) -> None:
+        first = self.backup('no-rehash')
+        generation.retain_generation(self.hold_args(first))
+        self.backup('newest')
+        with mock.patch.object(generation, '_sha256', side_effect=AssertionError('prune must not rehash')):
+            self.assertEqual(generation._prune(self.backup_dir, 1), [])
+        archive = self.backup_dir / str(first['archive'])
+        data = bytearray(archive.read_bytes())
+        data[50] ^= 1
+        archive.write_bytes(data)
+        with self.assertRaises(RuntimeError):
+            generation.retain_generation(self.hold_args(first, 'check-hold'))
+        self.assertTrue((self.backup_dir / '.generation-hold-fixture-hold.json').exists())
+
+    def test_busy_lock_refuses_every_hold_action(self) -> None:
+        first = self.backup('lock-hold')
+        with (self.backup_dir / '.generation.lock').open('rb') as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            for action in ('hold', 'check-hold', 'release-hold'):
+                with self.subTest(action=action), self.assertRaises(BlockingIOError):
+                    generation.retain_generation(self.hold_args(first, action))
+        self.assertFalse(list(self.backup_dir.glob('.generation-hold-*')))
+
+    def test_verification_and_hold_publication_share_one_exclusive_lock(self) -> None:
+        first = self.backup('lock-span')
+        real_hash = generation._sha256
+
+        def hash_while_locked(path):
+            with (self.backup_dir / '.generation.lock').open('rb') as competitor:
+                with self.assertRaises(BlockingIOError):
+                    fcntl.flock(competitor.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return real_hash(path)
+
+        with mock.patch.object(generation, '_sha256', side_effect=hash_while_locked):
+            generation.retain_generation(self.hold_args(first))
+
+    def test_invalid_holds_stop_prune_before_any_deletion(self) -> None:
+        first = self.backup('invalid-hold')
+        generation.retain_generation(self.hold_args(first))
+        self.backup('newest')
+        path = self.backup_dir / '.generation-hold-fixture-hold.json'
+        valid = path.read_bytes()
+        mutations = [b'{}', valid + b'garbage', valid.replace(b'"schema": 1', b'"schema": true'),
+                     valid.replace(b'"schema": 1', b'"schema": 1, "schema": 1'), b'x' * 16385]
+        for raw in mutations:
+            path.write_bytes(raw)
+            with self.subTest(raw=raw[:40]), self.assertRaises((ValueError, RuntimeError)):
+                generation._prune(self.backup_dir, 1)
+            self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        path.write_bytes(valid)
+        path.chmod(0o644)
+        with self.assertRaises(RuntimeError):
+            generation._prune(self.backup_dir, 1)
+        path.chmod(0o600)
+        original = self.root / 'saved-hold'
+        path.rename(original)
+        path.symlink_to(original)
+        with self.assertRaises(OSError):
+            generation._prune(self.backup_dir, 1)
+        path.unlink()
+        os.mkfifo(path, 0o600)
+        with self.assertRaises(RuntimeError):
+            generation._prune(self.backup_dir, 1)
+
+    def test_dangling_hold_and_bad_receipt_prevent_unrelated_pruning(self) -> None:
+        first = self.backup('dangling')
+        generation.retain_generation(self.hold_args(first))
+        self.backup('unrelated-old')
+        self.backup('newest')
+        metadata = self.backup_dir / 'hermes-home-dangling.json'
+        metadata.write_text('{}')
+        with self.assertRaises(RuntimeError):
+            generation._prune(self.backup_dir, 1)
+        self.assertTrue((self.backup_dir / 'hermes-home-unrelated-old.zip').exists())
+        metadata.unlink()
+        with self.assertRaises(FileNotFoundError):
+            generation._prune(self.backup_dir, 1)
+        self.assertTrue((self.backup_dir / 'hermes-home-unrelated-old.zip').exists())
+
+    def test_failed_hold_publication_does_not_capture_or_prune(self) -> None:
+        first = self.backup('publication')
+        with mock.patch.object(generation, '_atomic_json', side_effect=OSError('injected ENOSPC')):
+            with self.assertRaises(OSError):
+                generation.retain_generation(self.hold_args(first))
+        self.assertFalse(list(self.backup_dir.glob('.generation-hold-*')))
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        self.assertEqual(self.call_log.read_text(), 'backup\n')
+
+    def test_native_retention_commands_survive_process_exit(self) -> None:
+        first = self.backup('native-held')
+        common = ['--backup-dir', str(self.backup_dir), '--checkpoint', 'native-held',
+                  '--expected-sha256', str(first['sha256']), '--hold-id', 'native-id', '--release', 'sha256:' + 'a' * 64]
+        held = self.run_helper('hold', *common, '--max-age-seconds', '3600')
+        self.assertTrue(held['held'])
+        before = {path.name: path.read_bytes() for path in self.backup_dir.iterdir()}
+        checked = self.run_helper('check-hold', *common, '--max-age-seconds', '3600')
+        self.assertTrue(checked['held'])
+        self.assertEqual({path.name: path.read_bytes() for path in self.backup_dir.iterdir()}, before)
+        released = self.run_helper('release-hold', *common)
+        self.assertFalse(released['held'])
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.run_helper('release-hold', *common)
+        self.assertEqual(self.call_log.read_text(), 'backup\n')
+
+    def test_stale_hold_remains_protected_but_can_be_explicitly_released(self) -> None:
+        first = self.backup('stale-held')
+        generation.retain_generation(self.hold_args(first))
+        metadata = self.backup_dir / 'hermes-home-stale-held.json'
+        row = json.loads(metadata.read_text())
+        row['created_at'] = '2000-01-01T00:00:00Z'
+        metadata.write_text(json.dumps(row))
+        with self.assertRaises(RuntimeError):
+            generation.retain_generation(self.hold_args(first, 'check-hold'))
+        self.backup('newest', 1)
+        self.assertTrue((self.backup_dir / str(first['archive'])).exists())
+        self.assertFalse(generation.retain_generation(self.hold_args(first, 'release-hold'))['held'])
+
+    def test_failed_release_scope_does_not_remove_existing_hold(self) -> None:
+        first = self.backup('release-scope')
+        generation.retain_generation(self.hold_args(first))
+        for field, value in [('expected_sha256', 'b' * 64), ('required_profile', ['talon'])]:
+            args = self.hold_args(first, 'release-hold')
+            setattr(args, field, value)
+            with self.subTest(field=field), self.assertRaises(RuntimeError):
+                generation.retain_generation(args)
+            self.assertTrue((self.backup_dir / '.generation-hold-fixture-hold.json').exists())
+
     def test_retention_is_global_generation_count(self) -> None:
         self.backup("checkpoint-1", retain=2)
         self.backup("checkpoint-2", retain=2)
