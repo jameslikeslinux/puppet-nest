@@ -214,6 +214,43 @@ class GraphTest(unittest.TestCase):
         with self.assertRaises(ValueError): G['freeze_node'](self.node_env, self.api)
         self.assertFalse((self.f.checkout / 'release-inputs').exists())
 
+    def test_predecessor_bridge_volatile_metadata_does_not_change_native_identity(self):
+        def after(path):
+            if '/pipelines/650/bridges?' in path:
+                bridge = self.api.bridges[650][0]
+                bridge['duration'] = bridge.get('duration', 0) + 1
+                bridge['user'] = dict(name='Changing display metadata')
+        self.api.after_get = after
+        G['freeze_node'](self.node_env, self.api)
+        self.assertTrue((self.f.checkout / 'release-inputs/candidate.yml').exists())
+
+    def test_stable_predecessor_observation_keeps_every_safety_identity(self):
+        _, original = G['native_node'](self.api, self.request, 650, 'stage0')
+        for field in ('id', 'name', 'status', 'allow_failure', 'parent-id', 'parent-project',
+                      'parent-source', 'child-id', 'child-project', 'child-source', 'child-ref', 'child-status'):
+            api = NativeGraph(copy.deepcopy(self.api.expected))
+            bridge = api.bridges[650][0]
+            changes = {
+                'id': (bridge, 'id', 999), 'name': (bridge, 'name', 'Other'),
+                'status': (bridge, 'status', 'failed'), 'allow_failure': (bridge, 'allow_failure', True),
+                'parent-id': (bridge['pipeline'], 'id', 999),
+                'parent-project': (bridge['pipeline'], 'project_id', 999),
+                'parent-source': (bridge['pipeline'], 'sha', 'f' * 40),
+                'child-id': (bridge['downstream_pipeline'], 'id', 999),
+                'child-project': (bridge['downstream_pipeline'], 'project_id', 999),
+                'child-source': (bridge['downstream_pipeline'], 'sha', 'f' * 40),
+                'child-ref': (bridge['downstream_pipeline'], 'ref', 'other'),
+                'child-status': (bridge['downstream_pipeline'], 'status', 'failed'),
+            }
+            row, key, value = changes[field]
+            row[key] = value
+            with self.subTest(field=field):
+                try:
+                    _, changed = G['native_node'](api, self.request, 650, 'stage0')
+                except (ValueError, KeyError):
+                    continue
+                self.assertNotEqual(original, changed)
+
     def test_flattened_predecessor_refuses_ambiguous_or_wrong_freezer_and_old_node_layer(self):
         for change in ('legacy', 'duplicate', 'failed', 'old-node', 'extra-route'):
             api = NativeGraph(copy.deepcopy(self.api.expected))
@@ -402,6 +439,17 @@ class GraphTest(unittest.TestCase):
         self.assertFalse(receipt['promotion_authorized'])
         self.assertEqual(R['load'](self.f.checkout / 'release-graph-acceptance/receipt.json'), receipt)
         with self.assertRaises(FileExistsError): G['accept_graph'](env, self.api)
+
+    def test_acceptance_ignores_volatile_bridge_metadata_but_retains_exact_lineage(self):
+        env = self.completed()
+        def after(path):
+            if '/pipelines/650/bridges?' in path:
+                for bridge in self.api.bridges[650]:
+                    bridge['duration'] = bridge.get('duration', 0) + 1
+                    bridge['runner'] = dict(contacted_at=str(bridge['duration']))
+        self.api.after_get = after
+        receipt = G['accept_graph'](env, self.api)
+        self.assertEqual(len(receipt['rebuilt']['manifest']['candidate']['outputs']), 2)
 
     def test_self_consistent_leaf_cannot_change_projection_policy_sources_or_dependency_bases(self):
         env = self.completed()

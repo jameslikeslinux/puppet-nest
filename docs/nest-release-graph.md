@@ -100,9 +100,11 @@ resolve that flattened lineage rather than the old node layer.
 
 Stage/tool repository consumers must implement the same exact member-scoped
 name admission in reviewed source before the executing graph is enabled.
-All four Stage consumers and OpenBolt, PDK, Agent and Firefox have now passed
-independent parent acceptance of that prerequisite; no consumer check is
-bypassed here. Specialized executor pins remain independently enforced.
+All four Stage consumers and OpenBolt, PDK, Agent, Firefox, Camofox and
+llama.cpp have passed independent parent acceptance of the scoped-input and
+schema-2 source prerequisites. This is source/offline contract acceptance,
+not native scheduling or production job-token permission acceptance. No
+consumer check is bypassed here; specialized executor pins remain enforced.
 The CLI remains disabled pending actual flattened-contract nonpublishing
 pass/fail acceptance.
 Do not replay the previously accepted status fixtures as proof of those new
